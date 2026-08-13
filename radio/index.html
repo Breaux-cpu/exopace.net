@@ -278,12 +278,13 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
       <div class="field"><label>wss URL</label><input id="remoteUrl" placeholder="wss://relay.example/ws"></div>
       <button class="btn" id="remoteGo">OPEN REMOTE</button>
     </div>
-    <button class="opt" id="optDemo"><b>Demo</b><span>Memphis-area nodes + Earth — no radio.</span></button>
+    <button class="opt" id="optDemo"><b>Demo</b><span>Dev only — stripped in prod.</span></button>
     <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
   </div>
 </div>
 <div id="toast"></div>
 
+<script src="env.js"></script>
 <script src="three.min.js"></script>
 <script src="protocol.js"></script>
 <script src="store.js"></script>

@@ -1,53 +1,37 @@
-# EXOpace FEEDS
+# EXOpace FEEDS (production)
 
-Public edge is static Pages (`exopace.net`). Live COP at `:8200` is a separate sessioned API.
+`EXOPACE_ENV=prod` on the shipped site. Demo / invented catalogs are **off**.
 
-## Sources (GATE A)
+## Env (deploy / ingest)
 
-| Feed | Live attempt | Key | Fallback |
-|------|----------------|-----|----------|
-| TLE / GP | CelesTrak `stations` `visual` `weather` | no | CACHED → SYNTHETIC fleet |
-| AIR | OpenSky CONUS bbox (no key) | no | CACHED → SYNTHETIC routes |
-| SEA | Optional `exopace-bridge` COP `/ships` | no on Pages | CACHED → SYNTHETIC hulls |
-| IMAGERY | ArcGIS World Imagery + CARTO (no key) | no | blue-marble + **IMAGERY LIMITED** |
-| MESH | Demo Memphis mesh | n/a | always MESH |
+| Var | Where | Purpose |
+|-----|--------|---------|
+| `EXOPACE_ENV` | `env.js` / systemd | `prod` locks Demo |
+| `EXOPACE_TLE_URLS` | `env.js` | CelesTrak GP groups |
+| `EXOPACE_BRIDGE` | `env.js` | ingest origin, e.g. `http://127.0.0.1:8210` |
+| `EXOPACE_INGEST_HOST` | ingest | default `127.0.0.1` |
+| `EXOPACE_INGEST_PORT` | ingest | `8210` |
+| `EXOPACE_DATA` | ingest | `/mnt/gsdata/exopace-data` |
+| `EXOPACE_CORS` | ingest | `https://exopace.net` |
+| `EXOPACE_DEVICE_TOKEN` | Radio / SDR agent | minted; **never in git** |
 
-`key` in the FEEDS panel is **yes / no / bridge** — never a secret.
+## Sources
 
-## Provenance badges (honest)
+| Feed | Live | On failure |
+|------|------|------------|
+| TLE | CelesTrak `access-control-allow-origin: *` | **CACHED** last successful pull, else **ERROR** (empty globe, not fake sats) |
+| IMAGERY | ArcGIS / CARTO tiles (no key) | shipped Blue Marble (real Earth albedo) + IMAGERY LIMITED |
+| AIR | OpenSky — CORS **not** open to this origin | **ERROR**, layer empty |
+| SEA | ingest/bridge AIS only | **ERROR**, layer empty |
+| RF | `GET {BRIDGE}/rf/grid` | **NO RF SAMPLES** |
 
-FEEDS debug for imagery / sats / air / sea is **only** `LIVE | CACHED | SYNTHETIC`.
-
-| Badge | Means what’s on the globe |
-|-------|---------------------------|
-| LIVE | This session fetched remote data and that data is displayed |
-| CACHED | Displaying a prior remote pull from localStorage |
-| SYNTHETIC | Bundled or generated (blue marble, synth fleet, synth tracks) |
-
-OpenSky `Access-Control-Allow-Origin` is `opensky-network.org` only. Browser on `exopace.net` **cannot** be AIR LIVE. Badge is SYNTHETIC (or CACHED if a prior proxy write exists). Do not claim otherwise.
-
-Default imagery is shipped blue marble → **SYNTHETIC**. Switching SATELLITE/STREETS/HYBRID/DARK and getting tiles → **LIVE**. Tile fail → SYNTHETIC + IMAGERY LIMITED.
-
-## Operator actions
-
-- **RETRY** — refetch TLE + air + sea
-- **EXPORT DIAG** — JSON with statuses, CORS, counts. No tokens.
-- Imagery: SATELLITE · STREETS · HYBRID · DARK
-
-## Cold start (A1)
-
-1. UI chrome + synthetic sats/air/sea immediately (never infinite zeros)
-2. CACHED TLE if present
-3. Live fetch ≤15s → LIVE or stay SYNTHETIC/CACHED
-
-## Bridge (optional)
+## Run ingest
 
 ```
-localStorage.setItem('exopace-bridge', 'http://127.0.0.1:8200')
+python3 /mnt/gsdata/exopace/bridge/ingest_server.py
+python3 /mnt/gsdata/exopace/bridge/token_tool.py mint radio1
+# POST /ingest  Authorization: Bearer exo_…
+# GET  /rf/grid  /rf/samples  /rf/deadzones  /rf/export.csv  /rf/export.geojson
 ```
 
-Requires a viewer session cookie. Unsigned public Pages will not see COP keys.
-
-## Legal
-
-OpenSky / OSM / Esri / CARTO tiles are used as published. AIS live needs an operator key on the COP, not in the client.
+No placeholder API keys in the repo.

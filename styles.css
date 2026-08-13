@@ -72,9 +72,11 @@ a.radio-link { color: var(--cyan); text-decoration: none; }
 .feeds td.k { color: var(--cyan); }
 .badge { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; letter-spacing: 0.08em; }
 .badge.LIVE { color: var(--ok); } .badge.CACHED { color: var(--amber); } .badge.SYNTHETIC { color: var(--mut); }
+.badge.ERROR { color: #ff5c5c; border-color: #7a2020; }
 .badge.LIMITED { color: var(--warn); }
 .watch { margin-top: 10px; }
 .watch button { margin: 2px 0; width: 100%; text-align: left; }
+.rfempty { position: absolute; left: 14px; bottom: calc(110px + env(safe-area-inset-bottom)); font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: #ff5c5c; pointer-events: none; }
 @media (max-width: 820px) {
   .search { display: none; }
   .layers { display: none; }

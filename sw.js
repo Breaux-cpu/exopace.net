@@ -5,6 +5,7 @@ const ASSETS = [
   "/styles.css",
   "/engine.js",
   "/app.js",
+  "/env.js",
   "/feeds.js",
   "/imagery.js",
   "/sgp4.worker.js",

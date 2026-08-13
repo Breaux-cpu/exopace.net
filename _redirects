@@ -1,6 +1,8 @@
 # Real files first — never SPA-fallback firmware or textures
 /FIRMWARE.md    /FIRMWARE.md    200
 /FEEDS.md       /FEEDS.md       200
+/SDR_AGENT.md   /SDR_AGENT.md   200
+/env.js         /env.js         200
 /WORLD_DATA.md  /WORLD_DATA.md  200
 /sgp4.worker.js /sgp4.worker.js 200
 /radio/three.min.js /radio/three.min.js 200

@@ -20,6 +20,7 @@
     </div>
     <div class="imgbar" id="imgbar"></div>
     <div class="feeds" id="feedsPanel"></div>
+    <div class="empty rfempty" id="rfEmpty"></div>
     <div class="layers" id="layers"></div>
     <div class="camstrip" id="camstrip"></div>
     <div class="timebar">
@@ -41,7 +42,7 @@
     <div class="palette" id="palette"><input id="palQ" placeholder="lock ISS · layer aircraft · quality PERF" /><ul id="palList"></ul></div>
   `;
 
-  const LAYERS = ["sats:SATELLITES", "orbits:ORBITS", "clouds:CLOUDS", "atmo:ATMO", "radio:RADIO", "air:AIRCRAFT", "ships:SHIPS"];
+  const LAYERS = ["sats:SATELLITES", "orbits:ORBITS", "clouds:CLOUDS", "atmo:ATMO", "radio:RADIO", "air:AIRCRAFT", "ships:SHIPS", "rf:RF COVER"];
   const IMGS = ["satellite:SATELLITE", "streets:STREETS", "hybrid:HYBRID", "dark:DARK"];
   const CAMS = [["moc", "⌂ MOC"], ["free", "FLY"], ["follow", "FOLLOW"], ["satcam", "SAT-CAM"], ["cinematic", "CINE"]];
   const layerEl = document.getElementById("layers");
@@ -260,8 +261,9 @@
         }
       }
       renderDossier(engine.selected());
-      engine.setMesh(liveMesh());
+      if (!window.isExoProd()) engine.setMesh(liveMesh());
       hydrateFeeds();
+      loadRfLayer();
     },
     onFeed: ({ feed, count }) => {
       document.getElementById("feedChip").textContent = "SAT " + feed + " · " + count;
@@ -294,7 +296,7 @@
     },
   });
   engine.init();
-  setInterval(() => { if (engine) engine.setMesh(liveMesh()); }, 2000);
+  if (!window.isExoProd()) setInterval(() => { if (engine) engine.setMesh(liveMesh()); }, 2000);
 
   async function setImagery(mode) {
     document.querySelectorAll("[data-img]").forEach((b) => b.classList.toggle("on", b.dataset.img === mode));
@@ -325,8 +327,8 @@
   function renderFeeds() {
     const p = document.getElementById("feedsPanel");
     const snap = ExoFeeds.snapshot();
-    const triad = { LIVE: 1, CACHED: 1, SYNTHETIC: 1 };
-    const core = ["imagery", "tle", "air", "sea"];
+    const triad = { LIVE: 1, CACHED: 1, ERROR: 1, SYNTHETIC: 1 };
+    const core = ["imagery", "tle", "air", "sea", "rf"];
     const rows = core.map((k) => {
       const f = snap.feeds[k];
       const prov = triad[f.provenance] ? f.provenance : "SYNTHETIC";
@@ -351,6 +353,33 @@
     const exp = document.getElementById("feedExp");
     if (exp) exp.onclick = () => ExoFeeds.exportDiag();
     p.querySelectorAll("[data-wl]").forEach((b) => { b.onclick = () => lockQuery(b.dataset.wl); });
+  }
+
+  async function loadRfLayer() {
+    const bridge = window.EXOPACE_BRIDGE || "";
+    if (!engine.setRfGrid) return;
+    if (!bridge) {
+      engine.setRfGrid([], "NO RF SAMPLES · no bridge");
+      var el = document.getElementById("rfEmpty");
+      if (el) el.textContent = "NO RF SAMPLES";
+      ExoFeeds.mark("rf", { status: "error", provenance: "ERROR", err: "NO RF SAMPLES · EXOPACE_BRIDGE unset", count: 0, key: "no", cors: "n/a" });
+      return;
+    }
+    try {
+      const r = await fetch(bridge.replace(/\/$/, "") + "/rf/grid");
+      if (!r.ok) throw new Error("http " + r.status);
+      const j = await r.json();
+      const cells = j.cells || [];
+      engine.setRfGrid(cells, cells.length ? "" : "NO RF SAMPLES");
+      var el2 = document.getElementById("rfEmpty");
+      if (el2) el2.textContent = cells.length ? "" : "NO RF SAMPLES";
+      ExoFeeds.mark("rf", { status: cells.length ? "ok" : "empty", provenance: cells.length ? "LIVE" : "ERROR", count: j.samples || 0, err: cells.length ? "" : "NO RF SAMPLES", key: "no", cors: "yes" });
+    } catch (e) {
+      engine.setRfGrid([], "NO RF SAMPLES");
+      var el3 = document.getElementById("rfEmpty");
+      if (el3) el3.textContent = "NO RF SAMPLES";
+      ExoFeeds.mark("rf", { status: "error", provenance: "ERROR", err: "NO RF SAMPLES · " + e, count: 0, key: "no", cors: "fail" });
+    }
   }
 
   async function hydrateFeeds(force) {

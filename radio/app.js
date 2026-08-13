@@ -9,7 +9,7 @@ const S = {
   ws: null, bleRx: null, bleDev: null, demo: false, demoTimers: [], mode: "off",
   myId: "", myName: "NODE", gps: null, nodes: {}, batt: [], tries: 0,
   keyDirty: false, keyClear: false, keySet: false, lastCfg: null, bleBuf: "",
-  globe: null, ways: {}, rf: [], trail: [], rangeOn: false, rssiSpark: [],
+  globe: null, ways: {}, rf: [], trail: [], rangeOn: false, rssiSpark: [], lastRssi: null, lastSnr: null,
 };
 
 function fitKb() {
@@ -156,6 +156,17 @@ async function connectBle() {
   }
 })();
 
+function pushIngest(msg) {
+  const url = (window.EXOPACE_BRIDGE || "").replace(/\/$/, "");
+  const tok = window.EXOPACE_INGEST_TOKEN || localStorage.getItem("exopace-ingest-token") || "";
+  if (!url || !tok) return;
+  fetch(url + "/ingest", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok },
+    body: JSON.stringify(msg),
+  }).catch(() => {});
+}
+
 function send(o) {
   const j = P.encode(o);
   if (S.ws && S.ws.readyState === 1) { S.ws.send(j); return; }
@@ -176,7 +187,10 @@ $("optWifi").onclick = () => {
   connectWifi();
 };
 $("optBle").onclick = () => { if ($("optBle").disabled) return; showSheet(false); connectBle(); };
-$("optDemo").onclick = () => { showSheet(false); startDemo(); };
+$("optDemo").onclick = () => {
+  if (!window.exoAllowDemo || !window.exoAllowDemo()) { toast("DEMO DISABLED IN PROD"); return; }
+  showSheet(false); startDemo();
+};
 $("optRemote").onclick = () => $("remoteBox").classList.toggle("show");
 $("remoteGo").onclick = () => {
   const u = $("remoteUrl").value.trim();
@@ -379,10 +393,13 @@ $("btnRange").onclick = () => {
   toast(S.rangeOn ? "RANGE TEST ON" : "RANGE TEST OFF");
 };
 function sampleRfHere() {
-  const g = S.gps; if (!g || !g.fix) return;
-  const last = S.rssiSpark[S.rssiSpark.length - 1];
-  const rf = P.makeRf({ id: S.myId || "me", rssi: last != null ? last : -90, snr: 6, lat: g.lat, lon: g.lon });
+  const g = S.gps;
+  if (!g || !g.fix) { toast("WAITING FOR FIX"); return; }
+  const rssi = S.lastRssi, snr = S.lastSnr;
+  if (rssi == null || snr == null) { toast("NO RF SAMPLE · waiting for telem"); return; }
+  const rf = P.makeRf({ id: S.myId || "me", rssi: rssi, snr: snr, lat: g.lat, lon: g.lon });
   handle(rf);
+  pushIngest(rf);
 }
 addEventListener("resize", () => { if (S.globe) S.globe._resize(); });
 
@@ -426,6 +443,8 @@ function renderTelem(d) {
   $("vTx").textContent = (d.txp ?? "-") + " dBm"; $("vFreq").textContent = (d.freq ?? "-") + " MHz";
   const m = bars(d.rssi ?? -140); $("hMeter").outerHTML = m.replace('class="meter"', 'class="meter" id="hMeter"');
   S.batt.push(d.batt || 0); if (S.batt.length > 60) S.batt.shift();
+  if (d.rssi != null) S.lastRssi = d.rssi;
+  if (d.snr != null) S.lastSnr = d.snr;
   S.rssiSpark.push(d.rssi ?? -120); if (S.rssiSpark.length > 48) S.rssiSpark.shift();
   drawBatt(); drawSpark();
 }
@@ -490,6 +509,7 @@ $("cfgSave").onclick = () => {
 };
 
 function startDemo() {
+  if (!window.exoAllowDemo || !window.exoAllowDemo()) { toast("DEMO DISABLED IN PROD"); return; }
   if (S.demo) { ensureGlobe(); return; }
   S.demo = true; closeWifi(); clearBle(); S.nodes = {}; $("chatLog").innerHTML = "";
   syncChatEmpty(); setPath("demo", true);
@@ -568,11 +588,18 @@ if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share →
   } catch (e) {}
 })();
 
+if (window.isExoProd && window.isExoProd()) {
+  const d = $("optDemo");
+  if (d) { d.disabled = true; const s = d.querySelector("span"); if (s) s.textContent = "stripped in prod"; }
+}
+
 if (location.protocol === "https:") {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 if (location.hostname === "192.168.4.1") connectWifi();
-else setTimeout(() => { if (!S.demo && S.mode === "off") startDemo(); }, 500);
+else if (window.exoAllowDemo && window.exoAllowDemo()) {
+  setTimeout(() => { if (!S.demo && S.mode === "off") startDemo(); }, 500);
+}
 
 if (location.hash === "#map") {
   const b = document.querySelector('nav button[data-s="map"]');

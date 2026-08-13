@@ -232,6 +232,7 @@
   }
 
   function syntheticFleet() {
+    if (g.isExoProd && g.isExoProd()) return [];
     const specs = [
       { name: "ISS (ZARYA)", norad: 25544, inc: 51.64, raan: 80.1, ecc: 0.0004, aop: 95.2, ma: 265, mm: 15.502 },
       { name: "CSS TIANHE", norad: 48274, inc: 41.47, raan: 120.4, ecc: 0.0006, aop: 40, ma: 120, mm: 15.61 },
@@ -333,7 +334,7 @@
       const bodies = parseTles(texts.join("\n"), false);
       if (bodies.length > 4) {
         localStorage.setItem("exopace-tle-cache", JSON.stringify({ tle: texts.join("\n"), at: Date.now() }));
-        return { bodies: bodies.concat(syntheticFleet().filter((s) => !bodies.some((b) => b.norad === s.norad))), feed: "LIVE" };
+        return { bodies: bodies, feed: "LIVE" };
       }
       if (cached) return { bodies: parseTles(cached.tle, false), feed: "CACHED" };
     } catch (e) {
@@ -342,7 +343,7 @@
         if (cached) return { bodies: parseTles(cached.tle, false), feed: "CACHED" };
       } catch (e2) {}
     }
-    return { bodies: syntheticFleet(), feed: "SYNTHETIC" };
+    return { bodies: [], feed: "ERROR" };
   }
 
   function Engine(canvas, hooks) {
@@ -357,7 +358,7 @@
     this.bodies = [];
     this.feed = "SYNTHETIC";
     this.selectedId = null;
-    this.layers = { sats: true, orbits: true, clouds: true, atmo: true, air: true, ships: true, radio: true, labels: true, imagery: true };
+    this.layers = { sats: true, orbits: true, clouds: true, atmo: true, air: true, ships: true, radio: true, labels: true, imagery: true, rf: true };
     this.meshNodes = [];
     this.air = [];
     this.ships = [];
@@ -410,6 +411,29 @@
     if (id === "air" && this.airPts) this.airPts.visible = on;
     if (id === "ships" && this.shipPts) this.shipPts.visible = on;
     if (id === "sats" && this.satPts) this.satPts.visible = on;
+    if (id === "rf" && this.rfGroup) this.rfGroup.visible = on;
+  };
+  Engine.prototype.setRfGrid = function (cells, emptyMsg) {
+    this.rfEmpty = emptyMsg || "";
+    if (!this.rfGroup) return;
+    while (this.rfGroup.children.length) {
+      const ch = this.rfGroup.children[0];
+      this.rfGroup.remove(ch);
+      if (ch.geometry) ch.geometry.dispose();
+    }
+    (cells || []).forEach((c) => {
+      if (c.lat == null) return;
+      const p = latLonToVec3(c.lat, c.lon, 1.005);
+      const t = c.snr == null ? 0.3 : Math.max(0, Math.min(1, (c.snr + 20) / 25));
+      const col = new THREE.Color().setHSL(0.08 + 0.28 * t, 0.85, 0.42);
+      const m = new THREE.Mesh(
+        new THREE.CircleGeometry(0.008 + Math.min(0.02, (c.count || 1) * 0.002), 10),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false }),
+      );
+      m.position.copy(p); m.lookAt(0, 0, 0);
+      this.rfGroup.add(m);
+    });
+    this.hooks.onRf && this.hooks.onRf({ empty: this.rfEmpty, n: (cells || []).length });
   };
   Engine.prototype.setTracks = function (air, ships, airProv, seaProv) {
     this.air = air || [];
@@ -438,9 +462,9 @@
         return this.feed;
       }
     }
-    this.bodies = syntheticFleet();
-    this.feed = "SYNTHETIC";
-    this.hooks.onFeed && this.hooks.onFeed({ feed: this.feed, count: this.bodies.length });
+    this.bodies = [];
+    this.feed = "ERROR";
+    this.hooks.onFeed && this.hooks.onFeed({ feed: this.feed, count: 0 });
     return this.feed;
   };
   Engine.prototype.setMode = function (m) { this.rig.setMode(m); };
@@ -482,16 +506,17 @@
     this.groundLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.55 }));
     this.foot = new THREE.Mesh(new THREE.CircleGeometry(0.12, 48), new THREE.MeshBasicMaterial({ color: 0x7ee0ff, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
     this.radioGroup = new THREE.Group();
+    this.rfGroup = new THREE.Group();
     this.orbitLine.visible = this.groundLine.visible = this.foot.visible = false;
-    this.scene.add(this.orbitLine, this.groundLine, this.foot, this.radioGroup);
+    this.scene.add(this.orbitLine, this.groundLine, this.foot, this.radioGroup, this.rfGroup);
     this._bind();
-    // Never wait on network: synthetic fleet first so counts are never zero.
-    this.bodies = syntheticFleet();
-    this.feed = "SYNTHETIC";
-    this.air = (g.ExoFeeds ? g.ExoFeeds.synthAir() : []);
-    this.ships = (g.ExoFeeds ? g.ExoFeeds.synthSea() : []);
+    // PROD: empty until a real TLE/cache pull. Never invent a catalog.
+    this.bodies = [];
+    this.feed = "ERROR";
+    this.air = [];
+    this.ships = [];
     this._syncTracks();
-    this.hooks.onReady && this.hooks.onReady({ feed: this.feed, count: this.bodies.length, webgpu: false, quality: this.quality.id, air: this.air.length, ships: this.ships.length });
+    this.hooks.onReady && this.hooks.onReady({ feed: this.feed, count: 0, webgpu: false, quality: this.quality.id, air: 0, ships: 0 });
     this.running = true;
     this._loop();
     // TLE hydrate is owned by ExoFeeds so SAT badge == globe. Cache only here.
@@ -754,10 +779,8 @@
       self.satPts.geometry.attributes.color.needsUpdate = true;
       self.satPts.geometry.setDrawRange(0, cap);
       self.satPts.visible = self.layers.sats;
-      if (!self._trTick || wall - self._trTick > 400) {
+      if (!self._trTick || wall - self._trTick > 800) {
         self._trTick = wall;
-        if (self.airProv === "SYNTHETIC" && g.ExoFeeds) self.air = g.ExoFeeds.synthAir(date.getTime());
-        if (self.seaProv === "SYNTHETIC" && g.ExoFeeds) self.ships = g.ExoFeeds.synthSea(date.getTime());
         self._syncTracks();
       }
       const sel = self.selected();

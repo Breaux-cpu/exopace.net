@@ -21,7 +21,8 @@
     air: { id: "air", label: "AIR", status: "idle", provenance: "SYNTHETIC", cors: "unknown", key: "no", count: 0, err: "", at: 0, ms: 0 },
     sea: { id: "sea", label: "SEA", status: "idle", provenance: "SYNTHETIC", cors: "unknown", key: "no", count: 0, err: "", at: 0, ms: 0 },
     imagery: { id: "imagery", label: "IMAGERY", status: "bundled", provenance: "SYNTHETIC", cors: "n/a", key: "no", count: 0, err: "shipped blue marble", at: 0, ms: 0, mode: "satellite" },
-    mesh: { id: "mesh", label: "MESH", status: "demo", provenance: "MESH", cors: "n/a", key: "no", count: 0, err: "", at: 0, ms: 0 },
+    mesh: { id: "mesh", label: "MESH", status: "idle", provenance: "ERROR", cors: "n/a", key: "no", count: 0, err: "no mesh ingest", at: 0, ms: 0 },
+    rf: { id: "rf", label: "RF", status: "idle", provenance: "ERROR", cors: "n/a", key: "no", count: 0, err: "NO RF SAMPLES", at: 0, ms: 0 },
   };
   const listeners = [];
   function emit() { listeners.forEach((fn) => { try { fn(snapshot()); } catch (e) {} }); }
@@ -79,11 +80,11 @@
       return { text: tle, provenance: "LIVE" };
     }
     if (cached && cached.tle) {
-      mark("tle", { status: "degraded", provenance: "CACHED", cors, err: "live fail · using cache", key: "no" });
+      mark("tle", { status: "degraded", provenance: "CACHED", cors, err: "live fail · using last successful pull", key: "no", lastOk: cached.at });
       return { text: cached.tle, provenance: "CACHED" };
     }
-    mark("tle", { status: "synthetic", provenance: "SYNTHETIC", cors, err: "no live · no cache", key: "no" });
-    return { text: "", provenance: "SYNTHETIC" };
+    mark("tle", { status: "error", provenance: "ERROR", cors, err: "FEED ERROR · no live TLE · no prior snapshot", key: "no" });
+    return { text: "", provenance: "ERROR" };
   }
 
   /* ---------- AIR (OpenSky try → cache → synthetic) ---------- */
@@ -132,19 +133,18 @@
         vel: (s[9] || 0) / 1000, hdg: s[10] || 0,
         provenance: "LIVE", icao: s[0],
       })).filter((a) => a.lat != null && a.lon != null);
-      write(KEY.air, { list, at: now() });
+      write(KEY.air, { list, at: now(), live: true });
       mark("air", { status: "ok", provenance: "LIVE", cors: "yes", count: list.length, err: "", ms: res.ms, key: "no" });
       return { list, provenance: "LIVE" };
     }
     // OpenSky ACAO is opensky-network.org only — browser from exopace.net cannot be LIVE.
     const cors = /Failed|Network|CORS|TypeError|abort/i.test(res.err) ? "blocked" : "fail";
-    if (cached && cached.list && cached.list.length) {
-      mark("air", { status: "degraded", provenance: "CACHED", cors, count: cached.list.length, err: res.err, key: "no" });
+    if (cached && cached.list && cached.list.length && cached.live === true) {
+      mark("air", { status: "degraded", provenance: "CACHED", cors, count: cached.list.length, err: res.err + " · last live snapshot", key: "no" });
       return { list: cached.list, provenance: "CACHED" };
     }
-    const list = synthAir();
-    mark("air", { status: "synthetic", provenance: "SYNTHETIC", cors, count: list.length, err: res.err || "no live", key: "no" });
-    return { list, provenance: "SYNTHETIC" };
+    mark("air", { status: "error", provenance: "ERROR", cors, count: 0, err: "FEED ERROR · " + (res.err || "OpenSky not usable from this origin"), key: "no" });
+    return { list: [], provenance: "ERROR" };
   }
 
   /* ---------- SEA ---------- */
@@ -188,20 +188,23 @@
           provenance: s.provider === "demo_fallback" ? "SYNTHETIC" : "LIVE",
         })).filter((s) => s.lat != null);
         if (list.length) {
-          write(KEY.sea, { list, at: now() });
           const live = list.some((s) => s.provenance === "LIVE");
-          mark("sea", { status: "ok", provenance: live ? "LIVE" : "SYNTHETIC", cors: "yes", count: list.length, key: "bridge", ms: res.ms });
-          return { list, provenance: live ? "LIVE" : "SYNTHETIC" };
+          if (!live) {
+            mark("sea", { status: "error", provenance: "ERROR", cors: "yes", count: 0, key: "bridge", err: "FEED ERROR · bridge returned demo_fallback" });
+            return { list: [], provenance: "ERROR" };
+          }
+          write(KEY.sea, { list, at: now(), live: true });
+          mark("sea", { status: "ok", provenance: "LIVE", cors: "yes", count: list.length, key: "bridge", ms: res.ms });
+          return { list, provenance: "LIVE" };
         }
       }
     }
-    if (cached && cached.list && cached.list.length && now() - cached.at < 30 * 60 * 1000) {
-      mark("sea", { status: "degraded", provenance: "CACHED", cors: "n/a", count: cached.list.length, key: "no", err: "no live AIS on public edge" });
+    if (cached && cached.list && cached.list.length && cached.live === true) {
+      mark("sea", { status: "degraded", provenance: "CACHED", cors: "n/a", count: cached.list.length, key: "no", err: "no live AIS · last live snapshot" });
       return { list: cached.list, provenance: "CACHED" };
     }
-    const list = synthSea();
-    mark("sea", { status: "synthetic", provenance: "SYNTHETIC", cors: "n/a", count: list.length, key: "no", err: "no AIS key on Pages" });
-    return { list, provenance: "SYNTHETIC" };
+    mark("sea", { status: "error", provenance: "ERROR", cors: "n/a", count: 0, key: "no", err: "FEED ERROR · no AIS key / bridge" });
+    return { list: [], provenance: "ERROR" };
   }
 
   function watchlist() { return read(KEY.watch) || []; }
