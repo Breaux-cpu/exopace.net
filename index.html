@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EXOpace Radio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#101208">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EXOpace">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#101208; --panel:#181b0f; --panel2:#1f2314; --line:#31371e;
+  --amber:#ffb454; --amber-dim:#7d6132; --text:#eae6d4; --mut:#9a976f;
+  --ok:#9fd356; --warn:#ff7043; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
+  display:flex;flex-direction:column;overscroll-behavior:none}
+/* ---------- faceplate header ---------- */
+header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(--line);
+  padding:10px 14px calc(8px);display:flex;align-items:center;gap:12px;
+  padding-top:calc(10px + env(safe-area-inset-top))}
+.callsign{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
+.freq{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.08em}
+.meter{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:18px}
+.meter b{width:4px;background:#3a3f24;border-radius:1px;display:block}
+.meter b.on{background:var(--amber)}
+.meter b:nth-child(1){height:5px}.meter b:nth-child(2){height:8px}.meter b:nth-child(3){height:11px}
+.meter b:nth-child(4){height:14px}.meter b:nth-child(5){height:17px}
+.link{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+#demoTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
+  padding:2px 6px;border-radius:3px;letter-spacing:.1em}
+/* ---------- screens ---------- */
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.screen{display:none;padding:14px;max-width:640px;margin:0 auto;width:100%}
+.screen.active{display:block}
+#scr-map.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding:0;max-width:none;overflow:hidden}
+h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
+  text-transform:uppercase;margin:6px 0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big{font-family:var(--mono);font-size:26px;color:var(--amber);line-height:1.1;word-break:break-all}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
+.sub{font-size:12px;color:var(--mut);margin-top:4px}
+button,select,input{font:inherit;color:var(--text)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;
+  font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;width:100%}
+.btn.primary{background:var(--amber);color:#141406;border-color:var(--amber);font-weight:700}
+.btn:active{transform:translateY(1px)}
+.row{display:flex;gap:10px}
+/* ---------- chat ---------- */
+#chatLog{display:flex;flex-direction:column;gap:8px;padding-bottom:8px}
+.msg{max-width:82%;padding:9px 12px;border-radius:12px;background:var(--panel2);
+  border:1px solid var(--line);align-self:flex-start}
+.msg.mine{align-self:flex-end;background:#3a2f14;border-color:#5b4a1e}
+.msg .who{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:3px}
+.msg .txt{white-space:pre-wrap;word-break:break-word}
+.msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
+.msg .meta .ok{color:var(--ok)}
+#composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 4px;display:flex;gap:8px}
+#composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px}
+#composer input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+#composer .send{width:auto;flex:0 0 auto}
+/* ---------- position ---------- */
+.fix{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  padding:3px 8px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
+.fix.on{color:#141406;background:var(--ok);border-color:var(--ok);font-weight:700}
+#compass{width:80px;height:80px;border:2px solid var(--line);border-radius:50%;margin:0;
+  flex:0 0 80px;position:relative;background:radial-gradient(circle,#1c2010 60%,#14170b)}
+#needle{position:absolute;left:50%;top:50%;width:3px;height:30px;background:var(--amber);
+  transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);border-radius:2px;transition:transform .5s}
+#compass span{position:absolute;font-family:var(--mono);font-size:10px;color:var(--mut)}
+#compass .n{top:4px;left:50%;transform:translateX(-50%);color:var(--amber)}
+#compass .s{bottom:4px;left:50%;transform:translateX(-50%)}
+#compass .e{right:6px;top:50%;transform:translateY(-50%)}
+#compass .w{left:6px;top:50%;transform:translateY(-50%)}
+/* ---------- nodes ---------- */
+.node{display:flex;align-items:center;gap:12px}
+.node .meter{margin-left:auto}
+.node .nm{font-family:var(--mono);font-weight:700;color:var(--amber)}
+.node .id{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.node .st{font-family:var(--mono);font-size:11px;color:var(--mut);text-align:right}
+/* ---------- map schematic ---------- */
+.mapwrap{flex:1;min-height:0;position:relative;background:var(--bg)}
+#mapC{width:100%;height:100%;display:block;touch-action:manipulation}
+#mapEmpty{position:absolute;left:10px;right:92px;top:10px;font-family:var(--mono);
+  font-size:11px;color:var(--mut);white-space:pre-wrap;pointer-events:none;z-index:1}
+#mapTip{display:none;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+  font-family:var(--mono);font-size:11px;color:var(--text);white-space:pre-line;pointer-events:none}
+.mapst{position:absolute;right:8px;top:8px;z-index:2;font-family:var(--mono);font-size:10px;
+  letter-spacing:.12em;color:var(--mut);background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;padding:6px 8px}
+.mapst input{margin-right:4px;accent-color:var(--amber)}
+.mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
+.mapread{display:flex;align-items:center;gap:12px}
+.mapread .big{font-size:18px}
+/* ---------- vitals ---------- */
+#battChart{width:100%;height:64px;display:block}
+/* ---------- setup ---------- */
+.field{margin-bottom:12px}
+.field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;padding:10px 12px;font-family:var(--mono)}
+.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  color:var(--mut);text-transform:uppercase;margin-bottom:5px}
+/* ---------- tabs ---------- */
+nav{display:flex;border-top:1px solid var(--line);background:#14170b;
+  padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;padding:11px 0 9px;font-family:var(--mono);
+  font-size:10px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent}
+nav button.active{color:var(--amber);border-top-color:var(--amber)}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--amber);
+  color:#141406;font-family:var(--mono);font-size:12px;font-weight:700;padding:8px 14px;
+  border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
+.conn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:700;
+  padding:7px 10px;cursor:pointer;width:auto}
+.conn.up{color:var(--ok);border-color:var(--ok)}
+#sheet{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end}
+#sheet.show{display:flex}
+.sheet{width:100%;background:var(--panel);border-top:1px solid var(--line);
+  padding:16px 14px calc(16px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}
+.sheet h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--mut);margin-bottom:10px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+  border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer}
+.opt b{display:block;font-family:var(--mono);color:var(--amber);margin-bottom:3px}
+.opt span{font-size:12px;color:var(--mut)}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="callsign" id="hName">EXOpace</div>
+    <div class="freq" id="hFreq">--- MHz · SF-</div>
+  </div>
+  <span id="demoTag">DEMO</span>
+  <div class="meter" id="hMeter"><b></b><b></b><b></b><b></b><b></b></div>
+  <div class="link" id="hLink"></div>
+  <button class="conn" id="btnInst" style="display:none">INSTALL</button>
+  <button class="conn" id="btnConn">CONNECT</button>
+</header>
+
+<main>
+  <!-- CHAT -->
+  <section class="screen active" id="scr-chat">
+    <div class="card" id="installHint">
+      <div class="lbl">Phone app</div>
+      <div class="sub" id="installTxt">exopace.net — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnInst2">INSTALL APP</button>
+        <button class="btn" id="btnHintHide">HIDE</button>
+      </div>
+    </div>
+    <div id="chatEmpty" class="card sub">No traffic yet. TX or wait for a peer.</div>
+    <div id="chatLog"></div>
+    <div id="composer">
+      <select id="chatTo"><option value="*">ALL</option></select>
+      <input id="chatText" placeholder="Message the mesh…" autocomplete="off">
+      <button class="btn primary send" id="chatSend">TX</button>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="screen" id="scr-map">
+    <div class="mapwrap">
+      <canvas id="mapC"></canvas>
+      <div id="mapEmpty"></div>
+      <div id="mapTip"></div>
+      <label class="mapst"><input type="checkbox" id="stPin"> STATION</label>
+    </div>
+    <div class="card mapsec">
+      <div class="mapread">
+        <div>
+          <div class="lbl">My position <span class="fix" id="fixBadge">NO FIX</span></div>
+          <div class="big" id="posLL">--.----- / --.-----</div>
+          <div class="sub"><span id="posSpd">-</span> · <span id="posAlt">-</span></div>
+        </div>
+        <div id="compass"><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnCopy">COPY COORDS</button>
+        <button class="btn" id="btnMaps">OPEN IN MAPS</button>
+      </div>
+      <div class="sub">Maps opens when your phone has internet — the mesh itself needs none.</div>
+    </div>
+  </section>
+
+  <!-- NODES -->
+  <section class="screen" id="scr-nodes">
+    <h2>Mesh roster</h2>
+    <div id="nodeList"></div>
+  </section>
+
+  <!-- VITALS -->
+  <section class="screen" id="scr-vitals">
+    <h2>Node vitals</h2>
+    <div class="grid2">
+      <div class="card"><div class="lbl">Battery</div><div class="big" id="vBatt">-%</div><div class="sub" id="vVolt">- V</div></div>
+      <div class="card"><div class="lbl">Uptime</div><div class="big" id="vUp" style="font-size:20px">-</div><div class="sub" id="vHeap">heap -</div></div>
+      <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px">-</div><div class="sub" id="vSnr">SNR -</div></div>
+      <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px">-</div><div class="sub" id="vFreq">-</div></div>
+    </div>
+    <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="600" height="128"></canvas></div>
+    <div class="card"><div class="lbl">Range logger</div>
+      <div class="row">
+        <button class="btn" onclick="location.href='/range.csv'">DOWNLOAD CSV</button>
+        <button class="btn" onclick="location.href='/range0.csv'">OLDER CSV</button>
+      </div>
+      <div class="sub">One row per received packet — RSSI / SNR / GPS for coverage mapping.</div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="screen" id="scr-setup">
+    <h2>Node setup</h2>
+    <div class="card">
+      <div class="field"><label>Node name (callsign)</label><input id="cfgName" maxlength="12"></div>
+      <div class="field"><label>Frequency (MHz)</label>
+        <select id="cfgFreq"><option>915.0</option><option>906.875</option><option>868.0</option><option>433.0</option></select></div>
+      <div class="field"><label>Spreading factor (7 = fast · 12 = far)</label>
+        <select id="cfgSf"><option>7</option><option>8</option><option selected>9</option><option>10</option><option>11</option><option>12</option></select></div>
+      <div class="field"><label>TX power (dBm, radio out — V4 PA adds gain)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
+      <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
+      <div class="sub" id="passHint">Factory AP password is nodelink — change it before field use.</div>
+      <div class="field"><label>Channel key (AES-256 — use CLEAR CHANNEL KEY for open mesh)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
+      <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
+      <div class="grid2">
+        <div class="field"><label>GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
+        <div class="field"><label>GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
+      </div>
+      <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
+      <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
+      <div class="sub">All nodes must share frequency + SF to hear each other.</div>
+      <div class="sub" id="btHelp">Bluetooth from this HTTP AP needs a Chrome Android insecure-origin exception for http://192.168.4.1. Steps: docs/android-bt.md on the repo.</div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-s="chat" class="active">CHAT</button>
+  <button data-s="map">MAP</button>
+  <button data-s="nodes">NET</button>
+  <button data-s="vitals">NODE</button>
+  <button data-s="setup">SET</button>
+</nav>
+<div id="sheet">
+  <div class="sheet">
+    <h3>Link</h3>
+    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>I'm on the node (AP or LAN).</span></button>
+    <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
+    <button class="opt" id="optDemo"><b>Demo</b><span>UI only — no radio.</span></button>
+    <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const BLE_SVC="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const BLE_RX ="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const BLE_TX ="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+const S={ws:null,bleRx:null,bleDev:null,demo:false,demoTimers:[],mode:"off",myId:"",myName:"NODE",gps:null,nodes:{},batt:[],tries:0,
+  keyDirty:false,keyClear:false,keySet:false,lastCfg:null};
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); $("scr-"+b.dataset.s).classList.add("active");
+  if(b.dataset.s==="map") requestAnimationFrame(drawMap);
+});
+function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,1800);}
+function setPath(mode,up){
+  S.mode=mode;
+  $("hLink").classList.toggle("up",!!up);
+  const c=$("btnConn");
+  c.textContent=up?"LINKED":"CONNECT";
+  c.classList.toggle("up",!!up);
+  $("demoTag").style.display=mode==="demo"?"inline-block":"none";
+}
+function showSheet(on){$("sheet").classList.toggle("show",!!on);}
+function syncChatEmpty(){$("chatEmpty").style.display=$("chatLog").children.length?"none":"";}
+
+/* ---------- path teardown ---------- */
+function closeWifi(){
+  const ws=S.ws; S.ws=null;
+  if(!ws)return;
+  try{ws.onclose=null;ws.onmessage=null;ws.onopen=null;ws.close();}catch(e){}
+}
+function clearBle(){
+  const dev=S.bleDev; S.bleRx=null; S.bleDev=null;
+  if(dev&&dev.gatt&&dev.gatt.connected){try{dev.gatt.disconnect();}catch(e){}}
+}
+function stopDemo(){
+  if(S.demo){
+    (S.demoTimers||[]).forEach(clearInterval);
+    S.demoTimers=[];
+    S.nodes={};
+    $("chatLog").innerHTML="";
+    syncChatEmpty();
+  }
+  S.demo=false;
+}
+
+/* ---------- websocket (Wi-Fi primary) ---------- */
+function connectWifi(){
+  if(location.protocol==="file:"){toast("OPEN FROM THE NODE");return;}
+  stopDemo();
+  if(S.ws&&(S.ws.readyState===0||S.ws.readyState===1)){
+    if(S.ws.readyState===1)setPath("wifi",true);
+    return;
+  }
+  const url="ws://"+(location.hostname||"192.168.4.1")+"/ws";
+  try{S.ws=new WebSocket(url);}catch(e){return;}
+  S.ws.onopen=()=>{S.tries=0;setPath("wifi",true);};
+  S.ws.onclose=()=>{
+    if(S.mode==="wifi")setPath("wifi",false);
+    if(S.demo||S.mode==="bt")return;
+    setTimeout(()=>{if(S.demo||S.mode==="bt")return;connectWifi();},1500);
+  };
+  S.ws.onmessage=ev=>{try{handle(JSON.parse(ev.data));}catch(e){}};
+}
+
+/* ---------- Bluetooth (secure-context only; real OS picker) ---------- */
+async function connectBle(){
+  if(!window.isSecureContext||!navigator.bluetooth){toast("NEEDS SECURE CONTEXT");return;}
+  let picked=false;
+  try{
+    const dev=await navigator.bluetooth.requestDevice({
+      filters:[{namePrefix:"EXOpace"}],
+      optionalServices:[BLE_SVC]
+    });
+    picked=true;
+    const gatt=await dev.gatt.connect();
+    const svc=await gatt.getPrimaryService(BLE_SVC);
+    const tx=await svc.getCharacteristic(BLE_TX);
+    const rx=await svc.getCharacteristic(BLE_RX);
+    await tx.startNotifications();
+    tx.addEventListener("characteristicvaluechanged",ev=>{
+      const t=new TextDecoder().decode(ev.target.value);
+      try{handle(JSON.parse(t));}catch(e){}
+    });
+    stopDemo();
+    closeWifi();
+    S.bleRx=rx; S.bleDev=dev;
+    setPath("bt",true);
+    $("installHint").style.display="none";
+    dev.addEventListener("gattserverdisconnected",()=>{
+      if(S.bleDev!==dev)return;
+      S.bleRx=null; S.bleDev=null;
+      if(!S.demo) setPath("bt",false);
+    });
+  }catch(e){
+    toast(picked?"BT FAILED":"BT CANCELLED");
+    if(!S.demo && location.protocol!=="file:" && !(S.ws&&(S.ws.readyState===0||S.ws.readyState===1)))
+      connectWifi();
+  }
+}
+(function initBt(){
+  if(!window.isSecureContext||!navigator.bluetooth){
+    $("optBle").disabled=true;
+    $("btHint").textContent="NEEDS SECURE CONTEXT";
+  }
+})();
+
+function send(o){
+  const j=JSON.stringify(o);
+  if(S.ws&&S.ws.readyState===1){S.ws.send(j);return;}
+  if(S.bleRx){S.bleRx.writeValue(new TextEncoder().encode(j));return;}
+  if(S.demo) demoSend(o);
+}
+
+$("btnConn").onclick=()=>showSheet(true);
+$("optCancel").onclick=()=>showSheet(false);
+$("sheet").onclick=e=>{if(e.target.id==="sheet")showSheet(false);};
+$("optWifi").onclick=()=>{
+  showSheet(false);
+  if(location.protocol==="https:"){toast("JOIN EXOpace-XXXX · OPEN 192.168.4.1");return;}
+  connectWifi();
+};
+$("optBle").onclick=()=>{if($("optBle").disabled)return;showSheet(false);connectBle();};
+$("optDemo").onclick=()=>{showSheet(false);startDemo();};
+
+/* ---------- inbound ---------- */
+function handle(m){
+  switch(m.t){
+    case"hello": S.myId=m.id; S.myName=m.name; $("hName").textContent=m.name;
+                 $("chatLog").innerHTML=""; syncChatEmpty(); break; // history replay follows
+    case"cfg":   fillCfg(m.cfg); S.myName=m.cfg.name; $("hName").textContent=m.cfg.name;
+                 $("hFreq").textContent=m.cfg.freq+" MHz · SF"+m.cfg.sf; break;
+    case"chat":  addMsg(m); break;
+    case"hist":  (m.m||[]).forEach(handle); break;
+    case"ack":   markAck(m.msgId); break;
+    case"gps":   S.gps=m.g; renderGps(); break;
+    case"telem": renderTelem(m.d); break;
+    case"nodes": m.list.forEach(n=>S.nodes[n.id]=n); renderNodes(); break;
+    case"sys":   toast(m.msg); break;
+  }
+}
+
+/* ---------- chat ---------- */
+function addMsg(m){
+  const d=document.createElement("div");
+  d.className="msg"+(m.mine?" mine":""); d.dataset.mid=m.msgId||"";
+  const meta=m.mine?(m.ack?'<span class="ok">✓ delivered</span>':'<span class="ackslot">…sent</span>')
+                   :(m.rssi!==undefined?m.rssi+" dBm · "+m.snr+" dB":"");
+  d.innerHTML='<div class="who">'+esc(m.mine?"YOU":(m.fromName||m.from))+(m.to&&m.to!=="*"?" → "+esc(m.toName||m.to):"")+'</div>'
+    +'<div class="txt">'+esc(m.text)+'</div><div class="meta">'+meta+'</div>';
+  $("chatLog").appendChild(d);
+  syncChatEmpty();
+  $("chatLog").parentElement.scrollTop=1e9;
+}
+function markAck(id){const e=document.querySelector('.msg[data-mid="'+id+'"] .meta');if(e)e.innerHTML='<span class="ok">✓ delivered</span>';}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+$("chatSend").onclick=()=>{
+  const t=$("chatText").value.trim(); if(!t)return;
+  send({t:"chat",to:$("chatTo").value,text:t}); $("chatText").value="";
+};
+$("chatText").addEventListener("keydown",e=>{if(e.key==="Enter")$("chatSend").click();});
+
+/* ---------- position ---------- */
+function renderGps(){
+  const g=S.gps;
+  $("fixBadge").textContent=(g&&g.fix)?"FIX":"NO FIX";
+  $("fixBadge").classList.toggle("on",!!(g&&g.fix));
+  if(g&&g.fix){
+    $("posLL").textContent=g.lat.toFixed(5)+" / "+g.lon.toFixed(5);
+    $("posSpd").textContent=(g.spd||0).toFixed(1)+" mph";
+    $("posAlt").textContent=Math.round(g.alt||0)+" ft · "+(g.sats||0)+" sat";
+    $("needle").style.transform="translate(-50%,-100%) rotate("+(g.hdg||0)+"deg)";
+  }else{
+    $("posLL").textContent="--.----- / --.-----";
+  }
+  renderNodes();
+}
+$("btnCopy").onclick=()=>{const g=S.gps;if(!g||!g.fix)return toast("NO FIX YET");
+  navigator.clipboard&&navigator.clipboard.writeText(g.lat.toFixed(6)+","+g.lon.toFixed(6));toast("COPIED");};
+$("btnMaps").onclick=()=>{const g=S.gps;if(!g||!g.fix)return toast("NO FIX YET");
+  window.open("https://maps.google.com/?q="+g.lat+","+g.lon,"_blank");};
+
+/* ---------- MAP schematic (local peers only; no meshmap I/O) ---------- */
+function drawMap(){
+  const c=$("mapC"); if(!c)return;
+  const box=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  const W=box.width|0,H=box.height|0;
+  if(W<8||H<8)return;
+  if(c.width!==W*dpr||c.height!==H*dpr){c.width=W*dpr;c.height=H*dpr;}
+  const x=c.getContext("2d");
+  x.setTransform(dpr,0,0,dpr,0,0);
+  x.fillStyle="#101208"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#31371e"; x.lineWidth=1;
+  for(let i=1;i<5;i++){
+    x.beginPath();x.moveTo(W*i/5,0);x.lineTo(W*i/5,H);x.stroke();
+    x.beginPath();x.moveTo(0,H*i/5);x.lineTo(W,H*i/5);x.stroke();
+  }
+  const pts=[];
+  if(S.gps&&S.gps.fix) pts.push({k:"me",lat:S.gps.lat,lon:S.gps.lon,name:S.myName||"ME",id:S.myId||""});
+  Object.keys(S.nodes).forEach(i=>{
+    const n=S.nodes[i];
+    if(n.lat!=null&&n.lon!=null) pts.push({k:"peer",id:i,lat:+n.lat,lon:+n.lon,name:n.name||i,last:n.last,rssi:n.rssi});
+  });
+  if($("stPin").checked) pts.push({k:"st",lat:35.346,lon:-89.836,name:"STATION",id:"35.346, -89.836"});
+  const noMe=!(S.gps&&S.gps.fix);
+  const noPeer=!Object.keys(S.nodes).some(i=>S.nodes[i].lat!=null);
+  $("mapEmpty").textContent=[noMe?"Walk outside for GNSS":"",
+    noPeer?"Only you — peer dots appear when EXOpace nodes report position.":""].filter(Boolean).join("\n");
+  S.mapHits=[];
+  x.fillStyle="#ffb454"; x.font="11px ui-monospace,monospace"; x.fillText("N",W-16,16);
+  if(!pts.length)return;
+  let minA=pts[0].lat,maxA=pts[0].lat,minO=pts[0].lon,maxO=pts[0].lon;
+  pts.forEach(p=>{minA=Math.min(minA,p.lat);maxA=Math.max(maxA,p.lat);minO=Math.min(minO,p.lon);maxO=Math.max(maxO,p.lon);});
+  const pad=.008;
+  if(maxA-minA<pad){const m=(minA+maxA)/2;minA=m-pad/2;maxA=m+pad/2;}
+  if(maxO-minO<pad){const m=(minO+maxO)/2;minO=m-pad/2;maxO=m+pad/2;}
+  const mA=(minA+maxA)/2,mO=(minO+maxO)/2,k=Math.cos(mA*Math.PI/180);
+  const sA=(maxA-minA)*1.35,sO=(maxO-minO)*k*1.35,mrg=32;
+  const sc=Math.min((W-2*mrg)/Math.max(sO,1e-9),(H-2*mrg)/Math.max(sA,1e-9));
+  const xy=p=>[W/2+(p.lon-mO)*k*sc,H/2-(p.lat-mA)*sc];
+  const pxMi=sc/69;
+  const bar=[5,2,1,.5,.25].find(v=>v*pxMi>=28&&v*pxMi<=W-24);
+  if(bar){
+    x.strokeStyle="#9a976f"; x.lineWidth=2;
+    x.beginPath(); x.moveTo(10,H-12); x.lineTo(10+bar*pxMi,H-12); x.stroke();
+    x.fillStyle="#9a976f"; x.font="10px ui-monospace,monospace";
+    x.fillText(bar+" mi",10,H-16);
+  }
+  pts.forEach(p=>{
+    const[px,py]=xy(p);
+    S.mapHits.push({p,x:px,y:py});
+    if(p.k==="me"){
+      x.strokeStyle="#ffb454"; x.lineWidth=1.5;
+      x.beginPath(); x.arc(px,py,11,0,7); x.stroke();
+      x.fillStyle="#ffb454"; x.beginPath(); x.arc(px,py,5,0,7); x.fill();
+    }else if(p.k==="st"){
+      x.fillStyle="#9a976f"; x.fillRect(px-5,py-5,10,10);
+      x.strokeStyle="#eae6d4"; x.lineWidth=1; x.strokeRect(px-5,py-5,10,10);
+    }else{
+      x.fillStyle="#9fd356"; x.beginPath(); x.arc(px,py,5,0,7); x.fill();
+    }
+    x.fillStyle="#eae6d4"; x.font="11px ui-monospace,monospace";
+    x.fillText(p.name,px+10,py+4);
+  });
+}
+$("mapC").onclick=e=>{
+  const r=$("mapC").getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const hit=(S.mapHits||[]).find(t=>(t.x-mx)**2+(t.y-my)**2<400);
+  const tip=$("mapTip");
+  if(!hit){tip.style.display="none";return;}
+  const p=hit.p, lines=[p.name||"?",p.id||""];
+  if(p.k==="peer") lines.push(ago(p.last)+" ago"+(p.rssi!=null?" · "+p.rssi+" dBm":""));
+  if(p.k==="me") lines.push("you");
+  if(p.k==="st") lines.push("fixed pin");
+  tip.textContent=lines.filter(Boolean).join("\n");
+  tip.style.display="block";
+};
+$("stPin").onchange=()=>{$("mapTip").style.display="none";drawMap();};
+addEventListener("resize",()=>{if($("scr-map").classList.contains("active"))drawMap();});
+
+/* ---------- nodes ---------- */
+function bars(rssi){let n=rssi>-70?5:rssi>-85?4:rssi>-100?3:rssi>-115?2:rssi>-135?1:0,h="";
+  for(let i=0;i<5;i++)h+="<b"+(i<n?' class="on"':"")+"></b>";return'<div class="meter">'+h+"</div>";}
+function ago(ts){const s=ts>1e9?Math.max(0,(Date.now()/1000)-ts):ts;return s<60?Math.round(s)+"s":s<3600?Math.round(s/60)+"m":Math.round(s/3600)+"h";}
+function renderNodes(){
+  const ids=Object.keys(S.nodes);
+  const sel=$("chatTo");const cur=sel.value;
+  sel.innerHTML='<option value="*">ALL</option>'+ids.map(i=>'<option value="'+i+'">'+esc(S.nodes[i].name||i)+"</option>").join("");
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:"*";
+  $("nodeList").innerHTML=ids.length?ids.map(i=>{const n=S.nodes[i];
+    return'<div class="card node"><div><div class="nm">'+esc(n.name||"?")+'</div><div class="id">'+i+'</div></div>'
+      +'<div class="st">'+ago(n.last)+' ago<br>'+(n.batt!=null?n.batt+"%":"")+'</div>'+bars(n.rssi??-140)+"</div>";
+  }).join(""):'<div class="card sub">Silence on the grid. Power up a second node — it announces itself automatically.</div>';
+  drawMap();
+}
+
+/* ---------- vitals ---------- */
+function renderTelem(d){
+  $("vBatt").textContent=(d.batt??"-")+"%"; $("vVolt").textContent=(d.vbat??0).toFixed(2)+" V";
+  $("vUp").textContent=fmtUp(d.up); $("vHeap").textContent="heap "+Math.round((d.heap||0)/1024)+" KB";
+  $("vRssi").textContent=(d.rssi??"-")+" dBm"; $("vSnr").textContent="SNR "+(d.snr??"-")+" dB";
+  $("vTx").textContent=(d.txp??"-")+" dBm"; $("vFreq").textContent=(d.freq??"-")+" MHz";
+  const m=bars(d.rssi??-140);$("hMeter").outerHTML=m.replace('class="meter"','class="meter" id="hMeter"');
+  S.batt.push(d.batt||0); if(S.batt.length>60)S.batt.shift(); drawBatt();
+}
+function fmtUp(s){s=s||0;const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h+"h "+m+"m";}
+function drawBatt(){const c=$("battChart"),x=c.getContext("2d");x.clearRect(0,0,c.width,c.height);
+  x.strokeStyle="#ffb454";x.lineWidth=3;x.beginPath();
+  S.batt.forEach((v,i)=>{const px=i/(Math.max(S.batt.length-1,1))*c.width,py=c.height-(v/100)*c.height;
+    i?x.lineTo(px,py):x.moveTo(px,py);});x.stroke();}
+
+/* ---------- setup ---------- */
+function fillCfg(c){
+  S.lastCfg=c; S.keySet=!!c.keySet; S.keyDirty=false; S.keyClear=false;
+  $("cfgName").value=c.name;$("cfgFreq").value=c.freq;$("cfgSf").value=c.sf;
+  $("cfgTx").value=c.txp;$("cfgPass").value=c.pass||"";
+  $("cfgGpsRx").value=c.gpsRx;$("cfgGpsTx").value=c.gpsTx;$("cfgGpsPwr").value=c.gpsPwr;
+  if(c.key){
+    $("cfgKey").value=c.key;
+    $("cfgKey").placeholder="shared secret, same on every node";
+    S.keySet=true;
+  }else if(c.keySet){
+    $("cfgKey").value="";
+    $("cfgKey").placeholder="•••••••• / set — tap to change";
+  }else{
+    $("cfgKey").value="";
+    $("cfgKey").placeholder="shared secret, same on every node";
+  }
+  $("passHint").style.display=(c.pass==="nodelink"||!c.pass)?"":"none";
+}
+$("cfgKey").addEventListener("input",()=>{S.keyDirty=true;S.keyClear=false;});
+$("cfgPass").addEventListener("input",()=>{
+  $("passHint").style.display=($("cfgPass").value==="nodelink"||!$("cfgPass").value)?"":"none";
+});
+$("cfgClearKey").onclick=()=>{
+  $("cfgKey").value="";
+  $("cfgKey").placeholder="open mesh (no encryption)";
+  S.keyClear=true; S.keyDirty=false;
+};
+$("cfgSave").onclick=()=>{
+  const cfg={name:$("cfgName").value.trim()||"NODE",freq:parseFloat($("cfgFreq").value),
+    sf:parseInt($("cfgSf").value),txp:parseInt($("cfgTx").value),pass:$("cfgPass").value,
+    gpsRx:parseInt($("cfgGpsRx").value),gpsTx:parseInt($("cfgGpsTx").value),gpsPwr:parseInt($("cfgGpsPwr").value)};
+  if(S.keyClear) cfg.clearKey=true;
+  else if(S.keyDirty){
+    const k=$("cfgKey").value;
+    if(k) cfg.key=k; // never send "key":"" to mean unchanged
+  }
+  send({t:"setcfg",cfg});
+};
+
+/* ---------- demo mode (no device attached) ---------- */
+function startDemo(){
+  if(S.demo)return;
+  S.demo=true;
+  closeWifi();
+  clearBle();
+  S.nodes={};
+  $("chatLog").innerHTML="";
+  syncChatEmpty();
+  setPath("demo",true);
+  S.myId="7b52f8e3";
+  $("hName").textContent="BASECAMP";
+  handle({t:"cfg",cfg:{name:"BASECAMP",freq:"915.0",sf:9,txp:17,pass:"nodelink",key:"",keySet:false,gpsRx:33,gpsTx:34,gpsPwr:-1}});
+  let lat=35.1495,lon=-90.0490,hdg=40;
+  const peers=[{id:"a1b2c3d4",name:"RIG-1",rssi:-72,batt:88,dl:.008,dg:.005},
+               {id:"77e0f912",name:"TRK-2",rssi:-101,batt:64,dl:-.012,dg:.009}];
+  peers.forEach(p=>S.nodes[p.id]={id:p.id,name:p.name,rssi:p.rssi,snr:9,batt:p.batt,last:Date.now()/1000,lat:lat+p.dl,lon:lon+p.dg});
+  handle({t:"gps",g:{fix:1,lat,lon,alt:312,spd:4.2,hdg,sats:9}});
+  handle({t:"chat",from:"a1b2c3d4",fromName:"RIG-1",text:"North line is clear. Moving to site B.",rssi:-72,snr:9.5});
+  S.demoTimers=[
+    setInterval(()=>{lat+=0.00006;hdg=(hdg+3)%360;
+      handle({t:"gps",g:{fix:1,lat,lon,alt:312,spd:4.2,hdg,sats:9}});},1000),
+    setInterval(()=>{handle({t:"telem",d:{batt:90-(S.batt.length%9),vbat:4.02,up:S.batt.length*60+7300,
+      heap:214000,rssi:-72-(Math.random()*6|0),snr:9.5,txp:17,freq:"915.0"}});},1500),
+    setInterval(()=>{const p=peers[Math.random()<.5?0:1];
+      handle({t:"chat",from:p.id,fromName:p.name,rssi:p.rssi,snr:8,
+        text:["Copy that.","Battery good out here.","Signal strong on the ridge.","Heading back at 1700."][Math.random()*4|0]});},9000)
+  ];
+}
+function demoSend(o){
+  if(o.t==="chat"){const id="m"+Date.now();
+    handle({t:"chat",mine:true,msgId:id,text:o.text,to:o.to,toName:S.nodes[o.to]?S.nodes[o.to].name:null});
+    setTimeout(()=>markAck(id),900);}
+  if(o.t==="setcfg"){
+    const prev=S.lastCfg||{};
+    const c=Object.assign({},prev,o.cfg);
+    if(o.cfg.clearKey){c.key="";c.keySet=false;}
+    else if(o.cfg.key){c.key=o.cfg.key;c.keySet=true;}
+    else{c.key=prev.key||"";c.keySet=!!prev.keySet;}
+    delete c.clearKey;
+    handle({t:"cfg",cfg:c});
+    handle({t:"sys",msg:"RADIO RECONFIGURED"});
+  }
+}
+
+/* ---------- install / PWA ---------- */
+let deferredPrompt=null;
+function isiOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent);}
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+}
+function showInstallHow(){
+  if(isiOS()) toast("SHARE → ADD TO HOME SCREEN");
+  else toast("CHROME MENU → INSTALL APP");
+}
+function tryInstall(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;$("btnInst").style.display="none";});
+    return;
+  }
+  showInstallHow();
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  $("btnInst").style.display="";
+});
+window.addEventListener("appinstalled",()=>{
+  deferredPrompt=null;
+  $("btnInst").style.display="none";
+  $("installHint").style.display="none";
+  toast("INSTALLED");
+});
+$("btnInst").onclick=tryInstall;
+$("btnInst2").onclick=tryInstall;
+$("btnHintHide").onclick=()=>{$("installHint").style.display="none";};
+if(isStandalone()) $("installHint").style.display="none";
+if(isiOS() && !isStandalone()) $("installTxt").textContent="Safari: Share → Add to Home Screen. Then open EXOpace and CONNECT → Bluetooth.";
+
+if(location.protocol==="https:"){
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+}else if(location.protocol!=="file:") connectWifi();
+else setTimeout(()=>{if(!S.demo&&S.mode==="off")startDemo();},4000);
+</script>
+</body>
+</html>
