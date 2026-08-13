@@ -1,12 +1,15 @@
-# EXOpace Radio
-
-Installable phone app for the EXOpace field radio.
+# EXOpace
 
 **Live:** https://exopace.net
 
-- Chrome / Edge → INSTALL APP
-- iPhone Safari → Share → Add to Home Screen
-- CONNECT → Bluetooth → `EXOpace-XXXX` (do not pair in Android Settings)
-- Wi-Fi fallback: join `EXOpace-XXXX` / `nodelink` → http://192.168.4.1
+- **MOC** `/` — planetary / orbital mission control
+- **Radio** `/radio/` — installable field radio PWA
+- **Firmware contract** `/FIRMWARE.md`
 
-Hosted on Cloudflare Pages from this repo. Custom domain `exopace.net`.
+CONNECT → Bluetooth → `EXOpace-XXXX`. Do not pair in Android Settings.  
+Wi-Fi: join `EXOpace-XXXX` / `nodelink` → http://192.168.4.1
+
+Quality: ULTRA · HIGH · MED · PERF. Time: LIVE · HOLD · 10× · 60×.  
+Deep link: `/lock/25544?cam=follow&t=live`
+
+Offline synthetic fleet keeps the globe populated. Radio Demo is Memphis-area mesh. No Meshtastic lock-in.

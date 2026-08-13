@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" fill="#101208"/>
-  <text x="64" y="78" text-anchor="middle" font-family="ui-monospace,monospace" font-size="28" fill="#e8a54b">EXO</text>
+  <rect width="128" height="128" fill="#03060b"/>
+  <ellipse cx="64" cy="64" rx="38" ry="14" fill="none" stroke="#7ee0ff" stroke-width="2"/>
+  <circle cx="64" cy="64" r="6" fill="#ffe08a"/>
+  <circle cx="98" cy="58" r="3" fill="#7ee0ff"/>
 </svg>
