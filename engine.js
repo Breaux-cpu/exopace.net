@@ -273,6 +273,8 @@
       periodMin: rec.no ? (2 * Math.PI) / rec.no : 90,
       inc: rec.inclo ? (rec.inclo * 180) / Math.PI : 0,
       operator: metaOp(name),
+      provenance: synthetic ? "SYNTHETIC" : "LIVE",
+      kind: "sat",
     };
   }
   function metaOp(name) {
@@ -355,12 +357,21 @@
     this.bodies = [];
     this.feed = "SYNTHETIC";
     this.selectedId = null;
-    this.layers = { sats: true, orbits: true, clouds: true, atmo: true, air: false, ships: false, radio: true, labels: true };
+    this.layers = { sats: true, orbits: true, clouds: true, atmo: true, air: true, ships: true, radio: true, labels: true, imagery: true };
     this.meshNodes = [];
+    this.air = [];
+    this.ships = [];
+    this.airProv = "SYNTHETIC";
+    this.seaProv = "SYNTHETIC";
+    this.imgMode = "satellite";
+    this.imgLimited = false;
     this.sunU = new THREE.Vector3(1, 0.2, 0.2);
     this.tmp = new THREE.Vector3();
     this.vel = new THREE.Vector3();
     this.running = false;
+    this.worker = null;
+    this.workerPos = null;
+    this.dayBase = null;
   }
   Engine.prototype.tickClock = function () {
     const w = performance.now();
@@ -395,18 +406,39 @@
     if (id === "clouds" && this.clouds) this.clouds.visible = on && this.quality.clouds;
     if (id === "atmo" && this.atmo) this.atmo.visible = on;
     if (id === "radio") this.radioGroup.visible = on;
+    if (id === "air" && this.airPts) this.airPts.visible = on;
+    if (id === "ships" && this.shipPts) this.shipPts.visible = on;
+    if (id === "sats" && this.satPts) this.satPts.visible = on;
+  };
+  Engine.prototype.setTracks = function (air, ships, airProv, seaProv) {
+    this.air = air || [];
+    this.ships = ships || [];
+    if (airProv) this.airProv = airProv;
+    if (seaProv) this.seaProv = seaProv;
+    this._syncTracks();
+  };
+  Engine.prototype.setImagery = function (tex, mode, limited) {
+    this.imgMode = mode || this.imgMode;
+    this.imgLimited = !!limited;
+    if (!this.earthU) return;
+    if (tex) this.earthU.tDay.value = tex;
+    else if (this.dayBase) this.earthU.tDay.value = this.dayBase;
   };
   Engine.prototype.setMode = function (m) { this.rig.setMode(m); };
   Engine.prototype.setSelected = function (id) { this.selectedId = id; };
   Engine.prototype.selected = function () {
     const id = this.selectedId;
     if (!id) return null;
-    return this.bodies.find((b) => b.id === id || b.norad === id || slug(b.name) === slug(id)) || null;
+    const sat = this.bodies.find((b) => b.id === id || b.norad === id || slug(b.name) === slug(id));
+    if (sat) return sat;
+    return this.air.concat(this.ships).find((t) => t.id === id || slug(t.name) === slug(id)) || null;
   };
   Engine.prototype.find = function (q) {
     const s = (q || "").trim().toLowerCase();
     if (!s) return null;
-    return this.bodies.find((b) => b.name.toLowerCase().includes(s) || b.norad === s || b.id.toLowerCase() === s) || null;
+    const sat = this.bodies.find((b) => b.name.toLowerCase().includes(s) || b.norad === s || b.id.toLowerCase() === s);
+    if (sat) return sat;
+    return this.air.concat(this.ships).find((t) => (t.name || "").toLowerCase().includes(s) || (t.id || "").toLowerCase() === s) || null;
   };
   Engine.prototype.setMesh = function (nodes) { this.meshNodes = nodes || []; this._syncRadio(); };
   Engine.prototype.recageHome = function () { this.rig.home(); };
@@ -426,6 +458,7 @@
     await this._earth();
     this._stars();
     this._sats();
+    this._trackClouds();
     this.orbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x7ee0ff, transparent: true, opacity: 0.85 }));
     this.groundLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.55 }));
     this.foot = new THREE.Mesh(new THREE.CircleGeometry(0.12, 48), new THREE.MeshBasicMaterial({ color: 0x7ee0ff, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
@@ -433,12 +466,42 @@
     this.orbitLine.visible = this.groundLine.visible = this.foot.visible = false;
     this.scene.add(this.orbitLine, this.groundLine, this.foot, this.radioGroup);
     this._bind();
-    const cat = await loadCatalog();
-    this.bodies = cat.bodies;
-    this.feed = cat.feed;
-    this.hooks.onReady && this.hooks.onReady({ feed: this.feed, count: this.bodies.length, webgpu: false, quality: this.quality.id });
+    // Never wait on network: synthetic fleet first so counts are never zero.
+    this.bodies = syntheticFleet();
+    this.feed = "SYNTHETIC";
+    this.air = (g.ExoFeeds ? g.ExoFeeds.synthAir() : []);
+    this.ships = (g.ExoFeeds ? g.ExoFeeds.synthSea() : []);
+    this._syncTracks();
+    this.hooks.onReady && this.hooks.onReady({ feed: this.feed, count: this.bodies.length, webgpu: false, quality: this.quality.id, air: this.air.length, ships: this.ships.length });
     this.running = true;
     this._loop();
+    this._hydrate();
+  };
+  Engine.prototype._hydrate = async function () {
+    try {
+      const cat = await loadCatalog();
+      if (cat.bodies && cat.bodies.length) {
+        this.bodies = cat.bodies;
+        this.feed = cat.feed;
+        this._bootWorker(cat);
+        this.hooks.onFeed && this.hooks.onFeed({ feed: this.feed, count: this.bodies.length });
+      }
+    } catch (e) { /* keep synthetic */ }
+  };
+  Engine.prototype._bootWorker = function (cat) {
+    if (typeof Worker === "undefined") return;
+    try {
+      if (this.worker) this.worker.terminate();
+      this.worker = new Worker("/sgp4.worker.js");
+      const cached = localStorage.getItem("exopace-tle-cache");
+      let tle = "";
+      try { tle = cached ? JSON.parse(cached).tle : ""; } catch (e) {}
+      this.worker.postMessage({ type: "init", tle: tle || "" });
+      const self = this;
+      this.worker.onmessage = (ev) => {
+        if (ev.data && ev.data.type === "pos") self.workerPos = ev.data;
+      };
+    } catch (e) { this.worker = null; }
   };
 
   Engine.prototype._earth = async function () {
@@ -455,8 +518,9 @@
       load("/textures/earth-clouds.jpg", true),
     ]);
     const fb = fallbackDay();
+    this.dayBase = day || fb;
     this.earthU = {
-      tDay: { value: day || fb }, tNight: { value: night || fb }, tWater: { value: water || fb },
+      tDay: { value: this.dayBase }, tNight: { value: night || fb }, tWater: { value: water || fb },
       tClouds: { value: clouds || fb }, uSun: { value: this.sunU },
       uClouds: { value: this.quality.clouds ? 1 : 0 }, uNightBoost: { value: 2.15 },
     };
@@ -524,6 +588,68 @@
     this.scene.add(this.satPts);
   };
 
+  Engine.prototype._trackClouds = function () {
+    const mk = (n, size, hex) => {
+      const pos = new Float32Array(n * 3);
+      const col = new Float32Array(n * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size, vertexColors: true, sizeAttenuation: true }));
+      this.scene.add(pts);
+      return { pos, col, pts, ids: [] };
+    };
+    this._airCloud = mk(180, 0.022, 0xffb347);
+    this._shipCloud = mk(80, 0.024, 0x68e07a);
+    this.airPts = this._airCloud.pts;
+    this.shipPts = this._shipCloud.pts;
+  };
+
+  Engine.prototype._syncTracks = function () {
+    this._paintTracks(this._airCloud, this.air, this.layers.air, 0.95, 0.68, 0.28, this.quality.id === "PERF" ? 40 : 140);
+    this._paintTracks(this._shipCloud, this.ships, this.layers.ships, 0.40, 0.88, 0.48, this.quality.id === "PERF" ? 20 : 60);
+  };
+
+  Engine.prototype._paintTracks = function (cloud, list, vis, cr, cg, cb, cap) {
+    if (!cloud) return;
+    cloud.pts.visible = !!vis;
+    const clustered = this._cluster(list, cap);
+    cloud.ids = [];
+    const n = clustered.length;
+    for (let i = 0; i < n; i++) {
+      const t = clustered[i];
+      const r = t.kind === "ship" ? 1.004 : 1 + Math.max(t.alt || 8, 0.5) / 6371;
+      latLonToVec3(t.lat, t.lon, r, this.tmp);
+      cloud.pos[i * 3] = this.tmp.x; cloud.pos[i * 3 + 1] = this.tmp.y; cloud.pos[i * 3 + 2] = this.tmp.z;
+      const sel = this.selectedId && this.selectedId === t.id;
+      cloud.col[i * 3] = sel ? 1 : cr;
+      cloud.col[i * 3 + 1] = sel ? 0.88 : cg;
+      cloud.col[i * 3 + 2] = sel ? 0.4 : cb;
+      cloud.ids.push(t.id);
+    }
+    cloud.pts.geometry.attributes.position.needsUpdate = true;
+    cloud.pts.geometry.attributes.color.needsUpdate = true;
+    cloud.pts.geometry.setDrawRange(0, n);
+  };
+
+  Engine.prototype._cluster = function (list, cap) {
+    if (!list || !list.length) return [];
+    const far = this.rig && this.rig.sph.r > 5;
+    if (!far || list.length <= cap) return list.slice(0, cap);
+    const bins = {};
+    const step = 8;
+    list.forEach((t) => {
+      const k = Math.round(t.lat / step) + ":" + Math.round(t.lon / step);
+      if (!bins[k]) bins[k] = { ...t, name: t.name, n: 1 };
+      else bins[k].n++;
+    });
+    return Object.keys(bins).slice(0, cap).map((k) => {
+      const b = bins[k];
+      if (b.n > 1) b.name = b.n + " · cluster";
+      return b;
+    });
+  };
+
   Engine.prototype._bind = function () {
     const el = this.canvas, self = this;
     el.addEventListener("pointerdown", (e) => { self.drag = { x: e.clientX, y: e.clientY, moved: false }; el.setPointerCapture(e.pointerId); });
@@ -548,15 +674,20 @@
     const ray = new THREE.Raycaster();
     ray.setFromCamera(ndc, this.camera);
     let best = null;
-    for (let i = 0; i < this.satId.length; i++) {
-      this.tmp.fromArray(this.satPos, i * 3);
-      const to = this.tmp.clone().sub(ray.ray.origin);
-      const t = to.dot(ray.ray.direction);
-      if (t < 0) continue;
-      const dist = ray.ray.origin.clone().addScaledVector(ray.ray.direction, t).distanceTo(this.tmp);
-      const thresh = 0.035 + this.tmp.distanceTo(this.camera.position) * 0.012;
-      if (dist < thresh && (!best || dist < best.d)) best = { id: this.satId[i], d: dist };
-    }
+    const consider = (ids, pos) => {
+      for (let i = 0; i < ids.length; i++) {
+        this.tmp.fromArray(pos, i * 3);
+        const to = this.tmp.clone().sub(ray.ray.origin);
+        const t = to.dot(ray.ray.direction);
+        if (t < 0) continue;
+        const dist = ray.ray.origin.clone().addScaledVector(ray.ray.direction, t).distanceTo(this.tmp);
+        const thresh = 0.035 + this.tmp.distanceTo(this.camera.position) * 0.012;
+        if (dist < thresh && (!best || dist < best.d)) best = { id: ids[i], d: dist };
+      }
+    };
+    consider(this.satId, this.satPos);
+    if (this._airCloud) consider(this._airCloud.ids, this._airCloud.pos);
+    if (this._shipCloud) consider(this._shipCloud.ids, this._shipCloud.pos);
     this.hooks.onPick && this.hooks.onPick(best ? best.id : null);
   };
 
@@ -580,13 +711,27 @@
       if (self.atmoU) self.atmoU.uCam.value.copy(self.camera.position);
       if (self.clouds && !self.rig.reduced) self.clouds.rotation.y += dt * 0.0025 * Math.max(self.clock.rate, 0.15);
       const cap = Math.min(self.bodies.length, self.quality.satCap);
+      const wall = performance.now();
+      if (self.worker && (!self._wTick || wall - self._wTick > 280)) {
+        self._wTick = wall;
+        try { self.worker.postMessage({ type: "tick", epoch: date.getTime(), cap }); } catch (e) {}
+      }
       self.satId = [];
+      const useW = self.workerPos && self.workerPos.pos && self.workerPos.pos.length >= 3;
       for (let i = 0; i < cap; i++) {
         const b = self.bodies[i];
-        propagate(b, date);
-        const r = 1 + Math.max(b.alt, 80) / EARTH_R_KM;
-        latLonToVec3(b.lat, b.lon, r, self.tmp);
-        self.satPos[i * 3] = self.tmp.x; self.satPos[i * 3 + 1] = self.tmp.y; self.satPos[i * 3 + 2] = self.tmp.z;
+        if (useW && self.workerPos.pos[i * 3] != null) {
+          self.satPos[i * 3] = self.workerPos.pos[i * 3];
+          self.satPos[i * 3 + 1] = self.workerPos.pos[i * 3 + 1];
+          self.satPos[i * 3 + 2] = self.workerPos.pos[i * 3 + 2];
+          const m = self.workerPos.meta && self.workerPos.meta[i];
+          if (m) { b.lat = m.lat; b.lon = m.lon; b.alt = m.alt; }
+        } else {
+          propagate(b, date);
+          const r = 1 + Math.max(b.alt, 80) / EARTH_R_KM;
+          latLonToVec3(b.lat, b.lon, r, self.tmp);
+          self.satPos[i * 3] = self.tmp.x; self.satPos[i * 3 + 1] = self.tmp.y; self.satPos[i * 3 + 2] = self.tmp.z;
+        }
         const sel = self.selectedId && (b.id === self.selectedId || b.norad === self.selectedId);
         self.satCol[i * 3] = sel ? 1 : 0.49;
         self.satCol[i * 3 + 1] = sel ? 0.88 : 0.88;
@@ -597,6 +742,12 @@
       self.satPts.geometry.attributes.color.needsUpdate = true;
       self.satPts.geometry.setDrawRange(0, cap);
       self.satPts.visible = self.layers.sats;
+      if (!self._trTick || wall - self._trTick > 400) {
+        self._trTick = wall;
+        if (self.airProv === "SYNTHETIC" && g.ExoFeeds) self.air = g.ExoFeeds.synthAir(date.getTime());
+        if (self.seaProv === "SYNTHETIC" && g.ExoFeeds) self.ships = g.ExoFeeds.synthSea(date.getTime());
+        self._syncTracks();
+      }
       const sel = self.selected();
       let selPos = null;
       if (sel) {
@@ -610,7 +761,8 @@
       self.hooks.onTick && self.hooks.onTick({
         date, rateLabel: self.rateLabel(), selected: sel,
         nextEvent: sel ? nextAos(sel) : "NO LOCK",
-        counts: { sat: cap, radio: self.meshNodes.length },
+        counts: { sat: cap, radio: self.meshNodes.length, air: self.air.length, ships: self.ships.length },
+        provenance: { sat: self.feed, air: self.airProv, sea: self.seaProv, imagery: self.imgLimited ? "LIMITED" : "LIVE" },
         cam: self.rig.mode,
       });
     };
@@ -618,6 +770,7 @@
   };
 
   Engine.prototype._selGeom = function (b, date) {
+    if (!b || !b.rec) { this.orbitLine.visible = this.groundLine.visible = false; return; }
     const pts = sampleOrbit(b, date, this.quality.id === "PERF" ? 48 : 80);
     if (pts.length < 4) return;
     const o = [], gnd = [], v = new THREE.Vector3();
@@ -658,6 +811,8 @@
   };
 
   function nextAos(b) {
+    if (b.kind === "air") return (b.provenance || "SYNTHETIC") + " · ADS-B TRACK";
+    if (b.kind === "ship") return (b.provenance || "SYNTHETIC") + " · AIS TRACK";
     const sat = latLonToVec3(b.lat, b.lon, 1 + Math.max(b.alt, 80) / EARTH_R_KM);
     const gs = latLonToVec3(STATION.lat, STATION.lon, 1);
     const look = sat.clone().sub(gs).normalize();

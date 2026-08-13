@@ -15,8 +15,11 @@
       <span class="chip" id="gpuChip">WEBGL2</span>
       <select class="chip" id="qSel"><option>ULTRA</option><option>HIGH</option><option>MED</option><option>PERF</option></select>
       <button class="btn" id="btnAudio">AUDIO</button>
+      <button class="btn" id="btnFeeds">FEEDS</button>
       <a class="radio-link btn" href="/radio/">RADIO</a>
     </div>
+    <div class="imgbar" id="imgbar"></div>
+    <div class="feeds" id="feedsPanel"></div>
     <div class="layers" id="layers"></div>
     <div class="camstrip" id="camstrip"></div>
     <div class="timebar">
@@ -39,6 +42,7 @@
   `;
 
   const LAYERS = ["sats:SATELLITES", "orbits:ORBITS", "clouds:CLOUDS", "atmo:ATMO", "radio:RADIO", "air:AIRCRAFT", "ships:SHIPS"];
+  const IMGS = ["satellite:SATELLITE", "streets:STREETS", "hybrid:HYBRID", "dark:DARK"];
   const CAMS = [["moc", "⌂ MOC"], ["free", "FLY"], ["follow", "FOLLOW"], ["satcam", "SAT-CAM"], ["cinematic", "CINE"]];
   const layerEl = document.getElementById("layers");
   LAYERS.forEach((pair) => {
@@ -49,7 +53,7 @@
       const on = !engine.layers[id];
       engine.setLayer(id, on);
       b.classList.toggle("on", on);
-      if ((id === "air" || id === "ships") && on) toast(id.toUpperCase() + " · SIMULATED");
+      toast(id.toUpperCase() + (on ? " ON" : " OFF"));
     };
     layerEl.appendChild(b);
   });
@@ -58,6 +62,16 @@
   layBtn.className = "btn"; layBtn.textContent = "LAYERS";
   layBtn.onclick = () => { layersOpen = !layersOpen; layerEl.classList.toggle("open", layersOpen); };
   camEl.appendChild(layBtn);
+  const imgBar = document.getElementById("imgbar");
+  IMGS.forEach((pair) => {
+    const [id, lab] = pair.split(":");
+    const b = document.createElement("button");
+    b.className = "btn" + (id === "satellite" ? " on" : "");
+    b.dataset.img = id; b.textContent = lab;
+    b.onclick = () => setImagery(id);
+    imgBar.appendChild(b);
+  });
+
   CAMS.forEach(([id, lab]) => {
     const b = document.createElement("button");
     b.className = "btn" + (id === "moc" ? " on" : ""); b.dataset.cam = id; b.textContent = lab;
@@ -110,7 +124,7 @@
     const el = document.getElementById("dossier");
     if (!b) {
       el.innerHTML = `<h3>SELECTION</h3><div class="empty">NO LOCK</div>
-        <div class="kv" style="margin-top:10px"><b>OBJECTS</b><span id="satN">—</span><b>MESH</b><span id="meshN">QUIET</span><b>EVENT</b><span>${next || "NO LOCK"}</span></div>`;
+        <div class="kv" style="margin-top:10px"><b>SATS</b><span id="satN">—</span><b>AIR</b><span id="airN">—</span><b>SEA</b><span id="seaN">—</span><b>MESH</b><span id="meshN">QUIET</span><b>EVENT</b><span>${next || "NO LOCK"}</span></div>`;
       return;
     }
     el.innerHTML = `<h3>${esc(b.name)}</h3>
@@ -119,19 +133,26 @@
         <b>ALTITUDE</b><span>${b.alt >= 1000 ? (b.alt / 1000).toFixed(2) + " Mm" : b.alt.toFixed(1) + " km"}</span>
         <b>LAT / LON</b><span>${b.lat.toFixed(3)} / ${b.lon.toFixed(3)}</span>
         <b>VELOCITY</b><span>${b.vel.toFixed(2)} km/s</span>
-        <b>PERIOD</b><span>${b.periodMin.toFixed(1)} min</span>
-        <b>INCLINATION</b><span>${b.inc.toFixed(2)}°</span>
+        <b>PERIOD</b><span>${b.periodMin != null ? b.periodMin.toFixed(1) + " min" : "—"}</span>
+        <b>INCLINATION</b><span>${b.inc != null ? b.inc.toFixed(2) + "°" : "—"}</span>
         <b>OPERATOR</b><span>${esc(b.operator)}</span>
-        <b>SOURCE</b><span>${b.synthetic ? "SYNTHETIC TLE" : "CELESTRAK"}</span>
+        <b>SOURCE</b><span class="badge ${esc(b.provenance || (b.synthetic ? "SYNTHETIC" : "LIVE"))}">${esc(b.provenance || (b.synthetic ? "SYNTHETIC" : "LIVE"))}</span>
+        <b>TYPE</b><span>${esc(b.kind || "sat")}</span>
         <b>NEXT</b><span>${esc(next || "")}</span>
       </div>
-      <div style="display:flex;gap:6px;margin-top:10px">
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="copyC">COPY COORDS</button>
+        <button class="btn" id="pinW">WATCH</button>
         <button class="btn" id="clrL">CLEAR LOCK</button>
       </div>`;
     document.getElementById("copyC").onclick = () => {
       navigator.clipboard && navigator.clipboard.writeText(b.lat.toFixed(5) + "," + b.lon.toFixed(5));
       toast("COORDS COPIED");
+    };
+    document.getElementById("pinW").onclick = () => {
+      ExoFeeds.watchAdd({ id: b.id, name: b.name, norad: b.norad || b.id });
+      toast("WATCH " + b.name);
+      renderFeeds();
     };
     document.getElementById("clrL").onclick = () => {
       engine.setSelected(null);
@@ -173,7 +194,11 @@
       { k: "quality PERF", run: () => { engine.setQuality("PERF"); document.getElementById("qSel").value = "PERF"; } },
       { k: "quality ULTRA", run: () => { engine.setQuality("ULTRA"); document.getElementById("qSel").value = "ULTRA"; } },
       { k: "run cinematic", run: () => setCam("cinematic") },
-      { k: "layer aircraft", run: () => { engine.setLayer("air", true); toast("AIRCRAFT · SIMULATED"); } },
+      { k: "layer aircraft", run: () => { engine.setLayer("air", true); toast("AIRCRAFT ON"); } },
+      { k: "layer ships", run: () => { engine.setLayer("ships", true); toast("SHIPS ON"); } },
+      { k: "imagery dark", run: () => setImagery("dark") },
+      { k: "imagery streets", run: () => setImagery("streets") },
+      { k: "open feeds", run: () => { document.getElementById("feedsPanel").classList.add("on"); renderFeeds(); } },
       { k: "time 60x", run: () => engine.setRate(60) },
       { k: "time live", run: () => engine.setRate(1) },
       { k: "recage station", run: () => engine.recageStation() },
@@ -236,6 +261,10 @@
       }
       renderDossier(engine.selected());
       engine.setMesh(liveMesh());
+      hydrateFeeds();
+    },
+    onFeed: ({ feed, count }) => {
+      document.getElementById("feedChip").textContent = "SAT " + feed + " · " + count;
     },
     onPick: (id) => {
       if (!id) { engine.setSelected(null); renderDossier(null); return; }
@@ -253,7 +282,12 @@
         if (info.selected) renderDossier(info.selected, info.nextEvent);
         else {
           const n = document.getElementById("satN");
-          if (n) { n.textContent = info.counts.sat; document.getElementById("meshN").textContent = info.counts.radio || "QUIET"; }
+          if (n) {
+            n.textContent = info.counts.sat;
+            const a = document.getElementById("airN"); if (a) a.textContent = info.counts.air;
+            const s = document.getElementById("seaN"); if (s) s.textContent = info.counts.ships;
+            document.getElementById("meshN").textContent = info.counts.radio || "QUIET";
+          }
         }
       }
       if (onTick._cam !== info.cam) { onTick._cam = info.cam; syncCam(info.cam); }
@@ -261,6 +295,82 @@
   });
   engine.init();
   setInterval(() => { if (engine) engine.setMesh(liveMesh()); }, 2000);
+
+  async function setImagery(mode) {
+    document.querySelectorAll("[data-img]").forEach((b) => b.classList.toggle("on", b.dataset.img === mode));
+    toast("IMAGERY " + mode.toUpperCase());
+    ExoFeeds.mark("imagery", { status: "fetch", mode });
+    try {
+      const r = await ExoImagery.toTexture(mode);
+      engine.setImagery(r.tex, mode, r.limited);
+      ExoFeeds.mark("imagery", {
+        status: r.limited ? "limited" : "ok",
+        provenance: r.ok ? (r.limited ? "CACHED" : "LIVE") : "SYNTHETIC",
+        cors: r.ok ? "yes" : "fail",
+        count: r.ok, err: r.limited ? "IMAGERY LIMITED" : "",
+        mode, key: "no",
+      });
+      if (r.limited || !r.tex) toast("IMAGERY LIMITED");
+    } catch (e) {
+      engine.setImagery(null, mode, true);
+      ExoFeeds.mark("imagery", { status: "limited", provenance: "SYNTHETIC", cors: "fail", err: String(e), key: "no", mode });
+      toast("IMAGERY LIMITED");
+    }
+    renderFeeds();
+  }
+
+  function renderFeeds() {
+    const p = document.getElementById("feedsPanel");
+    const snap = ExoFeeds.snapshot();
+    const rows = Object.keys(snap.feeds).map((k) => {
+      const f = snap.feeds[k];
+      return `<tr><td class="k">${esc(f.label)}</td><td><span class="badge ${esc(f.provenance)}">${esc(f.provenance)}</span></td>
+        <td>${esc(f.status)}</td><td>${f.count}</td><td>CORS ${esc(f.cors)}</td><td>key ${esc(f.key)}</td></tr>
+        <tr><td colspan="6">${esc(f.err || "")}</td></tr>`;
+    }).join("");
+    const w = ExoFeeds.watchlist();
+    p.innerHTML = `<h3>FEEDS</h3>
+      <div class="sub">online ${snap.online ? "yes" : "no"} · no secrets in this panel</div>
+      <table>${rows}</table>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="feedRetry">RETRY</button>
+        <button class="btn" id="feedExp">EXPORT DIAG</button>
+        <a class="btn" href="/FEEDS.md" target="_blank">FEEDS.md</a>
+      </div>
+      <div class="watch"><div class="lbl">WATCHLIST</div>
+        ${w.length ? w.map((x) => `<button class="btn" data-wl="${esc(x.id)}">${esc(x.name)}</button>`).join("") : "<div class='empty'>empty — lock a sat and WATCH</div>"}
+      </div>`;
+    const retry = document.getElementById("feedRetry");
+    if (retry) retry.onclick = () => hydrateFeeds(true);
+    const exp = document.getElementById("feedExp");
+    if (exp) exp.onclick = () => ExoFeeds.exportDiag();
+    p.querySelectorAll("[data-wl]").forEach((b) => { b.onclick = () => lockQuery(b.dataset.wl); });
+  }
+
+  async function hydrateFeeds(force) {
+    toast("FEEDS HYDRATE");
+    const tle = await ExoFeeds.fetchTle();
+    if (tle.provenance === "LIVE" || tle.provenance === "CACHED") {
+      /* engine already hydrates TLE via loadCatalog; this keeps FEEDS status */
+    }
+    const air = await ExoFeeds.fetchAir();
+    const sea = await ExoFeeds.fetchSea();
+    engine.setTracks(air.list, sea.list, air.provenance, sea.provenance);
+    document.getElementById("feedChip").textContent =
+      "SAT " + engine.feed + " · AIR " + air.provenance + " · SEA " + sea.provenance;
+    renderFeeds();
+    toast("AIR " + air.list.length + " · SEA " + sea.list.length + " · " + air.provenance);
+  }
+
+  document.getElementById("btnFeeds").onclick = () => {
+    const p = document.getElementById("feedsPanel");
+    p.classList.toggle("on");
+    if (p.classList.contains("on")) renderFeeds();
+  };
+
+  ExoFeeds.on(() => {
+    if (document.getElementById("feedsPanel").classList.contains("on")) renderFeeds();
+  });
 
   if (location.protocol === "https:" && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 })();
