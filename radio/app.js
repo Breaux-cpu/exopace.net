@@ -396,7 +396,7 @@ function sampleRfHere() {
   const g = S.gps;
   if (!g || !g.fix) { toast("WAITING FOR FIX"); return; }
   const rssi = S.lastRssi, snr = S.lastSnr;
-  if (rssi == null || snr == null) { toast("NO RF SAMPLE · waiting for telem"); return; }
+  if (rssi == null || snr == null || rssi <= -135) { toast("NO RF SAMPLE · no packet"); return; }
   const rf = P.makeRf({ id: S.myId || "me", rssi: rssi, snr: snr, lat: g.lat, lon: g.lon });
   handle(rf);
   pushIngest(rf);
