@@ -14,11 +14,19 @@ Public edge is static Pages (`exopace.net`). Live COP at `:8200` is a separate s
 
 `key` in the FEEDS panel is **yes / no / bridge** — never a secret.
 
-## Provenance badges
+## Provenance badges (honest)
 
-`LIVE | CACHED | SYNTHETIC | MESH | BRIDGE | RID | ADSB | AIS | SENSOR`
+FEEDS debug for imagery / sats / air / sea is **only** `LIVE | CACHED | SYNTHETIC`.
 
-Aircraft/ships on the public globe are **SYNTHETIC** unless OpenSky CORS succeeds or a bridge is set.
+| Badge | Means what’s on the globe |
+|-------|---------------------------|
+| LIVE | This session fetched remote data and that data is displayed |
+| CACHED | Displaying a prior remote pull from localStorage |
+| SYNTHETIC | Bundled or generated (blue marble, synth fleet, synth tracks) |
+
+OpenSky `Access-Control-Allow-Origin` is `opensky-network.org` only. Browser on `exopace.net` **cannot** be AIR LIVE. Badge is SYNTHETIC (or CACHED if a prior proxy write exists). Do not claim otherwise.
+
+Default imagery is shipped blue marble → **SYNTHETIC**. Switching SATELLITE/STREETS/HYBRID/DARK and getting tiles → **LIVE**. Tile fail → SYNTHETIC + IMAGERY LIMITED.
 
 ## Operator actions
 

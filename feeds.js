@@ -20,7 +20,7 @@
     tle: { id: "tle", label: "TLE / GP", status: "idle", provenance: "SYNTHETIC", cors: "unknown", key: "no", count: 0, err: "", at: 0, ms: 0 },
     air: { id: "air", label: "AIR", status: "idle", provenance: "SYNTHETIC", cors: "unknown", key: "no", count: 0, err: "", at: 0, ms: 0 },
     sea: { id: "sea", label: "SEA", status: "idle", provenance: "SYNTHETIC", cors: "unknown", key: "no", count: 0, err: "", at: 0, ms: 0 },
-    imagery: { id: "imagery", label: "IMAGERY", status: "idle", provenance: "CACHED", cors: "unknown", key: "no", count: 0, err: "", at: 0, ms: 0, mode: "satellite" },
+    imagery: { id: "imagery", label: "IMAGERY", status: "bundled", provenance: "SYNTHETIC", cors: "n/a", key: "no", count: 0, err: "shipped blue marble", at: 0, ms: 0, mode: "satellite" },
     mesh: { id: "mesh", label: "MESH", status: "demo", provenance: "MESH", cors: "n/a", key: "no", count: 0, err: "", at: 0, ms: 0 },
   };
   const listeners = [];
@@ -136,7 +136,8 @@
       mark("air", { status: "ok", provenance: "LIVE", cors: "yes", count: list.length, err: "", ms: res.ms, key: "no" });
       return { list, provenance: "LIVE" };
     }
-    const cors = /Failed|Network|CORS|TypeError/i.test(res.err) ? "blocked" : "fail";
+    // OpenSky ACAO is opensky-network.org only — browser from exopace.net cannot be LIVE.
+    const cors = /Failed|Network|CORS|TypeError|abort/i.test(res.err) ? "blocked" : "fail";
     if (cached && cached.list && cached.list.length) {
       mark("air", { status: "degraded", provenance: "CACHED", cors, count: cached.list.length, err: res.err, key: "no" });
       return { list: cached.list, provenance: "CACHED" };

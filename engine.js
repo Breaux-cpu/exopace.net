@@ -365,6 +365,7 @@
     this.seaProv = "SYNTHETIC";
     this.imgMode = "satellite";
     this.imgLimited = false;
+    this.imgProv = "SYNTHETIC";
     this.sunU = new THREE.Vector3(1, 0.2, 0.2);
     this.tmp = new THREE.Vector3();
     this.vel = new THREE.Vector3();
@@ -417,12 +418,30 @@
     if (seaProv) this.seaProv = seaProv;
     this._syncTracks();
   };
-  Engine.prototype.setImagery = function (tex, mode, limited) {
+  Engine.prototype.setImagery = function (tex, mode, limited, prov) {
     this.imgMode = mode || this.imgMode;
     this.imgLimited = !!limited;
+    this.imgProv = prov || (tex ? "LIVE" : "SYNTHETIC");
     if (!this.earthU) return;
     if (tex) this.earthU.tDay.value = tex;
     else if (this.dayBase) this.earthU.tDay.value = this.dayBase;
+  };
+  Engine.prototype.applyTle = function (text, provenance) {
+    if (text) {
+      const bodies = parseTles(text, provenance !== "LIVE");
+      if (bodies.length) {
+        this.bodies = bodies;
+        this.feed = provenance === "LIVE" || provenance === "CACHED" ? provenance : "SYNTHETIC";
+        bodies.forEach((b) => { b.provenance = this.feed; });
+        this._bootWorker({ });
+        this.hooks.onFeed && this.hooks.onFeed({ feed: this.feed, count: this.bodies.length });
+        return this.feed;
+      }
+    }
+    this.bodies = syntheticFleet();
+    this.feed = "SYNTHETIC";
+    this.hooks.onFeed && this.hooks.onFeed({ feed: this.feed, count: this.bodies.length });
+    return this.feed;
   };
   Engine.prototype.setMode = function (m) { this.rig.setMode(m); };
   Engine.prototype.setSelected = function (id) { this.selectedId = id; };
@@ -475,18 +494,11 @@
     this.hooks.onReady && this.hooks.onReady({ feed: this.feed, count: this.bodies.length, webgpu: false, quality: this.quality.id, air: this.air.length, ships: this.ships.length });
     this.running = true;
     this._loop();
-    this._hydrate();
-  };
-  Engine.prototype._hydrate = async function () {
+    // TLE hydrate is owned by ExoFeeds so SAT badge == globe. Cache only here.
     try {
-      const cat = await loadCatalog();
-      if (cat.bodies && cat.bodies.length) {
-        this.bodies = cat.bodies;
-        this.feed = cat.feed;
-        this._bootWorker(cat);
-        this.hooks.onFeed && this.hooks.onFeed({ feed: this.feed, count: this.bodies.length });
-      }
-    } catch (e) { /* keep synthetic */ }
+      const cached = JSON.parse(localStorage.getItem("exopace-tle-cache") || "null");
+      if (cached && cached.tle) this.applyTle(cached.tle, "CACHED");
+    } catch (e) {}
   };
   Engine.prototype._bootWorker = function (cat) {
     if (typeof Worker === "undefined") return;
@@ -762,7 +774,7 @@
         date, rateLabel: self.rateLabel(), selected: sel,
         nextEvent: sel ? nextAos(sel) : "NO LOCK",
         counts: { sat: cap, radio: self.meshNodes.length, air: self.air.length, ships: self.ships.length },
-        provenance: { sat: self.feed, air: self.airProv, sea: self.seaProv, imagery: self.imgLimited ? "LIMITED" : "LIVE" },
+        provenance: { sat: self.feed, air: self.airProv, sea: self.seaProv, imagery: self.imgProv || "SYNTHETIC" },
         cam: self.rig.mode,
       });
     };

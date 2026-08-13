@@ -302,18 +302,21 @@
     ExoFeeds.mark("imagery", { status: "fetch", mode });
     try {
       const r = await ExoImagery.toTexture(mode);
-      engine.setImagery(r.tex, mode, r.limited);
+      const live = !!(r.tex && r.ok);
+      const prov = live ? "LIVE" : "SYNTHETIC";
+      engine.setImagery(live ? r.tex : null, mode, !live || r.limited, prov);
       ExoFeeds.mark("imagery", {
-        status: r.limited ? "limited" : "ok",
-        provenance: r.ok ? (r.limited ? "CACHED" : "LIVE") : "SYNTHETIC",
-        cors: r.ok ? "yes" : "fail",
-        count: r.ok, err: r.limited ? "IMAGERY LIMITED" : "",
+        status: live ? (r.limited ? "limited" : "ok") : "bundled",
+        provenance: prov,
+        cors: live ? "yes" : "fail",
+        count: r.ok || 0,
+        err: live ? (r.limited ? "IMAGERY LIMITED · partial tiles" : "") : "tile fail · shipped blue marble",
         mode, key: "no",
       });
-      if (r.limited || !r.tex) toast("IMAGERY LIMITED");
+      if (!live || r.limited) toast("IMAGERY LIMITED");
     } catch (e) {
-      engine.setImagery(null, mode, true);
-      ExoFeeds.mark("imagery", { status: "limited", provenance: "SYNTHETIC", cors: "fail", err: String(e), key: "no", mode });
+      engine.setImagery(null, mode, true, "SYNTHETIC");
+      ExoFeeds.mark("imagery", { status: "bundled", provenance: "SYNTHETIC", cors: "fail", err: String(e), key: "no", mode });
       toast("IMAGERY LIMITED");
     }
     renderFeeds();
@@ -322,11 +325,14 @@
   function renderFeeds() {
     const p = document.getElementById("feedsPanel");
     const snap = ExoFeeds.snapshot();
-    const rows = Object.keys(snap.feeds).map((k) => {
+    const triad = { LIVE: 1, CACHED: 1, SYNTHETIC: 1 };
+    const core = ["imagery", "tle", "air", "sea"];
+    const rows = core.map((k) => {
       const f = snap.feeds[k];
-      return `<tr><td class="k">${esc(f.label)}</td><td><span class="badge ${esc(f.provenance)}">${esc(f.provenance)}</span></td>
+      const prov = triad[f.provenance] ? f.provenance : "SYNTHETIC";
+      return `<tr><td class="k">${esc(f.label)}</td><td><span class="badge ${prov}">${prov}</span></td>
         <td>${esc(f.status)}</td><td>${f.count}</td><td>CORS ${esc(f.cors)}</td><td>key ${esc(f.key)}</td></tr>
-        <tr><td colspan="6">${esc(f.err || "")}</td></tr>`;
+        <tr><td colspan="6">${esc(f.err || "—")}</td></tr>`;
     }).join("");
     const w = ExoFeeds.watchlist();
     p.innerHTML = `<h3>FEEDS</h3>
@@ -350,14 +356,12 @@
   async function hydrateFeeds(force) {
     toast("FEEDS HYDRATE");
     const tle = await ExoFeeds.fetchTle();
-    if (tle.provenance === "LIVE" || tle.provenance === "CACHED") {
-      /* engine already hydrates TLE via loadCatalog; this keeps FEEDS status */
-    }
+    const satProv = engine.applyTle(tle.text, tle.provenance);
     const air = await ExoFeeds.fetchAir();
     const sea = await ExoFeeds.fetchSea();
     engine.setTracks(air.list, sea.list, air.provenance, sea.provenance);
     document.getElementById("feedChip").textContent =
-      "SAT " + engine.feed + " · AIR " + air.provenance + " · SEA " + sea.provenance;
+      "SAT " + satProv + " · AIR " + air.provenance + " · SEA " + sea.provenance + " · IMG " + (ExoFeeds.feeds.imagery.provenance);
     renderFeeds();
     toast("AIR " + air.list.length + " · SEA " + sea.list.length + " · " + air.provenance);
   }
