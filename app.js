@@ -297,6 +297,13 @@
   });
   engine.init();
   if (!window.isExoProd()) setInterval(() => { if (engine) engine.setMesh(liveMesh()); }, 2000);
+  setInterval(() => {
+    if (!engine || !window.EXOPACE_BRIDGE) return;
+    ExoFeeds.fetchAir().then((air) => ExoFeeds.fetchSea().then((sea) => {
+      engine.setTracks(air.list, sea.list, air.provenance, sea.provenance);
+      return ExoFeeds.fetchSdrHealth();
+    }));
+  }, 2000);
 
   async function setImagery(mode) {
     document.querySelectorAll("[data-img]").forEach((b) => b.classList.toggle("on", b.dataset.img === mode));
@@ -327,8 +334,8 @@
   function renderFeeds() {
     const p = document.getElementById("feedsPanel");
     const snap = ExoFeeds.snapshot();
-    const triad = { LIVE: 1, CACHED: 1, ERROR: 1, SYNTHETIC: 1 };
-    const core = ["imagery", "tle", "air", "sea", "rf"];
+    const triad = { LIVE: 1, CACHED: 1, ERROR: 1, ADSB: 1, AIS: 1, SENSOR: 1 };
+    const core = ["imagery", "tle", "air", "sea", "rf", "sdr"];
     const rows = core.map((k) => {
       const f = snap.feeds[k];
       const prov = triad[f.provenance] ? f.provenance : "SYNTHETIC";
@@ -388,6 +395,7 @@
     const satProv = engine.applyTle(tle.text, tle.provenance);
     const air = await ExoFeeds.fetchAir();
     const sea = await ExoFeeds.fetchSea();
+    await ExoFeeds.fetchSdrHealth();
     engine.setTracks(air.list, sea.list, air.provenance, sea.provenance);
     document.getElementById("feedChip").textContent =
       "SAT " + satProv + " · AIR " + air.provenance + " · SEA " + sea.provenance + " · IMG " + (ExoFeeds.feeds.imagery.provenance);

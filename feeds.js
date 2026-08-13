@@ -23,6 +23,7 @@
     imagery: { id: "imagery", label: "IMAGERY", status: "bundled", provenance: "SYNTHETIC", cors: "n/a", key: "no", count: 0, err: "shipped blue marble", at: 0, ms: 0, mode: "satellite" },
     mesh: { id: "mesh", label: "MESH", status: "idle", provenance: "ERROR", cors: "n/a", key: "no", count: 0, err: "no mesh ingest", at: 0, ms: 0 },
     rf: { id: "rf", label: "RF", status: "idle", provenance: "ERROR", cors: "n/a", key: "no", count: 0, err: "NO RF SAMPLES", at: 0, ms: 0 },
+    sdr: { id: "sdr", label: "SDR", status: "idle", provenance: "ERROR", cors: "n/a", key: "no", count: 0, err: "SDR DOWN", at: 0, ms: 0 },
   };
   const listeners = [];
   function emit() { listeners.forEach((fn) => { try { fn(snapshot()); } catch (e) {} }); }
@@ -119,6 +120,23 @@
   async function fetchAir() {
     mark("air", { status: "fetch" });
     const cached = read(KEY.air);
+    const bridge = (typeof window !== "undefined" && window.EXOPACE_BRIDGE) || (typeof localStorage !== "undefined" && localStorage.getItem("exopace-bridge")) || "";
+    if (bridge) {
+      const res = await timed((signal) => fetch(String(bridge).replace(/\/$/, "") + "/tracks?kind=adsb", { signal }).then((r) => {
+        if (!r.ok) throw new Error("http " + r.status);
+        return r.json();
+      }), 5000);
+      if (res.ok && res.r && Array.isArray(res.r.tracks)) {
+        const list = res.r.tracks.map((s) => ({
+          id: s.hex || s.id, name: (s.flight || s.hex || s.id || "").trim(),
+          kind: "air", lat: s.lat, lon: s.lon, alt: (s.alt || s.alt_baro || 0) / 1000,
+          vel: (s.speed || 0) / 1000, hdg: s.track || 0,
+          provenance: "ADSB", icao: s.hex || s.id, agent: s.agent,
+        })).filter((a) => a.lat != null && a.lon != null);
+        mark("air", { status: list.length ? "ok" : "empty", provenance: list.length ? "ADSB" : "ERROR", cors: "yes", count: list.length, err: list.length ? "" : "SDR DOWN · no ADS-B tracks", key: "no", ms: res.ms });
+        return { list, provenance: list.length ? "ADSB" : "ERROR" };
+      }
+    }
     // CONUS bbox — keep payload small
     const url = "https://opensky-network.org/api/states/all?lamin=24&lomin=-125&lamax=50&lomax=-66";
     const res = await timed((signal) => fetch(url, { signal }).then((r) => {
@@ -172,9 +190,23 @@
     mark("sea", { status: "fetch" });
     const cached = read(KEY.sea);
     // Public Pages has no AIS key. Try optional local COP (session) — fail closed to synthetic.
-    const bridge = localStorage.getItem("exopace-bridge") || "";
+    const bridge = (typeof window !== "undefined" && window.EXOPACE_BRIDGE) || (typeof localStorage !== "undefined" && localStorage.getItem("exopace-bridge")) || "";
     if (bridge) {
-      const res = await timed((signal) => fetch(bridge.replace(/\/$/, "") + "/ships", { signal, credentials: "include" }).then((r) => {
+      const sdr = await timed((signal) => fetch(String(bridge).replace(/\/$/, "") + "/tracks?kind=ais", { signal }).then((r) => {
+        if (!r.ok) throw new Error("http " + r.status);
+        return r.json();
+      }), 5000);
+      if (sdr.ok && sdr.r && Array.isArray(sdr.r.tracks) && sdr.r.tracks.length) {
+        const list = sdr.r.tracks.map((s) => ({
+          id: s.mmsi || s.id, name: s.name || s.mmsi || s.id,
+          kind: "ship", lat: s.lat, lon: s.lon, alt: 0.02,
+          vel: (s.sog || 0) / 1000, hdg: s.cog || 0,
+          provenance: "AIS", agent: s.agent,
+        })).filter((s) => s.lat != null);
+        mark("sea", { status: "ok", provenance: "AIS", cors: "yes", count: list.length, key: "no", ms: sdr.ms });
+        return { list, provenance: "AIS" };
+      }
+      const res = await timed((signal) => fetch(String(bridge).replace(/\/$/, "") + "/ships", { signal, credentials: "include" }).then((r) => {
         if (!r.ok) throw new Error("http " + r.status);
         return r.json();
       }), 5000);
@@ -205,6 +237,33 @@
     }
     mark("sea", { status: "error", provenance: "ERROR", cors: "n/a", count: 0, key: "no", err: "FEED ERROR · no AIS key / bridge" });
     return { list: [], provenance: "ERROR" };
+  }
+
+  async function fetchSdrHealth() {
+    const bridge = (typeof window !== "undefined" && window.EXOPACE_BRIDGE) || "";
+    if (!bridge) {
+      mark("sdr", { status: "error", provenance: "ERROR", err: "SDR DOWN · no bridge", count: 0, key: "no" });
+      return { devices: [], provenance: "ERROR" };
+    }
+    const res = await timed((signal) => fetch(String(bridge).replace(/\/$/, "") + "/sdr/health", { signal }).then((r) => {
+      if (!r.ok) throw new Error("http " + r.status);
+      return r.json();
+    }), 4000);
+    if (!res.ok) {
+      mark("sdr", { status: "error", provenance: "ERROR", err: "SDR DOWN · " + res.err, count: 0, cors: "fail" });
+      return { devices: [], provenance: "ERROR" };
+    }
+    const devs = res.r.devices || [];
+    const up = devs.some((d) => d.status === "up");
+    mark("sdr", {
+      status: up ? "ok" : "error",
+      provenance: up ? "SENSOR" : "ERROR",
+      count: devs.length,
+      err: up ? "" : "SDR DOWN",
+      cors: "yes",
+      key: "no",
+    });
+    return { devices: devs, provenance: up ? "SENSOR" : "ERROR" };
   }
 
   function watchlist() { return read(KEY.watch) || []; }
@@ -241,7 +300,7 @@
 
   g.ExoFeeds = {
     PROV, feeds, snapshot, on: (fn) => listeners.push(fn),
-    fetchTle, fetchAir, fetchSea, synthAir, synthSea,
+    fetchTle, fetchAir, fetchSea, fetchSdrHealth, synthAir, synthSea,
     watchlist, watchAdd, watchDel, diagnostics, exportDiag, mark, retryAll,
   };
 
