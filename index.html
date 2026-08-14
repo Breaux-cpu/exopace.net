@@ -5,37 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#03060b" />
     <meta name="color-scheme" content="dark" />
+    <meta name="description" content="EXOpace Mission Control — planetary and orbital ops." />
     <title>EXOpace — Mission Control</title>
     <link rel="canonical" href="https://exopace.net/" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/cesium/Widgets/widgets.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       html, body, #root { margin: 0; height: 100%; background: #03060b; overflow: hidden; }
       #boot-void {
-        position: fixed; inset: 0; z-index: 80; background: #03060b; color: #7ee0ff;
+        position: fixed; inset: 0; z-index: 80;
+        background: #03060b; color: #7ee0ff;
         font-family: "IBM Plex Mono", ui-monospace, monospace;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        letter-spacing: 0.28em; font-size: 11px; transition: opacity 0.9s ease;
+        letter-spacing: 0.28em; font-size: 11px;
+        transition: opacity 0.9s ease;
       }
       #boot-void b { color: #ffe08a; font-weight: 600; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 14px; }
       #boot-void.out { opacity: 0; pointer-events: none; }
     </style>
+    <script type="module" crossorigin src="/assets/index-BgfHm99I.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/sat-CzbUZc7N.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-Ce6kadk5.css">
   </head>
   <body>
-    <div id="boot-void"><b>EXOpace</b>BRINGING EARTH ONLINE…</div>
-    <canvas id="globe"></canvas>
-    <div class="hud" id="hud"></div>
+    <div id="root">
+      <div id="boot-void"><b>EXOpace</b>CHECKING PIPELINE…</div>
+    </div>
+    <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
+         (served from /cesium/, NOT bundled by Vite), then the app. -->
+    <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
-    <script src="/three.min.js"></script>
-    <script src="/satellite.min.js"></script>
-    <script src="/protocol.js"></script>
-    <script src="/feeds.js"></script>
-    <script src="/imagery.js"></script>
-    <script src="/engine.js"></script>
-    <script src="/app.js"></script>
+    <script src="/cesium/Cesium.js"></script>
   </body>
 </html>
