@@ -201,7 +201,7 @@ assert(!radioApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a
 assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP first paint has no Demo CTA");
 assert(radioHtml.includes("app.js?v=14") && radioHtml.includes("env.js?v=14"), "Radio index cache-busts in-place JS");
 assert(/#composer input\{flex:1;min-width:0/.test(radioHtml) && /#composer\{[^}]*min-width:0/.test(radioHtml), "Radio CHAT composer shrinks so TX stays on 360");
-assert(/#pathLbl\{[^}]*flex:0 0 auto/.test(radioHtml) && /#pathLbl\{[^}]*overflow:visible/.test(radioHtml), "Radio pathLbl shows full LINK DOWN at 360/390");
+assert(/#pathLbl\{[^}]*flex:0 0 auto/.test(radioHtml) && /#pathLbl\{[^}]*width:max-content/.test(radioHtml) && /#pathLbl\{[^}]*overflow:visible/.test(radioHtml), "Radio pathLbl shows full LINK DOWN at 360/390");
 assert(!/const ASSETS = \[[^\]]*"index\.html"/.test(radSw), "Radio SW does not precache index.html");
 assert(radioApp.includes("if (b.dataset.s === \"map\")") && radioApp.includes("syncGlobe()"), "MAP tab paints quiet empty state before globe");
 
