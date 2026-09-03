@@ -31,6 +31,7 @@ header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(-
 .callsign{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
 .freq{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.08em}
 .meter{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:18px}
+#hMeter[hidden]{display:none!important}
 .meter b{width:4px;background:#3a3f24;border-radius:1px;display:block}
 .meter b.on{background:var(--amber)}
 .meter b:nth-child(1){height:5px}.meter b:nth-child(2){height:8px}.meter b:nth-child(3){height:11px}
@@ -172,7 +173,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     <div class="freq" id="hFreq">--- MHz · SF-</div>
   </div>
   <span id="modeTag"></span>
-  <div class="meter" id="hMeter"><b></b><b></b><b></b><b></b><b></b></div>
+  <div class="meter" id="hMeter" hidden><b></b><b></b><b></b><b></b><b></b></div>
   <div class="link" id="hLink"></div>
   <span id="pathLbl">LINK DOWN</span>
   <button class="conn" id="btnInst" style="display:none">INSTALL</button>
@@ -315,11 +316,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=28"></script>
+<script src="env.js?v=29"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=28"></script>
-<script src="store.js?v=28"></script>
-<script src="globe.js?v=28"></script>
-<script src="app.js?v=28"></script>
+<script src="protocol.js?v=29"></script>
+<script src="store.js?v=29"></script>
+<script src="globe.js?v=29"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>
