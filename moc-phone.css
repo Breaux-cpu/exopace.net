@@ -102,10 +102,11 @@ html.exo-booting a.radio-link {
     font-size: 16px;
   }
 
-  /* Phone leftover: Cesium ⌂ ＋ － N ◎ were 32px at top-right on UTC.
+  /* Phone leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at bottom-right on LIVE.
      Park under search on the left; 44px taps. Hide while STATION owns that column. */
-  #globe .cesium-viewer-toolbar {
+  .zoom {
     top: calc(124px + env(safe-area-inset-top));
+    bottom: auto;
     right: auto;
     left: 14px;
     display: flex;
@@ -113,17 +114,20 @@ html.exo-booting a.radio-link {
     gap: 4px;
     z-index: 8;
   }
-  #globe .cesium-viewer-toolbar .cesium-button,
-  #globe .cesium-viewer-toolbar button {
-    width: 44px !important;
-    height: 44px !important;
+  .zoom .btn {
+    width: 44px;
+    height: 44px;
     min-width: 44px;
     min-height: 44px;
     box-sizing: border-box;
+    padding: 0;
   }
-  html:has(.station) #globe .cesium-viewer-toolbar {
+  html:has(.station) .zoom {
     display: none !important;
     pointer-events: none !important;
+  }
+  #globe .cesium-viewer-toolbar {
+    display: none !important;
   }
   .tl a.radio-link.btn {
     min-height: 44px;
@@ -331,7 +335,7 @@ html.exo-booting a.radio-link {
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
   }
-  #globe .cesium-viewer-toolbar {
+  .zoom {
     top: calc(144px + env(safe-area-inset-top));
   }
   .tl {
