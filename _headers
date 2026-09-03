@@ -30,3 +30,9 @@
   Cache-Control: no-cache
 /radio/protocol.js
   Cache-Control: no-cache
+/tle/stations.txt
+  Cache-Control: no-cache
+/tle/visual.txt
+  Cache-Control: no-cache
+/tle/weather.txt
+  Cache-Control: no-cache

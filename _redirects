@@ -14,6 +14,7 @@
 /protocol.js    /protocol.js 200
 /protocol/*     /protocol/:splat 200
 /scripts/*      /scripts/:splat 200
+/tle/*          /tle/:splat 200
 /icon-maskable.svg /icon-maskable.svg 200
 /radio          /radio/ 301
 /radio/*        /radio/:splat 200

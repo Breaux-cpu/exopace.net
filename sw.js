@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v9";
+const CACHE = "exopace-moc-v11";
 const ASSETS = [
   "/",
   "/index.html",
@@ -25,6 +25,7 @@ function skip(url) {
   if (p.startsWith("/cesium/")) return true;
   if (p.startsWith("/protocol/")) return true;
   if (p.startsWith("/scripts/")) return true;
+  if (p.startsWith("/tle/")) return true;
   if (p.startsWith("/firmware/")) return true;
   if (/\.(md|csv|geojson)$/i.test(p)) return true;
   return false;

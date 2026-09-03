@@ -3,7 +3,9 @@
    Phone: lift dossier off STATION / MOC / FLY; restore search.
    Phone leftovers: LAYERS chips above Cesium; RADIO route off the panel;
    FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD.
-   Canvas: WebGL must stay under .hud at every viewport, not only ≤820. */
+   Canvas: WebGL must stay under .hud at every viewport, not only ≤820.
+   Next leftover: Ion credits still sit on UTC (390) and LIVE/HOLD (1280);
+   desktop INSTALL sits on the zoom column. Park credits; do not buy a plan. */
 
 #globe,
 #globe .cesium-viewer,
@@ -20,6 +22,24 @@
 .hud * {
   pointer-events: auto;
 }
+/* Splash owns the viewport until hide(). RADIO must not steal LAYERS taps. */
+html.exo-booting .hud,
+html.exo-booting .hud *,
+html.exo-booting a.radio-link {
+  pointer-events: none !important;
+}
+
+/* Every viewport: never let the credit strip be a full-bleed hit target. */
+#globe .cesium-viewer-bottom,
+#globe .cesium-widget-credits {
+  pointer-events: none !important;
+  width: auto !important;
+  max-width: 200px;
+  max-height: 22px;
+  overflow: hidden;
+  opacity: 0.4;
+  z-index: 1 !important;
+}
 
 @media (min-width: 821px) {
   .search {
@@ -30,6 +50,35 @@
   }
   .tl {
     max-width: calc(100vw - 430px);
+    flex-wrap: nowrap;
+    z-index: 6;
+  }
+  .tl a.radio-link {
+    position: relative;
+    z-index: 7;
+  }
+  /* Bottom-left, left of LIVE. Full-bleed .cesium-viewer-bottom was on the timebar. */
+  #globe .cesium-viewer-bottom,
+  #globe .cesium-widget-credits {
+    top: auto !important;
+    bottom: 4px !important;
+    left: 8px !important;
+    right: auto !important;
+    transform: scale(0.75);
+    transform-origin: bottom left;
+  }
+  /* Default chip is right:14px / bottom:148px — that covers the zoom column. */
+  #exo-install {
+    right: 56px;
+    z-index: 20;
+  }
+  /* FACILITY was kissing LIVE by ~4px at 1280. */
+  .camstrip {
+    max-width: calc(50vw - 160px);
+  }
+  /* Wrapped camstrip is taller; keep the always-on STATION column off it. */
+  .station {
+    max-height: calc(100vh - 240px);
   }
 }
 @media (max-width: 820px) {
@@ -80,7 +129,9 @@
     top: calc(104px + env(safe-area-inset-top));
     left: 14px;
     width: min(288px, 84vw);
-    max-height: calc(100dvh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    /* Stop above INSTALL (44px at bottom:258px) + camstrip. */
+    bottom: calc(310px + env(safe-area-inset-bottom));
+    max-height: none;
     z-index: 5;
   }
 
@@ -147,21 +198,18 @@
     z-index: 19;
   }
 
-  /* Ion / Cesium credit strip sits on LIVE/HOLD at 390. Move it; do not buy a plan. */
+  /* Top-right sat on UTC / FEED. Park mid-right, below dossier, above camstrip. */
   #globe .cesium-viewer-bottom,
   #globe .cesium-widget-credits {
-    pointer-events: none !important;
+    top: 42% !important;
     bottom: auto !important;
-    top: 4px !important;
     left: auto !important;
-    right: 4px !important;
-    max-width: 38%;
-    max-height: 28px;
-    overflow: hidden;
-    transform: scale(0.7);
-    transform-origin: top right;
+    right: 6px !important;
+    max-width: 28%;
+    max-height: 22px;
+    transform: scale(0.65);
+    transform-origin: center right;
     opacity: 0.45;
-    z-index: 1 !important;
   }
 
   .stmode.wait { color: var(--mut); }

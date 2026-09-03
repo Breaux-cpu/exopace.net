@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="exo-booting">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -25,18 +25,32 @@
     <style>
       html, body, #root { margin: 0; height: 100%; background: #03060b; overflow: hidden; }
       #boot-void {
-        position: fixed; inset: 0; z-index: 80;
+        position: fixed; inset: 0; z-index: 200;
         background: #03060b; color: #7ee0ff;
         font-family: "IBM Plex Mono", ui-monospace, monospace;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         letter-spacing: 0.28em; font-size: 11px;
         transition: opacity 0.9s ease;
+        pointer-events: auto;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
       }
       #boot-void svg { width: 72px; height: 72px; margin-bottom: 18px; }
       #boot-void b { color: #ffe08a; font-weight: 600; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 14px; }
-      #boot-void.out { opacity: 0; pointer-events: none; }
+      /* Eat taps through the fade. .out used to set pointer-events:none and
+         LAYERS-region hits landed on <a href="/radio/">. Hide after transition. */
+      #boot-void.out { opacity: 0; }
+      /* HUD paints under the splash (Cesium 20s+). RADIO can wrap into the
+         LAYERS region before moc-phone.css applies. Freeze the tree. */
+      html.exo-booting #root,
+      html.exo-booting #exo-install,
+      html.exo-booting a.radio-link,
+      html.exo-booting a[href*="/radio"] {
+        pointer-events: none !important;
+      }
       #exo-install {
-        position: fixed; z-index: 90; right: 14px;
+        position: fixed; z-index: 70; right: 14px;
         bottom: calc(148px + env(safe-area-inset-bottom));
         background: #070c12cc; border: 1px solid #1c2a33; color: #ffe08a;
         font-family: "IBM Plex Mono", ui-monospace, monospace;
@@ -45,10 +59,10 @@
       }
       #exo-install[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=9">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=11">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=9">
+    <link rel="stylesheet" href="/moc-phone.css?v=11">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -61,13 +75,47 @@
       <b>EXOpace</b>CHECKING PIPELINE…
     </div>
     <button id="exo-install" type="button" hidden>INSTALL APP</button>
-    <div id="root"></div>
+    <div id="root" inert></div>
     <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
          (served from /cesium/, NOT bundled by Vite), then the app. -->
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=9"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=11"></script>
     <script src="/pwa-install.js" defer></script>
+    <script>
+      (function () {
+        var v = document.getElementById("boot-void");
+        var root = document.getElementById("root");
+        if (!v) return;
+        document.documentElement.classList.add("exo-booting");
+        if (root) root.setAttribute("inert", "");
+        function booting() {
+          return document.documentElement.classList.contains("exo-booting");
+        }
+        function eat(e) {
+          if (!booting()) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        }
+        ["click", "auxclick", "pointerdown", "pointerup", "touchstart", "touchend", "mousedown", "mouseup"].forEach(function (type) {
+          document.addEventListener(type, eat, true);
+        });
+        document.addEventListener("keydown", function (e) {
+          if (!booting()) return;
+          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") eat(e);
+        }, true);
+        function hide() {
+          v.style.display = "none";
+          v.style.pointerEvents = "none";
+          document.documentElement.classList.remove("exo-booting");
+          if (root) root.removeAttribute("inert");
+        }
+        v.addEventListener("transitionend", function (e) {
+          if (e.propertyName === "opacity" && v.classList.contains("out")) hide();
+        });
+      })();
+    </script>
   </body>
 </html>

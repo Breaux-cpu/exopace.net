@@ -2,10 +2,12 @@
    Deploy writes EXOPACE_ENV=prod. Dev copies must set EXOPACE_ENV=dev. */
 window.EXOPACE_ENV = "prod";
 window.EXOPACE_ALLOW_DEMO = false;
+/* Guest browsers 403 celestrak.org. Same-origin snapshot in /tle/ (pulled 2026-09-03).
+   Bundle labels that CACHED, not LIVE. SYNTHETIC stays DEV-only. */
 window.EXOPACE_TLE_URLS = [
-  "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
-  "https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle",
-  "https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=tle",
+  "/tle/stations.txt",
+  "/tle/visual.txt",
+  "/tle/weather.txt",
 ];
 window.EXOPACE_BRIDGE = ""; // ingest origin, e.g. http://127.0.0.1:8210 — empty = no RF poll. Never a public typo host.
 /* Imagery keys — owner-filled AFTER deploy; empty = Esri World Imagery fallback (still real satellite tiles). ION_TOKEN: Cesium ion token -> ION LIVE. GOOGLE_TILES_KEY: Google Map Tiles API -> photorealistic 3D. */

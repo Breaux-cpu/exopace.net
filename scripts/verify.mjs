@@ -55,10 +55,15 @@ for (const rel of [
 // --- first-paint: boot-void outside #root so React cannot wipe it ---
 const index = read("index.html");
 assert(/<div id="boot-void">/.test(index), "index.html has #boot-void");
-assert(/<div id="root">\s*<\/div>/.test(index), "index.html #root is empty");
-assert(index.indexOf('id="boot-void"') < index.indexOf('<div id="root">'), "boot-void precedes #root");
+assert(/<div id="root"[^>]*>\s*<\/div>/.test(index), "index.html #root is empty");
+assert(index.indexOf('id="boot-void"') < index.indexOf('id="root"'), "boot-void precedes #root");
 assert(!/<div id="root">[\s\S]*id="boot-void"/.test(index), "boot-void is not nested in #root");
 assert(index.includes("CHECKING PIPELINE"), "boot status text is last-child compatible");
+assert(index.includes("z-index: 200") && index.includes("transitionend"), "splash sits above HUD and hides after fade");
+assert(!/#boot-void\.out \{[^}]*pointer-events:\s*none/.test(index), "splash .out still eats taps during fade");
+assert(index.includes('class="exo-booting"') && index.includes("inert"), "html.exo-booting + #root inert until splash hide");
+assert(index.includes("stopImmediatePropagation") && index.includes('["click", "auxclick"'), "splash capture-phase eats pointer events");
+assert(/<div id="root"[^>]*inert/.test(index), "#root is inert in markup before React mounts");
 assert(index.includes("/env.js") && index.includes("/cesium/Cesium.js"), "env + Cesium load before app");
 assert(
   index.indexOf('<script src="/env.js">') < index.indexOf('<script type="module"'),
@@ -77,6 +82,11 @@ assert(read("moc-phone.css").includes("z-index: 16") && read("moc-phone.css").in
 assert(read("moc-phone.css").includes("z-index: 40"), "LAYERS panel stacks above Cesium canvas");
 assert(read("moc-phone.css").includes("hud:has(.layers.open)"), "RADIO route is inert while LAYERS is open");
 assert(read("moc-phone.css").includes("cesium-viewer-bottom"), "Cesium credits are moved off LIVE/HOLD");
+assert(read("moc-phone.css").includes("top: 42%") && read("moc-phone.css").includes("bottom: 4px"), "Ion credits park mid-right on phone and bottom-left on desktop");
+assert(read("moc-phone.css").includes("#exo-install") && read("moc-phone.css").includes("right: 56px"), "desktop INSTALL sits left of the zoom column");
+assert(read("moc-phone.css").includes("50vw - 160px"), "desktop camstrip stays left of LIVE");
+assert(read("moc-phone.css").includes("flex-wrap: nowrap"), "desktop .tl stays one row so RADIO does not sit on the dossier");
+assert(read("moc-phone.css").includes("bottom: calc(310px") && read("moc-phone.css").includes(".station"), "phone STATION panel stops above INSTALL + camstrip");
 assert(read("moc-phone.css").includes("nth-child(5)"), "FOLLOW is isolated above later camstrip siblings");
 assert(read("moc-phone.css").includes("#exo-install"), "INSTALL APP is moved off the 390 camstrip");
 assert(read("moc-phone.css").includes("span.chip:nth-child(n + 3)"), "phone .tl hides IMG/WEBGL so search stays clear");
@@ -95,9 +105,10 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v9"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v11"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
+assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
 assert(radSw.includes("exopace-radio-v7"), "Radio SW cache bumped");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -115,8 +126,9 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=9"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=9"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=11"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=11"), "index cache-busts hashed MOC bundle");
+assert(read("moc-phone.css").includes("html.exo-booting") && read("moc-phone.css").includes("a.radio-link"), "overlay freezes HUD + RADIO while splash is up");
 assert(read("moc-phone.css").includes("#globe .cesium-widget canvas") && read("moc-phone.css").includes("z-index: 0 !important"), "Cesium canvas stays under .hud at every viewport");
 
 // --- protocol ESM ---
@@ -189,6 +201,8 @@ assert(moc.includes("ULTRA") && moc.includes("exopace-quality"), "MOC quality ti
 assert(moc.includes("/lock/") && moc.includes("serviceWorker") && moc.includes("/sw.js"), "MOC deep link + SW register");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes("exoAllowDemo"), "MOC demo helper (prod still false)");
+assert(!moc.includes('?"AUDIO":"TICKS"') && !moc.includes('"TICKS"'), "MOC sound chip is never labeled TICKS");
+assert(moc.includes('children:"AUDIO"'), "MOC sound chip stays AUDIO either way");
 assert(moc.includes('feed:"WAIT"'), "MOC initial feed is WAIT not ERROR");
 assert(moc.includes("FEED WAIT"), "MOC paints FEED WAIT while CelesTrak loads");
 assert(!moc.includes('feed:"ERROR",imagery'), "MOC does not first-paint FEED ERROR");
@@ -204,6 +218,18 @@ assert(read("SDR_AGENT.md").includes("wss://exopace.net/bridge/sensor") && read(
 assert(read("SDR_AGENT.md").includes("/mnt/gsdata/exopace/sdr-agent"), "SDR contract: Python lives off-tree");
 assert(read("SDR_AGENT.md").includes("jessy") && read("SDR_AGENT.md").includes("/dev/bus/usb"), "SDR contract: dongle is on jessy, not this VM");
 assert(read("README.md").includes("never pushed here") || read("README.md").includes("never committed"), "README says moc source never landed in git");
+
+// --- same-origin TLE snapshot (guest Celestrak 403) ---
+assert(read("env.js").includes("/tle/stations.txt") && read("env.js").includes("/tle/visual.txt") && read("env.js").includes("/tle/weather.txt"), "env TLE URLs are same-origin snapshots");
+assert(!/EXOPACE_TLE_URLS\s*=\s*\[[^\]]*celestrak\.org/.test(read("env.js")), "env TLE list does not send guests to celestrak.org");
+for (const rel of ["tle/stations.txt", "tle/visual.txt", "tle/weather.txt"]) {
+  assert(existsSync(join(root, rel)) && statSync(join(root, rel)).size > 200, `exists ${rel}`);
+}
+assert(read("tle/stations.txt").includes("ISS (ZARYA)") && read("tle/stations.txt").includes("1 25544U"), "stations snapshot has ISS");
+assert(read("tle/README.md").includes("2026-09-03") && read("tle/README.md").includes("FEED CACHED"), "TLE snapshot is dated and labeled CACHED");
+assert(read("assets/index-B5yAHF7-.js").includes("celestrak\\.org") && read("assets/index-B5yAHF7-.js").includes('?"LIVE":"CACHED"'), "MOC labels same-origin TLE CACHED not LIVE");
+assert(read("_redirects").includes("/tle/*"), "_redirects keeps /tle/ as real files");
+assert(read("sw.js").includes("/tle/"), "MOC SW skips /tle/ so the snapshot is not pinned");
 
 if (fail.length) {
   console.error("FAIL");
