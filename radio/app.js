@@ -31,7 +31,10 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
   b.classList.add("active");
   $("scr-" + b.dataset.s).classList.add("active");
   if (S.globe) S.globe.setActive(b.dataset.s === "map");
-  if (b.dataset.s === "map") ensureGlobe();
+  if (b.dataset.s === "map") {
+    syncGlobe();
+    ensureGlobe();
+  }
 });
 
 function toast(t) { const e = $("toast"); e.textContent = t; e.style.opacity = 1; setTimeout(() => e.style.opacity = 0, 1800); }
@@ -39,11 +42,11 @@ function setPath(mode, up) {
   S.mode = mode;
   $("hLink").classList.toggle("up", !!up);
   const c = $("btnConn"); const lbl = $("pathLbl");
-  if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("demoTag").textContent = "DEV"; }
+  if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("modeTag").textContent = "DEV"; }
   else if (up) { c.textContent = "LINK UP"; lbl.textContent = "LINK UP"; lbl.classList.add("up"); }
   else { c.textContent = "CONNECT"; lbl.textContent = "LINK DOWN"; lbl.classList.remove("up"); }
   c.classList.toggle("up", !!up);
-  $("demoTag").style.display = mode === "demo" ? "inline-block" : "none";
+  $("modeTag").style.display = mode === "demo" ? "inline-block" : "none";
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
 function syncChatEmpty() { $("chatEmpty").style.display = $("chatLog").children.length ? "none" : ""; }
@@ -510,7 +513,7 @@ $("cfgSave").onclick = () => {
 };
 
 function startDemo() {
-  if (!window.exoAllowDemo || !window.exoAllowDemo()) { toast("DEMO DISABLED IN PROD"); return; }
+  if (!window.exoAllowDemo || !window.exoAllowDemo()) { return; }
   if (S.demo) { ensureGlobe(); return; }
   S.demo = true; closeWifi(); clearBle(); S.nodes = {}; $("chatLog").innerHTML = "";
   syncChatEmpty(); setPath("demo", true);
