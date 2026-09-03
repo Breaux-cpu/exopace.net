@@ -71,10 +71,11 @@ function syncHeaderMeter() {
   el.style.display = up ? "" : "none";
 }
 function syncChatSend() {
-  const send = $("chatSend"), composer = $("composer"), empty = $("chatEmpty");
+  const send = $("chatSend"), composer = $("composer"), empty = $("chatEmpty"), qtx = $("qtx");
   const up = radioUp();
   if (send) { send.hidden = !up; send.style.display = up ? "" : "none"; }
   if (composer) composer.hidden = !up;
+  if (qtx) qtx.hidden = !up;
   if (empty) empty.textContent = up ? "MESH QUIET. TX or wait for a peer." : "MESH QUIET. Wait for a peer.";
 }
 

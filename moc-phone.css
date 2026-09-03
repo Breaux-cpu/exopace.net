@@ -166,6 +166,13 @@ html.exo-booting a.radio-link {
     max-height: calc(100dvh - 220px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     z-index: 3;
   }
+  /* Phone leftover: ISS lock COPY COORDS / CLEAR LOCK were 42px after-paint. */
+  .dossier button.btn {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 8px;
+  }
 
   .station {
     top: calc(104px + env(safe-area-inset-top));

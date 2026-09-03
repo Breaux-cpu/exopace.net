@@ -74,6 +74,7 @@ button,select,input{font:inherit;color:var(--text)}
 #composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(4px + var(--kb));
   display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
 #composer[hidden]{display:none!important}
+#qtx[hidden]{display:none!important}
 #composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
   font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-width:0;min-height:44px;flex:0 1 auto}
 #composer input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
@@ -196,7 +197,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
       </div>
     </div>
     <div id="chatEmpty" class="card sub">MESH QUIET. Wait for a peer.</div>
-    <div class="row" style="margin-bottom:10px;flex-wrap:wrap">
+    <div class="row" id="qtx" hidden style="margin-bottom:10px;flex-wrap:wrap">
       <button class="btn" data-qtx="On station">On station</button>
       <button class="btn" data-qtx="Moving">Moving</button>
       <button class="btn" data-qtx="Need relay">Need relay</button>
@@ -323,11 +324,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=39"></script>
+<script src="env.js?v=40"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=39"></script>
-<script src="store.js?v=39"></script>
-<script src="globe.js?v=39"></script>
-<script src="app.js?v=39"></script>
+<script src="protocol.js?v=40"></script>
+<script src="store.js?v=40"></script>
+<script src="globe.js?v=40"></script>
+<script src="app.js?v=40"></script>
 </body>
 </html>
