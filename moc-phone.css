@@ -300,6 +300,15 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 10px 12px;
   }
+  /* Phone leftover: FEED CELESTRAK CACHED .tl span.chip was 144.3×42.4
+     at 360 (bundle .chip min-height 32). Desktop already 44. IMG/WEBGL
+     stay hidden. Not UTC. Not RADIO. */
+  .tl span.chip {
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+  }
 
   /* Phone: UTC + FEED + RADIO only. IMG/WEBGL/quality/AUDIO wrap through search. */
   .tl > span.chip:nth-child(n + 3),
