@@ -111,6 +111,14 @@ html.exo-booting a.radio-link {
     display: inline-flex;
     align-items: center;
   }
+  /* Desktop leftover: UTC clock was 160.8×13.2 at 1280 (bundle 10px type).
+     FEED/IMG chips already 44. Not SAT NAME. Not AUDIO. */
+  .tl span.utc {
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+  }
   /* Desktop leftover: LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS were 118×32
      at 1280 (bundle .btn). Phone already 44. Not camstrip. Not AUDIO. */
   .layers .btn {
