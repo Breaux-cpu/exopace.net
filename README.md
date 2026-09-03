@@ -42,7 +42,7 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 
 `/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
 
-Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. `#facility` flies to Millington GS.
+Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped.
 
 First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeout. **FEED ERROR** / MODE **FAULT** only after that failure — not while ION/TLE are still in flight. Empty after timeout is allowed. Invented 0 is not.
 
@@ -66,6 +66,8 @@ python3 -m http.server 4173
 # MOC   http://127.0.0.1:4173/
 # Radio http://127.0.0.1:4173/radio/
 # lock  http://127.0.0.1:4173/?lock=25544&cam=follow&t=live
+# facility  http://127.0.0.1:4173/?cam=facility
+# lock+facility  http://127.0.0.1:4173/?lock=25544&cam=facility&t=live
 # legacy /lock/25544?… redirects to the root query form
 ```
 

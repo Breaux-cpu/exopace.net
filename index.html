@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=62">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=63">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=62">
+    <link rel="stylesheet" href="/moc-phone.css?v=63">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -93,17 +93,21 @@
     <script>
       (function () {
         var m = location.pathname.match(/^\/lock\/([^/?]+)/);
-        if (!m) return;
         var q = new URLSearchParams(location.search);
-        if (!q.has("lock")) q.set("lock", decodeURIComponent(m[1]));
+        if (m && !q.has("lock")) q.set("lock", decodeURIComponent(m[1]));
+        var hash = location.hash || "";
+        if (hash.replace(/^#/, "").toLowerCase() === "facility") hash = "";
+        if (!m && hash === (location.hash || "")) return;
         var s = q.toString();
-        location.replace("/" + (s ? "?" + s : "") + (location.hash || ""));
+        var url = (m ? "/" : location.pathname) + (s ? "?" + s : "") + hash;
+        if (m) location.replace(url);
+        else history.replaceState(null, "", url);
       })();
     </script>
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=62"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=63"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
