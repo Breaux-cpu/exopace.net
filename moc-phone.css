@@ -89,10 +89,16 @@ html.exo-booting a.radio-link {
     transform-origin: bottom left;
   }
   /* Default chip is right:14px / bottom:148px — that covers the zoom column.
-     44px zoom is 12px wider than the bundle 32px; keep INSTALL left of ⌂. */
+     44px zoom is 12px wider than the bundle 32px; keep INSTALL left of ⌂.
+     Desktop leftover: INSTALL APP was 99×32 at 1280 (index.html min-height).
+     Phone already 44. Stay left of zoom. Not Cesium toolbar. */
   #exo-install {
     right: 68px;
     z-index: 20;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 9px;
   }
   /* Desktop leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at 1280 (bundle .btn).
      Grow in place (bottom-right). Not Cesium .cesium-viewer-toolbar. */
