@@ -48,7 +48,7 @@ main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;displa
 #scr-map.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding:0;max-width:none;overflow:hidden}
 h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
   text-transform:uppercase;margin:6px 0 10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;max-width:100%;min-width:0;overflow:hidden}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .big{font-family:var(--mono);font-size:26px;color:var(--amber);line-height:1.1;word-break:break-all}
 .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
@@ -105,7 +105,7 @@ button,select,input{font:inherit;color:var(--text)}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
 .mapread{display:flex;align-items:center;gap:12px}
 .mapread .big{font-size:18px}
-#battChart,#rssiChart{width:100%;max-width:100%;height:64px;display:block}
+#battChart,#rssiChart{width:100%;max-width:100%;min-width:0;height:64px;display:block;box-sizing:border-box}
 #rssiChart{height:48px}
 .field{margin-bottom:12px}
 .field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);
@@ -235,8 +235,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px">-</div><div class="sub" id="vSnr">SNR -</div></div>
       <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px">-</div><div class="sub" id="vFreq">-</div></div>
     </div>
-    <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="600" height="128"></canvas></div>
-    <div class="card" style="overflow:hidden"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="600" height="96"></canvas></div>
+    <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="300" height="128"></canvas></div>
+    <div class="card"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="300" height="96"></canvas></div>
     <div class="card" id="rangeCard"><div class="lbl">Range logger</div>
       <div class="row">
         <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
@@ -289,11 +289,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=8"></script>
+<script src="env.js?v=9"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=8"></script>
-<script src="store.js?v=8"></script>
-<script src="globe.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="protocol.js?v=9"></script>
+<script src="store.js?v=9"></script>
+<script src="globe.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

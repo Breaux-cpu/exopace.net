@@ -105,12 +105,12 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v11"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v13"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v8"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v9"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -128,8 +128,10 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=11"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=11"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=13"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=13"), "index cache-busts hashed MOC bundle");
+assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
+assert(!/max-width: 820px\)[\s\S]*cesium-viewer-bottom[\s\S]*top: 4px/.test(read("moc-phone.css")), "phone credits are not parked at top:4px on UTC");
 assert(read("moc-phone.css").includes("html.exo-booting") && read("moc-phone.css").includes("a.radio-link"), "overlay freezes HUD + RADIO while splash is up");
 assert(read("moc-phone.css").includes("#globe .cesium-widget canvas") && read("moc-phone.css").includes("z-index: 0 !important"), "Cesium canvas stays under .hud at every viewport");
 
@@ -194,7 +196,7 @@ assert(radioApp.includes("rangeCard") || radioHtml.includes("rangeCard"), "range
 assert(radioApp.includes("walk outside") && !radioApp.includes("run DEMO"), "map empty state has no Demo nudge");
 assert(!radioApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
 assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP first paint has no Demo CTA");
-assert(radioHtml.includes("app.js?v=8") && radioHtml.includes("env.js?v=8"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=9") && radioHtml.includes("env.js?v=9"), "Radio index cache-busts in-place JS");
 assert(radioApp.includes("if (b.dataset.s === \"map\")") && radioApp.includes("syncGlobe()"), "MAP tab paints quiet empty state before globe");
 
 // --- shipped MOC still has palette + quality + deep link (bundle, no Vite source) ---
@@ -204,6 +206,10 @@ assert(moc.includes("ULTRA") && moc.includes("exopace-quality"), "MOC quality ti
 assert(moc.includes("/lock/") && moc.includes("serviceWorker") && moc.includes("/sw.js"), "MOC deep link + SW register");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes("exoAllowDemo"), "MOC demo helper (prod still false)");
+assert(!moc.includes("BASECAMP") && !moc.includes("RIG-1") && !moc.includes("TRK-2"), "MOC live bundle has no demo station fixtures");
+assert(!moc.includes('pass:"nodelink"'), "MOC live bundle does not ship a factory AP named nodelink");
+assert(!read("radio/protocol.js").includes("BASECAMP") && !read("radio/protocol.js").includes("RIG-1") && !read("radio/protocol.js").includes("TRK-2"), "Radio protocol has no BASECAMP / RIG-1 / TRK-2 fixtures");
+assert(!read("protocol/index.js").includes("BASECAMP") && !read("protocol/index.js").includes("RIG-1"), "canonical protocol demo helper dropped BASECAMP / RIG-1 names");
 assert(!moc.includes('?"AUDIO":"TICKS"') && !moc.includes('"TICKS"'), "MOC sound chip is never labeled TICKS");
 assert(moc.includes('children:"AUDIO"'), "MOC sound chip stays AUDIO either way");
 assert(moc.includes('feed:"WAIT"'), "MOC initial feed is WAIT not ERROR");
@@ -214,7 +220,8 @@ assert(!moc.includes('hostname==="exopace.net"'), "MOC has no live-host typo-bri
 assert(!read("env.js").includes("exopase"), "env.js has no exopase.com");
 assert(read("moc-phone.css").includes("min-width: 821px") && read("moc-phone.css").includes("left: 158px"), "1280 search sits left of UTC clock");
 assert(/overflow-x:\s*hidden/.test(radioHtml), "Radio clips horizontal overflow");
-assert(/#rssiChart\{width:100%/.test(radioHtml) || /#battChart,#rssiChart\{width:100%/.test(radioHtml), "Radio rssiChart scales to the NODE pane");
+assert(/#battChart,#rssiChart\{width:100%;max-width:100%;min-width:0/.test(radioHtml), "Radio rssiChart scales to the NODE pane");
+assert(/\.card\{[^}]*overflow:hidden/.test(radioHtml), "Radio NODE cards cannot grow past the pane");
 assert(!existsSync(join(root, "package.json")), "no fake Vite package.json");
 assert(!existsSync(join(root, "src")), "no invented moc/src tree");
 assert(!existsSync(join(root, "sdr-agent")), "no invented sdr-agent tree");
