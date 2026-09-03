@@ -121,6 +121,8 @@ button,select,input{font:inherit;color:var(--text)}
 #battChart,#rssiChart{width:100%;max-width:100%;min-width:0;height:64px;display:block;box-sizing:border-box}
 #rssiChart{height:48px}
 #battChart[hidden],#rssiChart[hidden]{display:none!important}
+#telemGrid[hidden]{display:none!important}
+#telemEmpty{margin-bottom:12px}
 #battEmpty,#rssiEmpty{margin-top:8px}
 .field{margin-bottom:12px}
 .field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);
@@ -251,11 +253,12 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 
   <section class="screen" id="scr-vitals">
     <h2>Node vitals</h2>
-    <div class="grid2">
-      <div class="card"><div class="lbl">Battery</div><div class="big" id="vBatt">-%</div><div class="sub" id="vVolt">- V</div></div>
-      <div class="card"><div class="lbl">Uptime</div><div class="big" id="vUp" style="font-size:20px">-</div><div class="sub" id="vHeap">heap -</div></div>
-      <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px">-</div><div class="sub" id="vSnr">SNR -</div></div>
-      <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px">-</div><div class="sub" id="vFreq">-</div></div>
+    <div class="card sub" id="telemEmpty">NO TELEMETRY. Vitals paint when the node reports.</div>
+    <div class="grid2" id="telemGrid" hidden>
+      <div class="card"><div class="lbl">Battery</div><div class="big" id="vBatt"></div><div class="sub" id="vVolt"></div></div>
+      <div class="card"><div class="lbl">Uptime</div><div class="big" id="vUp" style="font-size:20px"></div><div class="sub" id="vHeap"></div></div>
+      <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px"></div><div class="sub" id="vSnr"></div></div>
+      <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px"></div><div class="sub" id="vFreq"></div></div>
     </div>
     <div class="card"><div class="lbl">Battery — last hour</div>
       <canvas id="battChart" width="300" height="128" hidden></canvas>
@@ -329,11 +332,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=45"></script>
+<script src="env.js?v=46"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=45"></script>
-<script src="store.js?v=45"></script>
-<script src="globe.js?v=45"></script>
-<script src="app.js?v=45"></script>
+<script src="protocol.js?v=46"></script>
+<script src="store.js?v=46"></script>
+<script src="globe.js?v=46"></script>
+<script src="app.js?v=46"></script>
 </body>
 </html>

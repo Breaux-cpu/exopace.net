@@ -121,7 +121,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v45"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v46"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -214,7 +214,7 @@ assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP 
 assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
 assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=45") && radioHtml.includes("env.js?v=45"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=46") && radioHtml.includes("env.js?v=46"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist stays");
@@ -325,6 +325,9 @@ assert(/@media \(max-width: 380px\)[\s\S]*letter-spacing:\s*0/.test(read("moc-ph
 assert(/overflow-x:\s*hidden/.test(radioHtml), "Radio clips horizontal overflow");
 assert(/#battChart,#rssiChart\{width:100%;max-width:100%;min-width:0/.test(radioHtml), "Radio rssiChart scales to the NODE pane");
 assert(radioHtml.includes('id="battEmpty"') && radioHtml.includes("NO LAST-HOUR SAMPLES") && radioHtml.includes('id="rssiEmpty"') && radioHtml.includes("NO RSSI SAMPLES"), "NODE charts first-paint honest empty-states");
+assert(radioHtml.includes('id="telemEmpty"') && radioHtml.includes("NO TELEMETRY") && radioHtml.includes('id="telemGrid" hidden'), "NODE vitals first-paint honest empty-state instead of dummy -%");
+assert(!radioHtml.includes(">-%<") && !radioHtml.includes(">- V<") && !radioHtml.includes("heap -<") && !radioHtml.includes("SNR -<"), "NODE vitals HTML has no dummy dash readings");
+assert(/#telemGrid\[hidden\]\{[^}]*display:none/.test(radioHtml) && radioApp.includes("syncTelemEmpty"), "NODE dummy vitals stay hidden until the node reports");
 assert(!radioApp.includes("35.1495") && radioApp.includes("btnRecage") && radioApp.includes("WAITING FOR FIX"), "RECAGE ON ME waits for a GPS fix and does not fly to a dummy city");
 assert(radioHtml.includes('id="btnRange" hidden') && radioApp.includes("function syncMapChrome") && radioApp.includes("if (!radioUp()) return"), "MAP RANGE TEST is hidden while LINK DOWN and does not toggle without a radio");
 assert(radioHtml.includes('id="btnWay" hidden') && radioApp.includes("way.hidden = !hasFix"), "MAP DROP WAYPOINT is hidden until there is a GPS fix");
