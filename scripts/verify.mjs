@@ -120,7 +120,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v31"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v32"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -211,7 +211,7 @@ assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP 
 assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
 assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=31") && radioHtml.includes("env.js?v=31"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=32") && radioHtml.includes("env.js?v=32"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist hides #installHint across reloads");
@@ -242,6 +242,8 @@ assert(radioApp.includes(' + " UTC"') && radioApp.includes('ts + " · " + extra'
 assert(radioApp.includes("if (!went) echoOwnChat") && radioApp.includes("echoOwnChat(text, to)"), "LINK DOWN qtx/TX local-echo without inventing ack/RSSI");
 assert(radioApp.includes("function sosLine") && radioApp.includes("sosLine(m)"), "own SOS paints SOS, not SOS SOS");
 assert(radioHtml.includes("Channel key (AES-256)") && !radioHtml.includes("use CLEAR CHANNEL KEY for open mesh"), "SET channel-key label does not name the hidden CLEAR CHANNEL KEY control");
+assert(radioHtml.includes('id="cfgForm" hidden') && radioApp.includes("form.hidden = !up"), "SET name/freq/SF/TX/pass/key hide while LINK DOWN so there is no dead form");
+assert(radioHtml.includes('id="hFreq" hidden') && radioApp.includes("freq.hidden = !up"), "header does not paint dummy --- MHz / SF- while LINK DOWN");
 assert(radioHtml.includes("TX power (dBm)") && !/V4 PA/.test(radioHtml) && !/V4 PA/.test(radioApp), "SET TX power does not invent V4 PA hardware");
 assert(radioHtml.includes('id="cfgClearKey"') && radioHtml.includes("CLEAR CHANNEL KEY"), "CLEAR CHANNEL KEY stays inside cfgHw for when the radio is up");
 assert(!/text: "SOS " \+ \(m\.msg/.test(radioApp), "SOS handler does not glue SOS onto a qtx that is already SOS");

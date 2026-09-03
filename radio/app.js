@@ -49,6 +49,10 @@ function setPath(mode, up) {
   $("modeTag").style.display = mode === "demo" ? "inline-block" : "none";
   const hw = $("cfgHw");
   if (hw) hw.hidden = !up;
+  const form = $("cfgForm");
+  if (form) form.hidden = !up;
+  const freq = $("hFreq");
+  if (freq) { freq.hidden = !up; freq.style.display = up ? "" : "none"; }
   syncHeaderMeter();
   syncMapChrome();
 }
