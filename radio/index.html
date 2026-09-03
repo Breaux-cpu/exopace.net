@@ -107,6 +107,7 @@ button,select,input{font:inherit;color:var(--text)}
 .mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
 .mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
 #btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
+#btnRange[hidden],#btnWay[hidden],#wayKind[hidden]{display:none!important}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
 .mapread{display:flex;align-items:center;gap:12px}
 .mapread .big{font-size:18px}
@@ -216,7 +217,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <label><input type="checkbox" id="stTrail"> TRAIL</label>
       </div>
       <button class="btn" id="btnRecage">RECAGE ON ME</button>
-      <button class="btn" id="btnRange" style="position:absolute;left:8px;bottom:56px;z-index:2;width:auto">RANGE TEST</button>
+      <button class="btn" id="btnRange" hidden style="position:absolute;left:8px;bottom:56px;z-index:2;width:auto">RANGE TEST</button>
     </div>
     <div class="card mapsec">
       <div class="mapread">
@@ -232,8 +233,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <button class="btn" id="btnMaps">OPEN IN MAPS</button>
       </div>
       <div class="row" style="margin-top:8px">
-        <select id="wayKind"><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
-        <button class="btn" id="btnWay">DROP WAYPOINT</button>
+        <select id="wayKind" hidden><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
+        <button class="btn" id="btnWay" hidden>DROP WAYPOINT</button>
       </div>
       <div class="sub">Maps opens when your phone has internet — the mesh itself needs none.</div>
     </div>
@@ -316,11 +317,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=30"></script>
+<script src="env.js?v=31"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=30"></script>
-<script src="store.js?v=30"></script>
-<script src="globe.js?v=30"></script>
-<script src="app.js?v=30"></script>
+<script src="protocol.js?v=31"></script>
+<script src="store.js?v=31"></script>
+<script src="globe.js?v=31"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>

@@ -50,6 +50,7 @@ function setPath(mode, up) {
   const hw = $("cfgHw");
   if (hw) hw.hidden = !up;
   syncHeaderMeter();
+  syncMapChrome();
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
 function syncChatEmpty() { $("chatEmpty").style.display = $("chatLog").children.length ? "none" : ""; }
@@ -352,6 +353,7 @@ function renderGps() {
     $("posLL").textContent = "--.----- / --.-----";
   }
   renderNodes();
+  syncMapChrome();
 }
 $("btnCopy").onclick = () => {
   const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
@@ -434,7 +436,23 @@ $("btnRecage").onclick = () => {
   S.globe.recage(S.gps.lat, S.gps.lon);
   toast("RECAGE");
 };
+function radioUp() { return !!($("pathLbl") && $("pathLbl").classList.contains("up")); }
+function syncMapChrome() {
+  const up = radioUp();
+  const hasFix = !!(S.gps && S.gps.fix);
+  const range = $("btnRange");
+  if (range) {
+    if (!up && S.rangeOn) { S.rangeOn = false; range.classList.remove("primary"); }
+    range.hidden = !up;
+    range.style.display = up ? "" : "none";
+  }
+  const way = $("btnWay");
+  const kind = $("wayKind");
+  if (way) { way.hidden = !hasFix; way.style.display = hasFix ? "" : "none"; }
+  if (kind) { kind.hidden = !hasFix; kind.style.display = hasFix ? "" : "none"; }
+}
 $("btnRange").onclick = () => {
+  if (!radioUp()) return;
   S.rangeOn = !S.rangeOn;
   $("btnRange").classList.toggle("primary", S.rangeOn);
   toast(S.rangeOn ? "RANGE TEST ON" : "RANGE TEST OFF");
@@ -759,3 +777,4 @@ if (location.hash === "#map") {
 
 drawBatt();
 drawSpark();
+syncMapChrome();
