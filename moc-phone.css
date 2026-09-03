@@ -4,7 +4,7 @@
    Phone leftovers: LAYERS chips above Cesium; RADIO route off the panel;
    FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD.
    Canvas: WebGL must stay under .hud at every viewport, not only ≤820.
-   Phone leftover: STATION panel sat on SELECTION at 360/390. */
+   Phone leftover: locked dossier sat on mid-right Ion credits. */
 
 #globe,
 #globe .cesium-viewer,
@@ -217,6 +217,11 @@ html.exo-booting a.radio-link {
     transform: scale(0.6);
     transform-origin: top right !important;
     opacity: 0.35;
+  }
+  /* Locked dossier (~308px, COPY/CLEAR) covers mid-right Ion credits at 360/390. */
+  html:has(.dossier button) #globe .cesium-viewer-bottom {
+    top: auto !important;
+    bottom: calc(268px + env(safe-area-inset-bottom)) !important;
   }
   #globe .cesium-widget-credits {
     position: static !important;
