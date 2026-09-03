@@ -84,6 +84,7 @@ button,select,input{font:inherit;color:var(--text)}
 .fix.on{color:#141406;background:var(--ok);border-color:var(--ok);font-weight:700}
 #compass{width:80px;height:80px;border:2px solid var(--line);border-radius:50%;margin:0;
   flex:0 0 80px;position:relative;background:radial-gradient(circle,#1c2010 60%,#14170b)}
+#compass[hidden]{display:none!important}
 #needle{position:absolute;left:50%;top:50%;width:3px;height:30px;background:var(--amber);
   transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);border-radius:2px;transition:transform .5s}
 #compass span{position:absolute;font-family:var(--mono);font-size:10px;color:var(--mut)}
@@ -223,7 +224,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
           <div class="big" id="posLL">--.----- / --.-----</div>
           <div class="sub"><span id="posSpd">-</span> · <span id="posAlt">-</span></div>
         </div>
-        <div id="compass"><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
+        <div id="compass" hidden><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
       </div>
       <div class="row" style="margin-top:8px">
         <button class="btn" id="btnCopy" hidden>COPY COORDS</button>
@@ -324,11 +325,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=41"></script>
+<script src="env.js?v=42"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=41"></script>
-<script src="store.js?v=41"></script>
-<script src="globe.js?v=41"></script>
-<script src="app.js?v=41"></script>
+<script src="protocol.js?v=42"></script>
+<script src="store.js?v=42"></script>
+<script src="globe.js?v=42"></script>
+<script src="app.js?v=42"></script>
 </body>
 </html>
