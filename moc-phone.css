@@ -157,13 +157,16 @@ html.exo-booting a.radio-link {
     max-width: min(168px, 44vw);
   }
 
+  /* Phone leftover: .tl stacks UTC / FEED / RADIO in 44vw, so RADIO
+     lands at top ~91–135 and sat on SELECTION (z-3 under .tl z-12).
+     Desktop already nowrap. Keep STATION / LAYERS at 104 — they are left. */
   .dossier {
-    top: calc(104px + env(safe-area-inset-top));
+    top: calc(144px + env(safe-area-inset-top));
     bottom: auto;
     right: 14px;
     left: auto;
     width: min(220px, 56vw);
-    max-height: calc(100dvh - 220px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 260px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     z-index: 3;
   }
   /* Phone leftover: ISS lock COPY COORDS / CLEAR LOCK were 42px after-paint. */
@@ -351,10 +354,13 @@ html.exo-booting a.radio-link {
   .search {
     top: calc(72px + env(safe-area-inset-top));
   }
-  .dossier,
   .station,
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
+  }
+  /* RADIO still bottoms ~135 at 360; do not pull SELECTION back to 124. */
+  .dossier {
+    top: calc(144px + env(safe-area-inset-top));
   }
   .zoom {
     top: calc(144px + env(safe-area-inset-top));
