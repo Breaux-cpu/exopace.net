@@ -214,6 +214,7 @@ assert(!moc.includes('hostname==="exopace.net"'), "MOC has no live-host typo-bri
 assert(!read("env.js").includes("exopase"), "env.js has no exopase.com");
 assert(read("moc-phone.css").includes("min-width: 821px") && read("moc-phone.css").includes("left: 158px"), "1280 search sits left of UTC clock");
 assert(/overflow-x:\s*hidden/.test(radioHtml), "Radio clips horizontal overflow");
+assert(/#rssiChart\{width:100%/.test(radioHtml) || /#battChart,#rssiChart\{width:100%/.test(radioHtml), "Radio rssiChart scales to the NODE pane");
 assert(!existsSync(join(root, "package.json")), "no fake Vite package.json");
 assert(!existsSync(join(root, "src")), "no invented moc/src tree");
 assert(!existsSync(join(root, "sdr-agent")), "no invented sdr-agent tree");
