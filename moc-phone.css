@@ -373,6 +373,13 @@ html.exo-booting a.radio-link {
   .tl {
     max-width: 40vw;
   }
+  /* 360 leftover: locked-ISS Ion credits (96px at bottom:248) sat on
+     COPY COORDS / CLEAR LOCK (427–476). 390 already clears. Hide while
+     the lock taps exist — same as STATION. */
+  html:has(.dossier button) #globe .cesium-viewer-bottom {
+    display: none !important;
+    pointer-events: none !important;
+  }
 }
 /* 360 leftover: 16px + .08em tracking made SAT NAME / NORAD 174px in a 165px box. */
 @media (max-width: 380px) {
