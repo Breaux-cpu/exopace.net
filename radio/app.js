@@ -480,7 +480,7 @@ function fillCfg(c) {
     $("cfgKey").placeholder = "shared secret, same on every node";
   }
   if (c.pass === "nodelink") {
-    $("passHint").textContent = "Node still has the factory AP password — change it on the radio before field use (FIRMWARE.md).";
+    $("passHint").textContent = "Node still has the factory AP password — change it on the radio before field use.";
     $("passHint").style.display = "";
   } else {
     $("passHint").style.display = c.pass ? "none" : "";
@@ -489,7 +489,7 @@ function fillCfg(c) {
 $("cfgKey").addEventListener("input", () => { S.keyDirty = true; S.keyClear = false; });
 $("cfgPass").addEventListener("input", () => {
   if ($("cfgPass").value === "nodelink") {
-    $("passHint").textContent = "Node still has the factory AP password — change it on the radio before field use (FIRMWARE.md).";
+    $("passHint").textContent = "Node still has the factory AP password — change it on the radio before field use.";
     $("passHint").style.display = "";
   } else {
     $("passHint").style.display = $("cfgPass").value ? "none" : "";
@@ -628,7 +628,7 @@ if (location.hash === "#map") {
   const card = $("rangeCard");
   const hint = $("rangeHint");
   if (!onNode) {
-    if (hint) hint.textContent = "Range CSV lives on the node (join EXOpace-XXXX → http://192.168.4.1). Not served from exopace.net.";
+    if (hint) hint.textContent = "Range CSV lives on the node (join EXOpace-XXXX → http://192.168.4.1).";
     if ($("btnRangeCsv")) $("btnRangeCsv").style.display = "none";
     if ($("btnRangeCsv0")) $("btnRangeCsv0").style.display = "none";
   } else {
