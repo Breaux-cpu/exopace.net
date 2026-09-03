@@ -31,6 +31,7 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
   b.classList.add("active");
   $("scr-" + b.dataset.s).classList.add("active");
   if (S.globe) S.globe.setActive(b.dataset.s === "map");
+  if (b.dataset.s === "setup") syncInstallHint();
   if (b.dataset.s === "map") {
     syncGlobe();
     ensureGlobe();
@@ -168,7 +169,7 @@ async function connectBle() {
     stopDemo(); closeWifi();
     S.bleRx = writeCh; S.bleDev = dev; S.bleBuf = "";
     setPath("bt", true);
-    $("installHint").style.display = "none";
+    syncInstallHint();
     dev.addEventListener("gattserverdisconnected", () => {
       if (S.bleDev !== dev) return;
       S.bleRx = null; S.bleDev = null;
@@ -683,15 +684,17 @@ function isStandalone() { return window.matchMedia("(display-mode: standalone)")
 function installHintDismissed() {
   try { return localStorage.getItem(INSTALL_HINT_HIDE) === "1"; } catch (e) { return false; }
 }
-function hideInstallHint(persist) {
+function showInstallCard() {
   const card = $("installHint");
+  if (!card) return;
+  card.hidden = false;
+  card.style.display = "";
+  card.style.pointerEvents = "";
+}
+function hideInstallHint(persist) {
   const inst = $("btnInst2");
   const hideBtn = $("btnHintHide");
-  if (card) {
-    card.hidden = true;
-    card.style.display = "none";
-    card.style.pointerEvents = "none";
-  }
+  showInstallCard();
   if (inst) {
     inst.hidden = true;
     inst.style.display = "none";
@@ -707,15 +710,10 @@ function hideInstallHint(persist) {
   }
 }
 function syncInstallHint() {
-  if (isStandalone() || installHintDismissed()) {
+  showInstallCard();
+  if (installHintDismissed()) {
     hideInstallHint(false);
     return;
-  }
-  const card = $("installHint");
-  if (card) {
-    card.hidden = false;
-    card.style.display = "";
-    card.style.pointerEvents = "";
   }
   const hideBtn = $("btnHintHide");
   if (hideBtn) {
@@ -725,7 +723,7 @@ function syncInstallHint() {
   }
   const inst = $("btnInst2");
   if (inst) {
-    const show = !!deferredPrompt;
+    const show = !!deferredPrompt && !isStandalone();
     inst.hidden = !show;
     inst.style.display = show ? "" : "none";
     inst.style.pointerEvents = show ? "" : "none";
