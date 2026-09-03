@@ -59,6 +59,8 @@ assert(/<div id="root">\s*<\/div>/.test(index), "index.html #root is empty");
 assert(index.indexOf('id="boot-void"') < index.indexOf('<div id="root">'), "boot-void precedes #root");
 assert(!/<div id="root">[\s\S]*id="boot-void"/.test(index), "boot-void is not nested in #root");
 assert(index.includes("CHECKING PIPELINE"), "boot status text is last-child compatible");
+assert(index.includes("z-index: 200") && index.includes("transitionend"), "splash sits above HUD and hides after fade");
+assert(!/#boot-void\.out \{[^}]*pointer-events:\s*none/.test(index), "splash .out still eats taps during fade");
 assert(index.includes("/env.js") && index.includes("/cesium/Cesium.js"), "env + Cesium load before app");
 assert(
   index.indexOf('<script src="/env.js">') < index.indexOf('<script type="module"'),
@@ -100,9 +102,10 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v9"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v10"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
+assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
 assert(radSw.includes("exopace-radio-v7"), "Radio SW cache bumped");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -120,8 +123,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=9"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=9"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=10"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=10"), "index cache-busts hashed MOC bundle");
 assert(read("moc-phone.css").includes("#globe .cesium-widget canvas") && read("moc-phone.css").includes("z-index: 0 !important"), "Cesium canvas stays under .hud at every viewport");
 
 // --- protocol ESM ---
@@ -209,6 +212,18 @@ assert(read("SDR_AGENT.md").includes("wss://exopace.net/bridge/sensor") && read(
 assert(read("SDR_AGENT.md").includes("/mnt/gsdata/exopace/sdr-agent"), "SDR contract: Python lives off-tree");
 assert(read("SDR_AGENT.md").includes("jessy") && read("SDR_AGENT.md").includes("/dev/bus/usb"), "SDR contract: dongle is on jessy, not this VM");
 assert(read("README.md").includes("never pushed here") || read("README.md").includes("never committed"), "README says moc source never landed in git");
+
+// --- same-origin TLE snapshot (guest Celestrak 403) ---
+assert(read("env.js").includes("/tle/stations.txt") && read("env.js").includes("/tle/visual.txt") && read("env.js").includes("/tle/weather.txt"), "env TLE URLs are same-origin snapshots");
+assert(!/EXOPACE_TLE_URLS\s*=\s*\[[^\]]*celestrak\.org/.test(read("env.js")), "env TLE list does not send guests to celestrak.org");
+for (const rel of ["tle/stations.txt", "tle/visual.txt", "tle/weather.txt"]) {
+  assert(existsSync(join(root, rel)) && statSync(join(root, rel)).size > 200, `exists ${rel}`);
+}
+assert(read("tle/stations.txt").includes("ISS (ZARYA)") && read("tle/stations.txt").includes("1 25544U"), "stations snapshot has ISS");
+assert(read("tle/README.md").includes("2026-09-03") && read("tle/README.md").includes("FEED CACHED"), "TLE snapshot is dated and labeled CACHED");
+assert(read("assets/index-B5yAHF7-.js").includes("celestrak\\.org") && read("assets/index-B5yAHF7-.js").includes('?"LIVE":"CACHED"'), "MOC labels same-origin TLE CACHED not LIVE");
+assert(read("_redirects").includes("/tle/*"), "_redirects keeps /tle/ as real files");
+assert(read("sw.js").includes("/tle/"), "MOC SW skips /tle/ so the snapshot is not pinned");
 
 if (fail.length) {
   console.error("FAIL");
