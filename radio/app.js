@@ -566,19 +566,71 @@ function demoSend(o) {
 }
 
 let deferredPrompt = null;
+const INSTALL_HINT_HIDE = "exopace-radio-hide-install";
 function isiOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
 function isStandalone() { return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; }
+function installHintDismissed() {
+  try { return localStorage.getItem(INSTALL_HINT_HIDE) === "1"; } catch (e) { return false; }
+}
+function hideInstallHint(persist) {
+  const card = $("installHint");
+  const inst = $("btnInst2");
+  const hideBtn = $("btnHintHide");
+  if (card) {
+    card.hidden = true;
+    card.style.display = "none";
+    card.style.pointerEvents = "none";
+  }
+  if (inst) {
+    inst.hidden = true;
+    inst.style.display = "none";
+    inst.style.pointerEvents = "none";
+  }
+  if (hideBtn) {
+    hideBtn.hidden = true;
+    hideBtn.style.display = "none";
+    hideBtn.style.pointerEvents = "none";
+  }
+  if (persist) {
+    try { localStorage.setItem(INSTALL_HINT_HIDE, "1"); } catch (e) {}
+  }
+}
+function syncInstallHint() {
+  if (isStandalone() || installHintDismissed()) {
+    hideInstallHint(false);
+    return;
+  }
+  const card = $("installHint");
+  if (card) {
+    card.hidden = false;
+    card.style.display = "";
+    card.style.pointerEvents = "";
+  }
+  const hideBtn = $("btnHintHide");
+  if (hideBtn) {
+    hideBtn.hidden = false;
+    hideBtn.style.display = "";
+    hideBtn.style.pointerEvents = "";
+  }
+  const inst = $("btnInst2");
+  if (inst) {
+    const show = !!deferredPrompt;
+    inst.hidden = !show;
+    inst.style.display = show ? "" : "none";
+    inst.style.pointerEvents = show ? "" : "none";
+  }
+}
 function showInstallHow() { toast(isiOS() ? "SHARE → ADD TO HOME SCREEN" : "CHROME MENU → INSTALL APP"); }
 function tryInstall() {
   if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.finally(() => { deferredPrompt = null; $("btnInst").style.display = "none"; }); return; }
   showInstallHow();
 }
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; $("btnInst").style.display = ""; });
-window.addEventListener("appinstalled", () => { deferredPrompt = null; $("btnInst").style.display = "none"; $("installHint").style.display = "none"; toast("INSTALLED"); });
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; $("btnInst").style.display = ""; syncInstallHint(); });
+window.addEventListener("appinstalled", () => { deferredPrompt = null; $("btnInst").style.display = "none"; hideInstallHint(true); toast("INSTALLED"); });
 $("btnInst").onclick = tryInstall;
 $("btnInst2").onclick = tryInstall;
-$("btnHintHide").onclick = () => { $("installHint").style.display = "none"; };
-if (isStandalone()) $("installHint").style.display = "none";
+$("btnHintHide").onclick = () => { hideInstallHint(true); };
+syncInstallHint();
 if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share → Add to Home Screen. Then open EXOpace and CONNECT → Bluetooth.";
 
 (async function restore() {
