@@ -42,7 +42,7 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 
 `/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
 
-Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped. CLEAR LOCK drops only `lock` — `cam` and `t` stay with the painted camera and time (e.g. `/?cam=cinematic&t=hold`). STATION next-pass rows lock like search: `?lock=<norad>&cam=follow&t=…` from ⌂ MOC (an already-latched camera stays).
+Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. Lockless cams (CINE, FACILITY, FLY/`free`, ⌂ MOC/`moc`) and time modes write `/?cam=…&t=…` with no lock and restore on a cold load. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped. FOLLOW / SAT-CAM still need a target: a lockless tap or `/?cam=follow` / `/?cam=satcam` toasts `NO LOCK`, drops `cam`, and keeps a valid `t`. CLEAR LOCK drops only `lock` when the painted cam is lockless-valid (e.g. `/?cam=cinematic&t=hold`); FOLLOW / SAT-CAM fall back to ⌂ MOC. STATION next-pass rows lock like search: `?lock=<norad>&cam=follow&t=…` from ⌂ MOC (an already-latched camera stays).
 
 First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeout. **FEED ERROR** / MODE **FAULT** only after that failure — not while ION/TLE are still in flight. Empty after timeout is allowed. Invented 0 is not.
 
@@ -67,6 +67,8 @@ python3 -m http.server 4173
 # Radio http://127.0.0.1:4173/radio/
 # lock  http://127.0.0.1:4173/?lock=25544&cam=follow&t=live
 # facility  http://127.0.0.1:4173/?cam=facility
+# lockless cine+hold  http://127.0.0.1:4173/?cam=cinematic&t=hold
+# lockless follow (refuses)  http://127.0.0.1:4173/?cam=follow&t=60x
 # lock+facility  http://127.0.0.1:4173/?lock=25544&cam=facility&t=live
 # legacy /lock/25544?… redirects to the root query form
 ```

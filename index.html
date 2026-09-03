@@ -58,7 +58,7 @@
         min-height: 44px; cursor: pointer;
       }
       #exo-install[hidden] { display: none; }
-      /* SAT-CAM / FLY / FOLLOW / ARM refusal toasts live outside #root
+      /* SAT-CAM / FOLLOW / ARM refusal toasts live outside #root
          so React UTC ticks cannot wipe them. Match bundle .toast. */
       #exo-toast {
         position: fixed; left: 50%; top: 56px; transform: translate(-50%, 0);
@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=65">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=66">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=65">
+    <link rel="stylesheet" href="/moc-phone.css?v=66">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -107,7 +107,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=65"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=66"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -154,9 +154,10 @@
       })();
       (function () {
         /* Overlay leftovers the hashed bundle cannot gate:
-           SAT-CAM and FLY latch cam .on with no lock (FOLLOW already
-           toasts NO LOCK in Ac()). Same capture refuse for all three.
-           STATION ARM sets PASS_ARMED with no radio/rotator. */
+           SAT-CAM / FOLLOW without a lock latch cam .on (Ac also
+           toasts NO LOCK). FLY / CINE / FACILITY / ⌂ MOC are valid
+           lockless cams and must write ?cam=&t=. STATION ARM sets
+           PASS_ARMED with no radio/rotator. */
         var toastTimer = null;
         function showHudToast(msg) {
           var t = document.getElementById("exo-toast");
@@ -177,7 +178,7 @@
           var btn = el.closest(".camstrip .btn");
           if (!btn) return null;
           var t = (btn.textContent || "").replace(/\s+/g, " ").trim();
-          return t === "SAT-CAM" || t === "FLY" || t === "FOLLOW" ? btn : null;
+          return t === "SAT-CAM" || t === "FOLLOW" ? btn : null;
         }
         function armBtn(el) {
           if (!el || !el.closest) return null;
@@ -198,6 +199,12 @@
         function rfReady() {
           return chainOk("RADIO") && chainOk("ROTATOR");
         }
+        function dropDeadCam() {
+          var q = new URLSearchParams(location.search);
+          q.delete("cam");
+          var s = q.toString();
+          history.replaceState(null, "", s ? "/?" + s : "/");
+        }
         function refuse(e) {
           var cam = lockCamBtn(e.target);
           if (cam && !locked()) {
@@ -205,6 +212,7 @@
             e.stopPropagation();
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
             cam.classList.remove("on");
+            dropDeadCam();
             showHudToast("NO LOCK");
             return;
           }
