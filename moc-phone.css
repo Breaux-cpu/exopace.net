@@ -309,6 +309,14 @@ html.exo-booting a.radio-link {
     display: inline-flex;
     align-items: center;
   }
+  /* Phone leftover: UTC clock was 144×26 at 360 / 156×26 at 390 (bundle
+     10px type). Desktop already 44. FEED already 44. Not STATION. */
+  .tl span.utc {
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+  }
 
   /* Phone: UTC + FEED + RADIO only. IMG/WEBGL/quality/AUDIO wrap through search. */
   .tl > span.chip:nth-child(n + 3),
@@ -329,10 +337,10 @@ html.exo-booting a.radio-link {
   }
 
   /* Phone leftover: .tl stacks UTC / FEED / RADIO in 44vw, so RADIO
-     lands at top ~91–135 and sat on SELECTION (z-3 under .tl z-12).
-     Desktop already nowrap. Keep STATION / LAYERS at 104 — they are left. */
+     lands at top ~110–154 after UTC 44 and sat on SELECTION (z-3 under
+     .tl z-12). Desktop already nowrap. Keep STATION / LAYERS left. */
   .dossier {
-    top: calc(144px + env(safe-area-inset-top));
+    top: calc(164px + env(safe-area-inset-top));
     bottom: auto;
     right: 14px;
     left: auto;
@@ -362,10 +370,10 @@ html.exo-booting a.radio-link {
     overflow: hidden !important;
   }
 
-  /* 360 leftover: 288px STATION reaches under wrapped RADIO (17×11).
-     Park below RADIO (~135). Keep INSTALL clear after the 20px drop. */
+  /* 360 leftover: 288px STATION reaches under wrapped RADIO.
+     Park below RADIO (~154 after UTC 44). Keep INSTALL clear. */
   .station {
-    top: calc(144px + env(safe-area-inset-top));
+    top: calc(164px + env(safe-area-inset-top));
     left: 14px;
     width: min(288px, 84vw);
     /* Stop above INSTALL (44px at bottom:258px) + camstrip. */
@@ -544,13 +552,13 @@ html.exo-booting a.radio-link {
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
   }
-  /* RADIO still bottoms ~135 at 360; do not pull STATION back to 124. */
+  /* RADIO bottoms ~154 at 360 after UTC 44; do not pull STATION back. */
   .station {
-    top: calc(144px + env(safe-area-inset-top));
+    top: calc(164px + env(safe-area-inset-top));
   }
-  /* RADIO still bottoms ~135 at 360; do not pull SELECTION back to 124. */
+  /* RADIO bottoms ~154 at 360 after UTC 44; do not pull SELECTION back. */
   .dossier {
-    top: calc(144px + env(safe-area-inset-top));
+    top: calc(164px + env(safe-area-inset-top));
   }
   .zoom {
     top: calc(144px + env(safe-area-inset-top));
