@@ -2,7 +2,24 @@
    Desktop: search must not overlap the UTC clock in .tl.
    Phone: lift dossier off STATION / MOC / FLY; restore search.
    Phone leftovers: LAYERS chips above Cesium; RADIO route off the panel;
-   FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD. */
+   FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD.
+   Canvas: WebGL must stay under .hud at every viewport, not only ≤820. */
+
+#globe,
+#globe .cesium-viewer,
+#globe .cesium-widget,
+#globe .cesium-widget canvas {
+  z-index: 0 !important;
+  isolation: isolate;
+}
+.hud {
+  z-index: 10 !important;
+  isolation: isolate;
+  pointer-events: none;
+}
+.hud * {
+  pointer-events: auto;
+}
 
 @media (min-width: 821px) {
   .search {
@@ -16,15 +33,6 @@
   }
 }
 @media (max-width: 820px) {
-  /* Contain the WebGL canvas so it cannot steal HUD hits. */
-  #globe {
-    z-index: 0;
-  }
-  .hud {
-    z-index: 10;
-    isolation: isolate;
-  }
-
   .search {
     display: block !important;
     position: absolute;
