@@ -4,8 +4,7 @@
    Phone leftovers: LAYERS chips above Cesium; RADIO route off the panel;
    FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD.
    Canvas: WebGL must stay under .hud at every viewport, not only ≤820.
-   Next leftover: Ion credits still sit on UTC (390) and LIVE/HOLD (1280);
-   desktop INSTALL sits on the zoom column. Park credits; do not buy a plan. */
+   Phone leftover: STATION panel sat on SELECTION at 360/390. */
 
 #globe,
 #globe .cesium-viewer,
@@ -133,6 +132,11 @@ html.exo-booting a.radio-link {
     bottom: calc(310px + env(safe-area-inset-bottom));
     max-height: none;
     z-index: 5;
+  }
+  /* 360/390: STATION is 288px from the left and paints over SELECTION.
+     The aside mounts only while open — hide the dossier for that window. */
+  .hud:has(.station) .dossier {
+    display: none !important;
   }
 
   /* LAYERS is a panel, not a route. Stack above canvas + .tl RADIO link. */
