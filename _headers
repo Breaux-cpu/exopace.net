@@ -1,4 +1,7 @@
 # Cloudflare Pages — never let the CDN pin the SW or env past a deploy.
+# moc-phone.css and the hashed MOC bundle are edited in place (no Vite
+# rename). If they stay max-age=14400, leftover HUD fixes sit on origin
+# while 390 still paints the old chips / credits / INSTALL overlap.
 /sw.js
   Cache-Control: no-cache
 /radio/sw.js
@@ -16,4 +19,14 @@
 /radio/manifest.json
   Cache-Control: no-cache
 /pwa-install.js
+  Cache-Control: no-cache
+/moc-phone.css
+  Cache-Control: no-cache
+/assets/index-B5yAHF7-.js
+  Cache-Control: no-cache
+/radio/app.js
+  Cache-Control: no-cache
+/radio/index.html
+  Cache-Control: no-cache
+/radio/protocol.js
   Cache-Control: no-cache
