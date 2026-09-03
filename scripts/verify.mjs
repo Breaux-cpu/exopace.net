@@ -498,7 +498,7 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
 }
 assert(read("README.md").includes("Lockless cams") && read("README.md").includes("/?cam=follow") && read("README.md").includes("drops `cam`"), "README documents lockless cam/t write and FOLLOW/SAT-CAM NO LOCK strip");
 assert(!moc.includes('history.replaceState(null,"","/")'), "CLEAR LOCK does not wipe the share URL to /");
-assert(moc.includes('u==="follow"||u==="satcam"?(a.recageHome(),Z({cam:"moc"}),bo(null,"moc")):bo(null,u||Ko.cam),Ie("LOCK CLEARED")'), "CLEAR LOCK keeps lockless-valid cam/t; FOLLOW / SAT-CAM fall back to moc");
+assert(moc.includes('u==="follow"||u==="satcam"?(a.setMode("moc"),a.recageHome(),Z({cam:"moc"}),bo(null,"moc")):bo(null,u||Ko.cam),Ie("LOCK CLEARED")'), "CLEAR LOCK keeps lockless-valid cam/t; FOLLOW / SAT-CAM fall back to moc");
 assert(moc.includes('a.rig.abortCinematic()') && moc.includes('a.setMode("moc"),Z({cam:"moc"}),bo(a.selected()?.id||null,"moc")'), "⌂ MOC aborts CINE and writes cam=moc so URL and HUD stay truthful");
 assert(!moc.includes('recageHome(),Z({selected:null,cam:"moc"})'), "CLEAR LOCK does not recage home or force cam=moc on CINE / FACILITY / FLY");
 assert(moc.includes("V.hasCam||V.hasT") && moc.includes("u===\"cinematic\"&&x.rig.startCinematic()"), "cold-open /?cam=&t= restores camera and time without a lock");
