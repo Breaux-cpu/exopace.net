@@ -78,6 +78,8 @@ assert(read("moc-phone.css").includes("z-index: 40"), "LAYERS panel stacks above
 assert(read("moc-phone.css").includes("hud:has(.layers.open)"), "RADIO route is inert while LAYERS is open");
 assert(read("moc-phone.css").includes("cesium-viewer-bottom"), "Cesium credits are moved off LIVE/HOLD");
 assert(read("moc-phone.css").includes("nth-child(5)"), "FOLLOW is isolated above later camstrip siblings");
+assert(read("moc-phone.css").includes("#exo-install"), "INSTALL APP is moved off the 390 camstrip");
+assert(read("moc-phone.css").includes("span.chip:nth-child(n + 3)"), "phone .tl hides IMG/WEBGL so search stays clear");
 
 // --- manifests ---
 const mocM = json("manifest.json");
@@ -93,7 +95,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v6"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v7"), "MOC SW cache bumped");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
 assert(radSw.includes("exopace-radio-v6"), "Radio SW cache bumped");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");

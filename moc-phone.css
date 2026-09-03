@@ -30,8 +30,8 @@
     position: absolute;
     top: calc(52px + env(safe-area-inset-top));
     left: 14px;
-    right: 14px;
-    width: auto;
+    right: auto;
+    width: min(200px, 52vw);
     max-width: none;
     transform: none;
     z-index: 6;
@@ -39,6 +39,23 @@
   .search input {
     min-height: 44px;
     font-size: 16px;
+  }
+
+  /* Phone: UTC + FEED + RADIO only. IMG/WEBGL/quality/AUDIO wrap through search. */
+  .tl > span.chip:nth-child(n + 3),
+  .tl > select,
+  .tl > button.btn {
+    display: none !important;
+  }
+
+  /* INSTALL was z-90 on SAT-CAM / zoom. Sit it above the camstrip. */
+  #exo-install {
+    left: 14px;
+    right: auto;
+    top: auto;
+    bottom: calc(258px + env(safe-area-inset-bottom));
+    z-index: 20;
+    min-height: 44px;
   }
 
   .dossier {
