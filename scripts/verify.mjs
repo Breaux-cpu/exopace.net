@@ -121,7 +121,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v46"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v47"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -214,7 +214,7 @@ assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP 
 assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
 assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=46") && radioHtml.includes("env.js?v=46"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=47") && radioHtml.includes("env.js?v=47"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist stays");
@@ -226,7 +226,14 @@ assert(!radioApp.includes('$("installHint").style.display = "none"'), "BLE conne
   const setSec = radioHtml.slice(radioHtml.indexOf('id="scr-setup"'));
   assert(!chatSec.includes('id="installHint"'), "CHAT does not paint the phone-app installHint card");
   assert(setSec.includes('id="installHint"') && setSec.includes("id=\"btHelp\""), "installHint lives on SET with CONNECT pairing");
+  const installTxt = setSec.slice(setSec.indexOf('id="installTxt"'), setSec.indexOf('id="btnInst2"'));
+  const btHelp = setSec.slice(setSec.indexOf('id="btHelp"'));
+  assert(installTxt.includes("exopace.net/radio/") && installTxt.includes("INSTALL APP"), "SET Phone app copy keeps the URL and INSTALL APP");
+  assert(!/CONNECT → Bluetooth/.test(installTxt), "SET #installTxt does not repeat the pairing line");
+  assert(btHelp.includes("CONNECT → Bluetooth → EXOpace-XXXX") && btHelp.includes("Do not pair in Android Settings."), "SET pairing stays once under NODE SETUP");
+  assert((setSec.match(/CONNECT → Bluetooth → EXOpace-XXXX/g) || []).length === 1, "SET paints pairing copy once");
 }
+assert(!radioApp.includes("Then open EXOpace and CONNECT → Bluetooth"), "iOS installTxt does not repeat the pairing line");
 assert(radioHtml.includes('id="btnInst" hidden') && /#btnInst,#btnInst\[hidden\]\{[^}]*display:none/.test(radioHtml), "header INSTALL chip is hidden so CHAT is CONNECT only");
 assert(radioHtml.includes('id="btnConn">CONNECT'), "CONNECT stays in the Radio header");
 assert(!radioApp.includes('$("btnInst").style.display = ""') && radioApp.includes("syncInstallHint();"), "beforeinstallprompt does not unhide header INSTALL; SET installHint still syncs");

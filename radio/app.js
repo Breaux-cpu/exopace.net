@@ -748,7 +748,7 @@ if ($("btnInst")) $("btnInst").onclick = tryInstall;
 $("btnInst2").onclick = tryInstall;
 $("btnHintHide").onclick = () => { hideInstallHint(true); };
 syncInstallHint();
-if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share → Add to Home Screen. Then open EXOpace and CONNECT → Bluetooth.";
+if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share → Add to Home Screen.";
 
 renderNodes();
 (async function restore() {
