@@ -474,6 +474,8 @@ function syncMapChrome() {
   if (copy) { copy.hidden = !hasFix; copy.style.display = hasFix ? "" : "none"; }
   if (maps) { maps.hidden = !hasFix; maps.style.display = hasFix ? "" : "none"; }
   if (mapsHint) mapsHint.hidden = !hasFix;
+  const compass = $("compass");
+  if (compass) compass.hidden = !hasFix;
 }
 $("btnRange").onclick = () => {
   if (!radioUp()) return;
