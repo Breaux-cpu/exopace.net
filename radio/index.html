@@ -245,12 +245,12 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     </div>
     <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="300" height="128"></canvas></div>
     <div class="card"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="300" height="96"></canvas></div>
-    <div class="card" id="rangeCard"><div class="lbl">Range logger</div>
+    <div class="card" id="rangeCard" hidden><div class="lbl">Range logger</div>
       <div class="row">
         <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
         <button class="btn" id="btnRangeCsv0">OLDER CSV</button>
       </div>
-      <div class="sub" id="rangeHint">On the node AP (http://192.168.4.1) — one row per received packet.</div>
+      <div class="sub" id="rangeHint">One row per received packet.</div>
     </div>
   </section>
 
@@ -297,11 +297,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=19"></script>
+<script src="env.js?v=20"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=19"></script>
-<script src="store.js?v=19"></script>
-<script src="globe.js?v=19"></script>
-<script src="app.js?v=19"></script>
+<script src="protocol.js?v=20"></script>
+<script src="store.js?v=20"></script>
+<script src="globe.js?v=20"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>
