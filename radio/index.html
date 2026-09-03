@@ -128,6 +128,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   #pathLbl{width:max-content;min-width:0;max-width:none;letter-spacing:.06em;overflow:visible;text-overflow:clip}
   .conn{padding:10px 6px;letter-spacing:.06em}
   .screen{padding-left:10px;padding-right:10px}
+  #mapEmpty{right:132px}
 }
 @media(max-width:380px){
   header{gap:4px}
@@ -230,9 +231,9 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 
   <section class="screen" id="scr-nodes">
     <h2>Mesh roster</h2>
-    <div id="nodeList"></div>
+    <div id="nodeList"><div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div></div>
     <h2>Waypoints</h2>
-    <div id="wayList"></div>
+    <div id="wayList"><div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div></div>
   </section>
 
   <section class="screen" id="scr-vitals">
@@ -245,12 +246,12 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     </div>
     <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="300" height="128"></canvas></div>
     <div class="card"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="300" height="96"></canvas></div>
-    <div class="card" id="rangeCard"><div class="lbl">Range logger</div>
+    <div class="card" id="rangeCard" hidden><div class="lbl">Range logger</div>
       <div class="row">
         <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
         <button class="btn" id="btnRangeCsv0">OLDER CSV</button>
       </div>
-      <div class="sub" id="rangeHint">On the node AP (http://192.168.4.1) — one row per received packet.</div>
+      <div class="sub" id="rangeHint">One row per received packet.</div>
     </div>
   </section>
 
@@ -297,11 +298,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=19"></script>
+<script src="env.js?v=21"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=19"></script>
-<script src="store.js?v=19"></script>
-<script src="globe.js?v=19"></script>
-<script src="app.js?v=19"></script>
+<script src="protocol.js?v=21"></script>
+<script src="store.js?v=21"></script>
+<script src="globe.js?v=21"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

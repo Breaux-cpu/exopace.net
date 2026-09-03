@@ -427,7 +427,7 @@ function renderWays() {
   el.innerHTML = ids.length ? ids.map((i) => {
     const w = S.ways[i];
     return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + esc(w.kind) + "</div></div></div>";
-  }).join("") : '<div class="sub">No waypoints.</div>';
+  }).join("") : '<div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div>';
 }
 
 function renderTelem(d) {
@@ -633,6 +633,7 @@ $("btnHintHide").onclick = () => { hideInstallHint(true); };
 syncInstallHint();
 if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share → Add to Home Screen. Then open EXOpace and CONNECT → Bluetooth.";
 
+renderNodes();
 (async function restore() {
   try {
     const chats = await ExoStore.all("chat");
@@ -642,6 +643,7 @@ if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share →
     const rf = await ExoStore.all("rf");
     S.rf = rf.slice(-200);
   } catch (e) {}
+  renderNodes();
 })();
 
 (function prodChrome() {
@@ -678,14 +680,13 @@ if (location.hash === "#map") {
 (function gateRangeCsv() {
   const onNode = location.hostname === "192.168.4.1" || location.hostname === P.WIFI.apHost;
   const card = $("rangeCard");
-  const hint = $("rangeHint");
+  if (!card) return;
   if (!onNode) {
-    if (hint) hint.textContent = "Range CSV lives on the node (join EXOpace-XXXX → http://192.168.4.1).";
-    if ($("btnRangeCsv")) $("btnRangeCsv").style.display = "none";
-    if ($("btnRangeCsv0")) $("btnRangeCsv0").style.display = "none";
-  } else {
-    if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
-    if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
+    card.remove();
+    return;
   }
-  if (card) card.dataset.node = onNode ? "1" : "0";
+  card.hidden = false;
+  card.dataset.node = "1";
+  if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
+  if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
 })();
