@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v64"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v65"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=64"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=64"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=65"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=65"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -294,7 +294,7 @@ assert(moc.includes('if(!o){Ie("NO MATCH");return}') && moc.includes("function B
 assert(moc.includes('if(!(u||"").trim())return;a&&!a.find(u)&&o("");Bl(a,u)'), "search miss clears SAT NAME / NORAD; empty submit does not toast");
 assert(moc.includes("Ne=!0,dropDeadLock()") && moc.includes('Ne&&window.setTimeout(()=>Ie("NO MATCH"),2200)'), "unresolved ?lock= on boot strips URL then toasts NO MATCH after FEED");
 assert(!moc.includes('if(!o){Ie("NO LOCK");return}'), "typed search miss is NO MATCH not NO LOCK");
-assert(moc.includes('Ie("NO LOCK")') && moc.includes('u==="follow"&&!a.selected()'), "FOLLOW / SAT-CAM without a target still toasts NO LOCK");
+assert(moc.includes('Ie("NO LOCK")') && moc.includes('(u==="follow"||u==="satcam")&&!a.selected()'), "FOLLOW / SAT-CAM without a target still toasts NO LOCK");
 assert(moc.includes("function ensureSatsOn(a)") && moc.includes('a.setLayer("sats",!0)') && moc.includes("a.layers.sats"), "valid lock auto-enables SATELLITES when the layer is off");
 assert(moc.includes('ensureSatsOn(a)?Ie("SATELLITES ON")') && moc.includes("function Bl("), "search lock toasts SATELLITES ON only when the layer flipped");
 assert(moc.includes("He=ensureSatsOn(x)") && moc.includes('He&&window.setTimeout(()=>Ie("SATELLITES ON"),2200)'), "share-link lock enables SATELLITES and toasts only if it flipped");
@@ -354,10 +354,23 @@ assert(moc.includes("function Qf()") && moc.includes('==="facility"&&history.rep
 assert(read("index.html").includes('=== "facility"') && read("index.html").includes("history.replaceState"), "index.html strips leftover #facility without wiping the query");
 assert(read("README.md").includes("?cam=facility") && !read("README.md").includes("`#facility` flies"), "README documents cam=facility, not a #facility hash");
 {
-  const block = moc.match(/function Qf\(\)\{location\.hash\.replace\("#",""\)\.toLowerCase\(\)==="facility"&&history\.replaceState\(null,"",location\.pathname\+location\.search\)}function bo\(a,u,o\)\{const t=o\?\?Ww\(Ko\.rate\?\?1\);const q=new URLSearchParams\(location\.search\);a\?q\.set\("lock",a\):q\.delete\("lock"\);q\.set\("cam",u\);q\.set\("t",t\);history\.replaceState\(null,"",`\/\?\$\{q\.toString\(\)\}`\)}const Ip=\["moc","free","follow","satcam","cinematic","facility"\];function Op\(\)\{const o=new URLSearchParams\(location\.search\),raw=o\.get\("cam"\),h=\(raw\|\|"follow"\)\.toLowerCase\(\);let id=o\.get\("lock"\);if\(!id\)\{const u=location\.pathname\.match\(\/\\\/lock\\\/\(\[\^\/\?\]\+\)\/\);id=u\?decodeURIComponent\(u\[1\]\):null\}return\{id,cam:Ip\.includes\(h\)\?h:"follow",t:o\.get\("t"\)\|\|"live",hasCam:!!raw,hasT:o\.has\("t"\)\}\}/);
-  assert(!!block, "Qf/bo/Op share-URL helpers are extractable");
+  const takeFn = (name) => {
+    const start = moc.indexOf(`function ${name}(`);
+    if (start < 0) return "";
+    let i = moc.indexOf("{", start);
+    let depth = 0;
+    for (; i < moc.length; i++) {
+      if (moc[i] === "{") depth++;
+      else if (moc[i] === "}") {
+        depth--;
+        if (depth === 0) return moc.slice(start, i + 1);
+      }
+    }
+    return "";
+  };
+  const ip = moc.match(/const Ip=\["moc","free","follow","satcam","cinematic","facility"\]/);
   const ww = moc.match(/function Ww\(r\)\{return r===1\?"live":r===0\?"hold":`\$\{r\}x`\}/);
-  assert(!!ww, "Ww() time-mode helper is extractable");
+  assert(!!ww && !!ip && takeFn("Qf") && takeFn("bo") && takeFn("locklessCam") && takeFn("Op"), "Qf/bo/locklessCam/Op share-URL helpers are extractable");
   function runAt(href, src) {
     const box = { href };
     const loc = {
@@ -384,7 +397,7 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
     });
     return { href: box.href, result };
   }
-  const helpers = ww[0] + block[0];
+  const helpers = [ww[0], takeFn("Qf"), takeFn("bo"), ip[0], takeFn("locklessCam"), takeFn("Op")].join(";");
   {
     const { href } = runAt("https://exopace.net/?lock=25544&cam=follow&t=live#facility", helpers + ";Qf()");
     const u = new URL(href);
@@ -429,11 +442,28 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
     const { result } = runAt("https://exopace.net/", helpers + ";Op()");
     assert(result.hasCam === false && result.hasT === false, "bare / does not invent a cam= or t= share");
   }
+  {
+    const { result } = runAt("https://exopace.net/?cam=follow&t=60x", helpers + ";Op()");
+    assert(result.id == null && result.cam === "moc" && result.t === "60x" && result.hasCam === true, "lockless follow share normalizes to moc and keeps t");
+  }
+  {
+    const { result } = runAt("https://exopace.net/?cam=satcam&t=hold", helpers + ";Op()");
+    assert(result.id == null && result.cam === "moc" && result.t === "hold", "lockless satcam share normalizes to moc and keeps t");
+  }
+  {
+    const { href } = runAt("https://exopace.net/?cam=follow&t=60x", helpers + ';bo(null,"moc","60x")');
+    const u = new URL(href);
+    assert(!u.searchParams.has("lock") && u.searchParams.get("cam") === "moc" && u.searchParams.get("t") === "60x", "invalid follow cam is stripped to moc while t stays");
+  }
 }
 assert(!moc.includes('history.replaceState(null,"","/")'), "CLEAR LOCK does not wipe the share URL to /");
-assert(moc.includes('bo(null,a?.rig?.mode||Ko.cam),Ie("LOCK CLEARED")'), "CLEAR LOCK writes the painted cam/t without a lock");
+assert(moc.includes("function locklessCam(c)") && moc.includes("bo(null,cam),Ie(\"LOCK CLEARED\")"), "CLEAR LOCK writes lockless cam/t without a lock");
 assert(!moc.includes('recageHome(),Z({selected:null,cam:"moc"})'), "CLEAR LOCK does not recage home or force cam=moc");
 assert(moc.includes("V.hasCam||V.hasT") && moc.includes("u===\"cinematic\"&&x.rig.startCinematic()"), "cold-open /?cam=&t= restores camera and time without a lock");
+assert(moc.includes("Pe&&window.setTimeout(()=>Ie(\"NO LOCK\"),2200)") && moc.includes("invalid=raw===\"follow\"||raw===\"satcam\""), "lockless follow/satcam share toasts NO LOCK after FEED and strips cam");
+assert(moc.includes("bo(w?w.id:null,\"moc\")") && moc.includes("children:\"⌂\""), "⌂ MOC writes cam=moc even with no lock");
+assert(moc.includes("bo(o.id,\"follow\")") && moc.includes("className:\"passlist\""), "passlist lock writes the same follow share URL as search");
+assert(moc.includes("bo(w?w.id:null,\"cinematic\")") && moc.includes("bo(w?w.id:null,a.rig.mode,Ww(o))"), "lockless CINE and timebar write cam/t without a target");
 assert(read("index.html").includes("\\/lock\\/") && read("index.html").includes('q.set("lock"'), "index.html rewrites legacy /lock/ to root query");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes('placeholder:"SAT NAME / NORAD"') && !moc.includes("SAT NAME / NORAD  ·  / palette"), "phone search placeholder is SAT NAME / NORAD with no clipped / palette");
