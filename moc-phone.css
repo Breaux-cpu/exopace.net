@@ -191,12 +191,14 @@ html.exo-booting a.radio-link {
     overflow: hidden !important;
   }
 
+  /* 360 leftover: 288px STATION reaches under wrapped RADIO (17×11).
+     Park below RADIO (~135). Keep INSTALL clear after the 20px drop. */
   .station {
-    top: calc(104px + env(safe-area-inset-top));
+    top: calc(144px + env(safe-area-inset-top));
     left: 14px;
     width: min(288px, 84vw);
     /* Stop above INSTALL (44px at bottom:258px) + camstrip. */
-    bottom: calc(310px + env(safe-area-inset-bottom));
+    bottom: calc(330px + env(safe-area-inset-bottom));
     max-height: none;
     z-index: 5;
   }
@@ -354,9 +356,12 @@ html.exo-booting a.radio-link {
   .search {
     top: calc(72px + env(safe-area-inset-top));
   }
-  .station,
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
+  }
+  /* RADIO still bottoms ~135 at 360; do not pull STATION back to 124. */
+  .station {
+    top: calc(144px + env(safe-area-inset-top));
   }
   /* RADIO still bottoms ~135 at 360; do not pull SELECTION back to 124. */
   .dossier {
