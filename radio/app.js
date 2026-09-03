@@ -454,6 +454,10 @@ function syncMapChrome() {
   const kind = $("wayKind");
   if (way) { way.hidden = !hasFix; way.style.display = hasFix ? "" : "none"; }
   if (kind) { kind.hidden = !hasFix; kind.style.display = hasFix ? "" : "none"; }
+  const copy = $("btnCopy");
+  const maps = $("btnMaps");
+  if (copy) { copy.hidden = !hasFix; copy.style.display = hasFix ? "" : "none"; }
+  if (maps) { maps.hidden = !hasFix; maps.style.display = hasFix ? "" : "none"; }
 }
 $("btnRange").onclick = () => {
   if (!radioUp()) return;
