@@ -166,6 +166,27 @@ html.exo-booting a.radio-link {
     max-height: calc(100dvh - 220px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     z-index: 3;
   }
+  /* Phone leftover: ISS lock COPY COORDS / CLEAR LOCK were 42px after-paint. */
+  .dossier button.btn {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 8px;
+  }
+
+  /* Phone leftover: / painted a 331×349 command palette. Desktop keeps it. */
+  .palette {
+    display: none !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+  }
 
   .station {
     top: calc(104px + env(safe-area-inset-top));
