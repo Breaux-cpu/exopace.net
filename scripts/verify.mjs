@@ -95,9 +95,9 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v7"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v8"), "MOC SW cache bumped");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v6"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v7"), "Radio SW cache bumped");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
 
 // --- redirects keep radio + firmware as real files ---
@@ -110,6 +110,11 @@ for (const route of ["/about", "/mission", "/ops", "/login", "/app"]) {
 }
 assert(!redir.includes("WORLD_DATA.md") && !redir.includes("sgp4.worker.js"), "_redirects dropped dead paths");
 assert(existsSync(join(root, "_headers")), "_headers present");
+const headers = read("_headers");
+assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
+assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
+assert(read("index.html").includes("moc-phone.css?v=8"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=8"), "index cache-busts hashed MOC bundle");
 
 // --- protocol ESM ---
 const proto = await import(pathToFileURL(join(root, "protocol/index.js")).href);
