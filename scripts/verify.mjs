@@ -73,7 +73,13 @@ assert(four.includes("404") && four.includes("NO SUCH ROUTE"), "404.html is a re
 assert(!four.includes("index-B5yAHF7-") && !four.includes("boot-void"), "404.html is not Mission Control");
 assert(index.includes("moc-phone.css"), "index.html loads phone HUD clip");
 assert(existsSync(join(root, "moc-phone.css")), "exists moc-phone.css");
-assert(read("moc-phone.css").includes("z-index: 8") && read("moc-phone.css").includes(".search"), "phone CSS lifts camstrip over dossier + restores search");
+assert(read("moc-phone.css").includes("z-index: 16") && read("moc-phone.css").includes(".search"), "phone CSS lifts camstrip over dossier + restores search");
+assert(read("moc-phone.css").includes("z-index: 40"), "LAYERS panel stacks above Cesium canvas");
+assert(read("moc-phone.css").includes("hud:has(.layers.open)"), "RADIO route is inert while LAYERS is open");
+assert(read("moc-phone.css").includes("cesium-viewer-bottom"), "Cesium credits are moved off LIVE/HOLD");
+assert(read("moc-phone.css").includes("nth-child(5)"), "FOLLOW is isolated above later camstrip siblings");
+assert(read("moc-phone.css").includes("#exo-install"), "INSTALL APP is moved off the 390 camstrip");
+assert(read("moc-phone.css").includes("span.chip:nth-child(n + 3)"), "phone .tl hides IMG/WEBGL so search stays clear");
 
 // --- manifests ---
 const mocM = json("manifest.json");
@@ -89,9 +95,9 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v5"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v7"), "MOC SW cache bumped");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v5"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v6"), "Radio SW cache bumped");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
 
 // --- redirects keep radio + firmware as real files ---
@@ -164,6 +170,9 @@ assert(!radioHtml.includes("Factory AP password is nodelink"), "SET does not tre
 assert(!/ensureGlobe\(\);\s*$/.test(radioApp.trim()), "Radio does not eager-mount globe on chat");
 assert(radioApp.includes("rangeCard") || radioHtml.includes("rangeCard"), "range CSV gated to node AP");
 assert(radioApp.includes("walk outside") && !radioApp.includes("run DEMO"), "map empty state has no Demo nudge");
+assert(!radioApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
+assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP first paint has no Demo CTA");
+assert(radioApp.includes("if (b.dataset.s === \"map\")") && radioApp.includes("syncGlobe()"), "MAP tab paints quiet empty state before globe");
 
 // --- shipped MOC still has palette + quality + deep link (bundle, no Vite source) ---
 const moc = read("assets/index-B5yAHF7-.js");

@@ -1,6 +1,8 @@
 /* HUD clip. Do not restyle the globe.
    Desktop: search must not overlap the UTC clock in .tl.
-   Phone: lift dossier off STATION / MOC / FLY; restore search. */
+   Phone: lift dossier off STATION / MOC / FLY; restore search.
+   Phone leftovers: LAYERS chips above Cesium; RADIO route off the panel;
+   FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD. */
 
 @media (min-width: 821px) {
   .search {
@@ -14,13 +16,22 @@
   }
 }
 @media (max-width: 820px) {
+  /* Contain the WebGL canvas so it cannot steal HUD hits. */
+  #globe {
+    z-index: 0;
+  }
+  .hud {
+    z-index: 10;
+    isolation: isolate;
+  }
+
   .search {
     display: block !important;
     position: absolute;
     top: calc(52px + env(safe-area-inset-top));
     left: 14px;
-    right: 14px;
-    width: auto;
+    right: auto;
+    width: min(200px, 52vw);
     max-width: none;
     transform: none;
     z-index: 6;
@@ -28,6 +39,23 @@
   .search input {
     min-height: 44px;
     font-size: 16px;
+  }
+
+  /* Phone: UTC + FEED + RADIO only. IMG/WEBGL/quality/AUDIO wrap through search. */
+  .tl > span.chip:nth-child(n + 3),
+  .tl > select,
+  .tl > button.btn {
+    display: none !important;
+  }
+
+  /* INSTALL was z-90 on SAT-CAM / zoom. Sit it above the camstrip. */
+  #exo-install {
+    left: 14px;
+    right: auto;
+    top: auto;
+    bottom: calc(258px + env(safe-area-inset-bottom));
+    z-index: 20;
+    min-height: 44px;
   }
 
   .dossier {
@@ -48,23 +76,84 @@
     z-index: 5;
   }
 
+  /* LAYERS is a panel, not a route. Stack above canvas + .tl RADIO link. */
   .layers.open {
     top: calc(104px + env(safe-area-inset-top));
-    z-index: 6;
+    left: 14px;
+    z-index: 40;
+    pointer-events: auto;
+    isolation: isolate;
+    max-width: min(168px, 44vw);
+  }
+  .layers.open .btn {
+    min-height: 44px;
+    min-width: 44px;
+    width: 100%;
+    pointer-events: auto;
+    position: relative;
+    z-index: 41;
+  }
+  /* Second tap on the panel must not hit <a href="/radio/">. */
+  .hud:has(.layers.open) .tl a.radio-link {
+    pointer-events: none;
   }
 
-  /* Camstrip above the dossier so STATION / MOC / FLY stay tappable. */
+  /* Keep the top-right cluster off the layers column. */
+  .tl {
+    max-width: 44vw;
+    z-index: 12;
+  }
+
+  /* Camstrip above the dossier so STATION / MOC / FLY stay tappable.
+     Sit above the timebar so FOLLOW cannot hit FACILITY or 60×. */
   .camstrip {
     left: 14px;
     right: 88px;
     max-width: none;
-    bottom: calc(62px + env(safe-area-inset-bottom));
-    z-index: 8;
+    bottom: calc(100px + env(safe-area-inset-bottom));
+    z-index: 16;
+    gap: 8px;
   }
   .camstrip .btn {
     min-height: 44px;
     min-width: 44px;
     padding: 10px 12px;
+    position: relative;
+    z-index: 16;
+  }
+  /* FOLLOW is the 5th camstrip control (after LAYERS, STATION, ⌂ MOC, FLY). */
+  .camstrip .btn:nth-child(5) {
+    z-index: 17;
+  }
+
+  .timebar {
+    z-index: 18;
+    pointer-events: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  .timebar .btn {
+    min-height: 44px;
+    min-width: 44px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 19;
+  }
+
+  /* Ion / Cesium credit strip sits on LIVE/HOLD at 390. Move it; do not buy a plan. */
+  #globe .cesium-viewer-bottom,
+  #globe .cesium-widget-credits {
+    pointer-events: none !important;
+    bottom: auto !important;
+    top: 4px !important;
+    left: auto !important;
+    right: 4px !important;
+    max-width: 38%;
+    max-height: 28px;
+    overflow: hidden;
+    transform: scale(0.7);
+    transform-origin: top right;
+    opacity: 0.45;
+    z-index: 1 !important;
   }
 
   .stmode.wait { color: var(--mut); }
@@ -78,5 +167,8 @@
   .station,
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
+  }
+  .tl {
+    max-width: 40vw;
   }
 }
