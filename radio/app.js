@@ -733,12 +733,12 @@ function syncInstallHint() {
 }
 function showInstallHow() { toast(isiOS() ? "SHARE → ADD TO HOME SCREEN" : "CHROME MENU → INSTALL APP"); }
 function tryInstall() {
-  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.finally(() => { deferredPrompt = null; $("btnInst").style.display = "none"; }); return; }
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.finally(() => { deferredPrompt = null; }); return; }
   showInstallHow();
 }
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; $("btnInst").style.display = ""; syncInstallHint(); });
-window.addEventListener("appinstalled", () => { deferredPrompt = null; $("btnInst").style.display = "none"; hideInstallHint(true); toast("INSTALLED"); });
-$("btnInst").onclick = tryInstall;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; syncInstallHint(); });
+window.addEventListener("appinstalled", () => { deferredPrompt = null; hideInstallHint(true); toast("INSTALLED"); });
+if ($("btnInst")) $("btnInst").onclick = tryInstall;
 $("btnInst2").onclick = tryInstall;
 $("btnHintHide").onclick = () => { hideInstallHint(true); };
 syncInstallHint();
