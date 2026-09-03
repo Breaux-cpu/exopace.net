@@ -13,7 +13,8 @@
 
 /* Phone leftover: FEED CELESTRAK CACHED .toast (bundle top:56px / z-8)
    sat on SAT NAME (search z-6). Must not steal the input hit. */
-.hud .toast {
+.hud .toast,
+#exo-toast {
   pointer-events: none !important;
 }
 
@@ -253,7 +254,8 @@ html.exo-booting a.radio-link {
   }
   /* Park FEED toast off form.search. Bundle left:50% / top:56px covered
      the 44px SAT NAME field (360: 26×111; 390: 190×28 over the top 12px). */
-  .hud .toast {
+  .hud .toast,
+  #exo-toast {
     top: auto !important;
     bottom: calc(72px + env(safe-area-inset-bottom));
     left: 50%;
