@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=62">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=63">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=62">
+    <link rel="stylesheet" href="/moc-phone.css?v=63">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -103,7 +103,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=62"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=63"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -150,8 +150,9 @@
       })();
       (function () {
         /* Overlay leftovers the hashed bundle cannot gate:
-           SAT-CAM and FLY latch cam .on with no lock (FOLLOW already
-           toasts NO LOCK in Ac()). Same capture refuse for all three.
+           SAT-CAM and FLY latch cam .on with no lock (FOLLOW / CINE
+           toast NO LOCK in Ac()). Same capture refuse for start.
+           Already-on CINE is left through so Ac() can abort.
            STATION ARM sets PASS_ARMED with no radio/rotator. */
         var toastTimer = null;
         function showHudToast(msg) {
@@ -173,7 +174,7 @@
           var btn = el.closest(".camstrip .btn");
           if (!btn) return null;
           var t = (btn.textContent || "").replace(/\s+/g, " ").trim();
-          return t === "SAT-CAM" || t === "FLY" || t === "FOLLOW" ? btn : null;
+          return t === "SAT-CAM" || t === "FLY" || t === "FOLLOW" || t === "CINE" ? btn : null;
         }
         function armBtn(el) {
           if (!el || !el.closest) return null;
@@ -197,6 +198,8 @@
         function refuse(e) {
           var cam = lockCamBtn(e.target);
           if (cam && !locked()) {
+            var label = (cam.textContent || "").replace(/\s+/g, " ").trim();
+            if (label === "CINE" && cam.classList.contains("on")) return;
             e.preventDefault();
             e.stopPropagation();
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
