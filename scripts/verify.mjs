@@ -359,7 +359,7 @@ assert(index.includes('classList.remove("on")') && index.includes("function lock
 assert(index.includes('RF CHAIN OFFLINE') && index.includes('chainOk("RADIO")') && index.includes('chainOk("ROTATOR")') && index.includes(".station .btn"), "STATION ARM refuses while radio/rotator are offline");
 assert(index.includes("function rfReady") && index.includes('t.indexOf("ARM ") === 0'), "STATION ARM still fires when radio and rotator are stok");
 assert(index.includes('var SITE_TZ = "America/Chicago"') && index.includes("function syncStationClock"), "STATION LOCAL uses America/Chicago from header sim clock");
-assert(index.includes('kvSpan("UTC")') && index.includes('kvSpan("LOCAL")') && index.includes("parseHeaderUtc"), "STATION UTC/LOCAL mirror header .tl span.utc instant");
+assert(index.includes("requestAnimationFrame(tickStationClock)") && index.includes("MutationObserver"), "STATION clock fights React re-renders under HOLD");
 assert(!index.includes("getHours()") && !index.includes("YOUR LOCAL"), "STATION LOCAL is not viewer getHours() or YOUR LOCAL");
 assert(index.includes("#exo-toast") && read("moc-phone.css").includes("#exo-toast"), "refusal toast lives outside #root so React cannot wipe it");
 assert(/@media \(max-width: 820px\)[\s\S]*\.palette\s*\{[^}]*display:\s*none/.test(read("moc-phone.css")), "phone hides the command palette");

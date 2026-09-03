@@ -251,6 +251,14 @@
           }
           return null;
         }
+        function applyStationClock(utcSpan, localSpan, utcHms, localHms) {
+          patching = true;
+          if (utcSpan) utcSpan.textContent = utcHms + "Z";
+          if (localSpan) localSpan.textContent = localHms;
+          patching = false;
+        }
+        var patching = false;
+        var kvObs = null;
         function syncStationClock() {
           if (!document.querySelector(".station")) return;
           var header = document.querySelector(".tl span.utc");
@@ -261,10 +269,21 @@
           var localSpan = kvSpan("LOCAL");
           var utcHms = hmsFromParts(utcParts.formatToParts(instant));
           var localHms = hmsFromParts(localParts.formatToParts(instant));
-          if (utcSpan && utcSpan.textContent !== utcHms + "Z") utcSpan.textContent = utcHms + "Z";
-          if (localSpan && localSpan.textContent !== localHms) localSpan.textContent = localHms;
+          applyStationClock(utcSpan, localSpan, utcHms, localHms);
+          var kv = document.querySelector(".station .kv");
+          if (kv && !kvObs) {
+            kvObs = new MutationObserver(function () {
+              if (patching) return;
+              syncStationClock();
+            });
+            kvObs.observe(kv, { childList: true, subtree: true, characterData: true });
+          }
         }
-        setInterval(syncStationClock, 200);
+        function tickStationClock() {
+          syncStationClock();
+          requestAnimationFrame(tickStationClock);
+        }
+        requestAnimationFrame(tickStationClock);
       })();
     </script>
   </body>
