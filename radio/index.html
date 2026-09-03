@@ -37,7 +37,7 @@ header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(-
 .meter b:nth-child(4){height:14px}.meter b:nth-child(5){height:17px}
 .link{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn);flex:0 0 9px}
 .link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;flex:0 0 auto;min-width:5.6rem;max-width:none;overflow:visible}
+#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;flex:0 0 auto;width:max-content;min-width:0;max-width:none;overflow:visible}
 #pathLbl.up{color:var(--ok)}
 #modeTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
   padding:2px 6px;border-radius:3px;letter-spacing:.1em}
@@ -121,9 +121,13 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   header{gap:6px;padding-left:10px;padding-right:10px}
   .callsign{font-size:16px}
   .meter{margin-left:4px}
-  #pathLbl{min-width:5.6rem;max-width:none;letter-spacing:.06em;overflow:visible;text-overflow:clip}
+  #pathLbl{width:max-content;min-width:0;max-width:none;letter-spacing:.06em;overflow:visible;text-overflow:clip}
   .conn{padding:10px 6px;letter-spacing:.06em}
   .screen{padding-left:10px;padding-right:10px}
+}
+@media(max-width:380px){
+  header{gap:4px}
+  .conn{padding:8px 5px}
 }
 #toast{position:fixed;left:50%;bottom:calc(88px + var(--kb));transform:translateX(-50%);background:var(--amber);
   color:#141406;font-family:var(--mono);font-size:12px;font-weight:700;padding:8px 14px;
@@ -267,7 +271,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
       <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
       <div class="sub">All nodes must share frequency + SF to hear each other.</div>
-      <div class="sub" id="btHelp">Bluetooth from this HTTP AP needs a Chrome Android insecure-origin exception for http://192.168.4.1. Chrome flags → unsafely-treat-insecure-origin-as-secure → add http://192.168.4.1. Or install the app from https://exopace.net/radio/ and CONNECT over BLE.</div>
+      <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
     </div>
   </section>
 </main>
@@ -289,11 +293,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=14"></script>
+<script src="env.js?v=15"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=14"></script>
-<script src="store.js?v=14"></script>
-<script src="globe.js?v=14"></script>
-<script src="app.js?v=14"></script>
+<script src="protocol.js?v=15"></script>
+<script src="store.js?v=15"></script>
+<script src="globe.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
