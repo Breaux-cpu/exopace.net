@@ -44,6 +44,10 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 
 Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/lock/25544?cam=follow&t=live`. `#facility` flies to Millington GS.
 
+First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeout. **FEED ERROR** / MODE **FAULT** only after that failure — not while ION/TLE are still in flight. Empty after timeout is allowed. Invented 0 is not.
+
+`/about` `/mission` `/ops` `/login` `/app` are **not** product routes. They 404. Only `/lock/*` is an SPA deep link.
+
 Offline: last CelesTrak pull is **CACHED**. Prod does **not** invent a synthetic fleet (`FEED ERROR` if nothing is cached).
 
 ## Protocol

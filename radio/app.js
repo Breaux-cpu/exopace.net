@@ -150,10 +150,11 @@ async function connectBle() {
   }
 }
 (function initBt() {
-  if (!window.isSecureContext || !navigator.bluetooth) {
-    $("optBle").disabled = true;
-    $("btHint").textContent = "NEEDS HTTPS OR ANDROID INSECURE-ORIGIN EXCEPTION";
-  }
+  if (navigator.bluetooth) return;
+  $("optBle").disabled = true;
+  $("btHint").textContent = window.isSecureContext
+    ? "BLUETOOTH NOT AVAILABLE IN THIS BROWSER"
+    : "NEEDS HTTPS OR ANDROID INSECURE-ORIGIN EXCEPTION";
 })();
 
 function pushIngest(msg) {

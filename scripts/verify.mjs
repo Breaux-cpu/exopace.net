@@ -69,7 +69,11 @@ assert(index.includes("pwa-install.js"), "MOC install chip script");
 assert(index.includes('id="exo-install"'), "MOC INSTALL APP control");
 
 const four = read("404.html");
-assert(four.includes('id="boot-void"') && four.includes("index-B5yAHF7-"), "404.html is MOC SPA fallback");
+assert(four.includes("404") && four.includes("NO SUCH ROUTE"), "404.html is a real 404");
+assert(!four.includes("index-B5yAHF7-") && !four.includes("boot-void"), "404.html is not Mission Control");
+assert(index.includes("moc-phone.css"), "index.html loads phone HUD clip");
+assert(existsSync(join(root, "moc-phone.css")), "exists moc-phone.css");
+assert(read("moc-phone.css").includes("z-index: 8") && read("moc-phone.css").includes(".search"), "phone CSS lifts camstrip over dossier + restores search");
 
 // --- manifests ---
 const mocM = json("manifest.json");
@@ -94,6 +98,10 @@ assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio 
 const redir = read("_redirects");
 assert(redir.includes("/radio/*") && redir.includes("/FIRMWARE.md"), "_redirects keeps radio + firmware");
 assert(redir.includes("/lock/*"), "_redirects SPA-falls /lock/*");
+assert(!redir.split("\n").some((l) => l.trim() === "/*              /index.html 200" || l.trim().startsWith("/* ")), "_redirects has no SPA catch-all");
+for (const route of ["/about", "/mission", "/ops", "/login", "/app"]) {
+  assert(redir.includes(`${route} `) && /404/.test(redir.split("\n").find((l) => l.includes(route)) || ""), `_redirects 404 ${route}`);
+}
 assert(!redir.includes("WORLD_DATA.md") && !redir.includes("sgp4.worker.js"), "_redirects dropped dead paths");
 assert(existsSync(join(root, "_headers")), "_headers present");
 
@@ -146,6 +154,8 @@ assert(radioHtml.includes('rel="manifest"') && radioHtml.includes("apple-touch-i
 assert(radioHtml.includes('rel="icon"'), "Radio favicon");
 assert(radioHtml.includes("exopace.net/radio"), "Radio install copy names /radio/");
 assert(radioApp.includes("beforeinstallprompt"), "Radio install prompt");
+assert(radioApp.includes("BLUETOOTH NOT AVAILABLE IN THIS BROWSER"), "Radio HTTPS does not claim it needs HTTPS");
+assert(radioApp.includes("if (navigator.bluetooth) return;"), "Radio only disables BLE when the browser has no Bluetooth");
 assert(radioApp.includes("exoAllowDemo"), "Radio demo helper stays gated");
 assert(!radioHtml.includes("optDemo") && !/Demo Dev only/i.test(radioHtml), "prod Radio HTML has no Demo option");
 assert(!radioHtml.includes("relay.example") && !radioHtml.includes("optRemote"), "prod Radio HTML has no example.com remote stub");
@@ -162,6 +172,9 @@ assert(moc.includes("ULTRA") && moc.includes("exopace-quality"), "MOC quality ti
 assert(moc.includes("/lock/") && moc.includes("serviceWorker") && moc.includes("/sw.js"), "MOC deep link + SW register");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes("exoAllowDemo"), "MOC demo helper (prod still false)");
+assert(moc.includes('feed:"WAIT"'), "MOC initial feed is WAIT not ERROR");
+assert(moc.includes("FEED WAIT"), "MOC paints FEED WAIT while CelesTrak loads");
+assert(!moc.includes('feed:"ERROR",imagery'), "MOC does not first-paint FEED ERROR");
 assert(!existsSync(join(root, "package.json")), "no fake Vite package.json");
 assert(!existsSync(join(root, "src")), "no invented moc/src tree");
 

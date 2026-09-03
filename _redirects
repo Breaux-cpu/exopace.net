@@ -10,6 +10,7 @@
 /sw.js          /sw.js 200
 /manifest.json  /manifest.json 200
 /pwa-install.js /pwa-install.js 200
+/moc-phone.css  /moc-phone.css 200
 /protocol.js    /protocol.js 200
 /protocol/*     /protocol/:splat 200
 /scripts/*      /scripts/:splat 200
@@ -17,4 +18,9 @@
 /radio          /radio/ 301
 /radio/*        /radio/:splat 200
 /lock/*         /index.html 200
-/*              /index.html 200
+# These are not product surfaces. Never serve Mission Control as them.
+/about          /404.html 404
+/mission        /404.html 404
+/ops            /404.html 404
+/login          /404.html 404
+/app            /404.html 404

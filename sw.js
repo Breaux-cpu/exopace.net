@@ -10,6 +10,7 @@ const ASSETS = [
   "/icon-512.png",
   "/apple-touch-icon.png",
   "/pwa-install.js",
+  "/moc-phone.css",
 ];
 
 function skip(url) {
