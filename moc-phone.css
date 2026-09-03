@@ -50,6 +50,13 @@ html.exo-booting a.radio-link {
   opacity: 0.4;
   z-index: 1 !important;
 }
+/* 1280 leftover: Ion first-paint “Upgrade for commercial use.” is a
+   cesium.com/pricing promo in .cesium-credit-textContainer (136×20).
+   Hide only that link. Keep the ion logo and Data attribution expand. */
+#globe .cesium-credit-textContainer a[href*="cesium.com/pricing"],
+#globe .cesium-credit-textContainer .cesium-credit-wrapper:has(a[href*="cesium.com/pricing"]) {
+  display: none !important;
+}
 
 @media (min-width: 821px) {
   .search {
@@ -195,8 +202,29 @@ html.exo-booting a.radio-link {
     padding: 10px 12px;
   }
   /* Wrapped camstrip is taller; keep the always-on STATION column off it. */
+  /* Desktop leftover: after 44px pass rows, RF CHAIN + LOG laid out past
+     aside.station (stlog bottom 967 / panel 618 at 1280×800). Bundle
+     overflow:auto on the aside does not keep those sections inside after
+     paint. Contain the column; LOG scrolls inside the panel. */
   .station {
     max-height: calc(100vh - 240px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .station > * {
+    flex: 0 0 auto;
+  }
+  .station .passlist {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+  .station .stlog {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
   }
   /* Desktop leftover: ISS lock COPY COORDS / CLEAR LOCK were 99×32 at 1280.
      Phone already 44. Credits stay bottom-left and do not sit on COPY. */
