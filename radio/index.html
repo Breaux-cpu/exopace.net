@@ -103,7 +103,8 @@ button,select,input{font:inherit;color:var(--text)}
 .mapst{position:absolute;right:8px;top:8px;z-index:2;font-family:var(--mono);font-size:10px;
   letter-spacing:.12em;color:var(--mut);background:var(--panel);border:1px solid var(--line);
   border-radius:6px;padding:8px 10px;min-height:44px;display:flex;align-items:center}
-.mapst input{margin-right:4px;accent-color:var(--amber)}
+.mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
+.mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
 #btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
 .mapread{display:flex;align-items:center;gap:12px}
@@ -116,6 +117,7 @@ button,select,input{font:inherit;color:var(--text)}
 .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
   color:var(--mut);text-transform:uppercase;margin-bottom:5px}
 #passHint{display:block;margin-top:8px;margin-bottom:12px}
+#cfgHw[hidden]{display:none!important}
 nav{display:flex;border-top:1px solid var(--line);background:#14170b;
   padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;background:none;border:none;padding:12px 0 10px;font-family:var(--mono);
@@ -129,6 +131,11 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   .conn{padding:10px 6px;letter-spacing:.06em}
   .screen{padding-left:10px;padding-right:10px}
   #mapEmpty{right:132px}
+  #scr-setup{padding-top:8px;padding-bottom:8px}
+  #scr-setup h2{margin:0 0 6px}
+  #scr-setup .card{padding:10px;margin-bottom:0}
+  #scr-setup .field{margin-bottom:6px}
+  #scr-setup .sub{margin-top:2px}
 }
 @media(max-width:380px){
   header{gap:4px}
@@ -268,13 +275,15 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
       <div class="sub" id="passHint">Set the node AP password on the radio before field use.</div>
       <div class="field"><label>Channel key (AES-256 — use CLEAR CHANNEL KEY for open mesh)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
-      <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
-      <div class="grid2">
-        <div class="field"><label>GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
-        <div class="field"><label>GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
+      <div id="cfgHw" hidden>
+        <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
+        <div class="grid2">
+          <div class="field"><label>GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
+          <div class="field"><label>GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
+        </div>
+        <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
+        <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
       </div>
-      <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
-      <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
       <div class="sub">All nodes must share frequency + SF to hear each other.</div>
       <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
     </div>
@@ -298,11 +307,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=21"></script>
+<script src="env.js?v=22"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=21"></script>
-<script src="store.js?v=21"></script>
-<script src="globe.js?v=21"></script>
-<script src="app.js?v=21"></script>
+<script src="protocol.js?v=22"></script>
+<script src="store.js?v=22"></script>
+<script src="globe.js?v=22"></script>
+<script src="app.js?v=22"></script>
 </body>
 </html>
