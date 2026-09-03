@@ -47,6 +47,8 @@ function setPath(mode, up) {
   else { c.textContent = "CONNECT"; lbl.textContent = "LINK DOWN"; lbl.classList.remove("up"); }
   c.classList.toggle("up", !!up);
   $("modeTag").style.display = mode === "demo" ? "inline-block" : "none";
+  const hw = $("cfgHw");
+  if (hw) hw.hidden = !up;
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
 function syncChatEmpty() { $("chatEmpty").style.display = $("chatLog").children.length ? "none" : ""; }
