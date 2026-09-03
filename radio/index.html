@@ -68,10 +68,10 @@ button,select,input{font:inherit;color:var(--text)}
 .msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
 .msg .meta .ok{color:var(--ok)}
 #composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(4px + var(--kb));
-  display:flex;gap:8px;z-index:3}
+  display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
 #composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
-  font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-height:44px}
-#composer input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
+  font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-width:0;min-height:44px;flex:0 1 auto}
+#composer input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
 #composer .send{width:auto;flex:0 0 auto}
 .fix{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
   padding:3px 8px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
@@ -289,11 +289,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=9"></script>
+<script src="env.js?v=10"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=9"></script>
-<script src="store.js?v=9"></script>
-<script src="globe.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="protocol.js?v=10"></script>
+<script src="store.js?v=10"></script>
+<script src="globe.js?v=10"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

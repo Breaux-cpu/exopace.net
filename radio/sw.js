@@ -1,4 +1,4 @@
-const CACHE = "exopace-radio-v9";
+const CACHE = "exopace-radio-v10";
 const ASSETS = [
   "./",
   "index.html",
