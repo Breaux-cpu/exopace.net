@@ -427,7 +427,7 @@ function renderWays() {
   el.innerHTML = ids.length ? ids.map((i) => {
     const w = S.ways[i];
     return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + esc(w.kind) + "</div></div></div>";
-  }).join("") : '<div class="sub">No waypoints.</div>';
+  }).join("") : '<div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div>';
 }
 
 function renderTelem(d) {
@@ -633,6 +633,7 @@ $("btnHintHide").onclick = () => { hideInstallHint(true); };
 syncInstallHint();
 if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share → Add to Home Screen. Then open EXOpace and CONNECT → Bluetooth.";
 
+renderNodes();
 (async function restore() {
   try {
     const chats = await ExoStore.all("chat");
@@ -642,6 +643,7 @@ if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share →
     const rf = await ExoStore.all("rf");
     S.rf = rf.slice(-200);
   } catch (e) {}
+  renderNodes();
 })();
 
 (function prodChrome() {
