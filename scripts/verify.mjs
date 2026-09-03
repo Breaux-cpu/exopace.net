@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v67"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v68"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=67"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=67"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=68"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=68"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -517,6 +517,40 @@ assert(!moc.includes("PASS · MILLINGTON") && !moc.includes("EL · MILLINGTON") 
 assert(moc.includes("FACILITY · EXOPACE GS") && moc.includes("EL · EXOPACE GS") && moc.includes("EXOPACE GS"), "MOC guest chrome keeps EXOPACE GS");
 assert(moc.includes("`AOS ${") && moc.includes("Z AZ ") && moc.includes('"NO PASS"'), "lock next-pass paints AOS/AZ when a pass exists, else NO PASS");
 assert(!moc.includes("NEXT · AOS ") && !moc.includes("NEXT PASS · EXOPACE GS"), "lock NEXT label does not sit on a NEXT · AOS value");
+assert(moc.includes("nextEvent:up(W,x.clock.epochMs)"), "share-restore of a valid lock runs the same up() predictor as search ticks");
+assert(moc.includes('nextEvent:g?up(g,this.clock.epochMs):"NO LOCK"'), "tick NEXT uses the sim clock epoch, not wall Date.now()");
+assert(moc.includes("function up(a,t)") && moc.includes("start:new Date(t)"), "up() / hp() start from the sim instant UTC/LOCAL/passlist already use");
+assert(!moc.includes("const n=a.norad||a.id,t=Date.now()"), "lock NEXT no longer predicts from wall Date.now()");
+assert(moc.includes("x.setSelected(W.id)") && moc.includes("nextEvent:up(W,x.clock.epochMs)") && moc.includes("function Bl("), "restore reuses search-lock up(); it does not invent a second predictor");
+{
+  const m = moc.match(/function up\(a,t\)\{t=t\?\?Date\.now\(\);[\s\S]*?"NO PASS"\}/);
+  assert(!!m, "up() predictor is extractable");
+  let hpStart = null;
+  const hold = 1_700_000_000_000;
+  const line = vm.runInNewContext(m[0] + ";up({lat:0,lon:0,alt:400,norad:\"25544\",id:\"25544\"},hold)", {
+    hold,
+    Yd: () => 0,
+    Se: { lat: 35.346, lon: -89.836, alt: 80 },
+    hp(_bodies, _site, opts) {
+      hpStart = opts.start.getTime();
+      return [{ aos: new Date(hold + 3_600_000), aosAz: 152 }];
+    },
+    $l: () => "02:02:02",
+  });
+  assert(hpStart === hold, "up() starts hp() from the sim epoch, not wall Date.now()");
+  assert(line.includes("AOS 02:02:02Z AZ 152") && line.includes("EXOPACE GS"), "up() paints the same AOS/AZ · EXOPACE GS line search lock writes");
+  const held = vm.runInNewContext(m[0] + ";up.i=null;up({lat:0,lon:0,alt:400,norad:\"25544\"},hold);up({lat:0,lon:0,alt:400,norad:\"25544\"},hold)", {
+    hold,
+    Yd: () => 0,
+    Se: { lat: 35.346, lon: -89.836, alt: 80 },
+    hp(_bodies, _site, opts) {
+      hpStart = opts.start.getTime();
+      return [{ aos: new Date(hold + 3_600_000), aosAz: 152 }];
+    },
+    $l: () => "02:02:02",
+  });
+  assert(held.includes("AOS 02:02:02Z"), "up() cache stays on the frozen HOLD sim instant");
+}
 assert(!moc.includes('pass:"nodelink"'), "MOC live bundle does not ship a factory AP named nodelink");
 assert(!read("radio/protocol.js").includes("BASECAMP") && !read("radio/protocol.js").includes("RIG-1") && !read("radio/protocol.js").includes("TRK-2"), "Radio protocol has no BASECAMP / RIG-1 / TRK-2 fixtures");
 assert(!read("protocol/index.js").includes("BASECAMP") && !read("protocol/index.js").includes("RIG-1"), "canonical protocol demo helper dropped BASECAMP / RIG-1 names");
