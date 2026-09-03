@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v8";
+const CACHE = "exopace-moc-v9";
 const ASSETS = [
   "/",
   "/index.html",
@@ -10,8 +10,12 @@ const ASSETS = [
   "/icon-512.png",
   "/apple-touch-icon.png",
   "/pwa-install.js",
-  "/moc-phone.css",
 ];
+
+function noStore(url) {
+  const p = url.pathname;
+  return p === "/moc-phone.css" || p === "/assets/index-B5yAHF7-.js" || p === "/env.js";
+}
 
 function skip(url) {
   if (url.origin !== location.origin) return true;
@@ -48,9 +52,9 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (skip(url)) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, noStore(url) ? { cache: "no-store" } : undefined)
       .then((r) => {
-        if (r.ok) {
+        if (r.ok && !noStore(url)) {
           const copy = r.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));
         }
