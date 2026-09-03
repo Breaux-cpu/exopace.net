@@ -96,6 +96,14 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 10px 12px;
   }
+  /* Desktop leftover: LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS were 118×32
+     at 1280 (bundle .btn). Phone already 44. Not camstrip. Not AUDIO. */
+  .layers .btn {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 8px;
+  }
   /* Bottom-left, left of LIVE. Full-bleed .cesium-viewer-bottom was on the timebar. */
   #globe .cesium-viewer-bottom,
   #globe .cesium-widget-credits {
