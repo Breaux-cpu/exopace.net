@@ -117,7 +117,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v17"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v18"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -203,7 +203,8 @@ assert(radioApp.includes("rangeCard") || radioHtml.includes("rangeCard"), "range
 assert(radioApp.includes("walk outside") && !radioApp.includes("run DEMO"), "map empty state has no Demo nudge");
 assert(!radioApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
 assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP first paint has no Demo CTA");
-assert(radioHtml.includes("app.js?v=17") && radioHtml.includes("env.js?v=17"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=18") && radioHtml.includes("env.js?v=18"), "Radio index cache-busts in-place JS");
+assert(/#passHint\{[^}]*margin-bottom:12px/.test(radioHtml), "SET passHint has a real gap above Channel key");
 assert(!radioHtml.includes("FIRMWARE.md") && !radioHtml.includes("this PWA is not the AP"), "SET pairing does not dump FIRMWARE.md or PWA-is-not-the-AP");
 assert(!radioApp.includes("FIRMWARE.md"), "Radio app does not point guests at FIRMWARE.md");
 assert(!radioHtml.includes("Not a Pages route") && !radioApp.includes("Not served from exopace.net"), "rangeHint has no Pages-implementation dump");
