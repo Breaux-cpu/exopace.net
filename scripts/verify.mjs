@@ -99,7 +99,9 @@ assert(mocSw.includes("exopace-moc-v9"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v7"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v8"), "Radio SW cache bumped");
+assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
+assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
 
 // --- redirects keep radio + firmware as real files ---
@@ -180,6 +182,7 @@ assert(radioApp.includes("rangeCard") || radioHtml.includes("rangeCard"), "range
 assert(radioApp.includes("walk outside") && !radioApp.includes("run DEMO"), "map empty state has no Demo nudge");
 assert(!radioApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
 assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP first paint has no Demo CTA");
+assert(radioHtml.includes("app.js?v=8") && radioHtml.includes("env.js?v=8"), "Radio index cache-busts in-place JS");
 assert(radioApp.includes("if (b.dataset.s === \"map\")") && radioApp.includes("syncGlobe()"), "MAP tab paints quiet empty state before globe");
 
 // --- shipped MOC still has palette + quality + deep link (bundle, no Vite source) ---
