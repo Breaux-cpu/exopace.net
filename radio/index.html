@@ -49,6 +49,9 @@ main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;displa
 h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
   text-transform:uppercase;margin:6px 0 10px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;max-width:100%;min-width:0;overflow:hidden}
+#installHint{flex:0 0 auto;overflow:visible}
+#installHint[hidden]{display:none!important;pointer-events:none!important;height:0;margin:0;padding:0;border:0;overflow:hidden}
+#btnInst2[hidden],#btnHintHide[hidden]{display:none!important;pointer-events:none!important}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .big{font-family:var(--mono);font-size:26px;color:var(--amber);line-height:1.1;word-break:break-all}
 .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
@@ -172,7 +175,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
       <div class="lbl">Phone app</div>
       <div class="sub" id="installTxt">https://exopace.net/radio/ — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
       <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="btnInst2">INSTALL APP</button>
+        <button class="btn primary" id="btnInst2" hidden>INSTALL APP</button>
         <button class="btn" id="btnHintHide">HIDE</button>
       </div>
     </div>
@@ -294,11 +297,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=18"></script>
+<script src="env.js?v=19"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=18"></script>
-<script src="store.js?v=18"></script>
-<script src="globe.js?v=18"></script>
-<script src="app.js?v=18"></script>
+<script src="protocol.js?v=19"></script>
+<script src="store.js?v=19"></script>
+<script src="globe.js?v=19"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>

@@ -166,6 +166,14 @@ html.exo-booting a.radio-link {
   .hud:has(.layers.open) .tl a.radio-link {
     pointer-events: none;
   }
+  /* STATION leftover: layers z-40 sat on SITE / LAT-LON / ALT / GRID / ARM. */
+  .hud:has(.station) .layers.open {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  .hud:has(.station) .layers.open .btn {
+    pointer-events: none !important;
+  }
 
   /* Keep the top-right cluster off the layers column. */
   .tl {
