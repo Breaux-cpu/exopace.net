@@ -429,9 +429,9 @@ function showDossier(m) {
 $("stPin").onchange = () => syncGlobe();
 $("stTrail").onchange = () => syncGlobe();
 $("btnRecage").onclick = () => {
+  if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
   if (!S.globe) return;
-  if (S.gps && S.gps.fix) S.globe.recage(S.gps.lat, S.gps.lon);
-  else S.globe.recage(35.1495, -90.0490);
+  S.globe.recage(S.gps.lat, S.gps.lon);
   toast("RECAGE");
 };
 $("btnRange").onclick = () => {
