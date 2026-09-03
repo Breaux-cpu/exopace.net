@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v12";
+const CACHE = "exopace-moc-v13";
 const ASSETS = [
   "/",
   "/index.html",
