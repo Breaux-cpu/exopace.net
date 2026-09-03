@@ -139,11 +139,36 @@ html.exo-booting a.radio-link {
   #globe .cesium-viewer-bottom,
   #globe .cesium-widget-credits {
     top: auto !important;
-    bottom: 4px !important;
+    bottom: 8px !important;
     left: 8px !important;
     right: auto !important;
-    transform: scale(0.75);
+    transform: none;
     transform-origin: bottom left;
+  }
+  /* Desktop leftover: Data attribution was 123×20.5 at 1280 (global
+     max-height 22 + scale 0.75) with pointer-events none — hits landed
+     on the canvas. Phone already 44. Keep the ion logo. Hide only the
+     pricing promo. Sit under FACILITY, left of LIVE. */
+  #globe .cesium-viewer-bottom,
+  #globe .cesium-widget-credits {
+    max-height: 48px;
+    overflow: visible;
+  }
+  #globe .cesium-widget-credits {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  #globe .cesium-widget-credits a,
+  #globe a.cesium-credit-expand-link,
+  #globe a.cesium-credit-expand {
+    pointer-events: auto !important;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex !important;
+    align-items: center;
+    box-sizing: border-box;
   }
   /* Default chip is right:14px / bottom:148px — that covers the zoom column.
      44px zoom is 12px wider than the bundle 32px; keep INSTALL left of ⌂.
