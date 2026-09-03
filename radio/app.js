@@ -67,11 +67,11 @@ function syncHeaderMeter() {
   el.style.display = up ? "" : "none";
 }
 function syncChatSend() {
-  const el = $("chatSend");
-  if (!el) return;
+  const send = $("chatSend"), composer = $("composer"), empty = $("chatEmpty");
   const up = radioUp();
-  el.hidden = !up;
-  el.style.display = up ? "" : "none";
+  if (send) { send.hidden = !up; send.style.display = up ? "" : "none"; }
+  if (composer) composer.hidden = !up;
+  if (empty) empty.textContent = up ? "MESH QUIET. TX or wait for a peer." : "MESH QUIET. Wait for a peer.";
 }
 
 function closeWifi() {
