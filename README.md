@@ -42,11 +42,11 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 
 `/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
 
-Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/lock/25544?cam=follow&t=live`. `#facility` flies to Millington GS.
+Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. `#facility` flies to Millington GS.
 
 First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeout. **FEED ERROR** / MODE **FAULT** only after that failure — not while ION/TLE are still in flight. Empty after timeout is allowed. Invented 0 is not.
 
-`/about` `/mission` `/ops` `/login` `/app` are **not** product routes. They 404. Only `/lock/*` is an SPA deep link.
+`/about` `/mission` `/ops` `/login` `/app` are **not** product routes. They 404. Shareable lock state lives on `/` query params (`?lock=…&cam=…&t=…`). Legacy `/lock/:id` URLs redirect there.
 
 `EXOPACE_BRIDGE` is empty in this ship tree. The MOC must **not** fall back to `exopase.com` (typo) or any public host. RF stays quiet/offline until a real LAN/configured origin is set. Do not turn exopace.com into MOC.
 
@@ -65,10 +65,11 @@ No Meshtastic lock-in.
 python3 -m http.server 4173
 # MOC   http://127.0.0.1:4173/
 # Radio http://127.0.0.1:4173/radio/
-# lock  http://127.0.0.1:4173/lock/25544?cam=follow&t=live
+# lock  http://127.0.0.1:4173/?lock=25544&cam=follow&t=live
+# legacy /lock/25544?… redirects to the root query form
 ```
 
-Deep links need the host `_redirects` (Cloudflare) or `404.html` (GitHub Pages). A raw `http.server` will 404 `/lock/*` unless you open `/` and then rewrite.
+Deep links need the host `_redirects` (Cloudflare) or the inline `/lock/` → `/?lock=` rewrite in `index.html`. A raw `http.server` will 404 bare `/lock/*` unless that rewrite runs (open `/` first, or use the query form directly).
 
 ## Verify
 

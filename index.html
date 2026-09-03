@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=57">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=58">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=57">
+    <link rel="stylesheet" href="/moc-phone.css?v=58">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -90,10 +90,20 @@
     <div id="root" inert></div>
     <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
          (served from /cesium/, NOT bundled by Vite), then the app. -->
+    <script>
+      (function () {
+        var m = location.pathname.match(/^\/lock\/([^/?]+)/);
+        if (!m) return;
+        var q = new URLSearchParams(location.search);
+        if (!q.has("lock")) q.set("lock", decodeURIComponent(m[1]));
+        var s = q.toString();
+        location.replace("/" + (s ? "?" + s : "") + (location.hash || ""));
+      })();
+    </script>
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=57"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=58"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
