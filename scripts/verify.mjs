@@ -291,7 +291,7 @@ assert(moc.includes("ULTRA") && moc.includes("exopace-quality"), "MOC quality ti
 assert(moc.includes('q.set("lock",a)') && moc.includes("function Op()") && moc.includes("function Vv(") && moc.includes("serviceWorker") && moc.includes("/sw.js"), "MOC root-query deep link + SW register");
 assert(moc.includes("function dropDeadLock()") && moc.includes('q.delete("lock")') && moc.includes('q.delete("cam")') && moc.includes("history.replaceState"), "rejected share lock/cam drop via replaceState");
 assert(moc.includes('if(!o){Ie("NO MATCH");return}') && moc.includes("function Bl("), "typed SAT NAME / NORAD miss toasts NO MATCH");
-assert(moc.includes("Ne=!0,dropDeadLock()") && moc.includes('Ne&&Ie("NO MATCH")'), "unresolved ?lock= on boot strips URL then toasts NO MATCH after FEED");
+assert(moc.includes("Ne=!0,dropDeadLock()") && moc.includes('Ne&&window.setTimeout(()=>Ie("NO MATCH"),2200)'), "unresolved ?lock= on boot strips URL then toasts NO MATCH after FEED");
 assert(!moc.includes('if(!o){Ie("NO LOCK");return}'), "typed search miss is NO MATCH not NO LOCK");
 assert(moc.includes('Ie("NO LOCK")') && moc.includes('u==="follow"&&!a.selected()'), "FOLLOW / SAT-CAM without a target still toasts NO LOCK");
 {
