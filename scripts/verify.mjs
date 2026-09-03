@@ -129,7 +129,7 @@ assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio 
 // --- redirects keep radio + firmware as real files ---
 const redir = read("_redirects");
 assert(redir.includes("/radio/*") && redir.includes("/FIRMWARE.md"), "_redirects keeps radio + firmware");
-assert(redir.includes("/lock/:id") && redir.includes("/?lock=:id"), "_redirects 301 legacy /lock/:id to root query");
+assert(redir.includes("/lock/*") && redir.includes("/index.html"), "_redirects SPA-falls legacy /lock/* to index.html");
 assert(!redir.split("\n").some((l) => l.trim() === "/*              /index.html 200" || l.trim().startsWith("/* ")), "_redirects has no SPA catch-all");
 for (const route of ["/about", "/mission", "/ops", "/login", "/app"]) {
   assert(redir.includes(`${route} `) && /404/.test(redir.split("\n").find((l) => l.includes(route)) || ""), `_redirects 404 ${route}`);

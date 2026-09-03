@@ -18,7 +18,7 @@
 /icon-maskable.svg /icon-maskable.svg 200
 /radio          /radio/ 301
 /radio/*        /radio/:splat 200
-/lock/:id       /?lock=:id 301
+/lock/*         /index.html 200
 # These are not product surfaces. Never serve Mission Control as them.
 /about          /404.html 404
 /mission        /404.html 404
