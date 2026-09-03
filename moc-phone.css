@@ -117,6 +117,7 @@ html.exo-booting a.radio-link {
     bottom: calc(258px + env(safe-area-inset-bottom));
     z-index: 20;
     min-height: 44px;
+    max-width: min(168px, 44vw);
   }
 
   .dossier {
@@ -215,11 +216,11 @@ html.exo-booting a.radio-link {
     bottom: auto !important;
     left: auto !important;
     right: 8px !important;
-    max-width: min(22vw, calc(100vw - 16px));
-    max-height: 18px;
+    max-width: min(36vw, calc(100vw - 16px));
+    max-height: 96px;
     overflow: hidden;
     contain: paint;
-    transform: scale(0.6);
+    transform: none;
     transform-origin: top right !important;
     opacity: 0.35;
   }
@@ -230,10 +231,13 @@ html.exo-booting a.radio-link {
   }
   #globe .cesium-widget-credits {
     position: static !important;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
     transform: none !important;
     max-width: 100% !important;
-    max-height: 18px;
+    max-height: 96px;
     overflow: hidden;
     top: auto !important;
     right: auto !important;
@@ -251,8 +255,15 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     overflow: hidden;
   }
-  #globe .cesium-widget-credits a {
+  #globe .cesium-widget-credits a,
+  #globe a.cesium-credit-expand-link,
+  #globe a.cesium-credit-expand {
     pointer-events: auto !important;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
   }
   /* “Upgrade for commercial use.” is the faint line Product scored on UTC. */
   #globe .cesium-credit-textContainer,

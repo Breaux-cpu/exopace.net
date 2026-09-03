@@ -6,16 +6,15 @@
   function standalone() {
     return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   }
-  function isiOS() {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent);
-  }
 
   var deferred = null;
   if (standalone()) {
     btn.hidden = true;
     return;
   }
-  if (isiOS()) btn.hidden = false;
+  // No beforeinstallprompt → click cannot install. Do not paint a dead chip
+  // on SAT NAME (390 leftover). iOS has no BIP; Radio CHAT already has the recipe.
+  btn.hidden = true;
 
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
@@ -27,14 +26,14 @@
     btn.hidden = true;
   });
   btn.addEventListener("click", function () {
-    if (deferred) {
-      deferred.prompt();
-      deferred.userChoice.finally(function () {
-        deferred = null;
-        btn.hidden = true;
-      });
+    if (!deferred) {
+      btn.hidden = true;
       return;
     }
-    btn.textContent = isiOS() ? "SHARE → ADD TO HOME SCREEN" : "BROWSER MENU → INSTALL APP";
+    deferred.prompt();
+    deferred.userChoice.finally(function () {
+      deferred = null;
+      btn.hidden = true;
+    });
   });
 })();
