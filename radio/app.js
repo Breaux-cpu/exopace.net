@@ -531,7 +531,13 @@ function renderWays() {
   }).join("") : '<div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div>';
 }
 
+function syncTelemEmpty(has) {
+  const g = $("telemGrid"), e = $("telemEmpty");
+  if (g) { g.hidden = !has; g.style.display = has ? "" : "none"; }
+  if (e) e.style.display = has ? "none" : "";
+}
 function renderTelem(d) {
+  syncTelemEmpty(true);
   $("vBatt").textContent = (d.batt ?? "-") + "%"; $("vVolt").textContent = (d.vbat ?? 0).toFixed(2) + " V";
   $("vUp").textContent = fmtUp(d.up); $("vHeap").textContent = "heap " + Math.round((d.heap || 0) / 1024) + " KB";
   $("vRssi").textContent = (d.rssi ?? "-") + " dBm"; $("vSnr").textContent = "SNR " + (d.snr ?? "-") + " dB";
