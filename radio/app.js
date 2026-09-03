@@ -237,7 +237,7 @@ function handle(m) {
         t: "chat",
         from: m.id,
         fromName: m.id,
-        text: "SOS " + (m.msg || ""),
+        text: sosLine(m),
         ts: m.ts,
         mine: m.id === "me" || !m.id || (S.myId && m.id === S.myId),
       });
@@ -262,6 +262,12 @@ function handle(m) {
   }
 }
 
+function sosLine(m) {
+  const raw = String(m.msg == null ? "" : m.msg).trim();
+  if (!raw || /^sos$/i.test(raw)) return "SOS";
+  if (/^sos\b/i.test(raw)) return raw;
+  return "SOS " + raw;
+}
 function isOwnMsg(m) {
   const from = m.from || m.id;
   return !!(m.mine || from === "me" || m.fromName === "me" || (S.myId && from === S.myId));
