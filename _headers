@@ -1,0 +1,19 @@
+# Cloudflare Pages — never let the CDN pin the SW or env past a deploy.
+/sw.js
+  Cache-Control: no-cache
+/radio/sw.js
+  Cache-Control: no-cache
+/env.js
+  Cache-Control: no-cache
+/radio/env.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/404.html
+  Cache-Control: no-cache
+/manifest.json
+  Cache-Control: no-cache
+/radio/manifest.json
+  Cache-Control: no-cache
+/pwa-install.js
+  Cache-Control: no-cache

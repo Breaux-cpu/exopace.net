@@ -6,6 +6,10 @@
     <meta name="theme-color" content="#03060b" />
     <meta name="color-scheme" content="dark" />
     <meta name="description" content="EXOpace Mission Control — planetary and orbital ops." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="EXOpace" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>EXOpace — Mission Control</title>
     <link rel="canonical" href="https://exopace.net/" />
     <link rel="manifest" href="/manifest.json" />
@@ -28,21 +32,42 @@
         letter-spacing: 0.28em; font-size: 11px;
         transition: opacity 0.9s ease;
       }
+      #boot-void svg { width: 72px; height: 72px; margin-bottom: 18px; }
       #boot-void b { color: #ffe08a; font-weight: 600; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 14px; }
       #boot-void.out { opacity: 0; pointer-events: none; }
+      #exo-install {
+        position: fixed; z-index: 90; right: 14px;
+        bottom: calc(148px + env(safe-area-inset-bottom));
+        background: #070c12cc; border: 1px solid #1c2a33; color: #ffe08a;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 10px; letter-spacing: 0.12em; padding: 7px 9px; border-radius: 4px;
+        min-height: 32px; cursor: pointer;
+      }
+      #exo-install[hidden] { display: none; }
     </style>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
+    <link rel="stylesheet" href="/moc-phone.css">
   </head>
   <body>
-    <div id="root">
-      <div id="boot-void"><b>EXOpace</b>CHECKING PIPELINE…</div>
+    <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
+    <div id="boot-void">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+        <ellipse cx="64" cy="64" rx="38" ry="14" fill="none" stroke="#7ee0ff" stroke-width="2"/>
+        <circle cx="64" cy="64" r="6" fill="#ffe08a"/>
+        <circle cx="98" cy="58" r="3" fill="#7ee0ff"/>
+      </svg>
+      <b>EXOpace</b>CHECKING PIPELINE…
     </div>
+    <button id="exo-install" type="button" hidden>INSTALL APP</button>
+    <div id="root"></div>
     <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
          (served from /cesium/, NOT bundled by Vite), then the app. -->
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js"></script>
+    <script src="/pwa-install.js" defer></script>
   </body>
 </html>

@@ -1,4 +1,5 @@
-/* EXOpace protocol — browser IIFE (Radio PWA, no bundler). */
+/* EXOpace protocol — browser IIFE (Radio PWA, no bundler).
+   Keep in lockstep with protocol/index.js. */
 (function (g) {
   const PROTOCOL_VER = "3.0";
   const BLE = {
@@ -8,6 +9,10 @@
     tx: "6e400003-b5a3-f393-e0a9-e50e24dcca9e",
   };
   const WIFI = { ssidPrefix: "EXOpace-", apPassDefault: "nodelink", wsPath: "/ws", apHost: "192.168.4.1" };
+  const TYPES = [
+    "hello", "cfg", "chat", "hist", "ack", "gps", "telem", "nodes", "sys", "setcfg",
+    "sos", "way", "track", "rf", "presence", "time", "getcfg",
+  ];
   const PRESENCE_TAU_S = 180;
   const PRESENCE_DROP_S = 1800;
   const STATION = { id: "MILLINGTON", name: "STATION", lat: 35.346, lon: -89.836, alt: 80 };
@@ -21,7 +26,10 @@
   ];
   function nowSec() { return Date.now() / 1000; }
   function clamp01(v) { const n = +v; return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0; }
-  function presenceConf(ago, tau) { ago = Math.max(0, ago || 0); return Math.exp(-ago / (tau || PRESENCE_TAU_S)); }
+  function presenceConf(ago, tau) {
+    if (ago == null || !Number.isFinite(ago)) return 0;
+    return Math.exp(-Math.max(0, ago) / (tau || PRESENCE_TAU_S));
+  }
   function encode(msg) { return JSON.stringify(msg) + "\n"; }
   function parseLine(raw) {
     const t = String(raw || "").trim();
@@ -33,7 +41,7 @@
     if (!m || !m.t) return m;
     if (m.t === "chat" && m.text == null && m.msg != null) m.text = m.msg;
     if (m.t === "gps" && !m.g && m.lat != null) {
-      m.g = { fix: m.fix !== false && m.fix !== 0, lat: +m.lat, lon: +m.lon, alt: m.alt, spd: m.spd, hdg: m.hdg, sats: m.sats };
+      m.g = { fix: m.fix !== false && m.fix !== 0, lat: +m.lat, lon: +m.lon, alt: m.alt, spd: m.spd, hdg: m.hdg, sats: m.sats, hdop: m.hdop };
     }
     if (m.t === "telem" && !m.d) m.d = m;
     if (m.t === "presence") {
@@ -75,12 +83,17 @@
   }
   const DEMO_QUICK = ["Copy that.", "Battery good out here.", "Signal strong on the ridge.", "Heading back at 1700."];
   g.ExoProto = {
-    PROTOCOL_VER, BLE, WIFI, PRESENCE_TAU_S, PRESENCE_DROP_S, STATION, MEMPHIS,
+    PROTOCOL_VER, BLE, WIFI, TYPES, PRESENCE_TAU_S, PRESENCE_DROP_S, STATION, MEMPHIS,
     WAY_KINDS, QUICK_TX, nowSec, presenceConf, encode, parseLine, normalize,
     applyPresence, demoMesh, DEMO_QUICK,
+    makeHello: function (o) { return { t: "hello", id: o.id, name: o.name, ver: o.ver || PROTOCOL_VER }; },
+    makeChat: function (o) { return { t: "chat", text: o.text, msg: o.text, to: o.to == null ? "*" : o.to, msgId: o.msgId, from: o.from, fromName: o.fromName, mine: !!o.mine, ts: o.ts != null ? o.ts : Math.floor(nowSec()) }; },
     makeSos: function (o) { return { t: "sos", id: o.id, lat: o.lat, lon: o.lon, msg: o.msg || "SOS", ts: o.ts || Math.floor(nowSec()) }; },
     makeWay: function (o) { return { t: "way", id: o.id, name: o.name, lat: o.lat, lon: o.lon, kind: o.kind || "meet" }; },
+    makeTrack: function (o) { return { t: "track", id: o.id, pts: o.pts }; },
     makeRf: function (o) { return { t: "rf", id: o.id, rssi: o.rssi, snr: o.snr, lat: o.lat, lon: o.lon, ts: o.ts || Math.floor(nowSec()) }; },
+    makePresence: function (o) { return { t: "presence", id: o.id, conf: clamp01(o.conf), ago: o.ago, lat: o.lat, lon: o.lon, name: o.name }; },
     makeTime: function (o) { return { t: "time", mode: (o && o.mode) || "live", epoch: (o && o.epoch) || Math.floor(nowSec()), rate: (o && o.rate) != null ? o.rate : 1 }; },
+    makeSetCfg: function (cfg) { return { t: "setcfg", cfg: cfg }; },
   };
 })(window);

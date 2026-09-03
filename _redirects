@@ -1,18 +1,26 @@
-# Real files first — never SPA-fallback firmware or textures
+# Real files first — never SPA-fallback firmware, radio, or textures
 /FIRMWARE.md    /FIRMWARE.md    200
 /FEEDS.md       /FEEDS.md       200
 /SDR_AGENT.md   /SDR_AGENT.md   200
 /env.js         /env.js         200
-/WORLD_DATA.md  /WORLD_DATA.md  200
-/sgp4.worker.js /sgp4.worker.js 200
 /cesium/*       /cesium/:splat 200
 /radio/three.min.js /radio/three.min.js 200
 /radio/textures/*   /radio/textures/:splat 200
-/textures/*     /textures/:splat 200
 /assets/*       /assets/:splat 200
 /sw.js          /sw.js 200
 /manifest.json  /manifest.json 200
+/pwa-install.js /pwa-install.js 200
+/moc-phone.css  /moc-phone.css 200
+/protocol.js    /protocol.js 200
+/protocol/*     /protocol/:splat 200
+/scripts/*      /scripts/:splat 200
+/icon-maskable.svg /icon-maskable.svg 200
 /radio          /radio/ 301
 /radio/*        /radio/:splat 200
 /lock/*         /index.html 200
-/*              /index.html 200
+# These are not product surfaces. Never serve Mission Control as them.
+/about          /404.html 404
+/mission        /404.html 404
+/ops            /404.html 404
+/login          /404.html 404
+/app            /404.html 404

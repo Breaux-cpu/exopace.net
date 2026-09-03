@@ -1,0 +1,82 @@
+/* HUD clip. Do not restyle the globe.
+   Desktop: search must not overlap the UTC clock in .tl.
+   Phone: lift dossier off STATION / MOC / FLY; restore search. */
+
+@media (min-width: 821px) {
+  .search {
+    left: 158px;
+    transform: none;
+    width: min(240px, 22vw);
+    z-index: 6;
+  }
+  .tl {
+    max-width: calc(100vw - 430px);
+  }
+}
+@media (max-width: 820px) {
+  .search {
+    display: block !important;
+    position: absolute;
+    top: calc(52px + env(safe-area-inset-top));
+    left: 14px;
+    right: 14px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    z-index: 6;
+  }
+  .search input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .dossier {
+    top: calc(104px + env(safe-area-inset-top));
+    bottom: auto;
+    right: 14px;
+    left: auto;
+    width: min(220px, 56vw);
+    max-height: calc(100dvh - 220px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    z-index: 3;
+  }
+
+  .station {
+    top: calc(104px + env(safe-area-inset-top));
+    left: 14px;
+    width: min(288px, 84vw);
+    max-height: calc(100dvh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    z-index: 5;
+  }
+
+  .layers.open {
+    top: calc(104px + env(safe-area-inset-top));
+    z-index: 6;
+  }
+
+  /* Camstrip above the dossier so STATION / MOC / FLY stay tappable. */
+  .camstrip {
+    left: 14px;
+    right: 88px;
+    max-width: none;
+    bottom: calc(62px + env(safe-area-inset-bottom));
+    z-index: 8;
+  }
+  .camstrip .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 12px;
+  }
+
+  .stmode.wait { color: var(--mut); }
+}
+
+@media (max-width: 420px) {
+  .search {
+    top: calc(72px + env(safe-area-inset-top));
+  }
+  .dossier,
+  .station,
+  .layers.open {
+    top: calc(124px + env(safe-area-inset-top));
+  }
+}

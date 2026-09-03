@@ -6,6 +6,7 @@
 <title>EXOpace Radio</title>
 <link rel="canonical" href="https://exopace.net/radio/">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#101208">
 <meta name="mobile-web-app-capable" content="yes">
@@ -21,12 +22,12 @@
   --kb:0px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+html,body{height:100%;max-width:100%;overflow-x:hidden}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
   display:flex;flex-direction:column;overscroll-behavior:none}
 header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(--line);
   padding:10px 14px 8px;display:flex;align-items:center;gap:10px;
-  padding-top:calc(10px + env(safe-area-inset-top))}
+  padding-top:calc(10px + env(safe-area-inset-top));min-width:0;max-width:100%}
 .callsign{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
 .freq{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.08em}
 .meter{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:18px}
@@ -36,7 +37,7 @@ header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(-
 .meter b:nth-child(4){height:14px}.meter b:nth-child(5){height:17px}
 .link{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn);flex:0 0 9px}
 .link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap}
+#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;max-width:7.5rem;overflow:hidden;text-overflow:ellipsis}
 #pathLbl.up{color:var(--ok)}
 #demoTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
   padding:2px 6px;border-radius:3px;letter-spacing:.1em}
@@ -115,12 +116,20 @@ nav{display:flex;border-top:1px solid var(--line);background:#14170b;
 nav button{flex:1;background:none;border:none;padding:12px 0 10px;font-family:var(--mono);
   font-size:10px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent;min-height:48px}
 nav button.active{color:var(--amber);border-top-color:var(--amber)}
+@media(max-width:420px){
+  header{gap:6px;padding-left:10px;padding-right:10px}
+  .callsign{font-size:16px}
+  .meter{margin-left:4px}
+  #pathLbl{max-width:4.8rem;letter-spacing:.06em}
+  .conn{padding:10px 8px}
+  .screen{padding-left:10px;padding-right:10px}
+}
 #toast{position:fixed;left:50%;bottom:calc(88px + var(--kb));transform:translateX(-50%);background:var(--amber);
   color:#141406;font-family:var(--mono);font-size:12px;font-weight:700;padding:8px 14px;
   border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
 .conn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
   font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:700;
-  padding:10px 12px;cursor:pointer;width:auto;min-height:44px}
+  padding:10px 12px;cursor:pointer;width:auto;min-height:44px;flex:0 0 auto}
 .conn.up{color:var(--ok);border-color:var(--ok)}
 #sheet{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end}
 #sheet.show{display:flex}
@@ -143,7 +152,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     <div class="callsign" id="hName">EXOpace</div>
     <div class="freq" id="hFreq">--- MHz · SF-</div>
   </div>
-  <span id="demoTag">DEMO</span>
+  <span id="demoTag"></span>
   <div class="meter" id="hMeter"><b></b><b></b><b></b><b></b><b></b></div>
   <div class="link" id="hLink"></div>
   <span id="pathLbl">LINK DOWN</span>
@@ -155,7 +164,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   <section class="screen active" id="scr-chat">
     <div class="card" id="installHint">
       <div class="lbl">Phone app</div>
-      <div class="sub" id="installTxt">exopace.net — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
+      <div class="sub" id="installTxt">https://exopace.net/radio/ — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
       <div class="row" style="margin-top:10px">
         <button class="btn primary" id="btnInst2">INSTALL APP</button>
         <button class="btn" id="btnHintHide">HIDE</button>
@@ -226,12 +235,12 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     </div>
     <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="600" height="128"></canvas></div>
     <div class="card"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="600" height="96"></canvas></div>
-    <div class="card"><div class="lbl">Range logger</div>
+    <div class="card" id="rangeCard"><div class="lbl">Range logger</div>
       <div class="row">
-        <button class="btn" onclick="location.href='/range.csv'">DOWNLOAD CSV</button>
-        <button class="btn" onclick="location.href='/range0.csv'">OLDER CSV</button>
+        <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
+        <button class="btn" id="btnRangeCsv0">OLDER CSV</button>
       </div>
-      <div class="sub">One row per received packet — RSSI / SNR / GPS for coverage mapping.</div>
+      <div class="sub" id="rangeHint">On the node AP (http://192.168.4.1) — one row per received packet. Not a Pages route.</div>
     </div>
   </section>
 
@@ -246,7 +255,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
       <div class="field"><label>TX power (dBm, radio out — V4 PA adds gain)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
       <div class="field"><label>GPS report interval (sec)</label><input id="cfgGpsInt" type="number" min="5" max="300" value="30"></div>
       <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
-      <div class="sub" id="passHint">Factory AP password is nodelink — change it before field use.</div>
+      <div class="sub" id="passHint">Set the node AP password on the radio before field use. Factory default is in FIRMWARE.md — this PWA is not the AP.</div>
       <div class="field"><label>Channel key (AES-256 — use CLEAR CHANNEL KEY for open mesh)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
       <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
       <div class="grid2">
@@ -271,14 +280,8 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
 <div id="sheet">
   <div class="sheet">
     <h3>Link</h3>
-    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>I'm on the node (AP EXOpace-XXXX / nodelink). Opens ws://…/ws</span></button>
+    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>On the node AP, open http://192.168.4.1. This site is not the radio.</span></button>
     <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
-    <button class="opt" id="optRemote"><b>Remote</b><span>wss:// stub — enter a relay later.</span></button>
-    <div id="remoteBox">
-      <div class="field"><label>wss URL</label><input id="remoteUrl" placeholder="wss://relay.example/ws"></div>
-      <button class="btn" id="remoteGo">OPEN REMOTE</button>
-    </div>
-    <button class="opt" id="optDemo"><b>Demo</b><span>Dev only — stripped in prod.</span></button>
     <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
   </div>
 </div>

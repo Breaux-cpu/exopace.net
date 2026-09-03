@@ -39,13 +39,13 @@ function setPath(mode, up) {
   S.mode = mode;
   $("hLink").classList.toggle("up", !!up);
   const c = $("btnConn"); const lbl = $("pathLbl");
-  if (mode === "demo") { c.textContent = "DEMO"; lbl.textContent = "DEMO"; lbl.classList.add("up"); }
+  if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("demoTag").textContent = "DEV"; }
   else if (up) { c.textContent = "LINK UP"; lbl.textContent = "LINK UP"; lbl.classList.add("up"); }
   else { c.textContent = "CONNECT"; lbl.textContent = "LINK DOWN"; lbl.classList.remove("up"); }
   c.classList.toggle("up", !!up);
   $("demoTag").style.display = mode === "demo" ? "inline-block" : "none";
 }
-function showSheet(on) { $("sheet").classList.toggle("show", !!on); if (!on) $("remoteBox").classList.remove("show"); }
+function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
 function syncChatEmpty() { $("chatEmpty").style.display = $("chatLog").children.length ? "none" : ""; }
 
 function closeWifi() {
@@ -150,10 +150,11 @@ async function connectBle() {
   }
 }
 (function initBt() {
-  if (!window.isSecureContext || !navigator.bluetooth) {
-    $("optBle").disabled = true;
-    $("btHint").textContent = "NEEDS HTTPS OR ANDROID INSECURE-ORIGIN EXCEPTION";
-  }
+  if (navigator.bluetooth) return;
+  $("optBle").disabled = true;
+  $("btHint").textContent = window.isSecureContext
+    ? "BLUETOOTH NOT AVAILABLE IN THIS BROWSER"
+    : "NEEDS HTTPS OR ANDROID INSECURE-ORIGIN EXCEPTION";
 })();
 
 function pushIngest(msg) {
@@ -187,16 +188,6 @@ $("optWifi").onclick = () => {
   connectWifi();
 };
 $("optBle").onclick = () => { if ($("optBle").disabled) return; showSheet(false); connectBle(); };
-$("optDemo").onclick = () => {
-  if (!window.exoAllowDemo || !window.exoAllowDemo()) { toast("DEMO DISABLED IN PROD"); return; }
-  showSheet(false); startDemo();
-};
-$("optRemote").onclick = () => $("remoteBox").classList.toggle("show");
-$("remoteGo").onclick = () => {
-  const u = $("remoteUrl").value.trim();
-  if (!u) { toast("ENTER WSS URL"); return; }
-  showSheet(false); toast("REMOTE STUB"); connectWifi(u);
-};
 
 function gpsFrom(m) {
   if (m.g) return m.g;
@@ -357,7 +348,7 @@ function syncGlobe() {
   const noMe = !(S.gps && S.gps.fix);
   const noPeer = !Object.keys(S.nodes).some((i) => S.nodes[i].lat != null);
   $("mapEmpty").textContent = [
-    noMe ? "WAITING FOR FIX — walk outside, or run DEMO" : "",
+    noMe ? "WAITING FOR FIX — walk outside" : "",
     noPeer ? "MESH QUIET — peer dots appear when nodes report position." : "",
   ].filter(Boolean).join("\n");
 }
@@ -485,11 +476,21 @@ function fillCfg(c) {
     $("cfgKey").value = "";
     $("cfgKey").placeholder = "shared secret, same on every node";
   }
-  $("passHint").style.display = (c.pass === "nodelink" || !c.pass) ? "" : "none";
+  if (c.pass === "nodelink") {
+    $("passHint").textContent = "Node still has the factory AP password — change it on the radio before field use (FIRMWARE.md).";
+    $("passHint").style.display = "";
+  } else {
+    $("passHint").style.display = c.pass ? "none" : "";
+  }
 }
 $("cfgKey").addEventListener("input", () => { S.keyDirty = true; S.keyClear = false; });
 $("cfgPass").addEventListener("input", () => {
-  $("passHint").style.display = ($("cfgPass").value === "nodelink" || !$("cfgPass").value) ? "" : "none";
+  if ($("cfgPass").value === "nodelink") {
+    $("passHint").textContent = "Node still has the factory AP password — change it on the radio before field use (FIRMWARE.md).";
+    $("passHint").style.display = "";
+  } else {
+    $("passHint").style.display = $("cfgPass").value ? "none" : "";
+  }
 });
 $("cfgClearKey").onclick = () => {
   $("cfgKey").value = "";
@@ -588,10 +589,23 @@ if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share →
   } catch (e) {}
 })();
 
-if (window.isExoProd && window.isExoProd()) {
-  const d = $("optDemo");
-  if (d) { d.disabled = true; const s = d.querySelector("span"); if (s) s.textContent = "stripped in prod"; }
-}
+(function prodChrome() {
+  ["optDemo", "optRemote", "remoteBox", "remoteUrl", "remoteGo"].forEach((id) => {
+    const el = $(id);
+    if (el) el.remove();
+  });
+  if (window.exoAllowDemo && window.exoAllowDemo()) {
+    const sheet = document.querySelector("#sheet .sheet");
+    const cancel = $("optCancel");
+    if (sheet && cancel) {
+      const b = document.createElement("button");
+      b.className = "opt"; b.id = "optDemo";
+      b.innerHTML = "<b>Demo</b><span>Earth + Memphis mesh — local DEV only</span>";
+      b.onclick = () => { showSheet(false); startDemo(); };
+      sheet.insertBefore(b, cancel);
+    }
+  }
+})();
 
 if (location.protocol === "https:") {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -605,4 +619,18 @@ if (location.hash === "#map") {
   const b = document.querySelector('nav button[data-s="map"]');
   if (b) b.click();
 }
-ensureGlobe();
+
+(function gateRangeCsv() {
+  const onNode = location.hostname === "192.168.4.1" || location.hostname === P.WIFI.apHost;
+  const card = $("rangeCard");
+  const hint = $("rangeHint");
+  if (!onNode) {
+    if (hint) hint.textContent = "Range CSV lives on the node (join EXOpace-XXXX → http://192.168.4.1). Not served from exopace.net.";
+    if ($("btnRangeCsv")) $("btnRangeCsv").style.display = "none";
+    if ($("btnRangeCsv0")) $("btnRangeCsv0").style.display = "none";
+  } else {
+    if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
+    if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
+  }
+  if (card) card.dataset.node = onNode ? "1" : "0";
+})();

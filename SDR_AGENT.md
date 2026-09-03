@@ -2,9 +2,15 @@
 
 Operator-owned SDR decoders → this agent → authenticated ingest → MOC AIRCRAFT / SHIPS / FEEDS.
 
+**Not in this GitHub tree.** Live source is https://github.com/Breaux-cpu/exopace.net (Pages PWA). The Python agent lives on workstation disk at `/mnt/gsdata/exopace/sdr-agent` and was never committed here. Do not invent a second repo or check in agent source.
+
+**Dongle:** the RTL-SDR is on workstation **jessy**, not on a Cloud Agent VM. Do not open `/dev/bus/usb`. One dongle per band.
+
+**Ingest:** working path is LAN `http://127.0.0.1:8220/ingest`. Public `wss://exopace.net/bridge/sensor` is **not** a Pages route yet. Until a Worker exists, MOC AIR / SEA stay empty — never invented tracks.
+
 **Not a dragnet.** You run readsb / AIS-catcher. We only parse their published JSON.
 
-Prod has **no** `--demo` / `--fake` / sample-track mode. `EXOPACE_FAKE` is refused when `EXOPACE_ENV=prod`.
+Prod has **no** `--demo` / `--fake` / sample-track mode. `EXOPACE_FAKE` is refused when `EXOPACE_ENV=prod`. Radio PWA at `/radio` stays.
 
 ## Install decoders (upstream)
 
