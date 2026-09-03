@@ -110,6 +110,14 @@ html.exo-booting a.radio-link {
   .station {
     max-height: calc(100vh - 240px);
   }
+  /* Desktop leftover: ISS lock COPY COORDS / CLEAR LOCK were 99×32 at 1280.
+     Phone already 44. Credits stay bottom-left and do not sit on COPY. */
+  .dossier button.btn {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 8px;
+  }
 }
 @media (max-width: 820px) {
   .search {
