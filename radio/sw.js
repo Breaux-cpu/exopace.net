@@ -1,12 +1,7 @@
-const CACHE = "exopace-radio-v7";
+const CACHE = "exopace-radio-v8";
 const ASSETS = [
   "./",
   "index.html",
-  "app.js",
-  "env.js",
-  "globe.js",
-  "protocol.js",
-  "store.js",
   "three.min.js",
   "manifest.json",
   "icon.svg",
@@ -18,6 +13,10 @@ const ASSETS = [
   "textures/earth-night.jpg",
   "textures/earth-water.png",
 ];
+
+function noStore(url) {
+  return /(?:^|\/)(app|env|protocol|store|globe)\.js$/.test(url.pathname);
+}
 
 function skip(url) {
   if (url.origin !== location.origin) return true;
@@ -39,9 +38,9 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (skip(url)) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, noStore(url) ? { cache: "no-store" } : undefined)
       .then((r) => {
-        if (r.ok) {
+        if (r.ok && !noStore(url)) {
           const copy = r.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));
         }
