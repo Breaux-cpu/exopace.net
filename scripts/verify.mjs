@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v62"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v63"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=62"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=62"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=63"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=63"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -325,9 +325,9 @@ assert(moc.includes('q.set("lock",a)') && moc.includes('q.set("cam",u)') && moc.
 }
 
 {
-  const m = moc.match(/function dropDeadLock\(\)\{const q=new URLSearchParams\(location\.search\);q\.delete\("lock"\);q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",\(s\?`\/\?\$\{s\}`:"\/"\)\+location\.hash\)}/);
+  const m = moc.match(/function dropDeadLock\(\)\{const q=new URLSearchParams\(location\.search\);q\.delete\("lock"\);q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",s\?`\/\?\$\{s\}`:"\/"\)}/);
   assert(!!m, "dropDeadLock() helper is extractable");
-  let href = "https://exopace.net/?lock=99999&cam=satcam&t=live";
+  let href = "https://exopace.net/?lock=99999&cam=satcam&t=live#facility";
   const loc = {
     get search() {
       return new URL(href).search;
@@ -345,6 +345,76 @@ assert(moc.includes('q.set("lock",a)') && moc.includes('q.set("cam",u)') && moc.
   const u = new URL(href);
   assert(!u.searchParams.has("lock") && !u.searchParams.has("cam"), "dropDeadLock() drops rejected lock/cam");
   assert(u.searchParams.get("t") === "live" && !/lock=99999/.test(href) && !/cam=satcam/.test(href), "dropDeadLock() keeps t=live and does not leave the dead share");
+  assert(u.hash === "", "dropDeadLock() strips leftover #facility instead of appending it");
+}
+assert(!moc.includes("/#facility") && !moc.includes('"/#facility"'), "MOC does not write a #facility hash");
+assert(moc.includes('{id:"facility",label:"FACILITY"}') && moc.includes(',"facility"]'), "FACILITY is a camstrip mode and a shareable cam= value");
+assert(moc.includes('u==="facility"') && moc.includes('Ie("FACILITY · EXOPACE GS")'), "FACILITY latch/toast goes through the camera-mode path");
+assert(moc.includes("function Qf()") && moc.includes('==="facility"&&history.replaceState'), "leftover #facility hash is stripped on URL sync");
+assert(read("index.html").includes('=== "facility"') && read("index.html").includes("history.replaceState"), "index.html strips leftover #facility without wiping the query");
+assert(read("README.md").includes("?cam=facility") && !read("README.md").includes("`#facility` flies"), "README documents cam=facility, not a #facility hash");
+{
+  const block = moc.match(/function Qf\(\)\{location\.hash\.replace\("#",""\)\.toLowerCase\(\)==="facility"&&history\.replaceState\(null,"",location\.pathname\+location\.search\)}function bo\(a,u,o\)\{const t=o\?\?Ww\(Ko\.rate\?\?1\);const q=new URLSearchParams\(location\.search\);a\?q\.set\("lock",a\):q\.delete\("lock"\);q\.set\("cam",u\);q\.set\("t",t\);history\.replaceState\(null,"",`\/\?\$\{q\.toString\(\)\}`\)}const Ip=\["moc","free","follow","satcam","cinematic","facility"\];function Op\(\)\{const o=new URLSearchParams\(location\.search\),h=\(o\.get\("cam"\)\|\|"follow"\)\.toLowerCase\(\);let id=o\.get\("lock"\);if\(!id\)\{const u=location\.pathname\.match\(\/\\\/lock\\\/\(\[\^\/\?\]\+\)\/\);id=u\?decodeURIComponent\(u\[1\]\):null\}return\{id,cam:Ip\.includes\(h\)\?h:"follow",t:o\.get\("t"\)\|\|"live"\}\}/);
+  assert(!!block, "Qf/bo/Op share-URL helpers are extractable");
+  const ww = moc.match(/function Ww\(r\)\{return r===1\?"live":r===0\?"hold":`\$\{r\}x`\}/);
+  assert(!!ww, "Ww() time-mode helper is extractable");
+  function runAt(href, src) {
+    const box = { href };
+    const loc = {
+      get search() {
+        return new URL(box.href).search;
+      },
+      get hash() {
+        return new URL(box.href).hash;
+      },
+      get pathname() {
+        return new URL(box.href).pathname;
+      },
+    };
+    const hist = {
+      replaceState(_s, _t, url) {
+        box.href = new URL(url, "https://exopace.net").href;
+      },
+    };
+    const result = vm.runInNewContext(src, {
+      location: loc,
+      history: hist,
+      URLSearchParams,
+      Ko: { rate: 1 },
+    });
+    return { href: box.href, result };
+  }
+  const helpers = ww[0] + block[0];
+  {
+    const { href } = runAt("https://exopace.net/?lock=25544&cam=follow&t=live#facility", helpers + ";Qf()");
+    const u = new URL(href);
+    assert(u.searchParams.get("lock") === "25544" && u.searchParams.get("cam") === "follow" && u.searchParams.get("t") === "live", "Qf() keeps lock/cam/t when stripping #facility");
+    assert(u.hash === "" && !/#facility/.test(href), "Qf() strips leftover #facility");
+  }
+  {
+    const { href } = runAt("https://exopace.net/?lock=25544&cam=follow&t=live#facility", helpers + ';bo("25544","facility")');
+    const u = new URL(href);
+    assert(u.searchParams.get("lock") === "25544" && u.searchParams.get("cam") === "facility" && u.searchParams.get("t") === "live", "FACILITY tap keeps lock and t, writes cam=facility");
+    assert(u.hash === "" && !/#facility/.test(href) && u.pathname === "/", "FACILITY tap stays on the root URL with no hash");
+  }
+  {
+    const { href } = runAt("https://exopace.net/", helpers + ';bo(null,"facility")');
+    const u = new URL(href);
+    assert(!u.searchParams.has("lock") && u.searchParams.get("cam") === "facility" && u.searchParams.get("t") === "live", "FACILITY without a lock writes /?cam=facility&t=live");
+    assert(u.hash === "", "FACILITY without a lock does not invent a hash");
+  }
+  {
+    const { result } = runAt("https://exopace.net/?cam=facility", helpers + ";Op()");
+    assert(result.cam === "facility" && result.id == null && result.t === "live", "Op() restores cam=facility with no lock");
+  }
+  {
+    const { result } = runAt("https://exopace.net/?lock=25544&cam=facility&t=live#facility", helpers + ";Op()");
+    assert(result.id === "25544" && result.cam === "facility" && result.t === "live", "Op() reads lock+facility+t and ignores leftover hash");
+  }
+  {
+    const { result } = runAt("https://exopace.net/?lock=25544&cam=follow&t=live#facility", helpers + ";Op()");
+    assert(result.cam === "follow" && result.id === "25544", "leftover #facility does not override cam=follow");
+  }
 }
 assert(read("index.html").includes("\\/lock\\/") && read("index.html").includes('q.set("lock"'), "index.html rewrites legacy /lock/ to root query");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
