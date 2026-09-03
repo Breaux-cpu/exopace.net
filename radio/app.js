@@ -678,14 +678,13 @@ if (location.hash === "#map") {
 (function gateRangeCsv() {
   const onNode = location.hostname === "192.168.4.1" || location.hostname === P.WIFI.apHost;
   const card = $("rangeCard");
-  const hint = $("rangeHint");
+  if (!card) return;
   if (!onNode) {
-    if (hint) hint.textContent = "Range CSV lives on the node (join EXOpace-XXXX → http://192.168.4.1).";
-    if ($("btnRangeCsv")) $("btnRangeCsv").style.display = "none";
-    if ($("btnRangeCsv0")) $("btnRangeCsv0").style.display = "none";
-  } else {
-    if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
-    if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
+    card.remove();
+    return;
   }
-  if (card) card.dataset.node = onNode ? "1" : "0";
+  card.hidden = false;
+  card.dataset.node = "1";
+  if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
+  if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
 })();

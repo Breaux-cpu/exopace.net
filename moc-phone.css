@@ -237,6 +237,13 @@ html.exo-booting a.radio-link {
     top: auto !important;
     bottom: calc(268px + env(safe-area-inset-bottom)) !important;
   }
+  /* STATION leftover: 140×96 credits at top 42% sat on NEXT PASSES AOS/AZ
+     (60×96 at 390, 80×96 at 360). Hide while the panel is open; closing
+     STATION returns the stack to 42%. Off UTC / LIVE / HOLD. */
+  html:has(.station) #globe .cesium-viewer-bottom {
+    display: none !important;
+    pointer-events: none !important;
+  }
   #globe .cesium-widget-credits {
     position: static !important;
     display: flex !important;
