@@ -175,13 +175,14 @@ function pushIngest(msg) {
 
 function send(o) {
   const j = P.encode(o);
-  if (S.ws && S.ws.readyState === 1) { S.ws.send(j); return; }
+  if (S.ws && S.ws.readyState === 1) { S.ws.send(j); return true; }
   if (S.bleRx) {
     const u8 = new TextEncoder().encode(j);
     const w = S.bleRx.writeValueWithoutResponse || S.bleRx.writeValue;
-    w.call(S.bleRx, u8); return;
+    w.call(S.bleRx, u8); return true;
   }
-  if (S.demo) demoSend(o);
+  if (S.demo) { demoSend(o); return true; }
+  return false;
 }
 
 $("btnConn").onclick = () => showSheet(true);
@@ -232,7 +233,14 @@ function handle(m) {
     case "sys":
       toast(m.msg); break;
     case "sos":
-      addMsg({ t: "chat", from: m.id, fromName: m.id, text: "SOS " + (m.msg || ""), ts: m.ts });
+      addMsg({
+        t: "chat",
+        from: m.id,
+        fromName: m.id,
+        text: "SOS " + (m.msg || ""),
+        ts: m.ts,
+        mine: m.id === "me" || !m.id || (S.myId && m.id === S.myId),
+      });
       S.ways[m.id] = { id: m.id, name: "SOS", lat: m.lat, lon: m.lon, kind: "sos" };
       toast("SOS"); syncGlobe(); break;
     case "way":
@@ -254,24 +262,52 @@ function handle(m) {
   }
 }
 
+function isOwnMsg(m) {
+  const from = m.from || m.id;
+  return !!(m.mine || from === "me" || m.fromName === "me" || (S.myId && from === S.myId));
+}
 function addMsg(m) {
+  const own = isOwnMsg(m);
   const d = document.createElement("div");
-  d.className = "msg" + (m.mine ? " mine" : ""); d.dataset.mid = m.msgId || "";
-  const ts = m.ts ? new Date(m.ts * 1000).toISOString().slice(11, 19) + " UTC · " : "";
-  const meta = m.mine ? (m.ack ? '<span class="ok">✓ delivered</span>' : '<span class="ackslot">…sent</span>')
-    : (m.rssi !== undefined ? m.rssi + " dBm · " + m.snr + " dB" : "");
-  d.innerHTML = '<div class="who">' + esc(m.mine ? "YOU" : (m.fromName || m.from)) + (m.to && m.to !== "*" ? " → " + esc(m.toName || m.to) : "") + "</div>"
-    + '<div class="txt">' + esc(chatText(m)) + '</div><div class="meta">' + ts + meta + "</div>";
+  d.className = "msg" + (own ? " mine" : ""); d.dataset.mid = m.msgId || "";
+  const ts = m.ts ? new Date(m.ts * 1000).toISOString().slice(11, 19) + " UTC" : "";
+  let extra = "";
+  if (m.ack) extra = '<span class="ok">✓ delivered</span>';
+  else if (!own && m.rssi !== undefined && m.rssi !== null) extra = m.rssi + " dBm · " + m.snr + " dB";
+  const meta = ts && extra ? ts + " · " + extra : (ts || extra);
+  d.innerHTML = '<div class="who">' + esc(own ? "YOU" : (m.fromName || m.from)) + (m.to && m.to !== "*" ? " → " + esc(m.toName || m.to) : "") + "</div>"
+    + '<div class="txt">' + esc(chatText(m)) + '</div><div class="meta">' + meta + "</div>";
   $("chatLog").appendChild(d);
   syncChatEmpty();
   $("chatLog").scrollTop = 1e9;
 }
-function markAck(id) { const e = document.querySelector('.msg[data-mid="' + id + '"] .meta'); if (e) e.innerHTML = '<span class="ok">✓ delivered</span>'; }
+function markAck(id) {
+  const e = document.querySelector('.msg[data-mid="' + id + '"] .meta');
+  if (!e) return;
+  const time = (e.textContent || "").split(" · ")[0].trim();
+  const keep = /^\d{2}:\d{2}:\d{2} UTC$/.test(time) ? time + " · " : "";
+  e.innerHTML = keep + '<span class="ok">✓ delivered</span>';
+}
 function esc(s) { return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
+function echoOwnChat(text, to) {
+  handle({
+    t: "chat",
+    mine: true,
+    from: S.myId || "me",
+    fromName: S.myName || "YOU",
+    text,
+    msg: text,
+    to,
+    ts: Math.floor(Date.now() / 1000),
+  });
+}
 $("chatSend").onclick = () => {
   const t = $("chatText").value.trim(); if (!t) return;
-  send({ t: "chat", to: $("chatTo").value, text: t, msg: t }); $("chatText").value = "";
+  const to = $("chatTo").value;
+  const went = send({ t: "chat", to, text: t, msg: t });
+  $("chatText").value = "";
+  if (!went) echoOwnChat(t, to);
 };
 $("chatText").addEventListener("keydown", (e) => { if (e.key === "Enter") $("chatSend").click(); });
 document.querySelectorAll("[data-qtx]").forEach((b) => {
@@ -284,7 +320,8 @@ document.querySelectorAll("[data-qtx]").forEach((b) => {
       toast("SOS TX");
       return;
     }
-    send({ t: "chat", to: $("chatTo").value, text, msg: text });
+    const to = $("chatTo").value;
+    if (!send({ t: "chat", to, text, msg: text })) echoOwnChat(text, to);
   };
 });
 
