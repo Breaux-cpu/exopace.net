@@ -103,6 +103,14 @@ html.exo-booting a.radio-link {
     min-width: 44px;
     box-sizing: border-box;
   }
+  /* Desktop leftover: FEED CELESTRAK CACHED .tl span.chip was 171.2×32
+     at 1280. Not select.chip (PERF). Phone keeps FEED, hides later chips. */
+  .tl span.chip {
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+  }
   /* Desktop leftover: LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS were 118×32
      at 1280 (bundle .btn). Phone already 44. Not camstrip. Not AUDIO. */
   .layers .btn {
