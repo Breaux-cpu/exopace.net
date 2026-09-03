@@ -105,7 +105,8 @@ button,select,input{font:inherit;color:var(--text)}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
 .mapread{display:flex;align-items:center;gap:12px}
 .mapread .big{font-size:18px}
-#battChart{width:100%;height:64px;display:block}
+#battChart,#rssiChart{width:100%;max-width:100%;height:64px;display:block}
+#rssiChart{height:48px}
 .field{margin-bottom:12px}
 .field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);
   border-radius:8px;padding:10px 12px;font-family:var(--mono);min-height:44px}
@@ -235,7 +236,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px">-</div><div class="sub" id="vFreq">-</div></div>
     </div>
     <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="600" height="128"></canvas></div>
-    <div class="card"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="600" height="96"></canvas></div>
+    <div class="card" style="overflow:hidden"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="600" height="96"></canvas></div>
     <div class="card" id="rangeCard"><div class="lbl">Range logger</div>
       <div class="row">
         <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
