@@ -123,6 +123,7 @@ button,select,input{font:inherit;color:var(--text)}
   color:var(--mut);text-transform:uppercase;margin-bottom:5px}
 #passHint{display:block;margin-top:8px;margin-bottom:12px}
 #passHint[hidden]{display:none!important}
+#freqHint[hidden]{display:none!important}
 #cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
 #cfgHw[hidden]{display:none!important}
 nav{display:flex;border-top:1px solid var(--line);background:#14170b;
@@ -299,7 +300,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
         <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
       </div>
-      <div class="sub">All nodes must share frequency + SF to hear each other.</div>
+      <div class="sub" id="freqHint" hidden>All nodes must share frequency + SF to hear each other.</div>
       <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
     </div>
   </section>
@@ -322,11 +323,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=38"></script>
+<script src="env.js?v=39"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=38"></script>
-<script src="store.js?v=38"></script>
-<script src="globe.js?v=38"></script>
-<script src="app.js?v=38"></script>
+<script src="protocol.js?v=39"></script>
+<script src="store.js?v=39"></script>
+<script src="globe.js?v=39"></script>
+<script src="app.js?v=39"></script>
 </body>
 </html>

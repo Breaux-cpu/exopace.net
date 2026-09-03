@@ -53,6 +53,8 @@ function setPath(mode, up) {
   if (form) form.hidden = !up;
   const passHint = $("passHint");
   if (passHint) passHint.hidden = !up;
+  const freqHint = $("freqHint");
+  if (freqHint) freqHint.hidden = !up;
   const freq = $("hFreq");
   if (freq) { freq.hidden = !up; freq.style.display = up ? "" : "none"; }
   syncHeaderMeter();
