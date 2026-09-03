@@ -96,6 +96,13 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 10px 12px;
   }
+  /* Desktop leftover: top-bar PERF quality select was 74.9×32 at 1280.
+     AUDIO already 44. Phone hides .tl > select. Do not grow into AUDIO. */
+  .tl select {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+  }
   /* Desktop leftover: LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS were 118×32
      at 1280 (bundle .btn). Phone already 44. Not camstrip. Not AUDIO. */
   .layers .btn {
