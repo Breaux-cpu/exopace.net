@@ -58,6 +58,13 @@ html.exo-booting a.radio-link {
     width: min(240px, 22vw);
     z-index: 6;
   }
+  /* Desktop leftover: SAT NAME / NORAD was 240×30 at 1280 (bundle
+     padding 7px, no min-height). Phone already 44. Not zoom / ARM / toast. */
+  .search input {
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 10px 10px;
+  }
   .tl {
     max-width: calc(100vw - 430px);
     flex-wrap: nowrap;
@@ -70,6 +77,17 @@ html.exo-booting a.radio-link {
   /* Desktop leftover: top-bar RADIO was 56×32 at 1280 (bundle .btn).
      Phone already 44. Keep .tl nowrap so RADIO does not sit on the dossier. */
   .tl a.radio-link.btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 12px;
+  }
+  /* Desktop leftover: top-bar AUDIO was 56×32 at 1280 (bundle .btn).
+     RADIO already 44. Phone hides AUDIO. Not INSTALL / zoom / ARM / toast. */
+  .tl button.btn {
     min-height: 44px;
     min-width: 44px;
     display: inline-flex;
