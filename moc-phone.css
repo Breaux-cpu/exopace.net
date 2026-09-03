@@ -211,6 +211,13 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 10px 8px;
   }
+  /* Phone leftover: STATION next-pass rows were 39px pointer LIs. */
+  .station .passlist li {
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 8px 6px;
+    align-items: center;
+  }
   /* 360/390: STATION is 288px from the left and paints over SELECTION.
      The aside mounts only while open — hide the dossier for that window. */
   .hud:has(.station) .dossier {
