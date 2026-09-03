@@ -61,11 +61,11 @@
     t = t || nowSec();
     const lat = MEMPHIS.lat, lon = MEMPHIS.lon;
     return {
-      me: { id: "7b52f8e3", name: "BASECAMP", lat, lon, alt: 312, spd: 4.2, hdg: 40, sats: 9, fix: 1 },
-      cfg: { name: "BASECAMP", freq: "915.0", sf: 9, txp: 17, pass: "nodelink", key: "", keySet: false, gpsRx: 38, gpsTx: 39, gpsPwr: 34, gpsInt: 30 },
+      me: { id: "7b52f8e3", name: "DEV", lat, lon, alt: 312, spd: 4.2, hdg: 40, sats: 9, fix: 1 },
+      cfg: { name: "DEV", freq: "915.0", sf: 9, txp: 17, pass: "", key: "", keySet: false, gpsRx: 38, gpsTx: 39, gpsPwr: 34, gpsInt: 30 },
       peers: [
-        { id: "a1b2c3d4", name: "RIG-1", rssi: -72, snr: 9.1, batt: 88, dlat: 0.018, dlon: 0.022 },
-        { id: "77e0f912", name: "TRK-2", rssi: -101, snr: 6.4, batt: 64, dlat: -0.028, dlon: 0.031 },
+        { id: "a1b2c3d4", name: "DEV-1", rssi: -72, snr: 9.1, batt: 88, dlat: 0.018, dlon: 0.022 },
+        { id: "77e0f912", name: "DEV-2", rssi: -101, snr: 6.4, batt: 64, dlat: -0.028, dlon: 0.031 },
         { id: "c0ffee01", name: "OP-3", rssi: -88, snr: 7.8, batt: 71, dlat: 0.012, dlon: -0.019 },
         { id: "5e1f00aa", name: "RELAY-N", rssi: -118, snr: 2.1, batt: 41, dlat: 0.055, dlon: -0.008 },
       ].map(function (p, i) {
@@ -77,7 +77,7 @@
         { id: "w-haz", name: "WASH", lat: 35.138, lon: -90.072, kind: "hazard" },
       ],
       chats: [
-        { t: "chat", from: "a1b2c3d4", fromName: "RIG-1", text: "North line is clear. Moving to site B.", ts: Math.floor(t) - 40, rssi: -72, snr: 9.5 },
+        { t: "chat", from: "a1b2c3d4", fromName: "DEV-1", text: "North line is clear. Moving to site B.", ts: Math.floor(t) - 40, rssi: -72, snr: 9.5 },
       ],
     };
   }
