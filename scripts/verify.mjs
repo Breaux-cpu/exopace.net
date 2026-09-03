@@ -85,6 +85,7 @@ assert(read("moc-phone.css").includes("cesium-viewer-bottom"), "Cesium credits a
 assert(read("moc-phone.css").includes("top: 42%") && read("moc-phone.css").includes("bottom: 4px"), "Ion credits park mid-right on phone and bottom-left on desktop");
 assert(read("moc-phone.css").includes("transform-origin: top right"), "phone Ion credits scale from the right so the container stays inside 390");
 assert(read("moc-phone.css").includes("contain: paint") && read("moc-phone.css").includes("transform: none !important"), "phone scales only the outer Ion box so the inner strip cannot paint past 390");
+assert(read("moc-phone.css").includes("cesium-credit-logoContainer img") && read("moc-phone.css").includes("max-width: 100% !important"), "phone Ion logo cannot lay out past the credits box");
 assert(read("moc-phone.css").includes("#exo-install") && read("moc-phone.css").includes("right: 56px"), "desktop INSTALL sits left of the zoom column");
 assert(read("moc-phone.css").includes("50vw - 160px"), "desktop camstrip stays left of LIVE");
 assert(read("moc-phone.css").includes("flex-wrap: nowrap"), "desktop .tl stays one row so RADIO does not sit on the dossier");

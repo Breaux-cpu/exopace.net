@@ -226,6 +226,17 @@ html.exo-booting a.radio-link {
     left: auto !important;
     opacity: 1;
   }
+  #globe .cesium-widget-credits a,
+  #globe .cesium-credit-logoContainer,
+  #globe .cesium-credit-logoContainer img {
+    pointer-events: auto;
+    display: block;
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
   #globe .cesium-widget-credits a {
     pointer-events: auto !important;
   }
