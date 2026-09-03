@@ -39,7 +39,7 @@ header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(-
 .link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
 #pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;max-width:7.5rem;overflow:hidden;text-overflow:ellipsis}
 #pathLbl.up{color:var(--ok)}
-#demoTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
+#modeTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
   padding:2px 6px;border-radius:3px;letter-spacing:.1em}
 main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
 .screen{display:none;padding:14px;max-width:640px;margin:0 auto;width:100%}
@@ -152,7 +152,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     <div class="callsign" id="hName">EXOpace</div>
     <div class="freq" id="hFreq">--- MHz · SF-</div>
   </div>
-  <span id="demoTag"></span>
+  <span id="modeTag"></span>
   <div class="meter" id="hMeter"><b></b><b></b><b></b><b></b><b></b></div>
   <div class="link" id="hLink"></div>
   <span id="pathLbl">LINK DOWN</span>
@@ -188,7 +188,8 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   <section class="screen" id="scr-map">
     <div class="mapwrap">
       <canvas id="globeC"></canvas>
-      <div id="mapEmpty"></div>
+      <div id="mapEmpty">WAITING FOR FIX — walk outside
+MESH QUIET — peer dots appear when nodes report position.</div>
       <div id="mapTip"></div>
       <div class="mapst" style="flex-direction:column;align-items:flex-start;gap:6px;right:8px;top:8px">
         <label><input type="checkbox" id="stPin"> STATION</label>
