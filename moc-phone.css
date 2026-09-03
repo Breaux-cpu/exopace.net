@@ -67,6 +67,17 @@ html.exo-booting a.radio-link {
     position: relative;
     z-index: 7;
   }
+  /* Desktop leftover: top-bar RADIO was 56×32 at 1280 (bundle .btn).
+     Phone already 44. Keep .tl nowrap so RADIO does not sit on the dossier. */
+  .tl a.radio-link.btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 12px;
+  }
   /* Bottom-left, left of LIVE. Full-bleed .cesium-viewer-bottom was on the timebar. */
   #globe .cesium-viewer-bottom,
   #globe .cesium-widget-credits {
