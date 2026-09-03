@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=54">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=55">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=54">
+    <link rel="stylesheet" href="/moc-phone.css?v=55">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -93,7 +93,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=54"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=55"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -203,6 +203,68 @@
           }
         }
         document.addEventListener("click", refuse, true);
+      })();
+      (function () {
+        /* STATION UTC used Date.now() (wall clock) while the header .tl span.utc
+           follows the sim clock (freezes on HOLD). LOCAL used viewer timezone.
+           EXOPACE GS is America/Chicago — keep the LOCAL label. */
+        var SITE_TZ = "America/Chicago";
+        var utcParts = new Intl.DateTimeFormat("en-US", {
+          timeZone: "UTC",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+          hourCycle: "h23",
+        });
+        var localParts = new Intl.DateTimeFormat("en-US", {
+          timeZone: SITE_TZ,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+          hourCycle: "h23",
+        });
+        function pad2(n) {
+          return String(n).padStart(2, "0");
+        }
+        function hmsFromParts(parts) {
+          var h = "0";
+          var m = "0";
+          var s = "0";
+          for (var i = 0; i < parts.length; i++) {
+            if (parts[i].type === "hour") h = parts[i].value;
+            if (parts[i].type === "minute") m = parts[i].value;
+            if (parts[i].type === "second") s = parts[i].value;
+          }
+          return pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+        }
+        function parseHeaderUtc(text) {
+          var m = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}) UTC/.exec(text || "");
+          if (!m) return null;
+          return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
+        }
+        function kvSpan(label) {
+          var bs = document.querySelectorAll(".station .kv b");
+          for (var i = 0; i < bs.length; i++) {
+            if ((bs[i].textContent || "").trim() === label) return bs[i].nextElementSibling;
+          }
+          return null;
+        }
+        function syncStationClock() {
+          if (!document.querySelector(".station")) return;
+          var header = document.querySelector(".tl span.utc");
+          if (!header) return;
+          var instant = parseHeaderUtc(header.textContent);
+          if (!instant) return;
+          var utcSpan = kvSpan("UTC");
+          var localSpan = kvSpan("LOCAL");
+          var utcHms = hmsFromParts(utcParts.formatToParts(instant));
+          var localHms = hmsFromParts(localParts.formatToParts(instant));
+          if (utcSpan && utcSpan.textContent !== utcHms + "Z") utcSpan.textContent = utcHms + "Z";
+          if (localSpan && localSpan.textContent !== localHms) localSpan.textContent = localHms;
+        }
+        setInterval(syncStationClock, 200);
       })();
     </script>
   </body>
