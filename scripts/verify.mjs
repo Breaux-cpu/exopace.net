@@ -120,7 +120,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v37"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v38"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -211,7 +211,7 @@ assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP 
 assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
 assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=37") && radioHtml.includes("env.js?v=37"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=38") && radioHtml.includes("env.js?v=38"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist hides #installHint across reloads");
@@ -226,6 +226,8 @@ assert(radioApp.includes("cfgHw") && radioApp.includes("hw.hidden = !up"), "SET 
   assert(hw.includes("cfgGpsInt") && hw.includes("GPS report interval"), "SET GPS interval hides with pins while LINK DOWN");
 }
 assert(/#passHint\{[^}]*margin-bottom:12px/.test(radioHtml), "SET passHint has a real gap above Channel key");
+assert(radioHtml.includes('id="passHint" hidden') && /#passHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "SET passHint starts hidden while LINK DOWN");
+assert(radioApp.includes("passHint.hidden = !up"), "SET passHint hides with the password field while LINK DOWN");
 assert(!radioHtml.includes("FIRMWARE.md") && !radioHtml.includes("this PWA is not the AP"), "SET pairing does not dump FIRMWARE.md or PWA-is-not-the-AP");
 assert(!radioApp.includes("FIRMWARE.md"), "Radio app does not point guests at FIRMWARE.md");
 assert(!radioHtml.includes("Not a Pages route") && !radioApp.includes("Not served from exopace.net"), "rangeHint has no Pages-implementation dump");
