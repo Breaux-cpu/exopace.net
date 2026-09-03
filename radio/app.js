@@ -49,9 +49,17 @@ function setPath(mode, up) {
   $("modeTag").style.display = mode === "demo" ? "inline-block" : "none";
   const hw = $("cfgHw");
   if (hw) hw.hidden = !up;
+  syncHeaderMeter();
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
 function syncChatEmpty() { $("chatEmpty").style.display = $("chatLog").children.length ? "none" : ""; }
+function syncHeaderMeter() {
+  const el = $("hMeter");
+  if (!el) return;
+  const up = !!($("pathLbl") && $("pathLbl").classList.contains("up"));
+  el.hidden = !up;
+  el.style.display = up ? "" : "none";
+}
 
 function closeWifi() {
   const ws = S.ws; S.ws = null;
@@ -481,6 +489,7 @@ function renderTelem(d) {
   $("vRssi").textContent = (d.rssi ?? "-") + " dBm"; $("vSnr").textContent = "SNR " + (d.snr ?? "-") + " dB";
   $("vTx").textContent = (d.txp ?? "-") + " dBm"; $("vFreq").textContent = (d.freq ?? "-") + " MHz";
   const m = bars(d.rssi ?? -140); $("hMeter").outerHTML = m.replace('class="meter"', 'class="meter" id="hMeter"');
+  syncHeaderMeter();
   S.batt.push(d.batt || 0); if (S.batt.length > 60) S.batt.shift();
   if (d.rssi != null) S.lastRssi = d.rssi;
   if (d.snr != null) S.lastSnr = d.snr;
