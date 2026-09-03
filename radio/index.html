@@ -6,6 +6,7 @@
 <title>EXOpace Radio</title>
 <link rel="canonical" href="https://exopace.net/radio/">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#101208">
 <meta name="mobile-web-app-capable" content="yes">
@@ -155,7 +156,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   <section class="screen active" id="scr-chat">
     <div class="card" id="installHint">
       <div class="lbl">Phone app</div>
-      <div class="sub" id="installTxt">exopace.net — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
+      <div class="sub" id="installTxt">https://exopace.net/radio/ — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
       <div class="row" style="margin-top:10px">
         <button class="btn primary" id="btnInst2">INSTALL APP</button>
         <button class="btn" id="btnHintHide">HIDE</button>
@@ -226,12 +227,12 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     </div>
     <div class="card"><div class="lbl">Battery — last hour</div><canvas id="battChart" width="600" height="128"></canvas></div>
     <div class="card"><div class="lbl">RSSI spark</div><canvas id="rssiChart" width="600" height="96"></canvas></div>
-    <div class="card"><div class="lbl">Range logger</div>
+    <div class="card" id="rangeCard"><div class="lbl">Range logger</div>
       <div class="row">
-        <button class="btn" onclick="location.href='/range.csv'">DOWNLOAD CSV</button>
-        <button class="btn" onclick="location.href='/range0.csv'">OLDER CSV</button>
+        <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
+        <button class="btn" id="btnRangeCsv0">OLDER CSV</button>
       </div>
-      <div class="sub">One row per received packet — RSSI / SNR / GPS for coverage mapping.</div>
+      <div class="sub" id="rangeHint">On the node AP (http://192.168.4.1) — one row per received packet. Not a Pages route.</div>
     </div>
   </section>
 

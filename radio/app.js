@@ -605,4 +605,18 @@ if (location.hash === "#map") {
   const b = document.querySelector('nav button[data-s="map"]');
   if (b) b.click();
 }
-ensureGlobe();
+
+(function gateRangeCsv() {
+  const onNode = location.hostname === "192.168.4.1" || location.hostname === P.WIFI.apHost;
+  const card = $("rangeCard");
+  const hint = $("rangeHint");
+  if (!onNode) {
+    if (hint) hint.textContent = "Range CSV lives on the node (join EXOpace-XXXX → http://192.168.4.1). Not served from exopace.net.";
+    if ($("btnRangeCsv")) $("btnRangeCsv").style.display = "none";
+    if ($("btnRangeCsv0")) $("btnRangeCsv0").style.display = "none";
+  } else {
+    if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
+    if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
+  }
+  if (card) card.dataset.node = onNode ? "1" : "0";
+})();

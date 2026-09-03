@@ -1,4 +1,4 @@
-const CACHE = "exopace-radio-v4";
+const CACHE = "exopace-radio-v5";
 const ASSETS = [
   "./",
   "index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "three.min.js",
   "manifest.json",
   "icon.svg",
+  "icon-maskable.svg",
   "icon-192.png",
   "icon-512.png",
   "apple-touch-icon.png",
@@ -17,6 +18,14 @@ const ASSETS = [
   "textures/earth-night.jpg",
   "textures/earth-water.png",
 ];
+
+function skip(url) {
+  if (url.origin !== location.origin) return true;
+  // Node AP CSVs and anything outside this PWA scope.
+  if (!url.pathname.startsWith("/radio")) return true;
+  return false;
+}
+
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
@@ -27,11 +36,15 @@ self.addEventListener("activate", (e) => {
 });
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  const url = new URL(e.request.url);
+  if (skip(url)) return;
   e.respondWith(
     fetch(e.request)
       .then((r) => {
-        const copy = r.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        if (r.ok) {
+          const copy = r.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
         return r;
       })
       .catch(() => caches.match(e.request).then((m) => m || caches.match("./"))),
