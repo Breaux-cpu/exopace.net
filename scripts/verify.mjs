@@ -121,7 +121,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v43"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v44"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -213,10 +213,13 @@ assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP 
 assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
 assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=43") && radioHtml.includes("env.js?v=43"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=44") && radioHtml.includes("env.js?v=44"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
-assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist hides #installHint across reloads");
+assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist stays");
+assert(radioApp.includes("function showInstallCard") && radioApp.includes("showInstallCard()"), "SET Phone app card is forced visible");
+assert(!/if \(isStandalone\(\) \|\| installHintDismissed\(\)\)/.test(radioApp), "standalone or HIDE persist does not zero #installHint");
+assert(!radioApp.includes('$("installHint").style.display = "none"'), "BLE connect does not zero the Phone app card");
 {
   const chatSec = radioHtml.slice(radioHtml.indexOf('id="scr-chat"'), radioHtml.indexOf('id="scr-map"'));
   const setSec = radioHtml.slice(radioHtml.indexOf('id="scr-setup"'));
