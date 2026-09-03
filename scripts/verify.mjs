@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v68"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v69"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=68"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=68"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=69"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=69"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -499,6 +499,40 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
 assert(read("README.md").includes("Lockless cams") && read("README.md").includes("/?cam=follow") && read("README.md").includes("drops `cam`"), "README documents lockless cam/t write and FOLLOW/SAT-CAM NO LOCK strip");
 assert(!moc.includes('history.replaceState(null,"","/")'), "CLEAR LOCK does not wipe the share URL to /");
 assert(moc.includes('u==="follow"||u==="satcam"?(a.setMode("moc"),a.recageHome(),Z({cam:"moc"}),bo(null,"moc")):bo(null,u||Ko.cam),Ie("LOCK CLEARED")'), "CLEAR LOCK keeps lockless-valid cam/t; FOLLOW / SAT-CAM fall back to moc");
+assert(moc.includes("function Kl(a)") && moc.includes("onClick:()=>Kl(a)") && moc.includes("x.selected()?Kl(x)"), "empty globe deselect and CLEAR LOCK share Kl()");
+assert(moc.includes("onPick:L=>{if(!L){x.selected()?Kl(x):(x.setSelected(null),Z({selected:null}));return}") && moc.includes("F&&(bo(F.id,x.rig.mode)"), "empty canvas uses CLEAR LOCK; a sat pick still writes ?lock=");
+{
+  const m = moc.match(/function Kl\(a\)\{if\(!a\)return;a\.setSelected\(null\),Z\(\{selected:null\}\);const u=a\.rig\.mode;u==="follow"\|\|u==="satcam"\?\(a\.setMode\("moc"\),a\.recageHome\(\),Z\(\{cam:"moc"\}\),bo\(null,"moc"\)\):bo\(null,u\|\|Ko\.cam\),Ie\("LOCK CLEARED"\)\}/);
+  assert(!!m, "Kl() CLEAR LOCK helper is extractable");
+  function runKl(mode) {
+    const calls = [];
+    const engine = {
+      rig: { mode },
+      setSelected(id) { calls.push(["setSelected", id]); },
+      setMode(cam) { calls.push(["setMode", cam]); },
+      recageHome() { calls.push(["recage"]); },
+    };
+    vm.runInNewContext(m[0] + ";Kl(engine)", {
+      engine,
+      Ko: { cam: "moc" },
+      Z: (p) => calls.push(["Z", p]),
+      bo: (id, cam) => calls.push(["bo", id, cam]),
+      Ie: (t) => calls.push(["Ie", t]),
+    });
+    return calls;
+  }
+  {
+    const calls = runKl("moc");
+    assert(calls.some((c) => c[0] === "bo" && c[1] === null && c[2] === "moc"), "Kl() from MOC drops only lock and keeps cam=moc");
+    assert(!calls.some((c) => c[0] === "recage" || c[0] === "setMode"), "Kl() from MOC does not recage or force a camera change");
+    assert(calls.some((c) => c[0] === "Ie" && c[1] === "LOCK CLEARED"), "Kl() toasts LOCK CLEARED");
+  }
+  {
+    const calls = runKl("cinematic");
+    assert(calls.some((c) => c[0] === "bo" && c[1] === null && c[2] === "cinematic"), "Kl() from CINE drops only lock and keeps cam=cinematic");
+    assert(!calls.some((c) => c[0] === "recage"), "Kl() from CINE does not recage");
+  }
+}
 assert(moc.includes('a.rig.abortCinematic()') && moc.includes('a.setMode("moc"),Z({cam:"moc"}),bo(a.selected()?.id||null,"moc")'), "⌂ MOC aborts CINE and writes cam=moc so URL and HUD stay truthful");
 assert(!moc.includes('recageHome(),Z({selected:null,cam:"moc"})'), "CLEAR LOCK does not recage home or force cam=moc on CINE / FACILITY / FLY");
 assert(moc.includes("V.hasCam||V.hasT") && moc.includes("u===\"cinematic\"&&x.rig.startCinematic()"), "cold-open /?cam=&t= restores camera and time without a lock");
