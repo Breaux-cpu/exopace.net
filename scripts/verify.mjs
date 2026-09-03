@@ -352,6 +352,10 @@ assert(/\.station \.btn\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css"))
 assert(/\.station \.passlist li\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone STATION next-pass rows are ≥44");
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.chip\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone FEED CELESTRAK CACHED chip is ≥44");
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.utc\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone UTC clock is ≥44");
+assert(index.includes('SAT-CAM') && index.includes('showHudToast("NO LOCK")') && index.includes(".camstrip .btn"), "SAT-CAM without a lock uses the same NO LOCK refusal as FOLLOW");
+assert(index.includes('classList.remove("on")'), "SAT-CAM stays off when SELECTION is NO LOCK");
+assert(index.includes('RF CHAIN OFFLINE') && index.includes('chainOk("RADIO")') && index.includes('chainOk("ROTATOR")') && index.includes(".station .btn"), "STATION ARM refuses while radio/rotator are offline");
+assert(index.includes("function rfReady") && index.includes('t.indexOf("ARM ") === 0'), "STATION ARM still fires when radio and rotator are stok");
 assert(/@media \(max-width: 820px\)[\s\S]*\.palette\s*\{[^}]*display:\s*none/.test(read("moc-phone.css")), "phone hides the command palette");
 assert(index.includes('e.key !== "/"') && index.includes("max-width: 820px"), "phone / does not open the command palette");
 assert(/@media \(max-width: 380px\)[\s\S]*letter-spacing:\s*0/.test(read("moc-phone.css")), "360 search drops tracking so SAT NAME / NORAD fits");

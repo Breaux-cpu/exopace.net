@@ -126,6 +126,74 @@
           e.stopImmediatePropagation();
         }, true);
       })();
+      (function () {
+        /* Overlay leftovers the hashed bundle cannot gate:
+           SAT-CAM latches cam:"satcam" / .on with no lock (FOLLOW already
+           toasts NO LOCK). STATION ARM sets PASS_ARMED with no radio/rotator. */
+        var toastTimer = null;
+        function showHudToast(msg) {
+          var hud = document.querySelector(".hud");
+          if (!hud) return;
+          var t = hud.querySelector(".toast");
+          if (!t) {
+            t = document.createElement("div");
+            t.className = "toast";
+            hud.appendChild(t);
+          }
+          t.textContent = msg;
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () {
+            if (t && t.parentNode) t.parentNode.removeChild(t);
+          }, 1800);
+        }
+        function locked() {
+          return !!document.querySelector(".dossier button");
+        }
+        function satCamBtn(el) {
+          if (!el || !el.closest) return null;
+          var btn = el.closest(".camstrip .btn");
+          if (!btn) return null;
+          return (btn.textContent || "").replace(/\s+/g, " ").trim() === "SAT-CAM" ? btn : null;
+        }
+        function armBtn(el) {
+          if (!el || !el.closest) return null;
+          var btn = el.closest(".station .btn");
+          if (!btn) return null;
+          var t = (btn.textContent || "").replace(/\s+/g, " ").trim();
+          return t.indexOf("ARM ") === 0 ? btn : null;
+        }
+        function chainOk(label) {
+          var bs = document.querySelectorAll(".station .kv b");
+          for (var i = 0; i < bs.length; i++) {
+            if ((bs[i].textContent || "").trim() !== label) continue;
+            var span = bs[i].nextElementSibling;
+            return !!(span && span.classList && span.classList.contains("stok"));
+          }
+          return false;
+        }
+        function rfReady() {
+          return chainOk("RADIO") && chainOk("ROTATOR");
+        }
+        function refuse(e) {
+          var cam = satCamBtn(e.target);
+          if (cam && !locked()) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            cam.classList.remove("on");
+            showHudToast("NO LOCK");
+            return;
+          }
+          var arm = armBtn(e.target);
+          if (arm && !rfReady()) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            showHudToast("RF CHAIN OFFLINE");
+          }
+        }
+        document.addEventListener("click", refuse, true);
+      })();
     </script>
   </body>
 </html>
