@@ -155,6 +155,14 @@ html.exo-booting a.radio-link {
   .camstrip {
     max-width: calc(50vw - 160px);
   }
+  /* Desktop leftover: camstrip LAYERS/STATION/⌂ MOC/FLY/FOLLOW/SAT-CAM/CINE
+     / FACILITY were 32px at 1280 (FLY 41.6×32). Phone already 44. */
+  .camstrip .btn {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 12px;
+  }
   /* Wrapped camstrip is taller; keep the always-on STATION column off it. */
   .station {
     max-height: calc(100vh - 240px);
