@@ -201,6 +201,8 @@
         }
         function dropDeadCam() {
           var q = new URLSearchParams(location.search);
+          var c = (q.get("cam") || "").toLowerCase();
+          if (c !== "follow" && c !== "satcam") return;
           q.delete("cam");
           var s = q.toString();
           history.replaceState(null, "", s ? "/?" + s : "/");

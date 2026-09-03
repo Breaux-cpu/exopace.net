@@ -359,7 +359,7 @@ assert(moc.includes('q.set("lock",a)') && moc.includes('q.set("cam",u)') && moc.
   assert(u.hash === "", "dropDeadLock() strips leftover #facility instead of appending it");
 }
 {
-  const m = moc.match(/function dropDeadCam\(\)\{const q=new URLSearchParams\(location\.search\);q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",s\?`\/\?\$\{s\}`:"\/"\)}/);
+  const m = moc.match(/function dropDeadCam\(\)\{const q=new URLSearchParams\(location\.search\);const c=\(q\.get\("cam"\)\|\|""\)\.toLowerCase\(\);if\(c==="follow"\|\|c==="satcam"\)q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",s\?`\/\?\$\{s\}`:"\/"\)}/);
   assert(!!m, "dropDeadCam() helper is extractable");
   function runDrop(href0) {
     let href = href0;
@@ -388,6 +388,10 @@ assert(moc.includes('q.set("lock",a)') && moc.includes('q.set("cam",u)') && moc.
   {
     const u = runDrop("https://exopace.net/?cam=follow&t=hold#facility");
     assert(!u.searchParams.has("cam") && u.searchParams.get("t") === "hold" && u.hash === "", "dropDeadCam() keeps t and does not append leftover hash");
+  }
+  {
+    const u = runDrop("https://exopace.net/?cam=cinematic&t=hold");
+    assert(u.searchParams.get("cam") === "cinematic" && u.searchParams.get("t") === "hold", "dropDeadCam() does not strip a lockless-valid CINE share");
   }
 }
 assert(!moc.includes("/#facility") && !moc.includes('"/#facility"'), "MOC does not write a #facility hash");
