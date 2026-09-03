@@ -188,14 +188,6 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
 
 <main>
   <section class="screen active" id="scr-chat">
-    <div class="card" id="installHint">
-      <div class="lbl">Phone app</div>
-      <div class="sub" id="installTxt">https://exopace.net/radio/ — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="btnInst2" hidden>INSTALL APP</button>
-        <button class="btn" id="btnHintHide">HIDE</button>
-      </div>
-    </div>
     <div id="chatEmpty" class="card sub">MESH QUIET. Wait for a peer.</div>
     <div class="row" id="qtx" hidden style="margin-bottom:10px;flex-wrap:wrap">
       <button class="btn" data-qtx="On station">On station</button>
@@ -278,6 +270,14 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   </section>
 
   <section class="screen" id="scr-setup">
+    <div class="card" id="installHint">
+      <div class="lbl">Phone app</div>
+      <div class="sub" id="installTxt">https://exopace.net/radio/ — INSTALL APP, then CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnInst2" hidden>INSTALL APP</button>
+        <button class="btn" id="btnHintHide">HIDE</button>
+      </div>
+    </div>
     <h2>Node setup</h2>
     <div class="card">
       <div id="cfgForm" hidden>
@@ -324,11 +324,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=40"></script>
+<script src="env.js?v=41"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=40"></script>
-<script src="store.js?v=40"></script>
-<script src="globe.js?v=40"></script>
-<script src="app.js?v=40"></script>
+<script src="protocol.js?v=41"></script>
+<script src="store.js?v=41"></script>
+<script src="globe.js?v=41"></script>
+<script src="app.js?v=41"></script>
 </body>
 </html>

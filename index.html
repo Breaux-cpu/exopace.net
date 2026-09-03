@@ -59,10 +59,10 @@
       }
       #exo-install[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=28">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=29">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=28">
+    <link rel="stylesheet" href="/moc-phone.css?v=29">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -81,7 +81,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=28"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=29"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -115,6 +115,16 @@
         v.addEventListener("transitionend", function (e) {
           if (e.propertyName === "opacity" && v.classList.contains("out")) hide();
         });
+      })();
+      (function () {
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "/") return;
+          var t = e.target && e.target.tagName;
+          if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return;
+          if (!window.matchMedia || !window.matchMedia("(max-width: 820px)").matches) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }, true);
       })();
     </script>
   </body>
