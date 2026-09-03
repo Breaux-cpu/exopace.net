@@ -55,12 +55,15 @@ for (const rel of [
 // --- first-paint: boot-void outside #root so React cannot wipe it ---
 const index = read("index.html");
 assert(/<div id="boot-void">/.test(index), "index.html has #boot-void");
-assert(/<div id="root">\s*<\/div>/.test(index), "index.html #root is empty");
-assert(index.indexOf('id="boot-void"') < index.indexOf('<div id="root">'), "boot-void precedes #root");
+assert(/<div id="root"[^>]*>\s*<\/div>/.test(index), "index.html #root is empty");
+assert(index.indexOf('id="boot-void"') < index.indexOf('id="root"'), "boot-void precedes #root");
 assert(!/<div id="root">[\s\S]*id="boot-void"/.test(index), "boot-void is not nested in #root");
 assert(index.includes("CHECKING PIPELINE"), "boot status text is last-child compatible");
 assert(index.includes("z-index: 200") && index.includes("transitionend"), "splash sits above HUD and hides after fade");
 assert(!/#boot-void\.out \{[^}]*pointer-events:\s*none/.test(index), "splash .out still eats taps during fade");
+assert(index.includes('class="exo-booting"') && index.includes("inert"), "html.exo-booting + #root inert until splash hide");
+assert(index.includes("stopImmediatePropagation") && index.includes('["click", "auxclick"'), "splash capture-phase eats pointer events");
+assert(/<div id="root"[^>]*inert/.test(index), "#root is inert in markup before React mounts");
 assert(index.includes("/env.js") && index.includes("/cesium/Cesium.js"), "env + Cesium load before app");
 assert(
   index.indexOf('<script src="/env.js">') < index.indexOf('<script type="module"'),
@@ -102,7 +105,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes("/env.js"), "MOC SW precaches env.js");
-assert(mocSw.includes("exopace-moc-v10"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v11"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
@@ -123,8 +126,9 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=10"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=10"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=11"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=11"), "index cache-busts hashed MOC bundle");
+assert(read("moc-phone.css").includes("html.exo-booting") && read("moc-phone.css").includes("a.radio-link"), "overlay freezes HUD + RADIO while splash is up");
 assert(read("moc-phone.css").includes("#globe .cesium-widget canvas") && read("moc-phone.css").includes("z-index: 0 !important"), "Cesium canvas stays under .hud at every viewport");
 
 // --- protocol ESM ---
@@ -197,6 +201,8 @@ assert(moc.includes("ULTRA") && moc.includes("exopace-quality"), "MOC quality ti
 assert(moc.includes("/lock/") && moc.includes("serviceWorker") && moc.includes("/sw.js"), "MOC deep link + SW register");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes("exoAllowDemo"), "MOC demo helper (prod still false)");
+assert(!moc.includes('?"AUDIO":"TICKS"') && !moc.includes('"TICKS"'), "MOC sound chip is never labeled TICKS");
+assert(moc.includes('children:"AUDIO"'), "MOC sound chip stays AUDIO either way");
 assert(moc.includes('feed:"WAIT"'), "MOC initial feed is WAIT not ERROR");
 assert(moc.includes("FEED WAIT"), "MOC paints FEED WAIT while CelesTrak loads");
 assert(!moc.includes('feed:"ERROR",imagery'), "MOC does not first-paint FEED ERROR");

@@ -22,6 +22,12 @@
 .hud * {
   pointer-events: auto;
 }
+/* Splash owns the viewport until hide(). RADIO must not steal LAYERS taps. */
+html.exo-booting .hud,
+html.exo-booting .hud *,
+html.exo-booting a.radio-link {
+  pointer-events: none !important;
+}
 
 /* Every viewport: never let the credit strip be a full-bleed hit target. */
 #globe .cesium-viewer-bottom,
