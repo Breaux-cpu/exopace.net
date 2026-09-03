@@ -42,7 +42,7 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 
 `/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
 
-Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped. CLEAR LOCK drops only `lock` — `cam` and `t` stay with the painted camera and time (e.g. `/?cam=cinematic&t=hold`).
+Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped. CLEAR LOCK drops only `lock` — `cam` and `t` stay with the painted camera and time (e.g. `/?cam=cinematic&t=hold`). STATION next-pass rows lock like search: `?lock=<norad>&cam=follow&t=…` from ⌂ MOC (an already-latched camera stays).
 
 First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeout. **FEED ERROR** / MODE **FAULT** only after that failure — not while ION/TLE are still in flight. Empty after timeout is allowed. Invented 0 is not.
 
