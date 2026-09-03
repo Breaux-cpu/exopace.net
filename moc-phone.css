@@ -85,6 +85,17 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 10px 12px;
   }
+  /* Desktop leftover: top-bar AUDIO was 56×32 at 1280 (bundle .btn).
+     RADIO already 44. Phone hides AUDIO. Not INSTALL / zoom / ARM / toast. */
+  .tl button.btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 12px;
+  }
   /* Bottom-left, left of LIVE. Full-bleed .cesium-viewer-bottom was on the timebar. */
   #globe .cesium-viewer-bottom,
   #globe .cesium-widget-credits {

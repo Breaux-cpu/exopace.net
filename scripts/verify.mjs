@@ -329,6 +329,7 @@ assert(/\.station \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 STA
 assert(/\.station \.passlist li\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 STATION next-pass rows are ≥44");
 assert(/\.dossier button\.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 ISS lock COPY COORDS / CLEAR LOCK taps are ≥44");
 assert(/\.tl a\.radio-link\.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 RADIO link tap is ≥44");
+assert(/\.tl button\.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 AUDIO tap is ≥44");
 assert(/#exo-install\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 INSTALL APP tap is ≥44");
 assert(/\.search input\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 SAT NAME / NORAD tap is ≥44");
 assert(read("index.html").includes("min-height: 44px"), "inline INSTALL APP first-paint is ≥44");
