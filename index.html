@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=59">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=60">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=59">
+    <link rel="stylesheet" href="/moc-phone.css?v=60">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -103,7 +103,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=59"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=60"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -213,6 +213,195 @@
           }
         }
         document.addEventListener("click", refuse, true);
+      })();
+      (function () {
+        /* Bundle search (Bl) toasts NO LOCK on zero hits and Op() restores
+           ?lock= silently when the NORAD/name is unknown — URL keeps lock/cam
+           while SELECTION stays NO LOCK. Overlay: NO MATCH, strip rejected
+           lock/cam so the share URL matches paint. Valid ISS / 25544 locks
+           stay. A successful lock with SATELLITES off auto-enables the
+           marker layer and toasts SATELLITES ON once; already-on stays quiet.
+           Share contract remains lock/cam/t — not layer prefs. */
+        var toastTimer = null;
+        var searchBodies = [];
+        var deadShareDone = false;
+        var ensuredLockKey = null;
+        function showHudToast(msg) {
+          var t = document.getElementById("exo-toast");
+          if (!t) return;
+          t.textContent = msg;
+          t.hidden = false;
+          var reactToast = document.querySelector(".hud .toast");
+          if (reactToast) reactToast.textContent = "";
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () {
+            t.hidden = true;
+            t.textContent = "";
+          }, 1800);
+        }
+        function parseTleBodies(tle) {
+          var lines = (tle || "").split(/\r?\n/).map(function (l) {
+            return l.trim();
+          }).filter(Boolean);
+          var out = [];
+          for (var i = 0; i < lines.length - 2; i++) {
+            if (lines[i + 1].indexOf("1 ") !== 0 || lines[i + 2].indexOf("2 ") !== 0) continue;
+            var name = lines[i].replace(/^0 /, "").trim();
+            var norad = lines[i + 1].slice(2, 7).trim();
+            out.push({ name: name, norad: norad, id: norad });
+            i += 2;
+          }
+          return out;
+        }
+        function findBody(query, bodies) {
+          var o = (query || "").trim().toLowerCase();
+          if (!o) return null;
+          for (var i = 0; i < bodies.length; i++) {
+            var h = bodies[i];
+            if (h.name.toLowerCase().indexOf(o) >= 0) return h;
+            if (h.norad === o || h.id.toLowerCase() === o) return h;
+          }
+          return null;
+        }
+        function primeSearchBodies() {
+          try {
+            var raw = localStorage.getItem("exopace-tle-cache");
+            if (raw) {
+              var j = JSON.parse(raw);
+              if (j && j.tle) searchBodies = parseTleBodies(j.tle);
+            }
+          } catch (e) {}
+          if (searchBodies.length) return;
+          Promise.all([
+            fetch("/tle/stations.txt").then(function (r) { return r.ok ? r.text() : ""; }),
+            fetch("/tle/visual.txt").then(function (r) { return r.ok ? r.text() : ""; }),
+            fetch("/tle/weather.txt").then(function (r) { return r.ok ? r.text() : ""; }),
+          ]).then(function (parts) {
+            searchBodies = parseTleBodies(parts.join("\n"));
+          }).catch(function () {});
+        }
+        primeSearchBodies();
+        function clearSearchInput(input) {
+          if (!input) return;
+          var native = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value");
+          if (native && native.set) native.set.call(input, "");
+          else input.value = "";
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        function refuseNoMatch(input) {
+          if (input) clearSearchInput(input);
+          showHudToast("NO MATCH");
+        }
+        function onSearchSubmit(e) {
+          var form = e.target;
+          if (!form || !form.classList || !form.classList.contains("search")) return;
+          var input = form.querySelector("input");
+          if (!input) return;
+          var q = input.value.trim();
+          if (!q) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return;
+          }
+          if (!searchBodies.length) return;
+          if (findBody(q, searchBodies)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+          refuseNoMatch(input);
+        }
+        document.addEventListener("submit", onSearchSubmit, true);
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter") return;
+          var input = e.target;
+          if (!input || !input.closest || !input.closest(".search")) return;
+          var q = input.value.trim();
+          if (!q || !searchBodies.length) return;
+          if (findBody(q, searchBodies)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+          refuseNoMatch(input);
+        }, true);
+        function shareQuery() {
+          return new URLSearchParams(location.search);
+        }
+        function replaceShare(q) {
+          var s = q.toString();
+          history.replaceState(null, "", "/" + (s ? "?" + s : "") + (location.hash || ""));
+        }
+        function stripRejectedShare() {
+          var q = shareQuery();
+          if (!q.has("lock") && !q.has("cam")) return;
+          q.delete("lock");
+          q.delete("cam");
+          replaceShare(q);
+        }
+        function catalogReady() {
+          if (searchBodies.length) return true;
+          var chips = document.querySelectorAll(".tl span.chip");
+          for (var i = 0; i < chips.length; i++) {
+            var t = chips[i].textContent || "";
+            if (t.indexOf("FEED WAIT") >= 0) return false;
+            if (/FEED (CELESTRAK (LIVE|CACHED)|SYNTHETIC|ERROR)/.test(t)) return true;
+          }
+          return false;
+        }
+        function paintedLock() {
+          return !!document.querySelector(".dossier button");
+        }
+        function watchDeadShare() {
+          if (deadShareDone) return;
+          var id = (shareQuery().get("lock") || "").trim();
+          if (!id) return;
+          if (!catalogReady()) return;
+          if (paintedLock()) {
+            deadShareDone = true;
+            return;
+          }
+          if (searchBodies.length && findBody(id, searchBodies)) return;
+          if (!searchBodies.length) return;
+          deadShareDone = true;
+          stripRejectedShare();
+          showHudToast("NO MATCH");
+        }
+        function layerBtn(label) {
+          var btns = document.querySelectorAll(".layers .btn");
+          for (var i = 0; i < btns.length; i++) {
+            if ((btns[i].textContent || "").replace(/\s+/g, " ").trim() === label) return btns[i];
+          }
+          return null;
+        }
+        function lockKey() {
+          var h = document.querySelector(".dossier h3");
+          return h ? (h.textContent || "").trim() : "";
+        }
+        function ensureSatsForLock() {
+          if (!paintedLock()) {
+            ensuredLockKey = null;
+            return;
+          }
+          var key = lockKey();
+          if (!key) return;
+          if (ensuredLockKey === key) return;
+          var btn = layerBtn("SATELLITES");
+          if (!btn) return;
+          ensuredLockKey = key;
+          if (btn.classList.contains("on")) return;
+          btn.click();
+          showHudToast("SATELLITES ON");
+        }
+        function watchLockShare() {
+          watchDeadShare();
+          ensureSatsForLock();
+        }
+        var root = document.getElementById("root") || document.body;
+        if (root) {
+          new MutationObserver(watchLockShare).observe(root, { childList: true, subtree: true });
+        }
+        setInterval(watchLockShare, 200);
+        watchLockShare();
       })();
       (function () {
         /* Bundle STATION .kv paints UTC/LOCAL from its own Date.now() interval
