@@ -146,10 +146,14 @@ assert(radioHtml.includes('rel="manifest"') && radioHtml.includes("apple-touch-i
 assert(radioHtml.includes('rel="icon"'), "Radio favicon");
 assert(radioHtml.includes("exopace.net/radio"), "Radio install copy names /radio/");
 assert(radioApp.includes("beforeinstallprompt"), "Radio install prompt");
-assert(radioApp.includes("DEMO DISABLED IN PROD"), "Radio demo toast stays locked");
-assert(radioApp.includes("isExoProd"), "Radio strips Demo in prod");
+assert(radioApp.includes("exoAllowDemo"), "Radio demo helper stays gated");
+assert(!radioHtml.includes("optDemo") && !/Demo Dev only/i.test(radioHtml), "prod Radio HTML has no Demo option");
+assert(!radioHtml.includes("relay.example") && !radioHtml.includes("optRemote"), "prod Radio HTML has no example.com remote stub");
+assert(!/AP EXOpace-XXXX \/ nodelink/.test(radioHtml), "CONNECT sheet does not paint factory AP password");
+assert(!radioHtml.includes("Factory AP password is nodelink"), "SET does not treat this PWA as the node AP");
 assert(!/ensureGlobe\(\);\s*$/.test(radioApp.trim()), "Radio does not eager-mount globe on chat");
 assert(radioApp.includes("rangeCard") || radioHtml.includes("rangeCard"), "range CSV gated to node AP");
+assert(radioApp.includes("walk outside") && !radioApp.includes("run DEMO"), "map empty state has no Demo nudge");
 
 // --- shipped MOC still has palette + quality + deep link (bundle, no Vite source) ---
 const moc = read("assets/index-B5yAHF7-.js");

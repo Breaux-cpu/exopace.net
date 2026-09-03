@@ -76,6 +76,12 @@ Checks prod demo lock, PWA manifests, service workers, first-paint DOM, protocol
 
 See `FIRMWARE.md`. The `firmware/exopace_v4/` overlay and `~/nodelink` field tree are **not** in this repo.
 
+## SDR / ingest (not in this git tree)
+
+`SDR_AGENT.md` is the contract: readsb `aircraft.json` on localhost:8080, AIS-catcher optional, one RTL-SDR per band, no demo/fake tracks in prod. The USB dongle lives on workstation **jessy** — not on a Cloud Agent VM; do not open `/dev/bus/usb` here.
+
+The Python agent is `/mnt/gsdata/exopace/sdr-agent`. Public `wss://exopace.net/bridge/sensor` is **not** a Pages route yet. Until a Worker/ingest origin exists, MOC AIR/SEA/RF stay empty and must read **ERROR / OFFLINE / NO RF SAMPLES** — never invented tracks.
+
 ## What is not here
 
 - PlotQuest / personal-dashboard / Reels / Watch
