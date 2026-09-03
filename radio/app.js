@@ -54,6 +54,7 @@ function setPath(mode, up) {
   const freq = $("hFreq");
   if (freq) { freq.hidden = !up; freq.style.display = up ? "" : "none"; }
   syncHeaderMeter();
+  syncChatSend();
   syncMapChrome();
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
@@ -62,6 +63,13 @@ function syncHeaderMeter() {
   const el = $("hMeter");
   if (!el) return;
   const up = !!($("pathLbl") && $("pathLbl").classList.contains("up"));
+  el.hidden = !up;
+  el.style.display = up ? "" : "none";
+}
+function syncChatSend() {
+  const el = $("chatSend");
+  if (!el) return;
+  const up = radioUp();
   el.hidden = !up;
   el.style.display = up ? "" : "none";
 }
@@ -322,6 +330,7 @@ function echoOwnChat(text, to) {
   });
 }
 $("chatSend").onclick = () => {
+  if (!radioUp()) return;
   const t = $("chatText").value.trim(); if (!t) return;
   const to = $("chatTo").value;
   const went = send({ t: "chat", to, text: t, msg: t });
@@ -786,3 +795,4 @@ if (location.hash === "#map") {
 drawBatt();
 drawSpark();
 syncMapChrome();
+syncChatSend();

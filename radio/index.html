@@ -121,7 +121,7 @@ button,select,input{font:inherit;color:var(--text)}
 .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
   color:var(--mut);text-transform:uppercase;margin-bottom:5px}
 #passHint{display:block;margin-top:8px;margin-bottom:12px}
-#cfgForm[hidden],#hFreq[hidden]{display:none!important}
+#cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
 #cfgHw[hidden]{display:none!important}
 nav{display:flex;border-top:1px solid var(--line);background:#14170b;
   padding-bottom:env(safe-area-inset-bottom)}
@@ -203,7 +203,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     <div id="composer">
       <select id="chatTo"><option value="*">ALL</option></select>
       <input id="chatText" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
-      <button class="btn primary send" id="chatSend">TX</button>
+      <button class="btn primary send" id="chatSend" hidden>TX</button>
     </div>
   </section>
 
@@ -320,11 +320,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=33"></script>
+<script src="env.js?v=34"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=33"></script>
-<script src="store.js?v=33"></script>
-<script src="globe.js?v=33"></script>
-<script src="app.js?v=33"></script>
+<script src="protocol.js?v=34"></script>
+<script src="store.js?v=34"></script>
+<script src="globe.js?v=34"></script>
+<script src="app.js?v=34"></script>
 </body>
 </html>
