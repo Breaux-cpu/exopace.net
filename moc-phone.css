@@ -127,7 +127,7 @@ html.exo-booting a.radio-link {
     display: inline-flex;
     align-items: center;
   }
-  /* Desktop leftover: LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS were 118×32
+  /* Desktop leftover: LAYERS SATELLITES/ORBITS/ATMO/MESH/LABELS were 118×32
      at 1280 (bundle .btn). Phone already 44. Not camstrip. Not AUDIO. */
   .layers .btn {
     min-height: 44px;
@@ -291,7 +291,7 @@ html.exo-booting a.radio-link {
 
   /*    Phone leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at bottom-right on LIVE.
      Park under search on the left; 44px taps. Hide while STATION or LAYERS
-     owns that column — SATELLITES/ORBITS/ATMO/RADIO/LABELS sat on ⌂＋－N◎. */
+     owns that column — SATELLITES/ORBITS/ATMO/MESH/LABELS sat on ⌂＋－N◎. */
   .zoom {
     top: calc(124px + env(safe-area-inset-top));
     bottom: auto;

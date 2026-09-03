@@ -560,7 +560,10 @@ assert(/\.tl span\.utc\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 UTC 
 assert(/\.station\s*\{[^}]*overflow:\s*hidden/.test(desktopHud), "1280 STATION contains RF CHAIN + LOG inside the panel");
 assert(/\.station \.stlog\s*\{[^}]*overflow:\s*auto/.test(desktopHud), "1280 STATION LOG scrolls inside the panel");
 assert(/\.station \.passlist\s*\{[^}]*min-height:\s*0/.test(desktopHud), "1280 STATION passlist yields so RF CHAIN stays inside");
-assert(/\.layers \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS taps are ≥44");
+assert(/\.layers \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 LAYERS SATELLITES/ORBITS/ATMO/MESH/LABELS taps are ≥44");
+assert(moc.includes('{id:"radio",label:"MESH"}') && !moc.includes('{id:"radio",label:"RADIO"}'), "LAYERS mesh overlay chip is labeled MESH, not RADIO");
+assert(moc.includes('className:"radio-link btn",href:"/radio/",children:"RADIO"'), "header /radio/ door stays labeled RADIO");
+assert(moc.includes('setLayer(o.id,h)') && moc.includes('children:o.label'), "mesh toggle still uses the radio layer id and paints o.label");
 assert(/\.camstrip \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 camstrip LAYERS/STATION/FLY/FACILITY taps are ≥44");
 assert(/\.timebar \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 timebar LIVE/HOLD/10×/60× taps are ≥44");
 assert(/\.timebar \.btn\s*\{[^}]*min-width:\s*44px/.test(desktopHud), "1280 timebar 10× width is ≥44");
