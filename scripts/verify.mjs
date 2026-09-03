@@ -88,7 +88,7 @@ assert(read("moc-phone.css").includes("contain: paint") && read("moc-phone.css")
 assert(read("moc-phone.css").includes("#globe .cesium-widget-credits") && read("moc-phone.css").includes("gap: 8px"), "phone Ion credit links have a real gap");
 assert(read("pwa-install.js").includes("if (!deferred)") && read("pwa-install.js").includes("btn.hidden = true"), "INSTALL APP is not a no-op chip without beforeinstallprompt");
 assert(!read("pwa-install.js").includes("BROWSER MENU → INSTALL APP"), "INSTALL click does not swap in a dead recipe label");
-assert(read("moc-phone.css").includes("html:has(.dossier button)") && read("moc-phone.css").includes("bottom: calc(268px"), "phone Ion credits leave the locked dossier");
+assert(read("moc-phone.css").includes("html:has(.dossier button)") && read("moc-phone.css").includes("bottom: calc(248px"), "phone Ion credits leave the locked dossier");
 assert(read("moc-phone.css").includes("cesium-credit-logoContainer img") && read("moc-phone.css").includes("max-width: 100% !important"), "phone Ion logo cannot lay out past the credits box");
 assert(read("moc-phone.css").includes("#exo-install") && read("moc-phone.css").includes("right: 56px"), "desktop INSTALL sits left of the zoom column");
 assert(read("moc-phone.css").includes("50vw - 160px"), "desktop camstrip stays left of LIVE");
