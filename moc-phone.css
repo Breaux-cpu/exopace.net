@@ -102,6 +102,39 @@ html.exo-booting a.radio-link {
     font-size: 16px;
   }
 
+  /* Phone leftover: Cesium ⌂ ＋ － N ◎ were 32px at top-right on UTC.
+     Park under search on the left; 44px taps. Hide while STATION owns that column. */
+  #globe .cesium-viewer-toolbar {
+    top: calc(124px + env(safe-area-inset-top));
+    right: auto;
+    left: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 8;
+  }
+  #globe .cesium-viewer-toolbar .cesium-button,
+  #globe .cesium-viewer-toolbar button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  html:has(.station) #globe .cesium-viewer-toolbar {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  .tl a.radio-link.btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 12px;
+  }
+
   /* Phone: UTC + FEED + RADIO only. IMG/WEBGL/quality/AUDIO wrap through search. */
   .tl > span.chip:nth-child(n + 3),
   .tl > select,
@@ -298,7 +331,16 @@ html.exo-booting a.radio-link {
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
   }
+  #globe .cesium-viewer-toolbar {
+    top: calc(144px + env(safe-area-inset-top));
+  }
   .tl {
     max-width: 40vw;
+  }
+}
+/* 360 leftover: 16px + .08em tracking made SAT NAME / NORAD 174px in a 165px box. */
+@media (max-width: 380px) {
+  .search input {
+    letter-spacing: 0;
   }
 }
