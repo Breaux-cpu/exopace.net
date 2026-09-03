@@ -369,8 +369,6 @@ function renderGps() {
     $("posSpd").textContent = (g.spd || 0).toFixed(1) + " mph";
     $("posAlt").textContent = Math.round(g.alt || 0) + " ft · " + (g.sats || 0) + " sat";
     $("needle").style.transform = "translate(-50%,-100%) rotate(" + (g.hdg || 0) + "deg)";
-  } else {
-    $("posLL").textContent = "--.----- / --.-----";
   }
   renderNodes();
   syncMapChrome();
@@ -478,6 +476,10 @@ function syncMapChrome() {
   if (mapsHint) mapsHint.hidden = !hasFix;
   const compass = $("compass");
   if (compass) compass.hidden = !hasFix;
+  const ll = $("posLL");
+  const meta = $("posMeta");
+  if (ll) { ll.hidden = !hasFix; ll.style.display = hasFix ? "" : "none"; }
+  if (meta) { meta.hidden = !hasFix; meta.style.display = hasFix ? "" : "none"; }
 }
 $("btnRange").onclick = () => {
   if (!radioUp()) return;

@@ -113,6 +113,8 @@ button,select,input{font:inherit;color:var(--text)}
 .mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
 #btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
 #btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
+#posLL[hidden]{display:none!important}
+#posMeta[hidden]{display:none!important}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
 .mapread{display:flex;align-items:center;gap:12px}
 .mapread .big{font-size:18px}
@@ -223,8 +225,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="mapread">
         <div>
           <div class="lbl">My position <span class="fix" id="fixBadge">NO FIX</span></div>
-          <div class="big" id="posLL">--.----- / --.-----</div>
-          <div class="sub"><span id="posSpd">-</span> · <span id="posAlt">-</span></div>
+          <div class="big" id="posLL" hidden></div>
+          <div class="sub" id="posMeta" hidden><span id="posSpd"></span> · <span id="posAlt"></span></div>
         </div>
         <div id="compass" hidden><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
       </div>
@@ -327,11 +329,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=44"></script>
+<script src="env.js?v=45"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=44"></script>
-<script src="store.js?v=44"></script>
-<script src="globe.js?v=44"></script>
-<script src="app.js?v=44"></script>
+<script src="protocol.js?v=45"></script>
+<script src="store.js?v=45"></script>
+<script src="globe.js?v=45"></script>
+<script src="app.js?v=45"></script>
 </body>
 </html>
