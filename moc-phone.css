@@ -198,19 +198,23 @@ html.exo-booting a.radio-link {
     z-index: 19;
   }
 
-  /* v9 used top:4px / right:4px — that sat on UTC. Park mid-right, off the clock. */
+  /* v9 used top:4px / right:4px — that sat on UTC. Park mid-right, off the clock.
+     scale from top-left (Cesium default) painted the ion link past 390. */
   #globe .cesium-viewer-bottom,
   #globe .cesium-widget-credits {
     top: 42% !important;
     bottom: auto !important;
     left: auto !important;
     right: 8px !important;
-    max-width: 22vw;
+    max-width: min(22vw, calc(100vw - 16px));
     max-height: 18px;
     overflow: hidden;
     transform: scale(0.6);
-    transform-origin: center right;
+    transform-origin: top right !important;
     opacity: 0.35;
+  }
+  #globe .cesium-widget-credits a {
+    pointer-events: auto !important;
   }
   /* “Upgrade for commercial use.” is the faint line Product scored on UTC. */
   #globe .cesium-credit-textContainer,

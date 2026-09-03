@@ -37,7 +37,7 @@ header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(-
 .meter b:nth-child(4){height:14px}.meter b:nth-child(5){height:17px}
 .link{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn);flex:0 0 9px}
 .link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;max-width:7.5rem;overflow:hidden;text-overflow:ellipsis}
+#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;flex:0 0 auto;min-width:5.6rem;max-width:none;overflow:visible}
 #pathLbl.up{color:var(--ok)}
 #modeTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
   padding:2px 6px;border-radius:3px;letter-spacing:.1em}
@@ -121,8 +121,8 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   header{gap:6px;padding-left:10px;padding-right:10px}
   .callsign{font-size:16px}
   .meter{margin-left:4px}
-  #pathLbl{max-width:4.8rem;letter-spacing:.06em}
-  .conn{padding:10px 8px}
+  #pathLbl{min-width:5.6rem;max-width:none;letter-spacing:.06em;overflow:visible;text-overflow:clip}
+  .conn{padding:10px 6px;letter-spacing:.06em}
   .screen{padding-left:10px;padding-right:10px}
 }
 #toast{position:fixed;left:50%;bottom:calc(88px + var(--kb));transform:translateX(-50%);background:var(--amber);
@@ -289,11 +289,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=10"></script>
+<script src="env.js?v=14"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=10"></script>
-<script src="store.js?v=10"></script>
-<script src="globe.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="protocol.js?v=14"></script>
+<script src="store.js?v=14"></script>
+<script src="globe.js?v=14"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
-const CACHE = "exopace-radio-v10";
+const CACHE = "exopace-radio-v14";
+// Do not precache index.html — in-place CSS (composer / pathLbl) must not pin.
 const ASSETS = [
-  "./",
-  "index.html",
   "three.min.js",
   "manifest.json",
   "icon.svg",
@@ -15,7 +14,13 @@ const ASSETS = [
 ];
 
 function noStore(url) {
-  return /(?:^|\/)(app|env|protocol|store|globe)\.js$/.test(url.pathname);
+  const p = url.pathname;
+  return (
+    /(?:^|\/)(app|env|protocol|store|globe)\.js$/.test(p) ||
+    p === "/radio" ||
+    p === "/radio/" ||
+    p === "/radio/index.html"
+  );
 }
 
 function skip(url) {
