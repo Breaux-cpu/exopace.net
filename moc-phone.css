@@ -94,6 +94,14 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 10px 8px;
   }
+  /* Desktop leftover: STATION next-pass rows were 39.4px pointer LIs at 1280.
+     Phone already 44. Not ARM. Not the log LIs. */
+  .station .passlist li {
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 8px 6px;
+    align-items: center;
+  }
   /* FACILITY was kissing LIVE by ~4px at 1280. */
   .camstrip {
     max-width: calc(50vw - 160px);
