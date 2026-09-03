@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v58"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v59"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=58"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=58"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=59"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=59"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -369,6 +369,8 @@ assert(index.includes("function wantedLocal") && index.includes("function isLoca
 assert(index.includes("patchProto") && index.includes('patchProto(Node.prototype, "nodeValue")') && index.includes('patchProto(CharacterData.prototype, "data")'), "STATION LOCAL intercepts React nodeValue/data so the wall-clock writer cannot land");
 assert(index.includes('wrapInsert("appendChild")') && index.includes('wrapInsert("insertBefore")') && index.includes("armLocalSpan"), "STATION LOCAL intercepts first-paint inserts and span textContent");
 assert(index.includes("headerObserved") && index.includes("bindHeader"), "STATION clock rebinds the header observer if React replaces .tl span.utc");
+assert(moc.includes("a?.clock?.epochMs??Date.now()") && moc.includes("x(a.clock.epochMs)"), "STATION passlist now ticks from engine sim clock, not wall Date.now()");
+assert(!moc.includes("setInterval(()=>x(Date.now()),1e3)"), "STATION passlist no longer uses a wall-clock 1s tick");
 {
   const cdt = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(new Date("2026-09-03T15:33:12Z"));
   const cst = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(new Date("2026-01-15T15:33:12Z"));
