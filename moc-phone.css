@@ -11,6 +11,12 @@
   display: none !important;
 }
 
+/* Phone leftover: FEED CELESTRAK CACHED .toast (bundle top:56px / z-8)
+   sat on SAT NAME (search z-6). Must not steal the input hit. */
+.hud .toast {
+  pointer-events: none !important;
+}
+
 #globe,
 #globe .cesium-viewer,
 #globe .cesium-widget,
@@ -134,6 +140,16 @@ html.exo-booting a.radio-link {
   .search input {
     min-height: 44px;
     font-size: 16px;
+  }
+  /* Park FEED toast off form.search. Bundle left:50% / top:56px covered
+     the 44px SAT NAME field (360: 26×111; 390: 190×28 over the top 12px). */
+  .hud .toast {
+    top: auto !important;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(280px, calc(100vw - 28px));
+    z-index: 8;
   }
 
   /*    Phone leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at bottom-right on LIVE.
