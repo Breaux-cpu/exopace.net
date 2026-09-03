@@ -343,9 +343,10 @@ document.querySelectorAll("[data-qtx]").forEach((b) => {
     const text = b.dataset.qtx;
     if (b.dataset.sos) {
       const g = S.gps;
-      send(P.makeSos({ id: S.myId || "me", lat: g && g.lat, lon: g && g.lon, msg: text }));
-      handle(P.makeSos({ id: S.myId || "me", lat: g && g.lat, lon: g && g.lon, msg: text }));
-      toast("SOS TX");
+      const pkt = P.makeSos({ id: S.myId || "me", lat: g && g.lat, lon: g && g.lon, msg: text });
+      const went = send(pkt);
+      handle(pkt);
+      if (went) toast("SOS TX");
       return;
     }
     const to = $("chatTo").value;
