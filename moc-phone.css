@@ -102,6 +102,43 @@ html.exo-booting a.radio-link {
     font-size: 16px;
   }
 
+  /* Phone leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at bottom-right on LIVE.
+     Park under search on the left; 44px taps. Hide while STATION owns that column. */
+  .zoom {
+    top: calc(124px + env(safe-area-inset-top));
+    bottom: auto;
+    right: auto;
+    left: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 8;
+  }
+  .zoom .btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 0;
+  }
+  html:has(.station) .zoom {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  #globe .cesium-viewer-toolbar {
+    display: none !important;
+  }
+  .tl a.radio-link.btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 12px;
+  }
+
   /* Phone: UTC + FEED + RADIO only. IMG/WEBGL/quality/AUDIO wrap through search. */
   .tl > span.chip:nth-child(n + 3),
   .tl > select,
@@ -298,7 +335,16 @@ html.exo-booting a.radio-link {
   .layers.open {
     top: calc(124px + env(safe-area-inset-top));
   }
+  .zoom {
+    top: calc(144px + env(safe-area-inset-top));
+  }
   .tl {
     max-width: 40vw;
+  }
+}
+/* 360 leftover: 16px + .08em tracking made SAT NAME / NORAD 174px in a 165px box. */
+@media (max-width: 380px) {
+  .search input {
+    letter-spacing: 0;
   }
 }

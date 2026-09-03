@@ -49,7 +49,12 @@ function setPath(mode, up) {
   $("modeTag").style.display = mode === "demo" ? "inline-block" : "none";
   const hw = $("cfgHw");
   if (hw) hw.hidden = !up;
+  const form = $("cfgForm");
+  if (form) form.hidden = !up;
+  const freq = $("hFreq");
+  if (freq) { freq.hidden = !up; freq.style.display = up ? "" : "none"; }
   syncHeaderMeter();
+  syncChatSend();
   syncMapChrome();
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
@@ -58,6 +63,13 @@ function syncHeaderMeter() {
   const el = $("hMeter");
   if (!el) return;
   const up = !!($("pathLbl") && $("pathLbl").classList.contains("up"));
+  el.hidden = !up;
+  el.style.display = up ? "" : "none";
+}
+function syncChatSend() {
+  const el = $("chatSend");
+  if (!el) return;
+  const up = radioUp();
   el.hidden = !up;
   el.style.display = up ? "" : "none";
 }
@@ -318,6 +330,7 @@ function echoOwnChat(text, to) {
   });
 }
 $("chatSend").onclick = () => {
+  if (!radioUp()) return;
   const t = $("chatText").value.trim(); if (!t) return;
   const to = $("chatTo").value;
   const went = send({ t: "chat", to, text: t, msg: t });
@@ -450,6 +463,10 @@ function syncMapChrome() {
   const kind = $("wayKind");
   if (way) { way.hidden = !hasFix; way.style.display = hasFix ? "" : "none"; }
   if (kind) { kind.hidden = !hasFix; kind.style.display = hasFix ? "" : "none"; }
+  const copy = $("btnCopy");
+  const maps = $("btnMaps");
+  if (copy) { copy.hidden = !hasFix; copy.style.display = hasFix ? "" : "none"; }
+  if (maps) { maps.hidden = !hasFix; maps.style.display = hasFix ? "" : "none"; }
 }
 $("btnRange").onclick = () => {
   if (!radioUp()) return;
@@ -778,3 +795,4 @@ if (location.hash === "#map") {
 drawBatt();
 drawSpark();
 syncMapChrome();
+syncChatSend();

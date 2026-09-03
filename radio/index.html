@@ -107,7 +107,7 @@ button,select,input{font:inherit;color:var(--text)}
 .mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
 .mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
 #btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
-#btnRange[hidden],#btnWay[hidden],#wayKind[hidden]{display:none!important}
+#btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnMaps[hidden]{display:none!important}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
 .mapread{display:flex;align-items:center;gap:12px}
 .mapread .big{font-size:18px}
@@ -121,6 +121,7 @@ button,select,input{font:inherit;color:var(--text)}
 .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
   color:var(--mut);text-transform:uppercase;margin-bottom:5px}
 #passHint{display:block;margin-top:8px;margin-bottom:12px}
+#cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
 #cfgHw[hidden]{display:none!important}
 nav{display:flex;border-top:1px solid var(--line);background:#14170b;
   padding-bottom:env(safe-area-inset-bottom)}
@@ -171,7 +172,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
 <header>
   <div>
     <div class="callsign" id="hName">EXOpace</div>
-    <div class="freq" id="hFreq">--- MHz · SF-</div>
+    <div class="freq" id="hFreq" hidden>--- MHz · SF-</div>
   </div>
   <span id="modeTag"></span>
   <div class="meter" id="hMeter" hidden><b></b><b></b><b></b><b></b><b></b></div>
@@ -202,7 +203,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     <div id="composer">
       <select id="chatTo"><option value="*">ALL</option></select>
       <input id="chatText" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
-      <button class="btn primary send" id="chatSend">TX</button>
+      <button class="btn primary send" id="chatSend" hidden>TX</button>
     </div>
   </section>
 
@@ -229,8 +230,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <div id="compass"><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
       </div>
       <div class="row" style="margin-top:8px">
-        <button class="btn" id="btnCopy">COPY COORDS</button>
-        <button class="btn" id="btnMaps">OPEN IN MAPS</button>
+        <button class="btn" id="btnCopy" hidden>COPY COORDS</button>
+        <button class="btn" id="btnMaps" hidden>OPEN IN MAPS</button>
       </div>
       <div class="row" style="margin-top:8px">
         <select id="wayKind" hidden><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
@@ -275,6 +276,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   <section class="screen" id="scr-setup">
     <h2>Node setup</h2>
     <div class="card">
+      <div id="cfgForm" hidden>
       <div class="field"><label>Node name (callsign)</label><input id="cfgName" maxlength="12"></div>
       <div class="field"><label>Frequency (MHz)</label>
         <select id="cfgFreq"><option>915.0</option><option>906.875</option><option>868.0</option><option>433.0</option></select></div>
@@ -282,8 +284,9 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <select id="cfgSf"><option>7</option><option>8</option><option selected>9</option><option>10</option><option>11</option><option>12</option></select></div>
       <div class="field"><label>TX power (dBm)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
       <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
-      <div class="sub" id="passHint">Set the node AP password on the radio before field use.</div>
       <div class="field"><label>Channel key (AES-256)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
+      </div>
+      <div class="sub" id="passHint">Set the node AP password on the radio before field use.</div>
       <div id="cfgHw" hidden>
         <div class="field"><label>GPS report interval (sec)</label><input id="cfgGpsInt" type="number" min="5" max="300" value="30"></div>
         <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
@@ -317,11 +320,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=31"></script>
+<script src="env.js?v=34"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=31"></script>
-<script src="store.js?v=31"></script>
-<script src="globe.js?v=31"></script>
-<script src="app.js?v=31"></script>
+<script src="protocol.js?v=34"></script>
+<script src="store.js?v=34"></script>
+<script src="globe.js?v=34"></script>
+<script src="app.js?v=34"></script>
 </body>
 </html>
