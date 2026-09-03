@@ -71,10 +71,28 @@ html.exo-booting a.radio-link {
     transform: scale(0.75);
     transform-origin: bottom left;
   }
-  /* Default chip is right:14px / bottom:148px — that covers the zoom column. */
+  /* Default chip is right:14px / bottom:148px — that covers the zoom column.
+     44px zoom is 12px wider than the bundle 32px; keep INSTALL left of ⌂. */
   #exo-install {
-    right: 56px;
+    right: 68px;
     z-index: 20;
+  }
+  /* Desktop leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at 1280 (bundle .btn).
+     Grow in place (bottom-right). Not Cesium .cesium-viewer-toolbar. */
+  .zoom .btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 0;
+  }
+  /* Desktop leftover: STATION ARM METEOR-M2 2 was 247×32 after-paint at 1280. */
+  .station .btn {
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    padding: 10px 8px;
   }
   /* FACILITY was kissing LIVE by ~4px at 1280. */
   .camstrip {
