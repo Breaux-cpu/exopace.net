@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=58">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=59">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=58">
+    <link rel="stylesheet" href="/moc-phone.css?v=59">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -103,7 +103,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=58"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=59"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -213,6 +213,110 @@
           }
         }
         document.addEventListener("click", refuse, true);
+      })();
+      (function () {
+        /* Bundle search submit toasts NO LOCK on zero hits (Bl). Guest expects
+           NO MATCH and a cleared field; valid ISS / NORAD locks stay untouched. */
+        var toastTimer = null;
+        function showHudToast(msg) {
+          var t = document.getElementById("exo-toast");
+          if (!t) return;
+          t.textContent = msg;
+          t.hidden = false;
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () {
+            t.hidden = true;
+            t.textContent = "";
+          }, 1800);
+        }
+        function parseTleBodies(tle) {
+          var lines = (tle || "").split(/\r?\n/).map(function (l) {
+            return l.trim();
+          }).filter(Boolean);
+          var out = [];
+          for (var i = 0; i < lines.length - 2; i++) {
+            if (lines[i + 1].indexOf("1 ") !== 0 || lines[i + 2].indexOf("2 ") !== 0) continue;
+            var name = lines[i].replace(/^0 /, "").trim();
+            var norad = lines[i + 1].slice(2, 7).trim();
+            out.push({ name: name, norad: norad, id: norad });
+            i += 2;
+          }
+          return out;
+        }
+        function findBody(query, bodies) {
+          var o = (query || "").trim().toLowerCase();
+          if (!o) return null;
+          for (var i = 0; i < bodies.length; i++) {
+            var h = bodies[i];
+            if (h.name.toLowerCase().indexOf(o) >= 0) return h;
+            if (h.norad === o || h.id.toLowerCase() === o) return h;
+          }
+          return null;
+        }
+        var searchBodies = [];
+        function primeSearchBodies() {
+          try {
+            var raw = localStorage.getItem("exopace-tle-cache");
+            if (raw) {
+              var j = JSON.parse(raw);
+              if (j && j.tle) searchBodies = parseTleBodies(j.tle);
+            }
+          } catch (e) {}
+          if (searchBodies.length) return;
+          Promise.all([
+            fetch("/tle/stations.txt").then(function (r) { return r.ok ? r.text() : ""; }),
+            fetch("/tle/visual.txt").then(function (r) { return r.ok ? r.text() : ""; }),
+            fetch("/tle/weather.txt").then(function (r) { return r.ok ? r.text() : ""; }),
+          ]).then(function (parts) {
+            searchBodies = parseTleBodies(parts.join("\n"));
+          }).catch(function () {});
+        }
+        primeSearchBodies();
+        function clearSearchInput(input) {
+          if (!input) return;
+          var native = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value");
+          if (native && native.set) native.set.call(input, "");
+          else input.value = "";
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        function refuseNoMatch(input) {
+          clearSearchInput(input);
+          var reactToast = document.querySelector(".hud .toast");
+          if (reactToast) reactToast.textContent = "";
+          showHudToast("NO MATCH");
+        }
+        function onSearchSubmit(e) {
+          var form = e.target;
+          if (!form || !form.classList || !form.classList.contains("search")) return;
+          var input = form.querySelector("input");
+          if (!input) return;
+          var q = input.value.trim();
+          if (!q) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return;
+          }
+          if (!searchBodies.length) return;
+          if (findBody(q, searchBodies)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+          refuseNoMatch(input);
+        }
+        document.addEventListener("submit", onSearchSubmit, true);
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter") return;
+          var input = e.target;
+          if (!input || !input.closest || !input.closest(".search")) return;
+          var q = input.value.trim();
+          if (!q || !searchBodies.length) return;
+          if (findBody(q, searchBodies)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+          refuseNoMatch(input);
+        }, true);
       })();
       (function () {
         /* Bundle STATION .kv paints UTC/LOCAL from its own Date.now() interval
@@ -342,10 +446,50 @@
             },
           });
         }
+        var passTargetByEl = new WeakMap();
+        var passKindByEl = new WeakMap();
+
+        function parsePassRemain(text) {
+          var m = String(text || "").match(/T-(\d{2}):(\d{2}):(\d{2})/);
+          if (!m) return null;
+          return ((+m[1]) * 3600 + (+m[2]) * 60 + (+m[3])) * 1000;
+        }
+
+        function passKind(text) {
+          return String(text || "").indexOf("LOS") === 0 ? "LOS" : "AOS";
+        }
+
+        function fmtPassRemain(ms) {
+          var s = Math.max(0, Math.floor(ms / 1000));
+          var h = Math.floor(s / 3600);
+          var m = Math.floor((s % 3600) / 60);
+          var sec = s % 60;
+          return "T-" + pad(h) + ":" + pad(m) + ":" + pad(sec);
+        }
+
+        function syncPassCountdowns(simMs) {
+          var nodes = document.querySelectorAll(".station .passlist .pt");
+          for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            var text = el.textContent || "";
+            var kind = passKind(text);
+            var remain = parsePassRemain(text);
+            if (remain == null) continue;
+            if (passKindByEl.get(el) !== kind || !passTargetByEl.has(el)) {
+              passTargetByEl.set(el, Date.now() + remain);
+              passKindByEl.set(el, kind);
+            }
+            var target = passTargetByEl.get(el);
+            var next = kind + " " + fmtPassRemain(target - simMs);
+            if (el.textContent !== next) el.textContent = next;
+          }
+        }
+
         function syncStationClock() {
           if (!document.querySelector(".station")) return;
           var d = headerUtcDate();
           if (!d) return;
+          var simMs = d.getTime();
           var utcSpan = kvSpan("UTC");
           var localSpan = kvSpan("LOCAL");
           var utc = pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()) + ":" + pad(d.getUTCSeconds()) + "Z";
@@ -355,6 +499,7 @@
             armLocalSpan(localSpan);
             if (localSpan.textContent !== local) localSpan.textContent = local;
           }
+          syncPassCountdowns(simMs);
         }
         var headerObs = new MutationObserver(syncStationClock);
         function bindHeader() {
