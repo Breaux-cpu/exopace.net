@@ -102,8 +102,9 @@ html.exo-booting a.radio-link {
     font-size: 16px;
   }
 
-  /* Phone leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at bottom-right on LIVE.
-     Park under search on the left; 44px taps. Hide while STATION owns that column. */
+  /*    Phone leftover: HUD .zoom ⌂ ＋ － N ◎ were 31.2×32 at bottom-right on LIVE.
+     Park under search on the left; 44px taps. Hide while STATION or LAYERS
+     owns that column — SATELLITES/ORBITS/ATMO/RADIO/LABELS sat on ⌂＋－N◎. */
   .zoom {
     top: calc(124px + env(safe-area-inset-top));
     bottom: auto;
@@ -122,7 +123,8 @@ html.exo-booting a.radio-link {
     box-sizing: border-box;
     padding: 0;
   }
-  html:has(.station) .zoom {
+  html:has(.station) .zoom,
+  html:has(.layers.open) .zoom {
     display: none !important;
     pointer-events: none !important;
   }
