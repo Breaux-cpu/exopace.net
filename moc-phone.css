@@ -58,6 +58,13 @@ html.exo-booting a.radio-link {
     width: min(240px, 22vw);
     z-index: 6;
   }
+  /* Desktop leftover: SAT NAME / NORAD was 240×30 at 1280 (bundle
+     padding 7px, no min-height). Phone already 44. Not zoom / ARM / toast. */
+  .search input {
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 10px 10px;
+  }
   .tl {
     max-width: calc(100vw - 430px);
     flex-wrap: nowrap;
