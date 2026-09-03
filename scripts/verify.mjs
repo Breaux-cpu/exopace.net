@@ -332,6 +332,8 @@ assert(/\.tl a\.radio-link\.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "
 assert(/\.tl button\.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 AUDIO tap is ≥44");
 assert(/\.layers \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 LAYERS SATELLITES/ORBITS/ATMO/RADIO/LABELS taps are ≥44");
 assert(/\.camstrip \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 camstrip LAYERS/STATION/FLY/FACILITY taps are ≥44");
+assert(/\.timebar \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 timebar LIVE/HOLD/10×/60× taps are ≥44");
+assert(/\.timebar \.btn\s*\{[^}]*min-width:\s*44px/.test(desktopHud), "1280 timebar 10× width is ≥44");
 assert(/#exo-install\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 INSTALL APP tap is ≥44");
 assert(/\.search input\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 SAT NAME / NORAD tap is ≥44");
 assert(read("index.html").includes("min-height: 44px"), "inline INSTALL APP first-paint is ≥44");
