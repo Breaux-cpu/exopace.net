@@ -123,8 +123,8 @@
     top: calc(104px + env(safe-area-inset-top));
     left: 14px;
     width: min(288px, 84vw);
-    /* Stop above INSTALL + camstrip. Old 230px leftover still covered STATION/MOC/FLY. */
-    bottom: calc(258px + env(safe-area-inset-bottom));
+    /* Stop above INSTALL (44px at bottom:258px) + camstrip. */
+    bottom: calc(310px + env(safe-area-inset-bottom));
     max-height: none;
     z-index: 5;
   }
