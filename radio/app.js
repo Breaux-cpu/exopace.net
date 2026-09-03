@@ -488,8 +488,17 @@ function renderTelem(d) {
   drawBatt(); drawSpark();
 }
 function fmtUp(s) { s = s || 0; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h + "h " + m + "m"; }
+function syncChartEmpty(canvasId, emptyId, has) {
+  const c = $(canvasId), e = $(emptyId);
+  if (c) { c.hidden = !has; c.style.display = has ? "" : "none"; }
+  if (e) e.style.display = has ? "none" : "";
+}
 function drawBatt() {
-  const c = $("battChart"), x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height);
+  const c = $("battChart"); if (!c) return;
+  const has = S.batt.length > 0;
+  syncChartEmpty("battChart", "battEmpty", has);
+  if (!has) return;
+  const x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height);
   x.strokeStyle = "#ffb454"; x.lineWidth = 3; x.beginPath();
   S.batt.forEach((v, i) => {
     const px = i / (Math.max(S.batt.length - 1, 1)) * c.width, py = c.height - (v / 100) * c.height;
@@ -498,6 +507,9 @@ function drawBatt() {
 }
 function drawSpark() {
   const c = $("rssiChart"); if (!c) return;
+  const has = S.rssiSpark.length > 0;
+  syncChartEmpty("rssiChart", "rssiEmpty", has);
+  if (!has) return;
   const x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height);
   x.strokeStyle = "#7ee0ff"; x.lineWidth = 2; x.beginPath();
   S.rssiSpark.forEach((v, i) => {
@@ -735,3 +747,6 @@ if (location.hash === "#map") {
   if ($("btnRangeCsv")) $("btnRangeCsv").onclick = () => { location.href = "/range.csv"; };
   if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
 })();
+
+drawBatt();
+drawSpark();
