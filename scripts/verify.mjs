@@ -175,6 +175,11 @@ assert(moc.includes("exoAllowDemo"), "MOC demo helper (prod still false)");
 assert(moc.includes('feed:"WAIT"'), "MOC initial feed is WAIT not ERROR");
 assert(moc.includes("FEED WAIT"), "MOC paints FEED WAIT while CelesTrak loads");
 assert(!moc.includes('feed:"ERROR",imagery'), "MOC does not first-paint FEED ERROR");
+assert(!moc.includes("exopase.com"), "MOC bundle does not poll exopase.com");
+assert(!moc.includes('hostname==="exopace.net"'), "MOC has no live-host typo-bridge fallback");
+assert(!read("env.js").includes("exopase"), "env.js has no exopase.com");
+assert(read("moc-phone.css").includes("min-width: 821px") && read("moc-phone.css").includes("left: 158px"), "1280 search sits left of UTC clock");
+assert(/overflow-x:\s*hidden/.test(radioHtml), "Radio clips horizontal overflow");
 assert(!existsSync(join(root, "package.json")), "no fake Vite package.json");
 assert(!existsSync(join(root, "src")), "no invented moc/src tree");
 

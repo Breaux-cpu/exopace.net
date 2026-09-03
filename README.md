@@ -48,6 +48,8 @@ First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeo
 
 `/about` `/mission` `/ops` `/login` `/app` are **not** product routes. They 404. Only `/lock/*` is an SPA deep link.
 
+`EXOPACE_BRIDGE` is empty in this ship tree. The MOC must **not** fall back to `exopase.com` (typo) or any public host. RF stays quiet/offline until a real LAN/configured origin is set. Do not turn exopace.com into MOC.
+
 Offline: last CelesTrak pull is **CACHED**. Prod does **not** invent a synthetic fleet (`FEED ERROR` if nothing is cached).
 
 ## Protocol

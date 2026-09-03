@@ -1,4 +1,18 @@
-/* Phone-only HUD clip. Desktop 1280 is unchanged. Do not restyle the globe. */
+/* HUD clip. Do not restyle the globe.
+   Desktop: search must not overlap the UTC clock in .tl.
+   Phone: lift dossier off STATION / MOC / FLY; restore search. */
+
+@media (min-width: 821px) {
+  .search {
+    left: 158px;
+    transform: none;
+    width: min(240px, 22vw);
+    z-index: 6;
+  }
+  .tl {
+    max-width: calc(100vw - 430px);
+  }
+}
 @media (max-width: 820px) {
   .search {
     display: block !important;
