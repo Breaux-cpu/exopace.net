@@ -70,10 +70,10 @@
       }
       #exo-toast[hidden] { display: none; }
     </style>
-    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=55">
+    <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=56">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=55">
+    <link rel="stylesheet" href="/moc-phone.css?v=56">
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -93,7 +93,7 @@
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
     <script src="/env.js"></script>
     <script src="/cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=55"></script>
+    <script type="module" crossorigin src="/assets/index-B5yAHF7-.js?v=56"></script>
     <script src="/pwa-install.js" defer></script>
     <script>
       (function () {
@@ -207,7 +207,8 @@
       (function () {
         /* STATION .kv UTC/LOCAL tick from Date.now() (1s interval) while the
            header .tl .utc follows the sim clock (freezes on HOLD). Mirror the
-           header so both UTC labels never disagree on one screen. */
+           header instant into UTC + site LOCAL (EXOPACE GS / America/Chicago). */
+        var SITE_TZ = "America/Chicago";
         function kvSpan(label) {
           var bs = document.querySelectorAll(".station .kv b");
           for (var i = 0; i < bs.length; i++) {
@@ -229,36 +230,64 @@
         function pad(n) {
           return String(n).padStart(2, "0");
         }
+        function siteLocalTime(d) {
+          var parts = new Intl.DateTimeFormat("en-US", {
+            timeZone: SITE_TZ,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          }).formatToParts(d);
+          var pick = function (type) {
+            for (var i = 0; i < parts.length; i++) {
+              if (parts[i].type === type) return parts[i].value;
+            }
+            return "00";
+          };
+          return pick("hour") + ":" + pick("minute") + ":" + pick("second");
+        }
         function syncStationClock() {
           if (!document.querySelector(".station")) return;
           var d = headerUtcDate();
           if (!d) return;
           var utcSpan = kvSpan("UTC");
           var localSpan = kvSpan("LOCAL");
-          if (utcSpan) {
-            utcSpan.textContent =
-              pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()) + ":" + pad(d.getUTCSeconds()) + "Z";
-          }
-          if (localSpan) {
-            localSpan.textContent =
-              pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
-          }
+          var utc = pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()) + ":" + pad(d.getUTCSeconds()) + "Z";
+          var local = siteLocalTime(d);
+          if (utcSpan && utcSpan.textContent !== utc) utcSpan.textContent = utc;
+          if (localSpan && localSpan.textContent !== local) localSpan.textContent = local;
         }
-        function watchHeaderUtc() {
-          var el = document.querySelector(".tl span.utc");
-          if (!el) {
-            requestAnimationFrame(watchHeaderUtc);
+        function watchStationClock() {
+          var headerEl = document.querySelector(".tl span.utc");
+          if (!headerEl) {
+            requestAnimationFrame(watchStationClock);
             return;
           }
           syncStationClock();
-          new MutationObserver(syncStationClock).observe(el, {
+          new MutationObserver(syncStationClock).observe(headerEl, {
             childList: true,
             characterData: true,
             subtree: true,
           });
-          setInterval(syncStationClock, 250);
+          var utcSpan = kvSpan("UTC");
+          var localSpan = kvSpan("LOCAL");
+          if (utcSpan) {
+            new MutationObserver(syncStationClock).observe(utcSpan, {
+              childList: true,
+              characterData: true,
+              subtree: true,
+            });
+          }
+          if (localSpan) {
+            new MutationObserver(syncStationClock).observe(localSpan, {
+              childList: true,
+              characterData: true,
+              subtree: true,
+            });
+          }
+          setInterval(syncStationClock, 100);
         }
-        watchHeaderUtc();
+        watchStationClock();
       })();
     </script>
   </body>
