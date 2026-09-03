@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v65"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v66"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=65"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=65"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=66"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=66"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -294,7 +294,7 @@ assert(moc.includes('if(!o){Ie("NO MATCH");return}') && moc.includes("function B
 assert(moc.includes('if(!(u||"").trim())return;a&&!a.find(u)&&o("");Bl(a,u)'), "search miss clears SAT NAME / NORAD; empty submit does not toast");
 assert(moc.includes("Ne=!0,dropDeadLock()") && moc.includes('Ne&&window.setTimeout(()=>Ie("NO MATCH"),2200)'), "unresolved ?lock= on boot strips URL then toasts NO MATCH after FEED");
 assert(!moc.includes('if(!o){Ie("NO LOCK");return}'), "typed search miss is NO MATCH not NO LOCK");
-assert(moc.includes('Ie("NO LOCK")') && moc.includes('u==="follow"&&!a.selected()'), "FOLLOW / SAT-CAM without a target still toasts NO LOCK");
+assert(moc.includes('Ie("NO LOCK")') && moc.includes('(u==="follow"||u==="satcam")&&!a.selected()') && moc.includes("dropDeadCam()"), "FOLLOW / SAT-CAM without a target toast NO LOCK and strip cam");
 assert(moc.includes("function ensureSatsOn(a)") && moc.includes('a.setLayer("sats",!0)') && moc.includes("a.layers.sats"), "valid lock auto-enables SATELLITES when the layer is off");
 assert(moc.includes('ensureSatsOn(a)?Ie("SATELLITES ON")') && moc.includes("function Bl("), "search lock toasts SATELLITES ON only when the layer flipped");
 assert(moc.includes("className:\"passlist\"") && moc.includes("Ge=z=>{if(!a)return;") && moc.includes("bo(o.id,cam)"), "passlist row lock writes the share URL via bo()");
@@ -357,6 +357,42 @@ assert(moc.includes('q.set("lock",a)') && moc.includes('q.set("cam",u)') && moc.
   assert(!u.searchParams.has("lock") && !u.searchParams.has("cam"), "dropDeadLock() drops rejected lock/cam");
   assert(u.searchParams.get("t") === "live" && !/lock=99999/.test(href) && !/cam=satcam/.test(href), "dropDeadLock() keeps t=live and does not leave the dead share");
   assert(u.hash === "", "dropDeadLock() strips leftover #facility instead of appending it");
+}
+{
+  const m = moc.match(/function dropDeadCam\(\)\{const q=new URLSearchParams\(location\.search\);const c=\(q\.get\("cam"\)\|\|""\)\.toLowerCase\(\);if\(c==="follow"\|\|c==="satcam"\)q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",s\?`\/\?\$\{s\}`:"\/"\)}/);
+  assert(!!m, "dropDeadCam() helper is extractable");
+  function runDrop(href0) {
+    let href = href0;
+    const loc = {
+      get search() {
+        return new URL(href).search;
+      },
+    };
+    const hist = {
+      replaceState(_s, _t, url) {
+        href = new URL(url, "https://exopace.net").href;
+      },
+    };
+    vm.runInNewContext(m[0] + ";dropDeadCam()", { location: loc, history: hist, URLSearchParams });
+    return new URL(href);
+  }
+  {
+    const u = runDrop("https://exopace.net/?cam=follow&t=60x");
+    assert(!u.searchParams.has("cam") && u.searchParams.get("t") === "60x", "dropDeadCam() drops cam and keeps t");
+    assert(u.hash === "" && u.pathname === "/", "dropDeadCam() stays on the root URL with no hash");
+  }
+  {
+    const u = runDrop("https://exopace.net/?cam=satcam");
+    assert(!u.searchParams.has("cam") && !u.searchParams.has("t") && u.pathname === "/" && u.search === "", "dropDeadCam() on cam-only URL returns /");
+  }
+  {
+    const u = runDrop("https://exopace.net/?cam=follow&t=hold#facility");
+    assert(!u.searchParams.has("cam") && u.searchParams.get("t") === "hold" && u.hash === "", "dropDeadCam() keeps t and does not append leftover hash");
+  }
+  {
+    const u = runDrop("https://exopace.net/?cam=cinematic&t=hold");
+    assert(u.searchParams.get("cam") === "cinematic" && u.searchParams.get("t") === "hold", "dropDeadCam() does not strip a lockless-valid CINE share");
+  }
 }
 assert(!moc.includes("/#facility") && !moc.includes('"/#facility"'), "MOC does not write a #facility hash");
 assert(moc.includes('{id:"facility",label:"FACILITY"}') && moc.includes(',"facility"]'), "FACILITY is a camstrip mode and a shareable cam= value");
@@ -440,11 +476,35 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
     const { result } = runAt("https://exopace.net/", helpers + ";Op()");
     assert(result.hasCam === false && result.hasT === false, "bare / does not invent a cam= or t= share");
   }
+  {
+    const { href } = runAt("https://exopace.net/", helpers + ';bo(null,"cinematic","hold")');
+    const u = new URL(href);
+    assert(!u.searchParams.has("lock") && u.searchParams.get("cam") === "cinematic" && u.searchParams.get("t") === "hold", "lockless CINE+HOLD writes /?cam=cinematic&t=hold");
+  }
+  {
+    const { href } = runAt("https://exopace.net/", helpers + ';bo(null,"free","60x")');
+    const u = new URL(href);
+    assert(!u.searchParams.has("lock") && u.searchParams.get("cam") === "free" && u.searchParams.get("t") === "60x", "lockless FLY writes /?cam=free&t=60x");
+  }
+  {
+    const { href } = runAt("https://exopace.net/", helpers + ';bo(null,"moc","live")');
+    const u = new URL(href);
+    assert(!u.searchParams.has("lock") && u.searchParams.get("cam") === "moc" && u.searchParams.get("t") === "live", "lockless MOC writes /?cam=moc&t=live");
+  }
+  {
+    const { result } = runAt("https://exopace.net/?cam=follow&t=60x", helpers + ";Op()");
+    assert(result.cam === "follow" && result.hasCam === true && result.t === "60x" && result.id == null, "Op() still reads a lockless follow URL so onReady can refuse it");
+  }
 }
+assert(read("README.md").includes("Lockless cams") && read("README.md").includes("/?cam=follow") && read("README.md").includes("drops `cam`"), "README documents lockless cam/t write and FOLLOW/SAT-CAM NO LOCK strip");
 assert(!moc.includes('history.replaceState(null,"","/")'), "CLEAR LOCK does not wipe the share URL to /");
-assert(moc.includes('bo(null,a?.rig?.mode||Ko.cam),Ie("LOCK CLEARED")'), "CLEAR LOCK writes the painted cam/t without a lock");
-assert(!moc.includes('recageHome(),Z({selected:null,cam:"moc"})'), "CLEAR LOCK does not recage home or force cam=moc");
+assert(moc.includes('u==="follow"||u==="satcam"?(a.recageHome(),Z({cam:"moc"}),bo(null,"moc")):bo(null,u||Ko.cam),Ie("LOCK CLEARED")'), "CLEAR LOCK keeps lockless-valid cam/t; FOLLOW / SAT-CAM fall back to moc");
+assert(!moc.includes('recageHome(),Z({selected:null,cam:"moc"})'), "CLEAR LOCK does not recage home or force cam=moc on CINE / FACILITY / FLY");
 assert(moc.includes("V.hasCam||V.hasT") && moc.includes("u===\"cinematic\"&&x.rig.startCinematic()"), "cold-open /?cam=&t= restores camera and time without a lock");
+assert(moc.includes('V.hasCam&&(V.cam==="follow"||V.cam==="satcam")') && moc.includes("dropDeadCam();Le=!0") && moc.includes('Le&&window.setTimeout(()=>Ie("NO LOCK"),2200)'), "lockless ?cam=follow / satcam toasts NO LOCK after FEED and strips cam");
+assert(moc.includes('V.hasCam&&V.cam!=="follow"&&V.cam!=="satcam"'), "onViewport does not latch FOLLOW / SAT-CAM before a lock exists");
+assert(moc.includes('bo(a.selected()?.id||null,"moc")'), "⌂ MOC writes cam=moc on the share URL");
+assert(moc.includes('bo(w?w.id:null,"cinematic")') && moc.includes('bo(w?w.id:null,a.rig.mode,Ww(o))'), "CINE and timebar write cam/t even with no lock");
 assert(read("index.html").includes("\\/lock\\/") && read("index.html").includes('q.set("lock"'), "index.html rewrites legacy /lock/ to root query");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes('placeholder:"SAT NAME / NORAD"') && !moc.includes("SAT NAME / NORAD  ·  / palette"), "phone search placeholder is SAT NAME / NORAD with no clipped / palette");
@@ -511,8 +571,8 @@ assert(/\.station \.btn\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css"))
 assert(/\.station \.passlist li\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone STATION next-pass rows are ≥44");
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.chip\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone FEED CELESTRAK CACHED chip is ≥44");
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.utc\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone UTC clock is ≥44");
-assert(index.includes('id="exo-toast"') && index.includes('showHudToast("NO LOCK")') && index.includes('SAT-CAM') && index.includes('t === "FLY"') && index.includes('t === "FOLLOW"'), "SAT-CAM / FLY / FOLLOW without a lock share the same NO LOCK refusal");
-assert(index.includes('classList.remove("on")') && index.includes("function lockCamBtn"), "SAT-CAM / FLY stay off when SELECTION is NO LOCK");
+assert(index.includes('id="exo-toast"') && index.includes('showHudToast("NO LOCK")') && index.includes('SAT-CAM') && index.includes('t === "FOLLOW"') && !index.includes('t === "FLY"'), "SAT-CAM / FOLLOW without a lock share the same NO LOCK refusal; FLY is lockless-valid");
+assert(index.includes('classList.remove("on")') && index.includes("function lockCamBtn") && index.includes("function dropDeadCam") && index.includes("q.delete(\"cam\")"), "SAT-CAM / FOLLOW stay off and strip cam when SELECTION is NO LOCK");
 assert(index.includes('RF CHAIN OFFLINE') && index.includes('chainOk("RADIO")') && index.includes('chainOk("ROTATOR")') && index.includes(".station .btn"), "STATION ARM refuses while radio/rotator are offline");
 assert(index.includes("function rfReady") && index.includes('t.indexOf("ARM ") === 0'), "STATION ARM still fires when radio and rotator are stok");
 assert(index.includes("#exo-toast") && read("moc-phone.css").includes("#exo-toast"), "refusal toast lives outside #root so React cannot wipe it");
