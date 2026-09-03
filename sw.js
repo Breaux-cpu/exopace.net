@@ -1,20 +1,25 @@
-const CACHE = "exopace-moc-v13";
+const CACHE = "exopace-moc-v14";
+// Icons + manifest only. Never pin in-place HUD (index.html / env / overlay) —
+// a stale SW precache is how guests first-painted ?v=11 after ?v=13 published.
 const ASSETS = [
-  "/",
-  "/index.html",
   "/manifest.json",
-  "/env.js",
   "/icon.svg",
   "/icon-maskable.svg",
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",
-  "/pwa-install.js",
 ];
 
 function noStore(url) {
   const p = url.pathname;
-  return p === "/moc-phone.css" || p === "/assets/index-B5yAHF7-.js" || p === "/env.js";
+  return (
+    p === "/" ||
+    p === "/index.html" ||
+    p === "/env.js" ||
+    p === "/pwa-install.js" ||
+    p === "/moc-phone.css" ||
+    p === "/assets/index-B5yAHF7-.js"
+  );
 }
 
 function skip(url) {
