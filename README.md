@@ -16,7 +16,7 @@ exopace.com is a parking lander — leave it alone.
 
 ## This repository
 
-This GitHub tree **is** the shipped static PWA (Cloudflare Pages publish dump). There is **no** root `package.json`, no Vite `src/`, and no committed copy of `/mnt/gsdata/exopace/moc`. The workstation moc source was never pushed here.
+Live source: **https://github.com/Breaux-cpu/exopace.net**. This GitHub tree **is** the shipped static PWA (Cloudflare Pages publish dump). There is **no** root `package.json`, no Vite `src/`, and no committed copy of `/mnt/gsdata/exopace/moc`. The workstation moc source was never pushed here. Do not invent a second repo.
 
 - **MOC** ships as hashed assets (`assets/index-B5yAHF7-.js` + `sat-CIpmmEb5.js`) plus `/cesium/`. Do not invent a second Mission Control.
 - **Radio** is real source: `radio/*.js`, `radio/index.html`, `radio/textures/`.

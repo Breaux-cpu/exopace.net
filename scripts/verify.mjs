@@ -182,6 +182,11 @@ assert(read("moc-phone.css").includes("min-width: 821px") && read("moc-phone.css
 assert(/overflow-x:\s*hidden/.test(radioHtml), "Radio clips horizontal overflow");
 assert(!existsSync(join(root, "package.json")), "no fake Vite package.json");
 assert(!existsSync(join(root, "src")), "no invented moc/src tree");
+assert(!existsSync(join(root, "sdr-agent")), "no invented sdr-agent tree");
+assert(read("SDR_AGENT.md").includes("wss://exopace.net/bridge/sensor") && read("SDR_AGENT.md").includes("not a Pages route"), "SDR contract: public bridge is not a Pages route");
+assert(read("SDR_AGENT.md").includes("/mnt/gsdata/exopace/sdr-agent"), "SDR contract: Python lives off-tree");
+assert(read("SDR_AGENT.md").includes("jessy") && read("SDR_AGENT.md").includes("/dev/bus/usb"), "SDR contract: dongle is on jessy, not this VM");
+assert(read("README.md").includes("never pushed here") || read("README.md").includes("never committed"), "README says moc source never landed in git");
 
 if (fail.length) {
   console.error("FAIL");
