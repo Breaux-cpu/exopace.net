@@ -70,6 +70,10 @@
   .camstrip {
     max-width: calc(50vw - 160px);
   }
+  /* Wrapped camstrip is taller; keep the always-on STATION column off it. */
+  .station {
+    max-height: calc(100vh - 240px);
+  }
 }
 @media (max-width: 820px) {
   .search {
@@ -119,7 +123,9 @@
     top: calc(104px + env(safe-area-inset-top));
     left: 14px;
     width: min(288px, 84vw);
-    max-height: calc(100dvh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    /* Stop above INSTALL + camstrip. Old 230px leftover still covered STATION/MOC/FLY. */
+    bottom: calc(258px + env(safe-area-inset-bottom));
+    max-height: none;
     z-index: 5;
   }
 

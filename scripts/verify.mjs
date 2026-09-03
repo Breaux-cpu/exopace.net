@@ -81,6 +81,7 @@ assert(read("moc-phone.css").includes("top: 42%") && read("moc-phone.css").inclu
 assert(read("moc-phone.css").includes("#exo-install") && read("moc-phone.css").includes("right: 56px"), "desktop INSTALL sits left of the zoom column");
 assert(read("moc-phone.css").includes("50vw - 160px"), "desktop camstrip stays left of LIVE");
 assert(read("moc-phone.css").includes("flex-wrap: nowrap"), "desktop .tl stays one row so RADIO does not sit on the dossier");
+assert(read("moc-phone.css").includes("bottom: calc(258px") && read("moc-phone.css").includes(".station"), "phone STATION panel stops above the camstrip");
 assert(read("moc-phone.css").includes("nth-child(5)"), "FOLLOW is isolated above later camstrip siblings");
 assert(read("moc-phone.css").includes("#exo-install"), "INSTALL APP is moved off the 390 camstrip");
 assert(read("moc-phone.css").includes("span.chip:nth-child(n + 3)"), "phone .tl hides IMG/WEBGL so search stays clear");
