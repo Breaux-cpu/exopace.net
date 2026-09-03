@@ -4,7 +4,12 @@
    Phone leftovers: LAYERS chips above Cesium; RADIO route off the panel;
    FOLLOW isolated from FACILITY / 60×; Ion credits off LIVE / HOLD.
    Canvas: WebGL must stay under .hud at every viewport, not only ≤820.
-   Phone leftover: locked dossier sat on mid-right Ion credits. */
+   Phone leftover: locked dossier sat on mid-right Ion credits.
+   Timebar leftover: .rate echoed LIVE beside the LIVE/HOLD buttons. */
+
+.timebar .rate {
+  display: none !important;
+}
 
 #globe,
 #globe .cesium-viewer,
