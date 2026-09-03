@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v59"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v60"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=59"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=59"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=60"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=60"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -289,6 +289,33 @@ const moc = read("assets/index-B5yAHF7-.js");
 assert(moc.includes("lock ISS") && moc.includes("quality PERF") && moc.includes("run cinematic"), "MOC palette commands");
 assert(moc.includes("ULTRA") && moc.includes("exopace-quality"), "MOC quality tiers");
 assert(moc.includes('q.set("lock",a)') && moc.includes("function Op()") && moc.includes("function Vv(") && moc.includes("serviceWorker") && moc.includes("/sw.js"), "MOC root-query deep link + SW register");
+assert(moc.includes("function Jo()") && moc.includes('q.delete("lock")') && moc.includes('q.delete("cam")') && moc.includes("history.replaceState"), "rejected share lock/cam drop via replaceState");
+assert(moc.includes('if(!o){Ie("NO MATCH");return}') && moc.includes("function Bl("), "typed SAT NAME / NORAD miss toasts NO MATCH");
+assert(moc.includes("Ne=!0,Jo()") && moc.includes('Ne&&Ie("NO MATCH")'), "unresolved ?lock= on boot strips URL then toasts NO MATCH after FEED");
+assert(!moc.includes('if(!o){Ie("NO LOCK");return}'), "typed search miss is NO MATCH not NO LOCK");
+assert(moc.includes('Ie("NO LOCK")') && moc.includes('u==="follow"&&!a.selected()'), "FOLLOW / SAT-CAM without a target still toasts NO LOCK");
+{
+  const m = moc.match(/function Jo\(\)\{const q=new URLSearchParams\(location\.search\);q\.delete\("lock"\);q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",\(s\?`\/\?\$\{s\}`:"\/"\)\+location\.hash\)}/);
+  assert(!!m, "Jo() helper is extractable");
+  let href = "https://exopace.net/?lock=99999&cam=satcam&t=live";
+  const loc = {
+    get search() {
+      return new URL(href).search;
+    },
+    get hash() {
+      return new URL(href).hash;
+    },
+  };
+  const hist = {
+    replaceState(_s, _t, url) {
+      href = new URL(url, "https://exopace.net").href;
+    },
+  };
+  vm.runInNewContext(m[0] + ";Jo()", { location: loc, history: hist, URLSearchParams });
+  const u = new URL(href);
+  assert(!u.searchParams.has("lock") && !u.searchParams.has("cam"), "Jo() drops rejected lock/cam");
+  assert(u.searchParams.get("t") === "live" && !/lock=99999/.test(href) && !/cam=satcam/.test(href), "Jo() keeps t=live and does not leave the dead share");
+}
 assert(read("index.html").includes("\\/lock\\/") && read("index.html").includes('q.set("lock"'), "index.html rewrites legacy /lock/ to root query");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes('placeholder:"SAT NAME / NORAD"') && !moc.includes("SAT NAME / NORAD  ·  / palette"), "phone search placeholder is SAT NAME / NORAD with no clipped / palette");
