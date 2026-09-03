@@ -338,7 +338,7 @@ function collectPts() {
     const w = S.ways[i];
     pts.push({ kind: w.kind === "sos" ? "sos" : "way", id: w.id, lat: w.lat, lon: w.lon, name: w.name, wayKind: w.kind, conf: 1 });
   });
-  if ($("stPin").checked) pts.push({ kind: "st", lat: P.STATION.lat, lon: P.STATION.lon, name: "STATION", id: "MILLINGTON", conf: 1 });
+  if ($("stPin").checked) pts.push({ kind: "st", lat: P.STATION.lat, lon: P.STATION.lon, name: "STATION", id: "STATION", conf: 1 });
   return pts;
 }
 function syncGlobe() {
