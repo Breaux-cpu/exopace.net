@@ -114,7 +114,7 @@ const radSw = read("radio/sw.js");
 assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v60"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v61"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -139,8 +139,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=60"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=60"), "index cache-busts hashed MOC bundle");
+assert(read("index.html").includes("moc-phone.css?v=61"), "index cache-busts moc-phone.css");
+assert(read("index.html").includes("index-B5yAHF7-.js?v=61"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -294,6 +294,35 @@ assert(moc.includes('if(!o){Ie("NO MATCH");return}') && moc.includes("function B
 assert(moc.includes("Ne=!0,dropDeadLock()") && moc.includes('Ne&&window.setTimeout(()=>Ie("NO MATCH"),2200)'), "unresolved ?lock= on boot strips URL then toasts NO MATCH after FEED");
 assert(!moc.includes('if(!o){Ie("NO LOCK");return}'), "typed search miss is NO MATCH not NO LOCK");
 assert(moc.includes('Ie("NO LOCK")') && moc.includes('u==="follow"&&!a.selected()'), "FOLLOW / SAT-CAM without a target still toasts NO LOCK");
+assert(moc.includes("function ensureSatsOn(a)") && moc.includes('a.setLayer("sats",!0)') && moc.includes("a.layers.sats"), "valid lock auto-enables SATELLITES when the layer is off");
+assert(moc.includes('ensureSatsOn(a)?Ie("SATELLITES ON")') && moc.includes("function Bl("), "search lock toasts SATELLITES ON only when the layer flipped");
+assert(moc.includes("He=ensureSatsOn(x)") && moc.includes('He&&window.setTimeout(()=>Ie("SATELLITES ON"),2200)'), "share-link lock enables SATELLITES and toasts only if it flipped");
+assert(moc.includes('q.set("lock",a)') && moc.includes('q.set("cam",u)') && moc.includes('q.set("t",t)') && !/q\.set\("sats"/.test(moc) && !/q\.set\("layer"/.test(moc), "share URL stays lock/cam/time — no layer state");
+{
+  const m = moc.match(/function ensureSatsOn\(a\)\{if\(!a\|\|a\.layers\.sats\)return!1;a\.setLayer\("sats",!0\);Z\(\{layers:\{\.\.\.Xo\(\)\.layers,sats:!0\}\}\);return!0\}/);
+  assert(!!m, "ensureSatsOn() helper is extractable");
+  const store = { layers: { sats: false, orbits: true, atmo: true, radio: true, labels: true } };
+  const engine = {
+    layers: { sats: false, orbits: true },
+    setLayer(id, on) {
+      this.layers[id] = on;
+    },
+  };
+  const out = vm.runInNewContext(
+    m[0] + ";[ensureSatsOn(engine),ensureSatsOn(engine),engine.layers.sats,store.layers.sats,store.layers.orbits]",
+    {
+      engine,
+      store,
+      Xo: () => store,
+      Z: (patch) => {
+        if (patch.layers) store.layers = patch.layers;
+      },
+    },
+  );
+  assert(out[0] === true && out[1] === false, "ensureSatsOn returns true only on the flip");
+  assert(out[2] === true && out[3] === true && out[4] === true, "ensureSatsOn turns SATELLITES on without dropping other layers");
+}
+
 {
   const m = moc.match(/function dropDeadLock\(\)\{const q=new URLSearchParams\(location\.search\);q\.delete\("lock"\);q\.delete\("cam"\);const s=q\.toString\(\);history\.replaceState\(null,"",\(s\?`\/\?\$\{s\}`:"\/"\)\+location\.hash\)}/);
   assert(!!m, "dropDeadLock() helper is extractable");
