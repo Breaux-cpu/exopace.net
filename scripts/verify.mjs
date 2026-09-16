@@ -54,10 +54,10 @@ for (const rel of [
 
 // --- first-paint: boot-void outside #root so React cannot wipe it ---
 const index = read("index.html");
-assert(/<div id="boot-void">/.test(index), "index.html has #boot-void");
+assert(/<div id="boot-void"[^>]*>/.test(index), "index.html has #boot-void");
 assert(/<div id="root"[^>]*>\s*<\/div>/.test(index), "index.html #root is empty");
 assert(index.indexOf('id="boot-void"') < index.indexOf('id="root"'), "boot-void precedes #root");
-assert(!/<div id="root">[\s\S]*id="boot-void"/.test(index), "boot-void is not nested in #root");
+assert(!/<div id="root"[^>]*>[\s\S]*id="boot-void"/.test(index), "boot-void is not nested in #root");
 assert(index.includes("CHECKING PIPELINE"), "boot status text is last-child compatible");
 assert(index.includes("z-index: 200") && index.includes("transitionend"), "splash sits above HUD and hides after fade");
 assert(!/#boot-void\.out \{[^}]*pointer-events:\s*none/.test(index), "splash .out still eats taps during fade");

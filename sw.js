@@ -40,6 +40,12 @@ function isNav(req) {
   return req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
 }
 
+// Never hand respondWith an undefined promise value: that surfaces as a hard
+// network error instead of a miss.
+function offline() {
+  return new Response("", { status: 504, statusText: "EXOpace offline: not cached" });
+}
+
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()),
@@ -60,7 +66,11 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(
     fetch(e.request, noStore(url) ? { cache: "no-store" } : undefined)
       .then((r) => {
-        if (r.ok && !noStore(url)) {
+        // Last-known-good copy of the in-place HUD too. Not precaching and it
+        // never pins: online always takes the no-store network answer above, so
+        // a deploy lands on the next load. Read only from the .catch below --
+        // without it an offline MOC missed /index.html and hard-failed.
+        if (r.ok && r.type === "basic") {
           const copy = r.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));
         }
@@ -69,8 +79,10 @@ self.addEventListener("fetch", (e) => {
       .catch(() =>
         caches.match(e.request).then((m) => {
           if (m) return m;
-          if (isNav(e.request) || url.pathname.startsWith("/lock/")) return caches.match("/index.html");
-          return caches.match("/");
+          if (isNav(e.request) || url.pathname.startsWith("/lock/")) {
+            return caches.match("/index.html").then((i) => i || caches.match("/").then((j) => j || offline()));
+          }
+          return offline();
         }),
       ),
   );
