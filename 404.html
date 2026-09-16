@@ -6,6 +6,10 @@
     <meta name="theme-color" content="#03060b" />
     <meta name="color-scheme" content="dark" />
     <title>EXOpace — 404</title>
+    <meta name="description" content="No such route on EXOpace." />
+    <meta name="robots" content="noindex" />
+    <meta property="og:title" content="EXOpace — 404" />
+    <meta property="og:image" content="https://exopace.net/og.png" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <style>
       html, body {
@@ -15,13 +19,19 @@
         letter-spacing: 0.2em; font-size: 12px; text-align: center;
       }
       b { color: #ffe08a; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 16px; }
-      a { color: #7ee0ff; margin-top: 18px; text-decoration: none; letter-spacing: 0.16em; font-size: 11px; }
+      a { color: #7ee0ff; text-decoration: none; letter-spacing: 0.16em; font-size: 11px;
+          border: 1px solid #1c2a33; border-radius: 4px; padding: 11px 16px; min-height: 44px;
+          display: inline-flex; align-items: center; }
+      a:hover, a:focus-visible { color: #ffe08a; border-color: #3a4d5a; }
+      nav { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
     </style>
   </head>
   <body>
     <b>EXOpace</b>
     404 · NO SUCH ROUTE
-    <a href="/">MISSION CONTROL</a>
+    <nav aria-label="EXOpace surfaces">
+      <a href="/">MISSION CONTROL</a>
     <a href="/radio/">RADIO</a>
+    </nav>
   </body>
 </html>
