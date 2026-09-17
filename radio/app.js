@@ -473,7 +473,7 @@ function renderGps() {
   if (g && g.fix) {
     $("posLL").textContent = g.lat.toFixed(5) + " / " + g.lon.toFixed(5);
     $("posSpd").textContent = (g.spd || 0).toFixed(1) + " mph";
-    $("posAlt").textContent = Math.round(g.alt || 0) + " ft · " + (g.sats || 0) + " sat";
+    $("posAlt").textContent = Math.round(g.alt || 0) + " ft · " + (g.sats || 0) + " sat" + (g.hdop != null ? " · hdop " + (+g.hdop).toFixed(1) : "");
     $("needle").style.transform = "translate(-50%,-100%) rotate(" + (g.hdg || 0) + "deg)";
   }
   renderNodes();
@@ -560,6 +560,12 @@ $("btnSendTrack").onclick = () => {
   if (S.trail.length < 2) return toast("NO TRAIL");
   send(P.makeTrack({ id: S.myId || "me", pts: S.trail }));
   toast("TRACK TX");
+};
+$("btnTelemCsv").onclick = () => {
+  if (!S.telemHist.length) return toast("NO TELEMETRY");
+  const rows = S.telemHist.map((s) => new Date(s.ts * 1000).toISOString() + "," + (s.batt ?? "") + "," + (s.rssi ?? ""));
+  download("exopace-telemetry.csv", "time,batt,rssi\n" + rows.join("\n"));
+  toast("TELEMETRY CSV");
 };
 $("btnWay").onclick = () => {
   const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
@@ -822,9 +828,10 @@ function renderNodes() {
     warnBatt(n.name || i, n.batt);
     const acts = S.nodeSel === i
       ? '<div class="row" style="flex:1 0 100%;gap:6px;margin-top:8px">'
-        + '<button class="btn" data-nact="nav" data-nid="' + i + '" style="width:auto;min-width:56px">NAV</button>'
-        + '<button class="btn" data-nact="share" data-nid="' + i + '" style="width:auto;min-width:56px">SHARE</button>'
-        + '<button class="btn" data-nact="msg" data-nid="' + i + '" style="width:auto;min-width:56px">MSG</button>'
+        + '<button class="btn" data-nact="nav" data-nid="' + i + '" style="width:auto;min-width:52px">NAV</button>'
+        + '<button class="btn" data-nact="share" data-nid="' + i + '" style="width:auto;min-width:52px">SHARE</button>'
+        + '<button class="btn" data-nact="info" data-nid="' + i + '" style="width:auto;min-width:52px">INFO</button>'
+        + '<button class="btn" data-nact="msg" data-nid="' + i + '" style="width:auto;min-width:52px">MSG</button>'
         + "</div>"
       : "";
     return '<div class="card node" data-nid="' + i + '" style="opacity:' + (0.35 + 0.65 * n.conf) + ';flex-wrap:wrap">'
@@ -893,6 +900,13 @@ $("nodeList").addEventListener("click", (e) => {
     } else if (btn.dataset.nact === "share") {
       if (n.lat == null || n.lon == null) return toast("NO POSITION");
       sharePoint({ name: n.name || id, id, lat: +n.lat, lon: +n.lon });
+    } else if (btn.dataset.nact === "info") {
+      const b = document.querySelector('nav button[data-s="map"]');
+      if (b) b.click();
+      showDossier({
+        kind: "peer", id, name: n.name, lat: n.lat != null ? +n.lat : null, lon: n.lon != null ? +n.lon : null,
+        alt: n.alt, rssi: n.rssi, snr: n.snr, bat: n.batt, last: n.last, conf: P.applyPresence(n).conf,
+      });
     } else if (btn.dataset.nact === "msg") {
       const b = document.querySelector('nav button[data-s="chat"]');
       if (b) b.click();
@@ -1054,6 +1068,45 @@ $("cfgSave").onclick = () => {
 $("cfgRefresh").onclick = () => {
   send({ t: "getcfg" });
   toast("REFRESH REQUESTED");
+};
+$("btnCfgExport").onclick = () => {
+  const c = S.lastCfg || {};
+  const out = {
+    name: c.name || $("cfgName").value.trim(),
+    freq: c.freq != null ? c.freq : parseFloat($("cfgFreq").value),
+    sf: c.sf != null ? c.sf : parseInt($("cfgSf").value),
+    txp: c.txp != null ? c.txp : parseInt($("cfgTx").value),
+    gpsInt: c.gpsInt != null ? c.gpsInt : parseInt($("cfgGpsInt").value),
+    gpsRx: c.gpsRx != null ? c.gpsRx : parseInt($("cfgGpsRx").value),
+    gpsTx: c.gpsTx != null ? c.gpsTx : parseInt($("cfgGpsTx").value),
+    gpsPwr: c.gpsPwr != null ? c.gpsPwr : parseInt($("cfgGpsPwr").value),
+  };
+  download("exopace-config.json", JSON.stringify(out, null, 2));
+  toast("CONFIG EXPORTED");
+};
+$("cfgImportFile").onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const c = JSON.parse(r.result);
+      if (c.name != null) $("cfgName").value = String(c.name).slice(0, 12);
+      if (c.freq != null) {
+        const m = [...$("cfgFreq").options].find((o) => parseFloat(o.value) === +c.freq);
+        if (m) $("cfgFreq").value = m.value;
+      }
+      if (c.sf != null && [...$("cfgSf").options].some((o) => +o.value === +c.sf)) $("cfgSf").value = String(c.sf);
+      if (c.txp != null) $("cfgTx").value = c.txp;
+      if (c.gpsInt != null) $("cfgGpsInt").value = c.gpsInt;
+      if (c.gpsRx != null) $("cfgGpsRx").value = c.gpsRx;
+      if (c.gpsTx != null) $("cfgGpsTx").value = c.gpsTx;
+      if (c.gpsPwr != null) $("cfgGpsPwr").value = c.gpsPwr;
+      toast("CONFIG LOADED — REVIEW + SAVE");
+    } catch (err) { toast("BAD CONFIG FILE"); }
+    e.target.value = "";
+  };
+  r.readAsText(f);
 };
 
 function startDemo() {

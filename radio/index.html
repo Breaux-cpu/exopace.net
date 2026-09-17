@@ -334,6 +334,9 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <canvas id="rssiChart" width="300" height="96" hidden></canvas>
       <div class="sub" id="rssiEmpty">NO RSSI SAMPLES. Spark paints when a packet arrives.</div>
     </div>
+    <div class="card">
+      <button class="btn" id="btnTelemCsv">DOWNLOAD TELEMETRY CSV</button>
+    </div>
     <div class="card" id="rangeCard" hidden><div class="lbl">Range logger</div>
       <div class="row">
         <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
@@ -375,6 +378,10 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         </div>
         <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
         <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="btnCfgExport">EXPORT CONFIG</button>
+          <label class="btn" style="display:flex;align-items:center;justify-content:center">IMPORT<input type="file" id="cfgImportFile" accept="application/json,.json" hidden></label>
+        </div>
       </div>
       <div class="sub" id="freqHint" hidden>All nodes must share frequency + SF to hear each other.</div>
       <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
