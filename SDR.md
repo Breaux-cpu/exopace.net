@@ -25,7 +25,11 @@ repo.
 | ACARS | 131.55 MHz airline VDL | `acarsdec` (+libacars 2.2.1) | air/ground datalink messages |
 | Radiosonde RS41 | 401.5 MHz weather balloon | `rs41mod --json` | id/lat/lon/alt frames → map |
 | P25 | 859.9375 MHz Memphis Fire/EMS | `dsd-neo` | trunk-follow voice → phone audio stream |
-| C4FM / YSF | 444.4 MHz Fusion | `dsd-neo` | digital voice → phone audio stream |
+| C4FM / YSF | 444.4 MHz Fusion | `dsd-neo -fy` | digital voice → phone audio stream |
+| DMR | 442.4375 MHz TDMA | `dsd-neo -fs` | digital voice → phone audio stream |
+| NXDN96 | 444.9375 MHz | `dsd-neo -fn` | digital voice → phone audio stream |
+| D-STAR | 444.9875 MHz | `dsd-neo -fd` | digital voice → phone audio stream |
+| M17 | 441.45 MHz | `dsd-neo -fz` | open digital voice → phone audio stream |
 | WSPR | 28.1261 MHz | `wsprd` | weak-signal QRP reports |
 | FT8 | 144.174 MHz | `rtl-ft8` (graceful absent) | decode attempt, no hard fail |
 | RDS | broadcast FM | `redsea` | station/program metadata |
@@ -36,7 +40,18 @@ repo.
 
 The phone UI plots live markers for **ADS-B**, **AIS**, **APRS**, and **RS41
 radiosondes** on a Leaflet map; satellite passes record imagery under
-`~/sdr-captures/`. Widescan returns peak frequency/dB via `GET /api/widescan`.
+`~/sdr-captures/` and SSTV pictures under `~/sdr-captures/sstv/`. Widescan
+returns peak frequency/dB via `GET /api/widescan`; the digital-voice decoders
+(P25/YSF/DMR/NXDN/D-STAR/M17) fan their decoded audio to the phone over
+`/stream`.
+
+### Optional SondeHub federation
+
+RS41 telemetry is tracked **locally by default**. Setting the `SONDEHUB_AMATEUR`
+env var to the operator's callsign makes `sdr-web` also publish decoded frames to
+SondeHub's v2 amateur telemetry API (`https://api.v2.sondehub.org/amateur/telemetry`,
+throttled to one upload per sonde per 20 s). Leave it unset for a purely local
+sensor; the uploader is off unless explicitly configured.
 
 ## Sub-sensors on the same box
 

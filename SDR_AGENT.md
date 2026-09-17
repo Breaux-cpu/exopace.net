@@ -16,10 +16,12 @@ Prod has **no** `--demo` / `--fake` / sample-track mode. `EXOPACE_FAKE` is refus
 rule but adds verified decode modes on its single dongle: Meteor-M2 LRPT / NOAA
 APT (satdump), ISS SSTV Robot 36 (`sstv`), ACARS (`acarsdec` + libacars 2.2.1),
 RS41 radiosonde (`rs41mod --json`, positions → map), P25 Memphis Fire/EMS and
-C4FM/YSF voice (`dsd-neo`), POCSAG pagers (`multimon-ng`), ISM telemetry
+the digital-voice modes C4FM/YSF, DMR, NXDN96, D-STAR and M17 (`dsd-neo`
+`-fy/-fs/-fn/-fd/-fz`), POCSAG pagers (`multimon-ng`), ISM telemetry
 (`rtl_433`), WSPR (`wsprd`), FT8 (`rtl-ft8`), RDS (`redsea`), wideband sweep
 (`rtl_power` peaks), and raw IQ (`rtl_tcp`). Decoders capture FM-demodulated
-mono, so the sonde chain is `rtl_fm -M fm`.
+mono, so the sonde chain is `rtl_fm -M fm`. Optional RS41 federation to
+SondeHub is opt-in via `SONDEHUB_AMATEUR` and off by default.
 
 ## Install decoders (upstream)
 
