@@ -6,6 +6,7 @@ One brand. Two surfaces. One protocol.
 |---------|-----|------|
 | **MOC** | https://exopace.net | Planetary / orbital mission control (Cesium) |
 | **Radio** | https://exopace.net/radio/ | Installable field radio PWA |
+| **SDR** | `SDR.md` | Memphis RF sensor surface: decoder matrix + live view |
 | **Firmware** | `FIRMWARE.md` | Heltec V4 contract |
 
 Host: **https://exopace.net**  
@@ -90,6 +91,8 @@ See `FIRMWARE.md`. The `firmware/exopace_v4/` overlay and `~/nodelink` field tre
 ## SDR / ingest (not in this git tree)
 
 `SDR_AGENT.md` is the contract: readsb `aircraft.json` on localhost:8080, AIS-catcher optional, one RTL-SDR per band, no demo/fake tracks in prod. The USB dongle lives on workstation **jessy** — not on a Cloud Agent VM; do not open `/dev/bus/usb` here.
+
+The Memphis sensor (**dj**) is `SDR.md`: same no-fake rules but a wider verified matrix — ADS-B/AIS/APRS/POCSAG/ISM, Meteor LRPT + NOAA, ISS SSTV, ACARS, RS41 radiosonde tracking, P25/YSF voice, WSPR/FT8, RDS, wideband sweep, rtl_tcp — with a Tailnet phone web UI (`sdr-web`).
 
 The Python agent is `/mnt/gsdata/exopace/sdr-agent`. Public `wss://exopace.net/bridge/sensor` is **not** a Pages route yet. Until a Worker/ingest origin exists, MOC AIR/SEA/RF stay empty and must read **ERROR / OFFLINE / NO RF SAMPLES** — never invented tracks.
 

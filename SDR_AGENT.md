@@ -12,6 +12,15 @@ Operator-owned SDR decoders → this agent → authenticated ingest → MOC AIRC
 
 Prod has **no** `--demo` / `--fake` / sample-track mode. `EXOPACE_FAKE` is refused when `EXOPACE_ENV=prod`. Radio PWA at `/radio` stays.
 
+**Wider matrix.** The Memphis sensor (**dj**, `SDR.md`) keeps the same no-fake
+rule but adds verified decode modes on its single dongle: Meteor-M2 LRPT / NOAA
+APT (satdump), ISS SSTV Robot 36 (`sstv`), ACARS (`acarsdec` + libacars 2.2.1),
+RS41 radiosonde (`rs41mod --json`, positions → map), P25 Memphis Fire/EMS and
+C4FM/YSF voice (`dsd-neo`), POCSAG pagers (`multimon-ng`), ISM telemetry
+(`rtl_433`), WSPR (`wsprd`), FT8 (`rtl-ft8`), RDS (`redsea`), wideband sweep
+(`rtl_power` peaks), and raw IQ (`rtl_tcp`). Decoders capture FM-demodulated
+mono, so the sonde chain is `rtl_fm -M fm`.
+
 ## Install decoders (upstream)
 
 - ADS-B: [wiedehopf/readsb](https://github.com/wiedehopf/readsb) + tar1090. Default JSON: `http://127.0.0.1:8080/data/aircraft.json`
