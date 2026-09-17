@@ -83,7 +83,7 @@ button,select,input{font:inherit;color:var(--text)}
   border:1px solid var(--line);align-self:flex-start}
 .msg.mine{align-self:flex-end;background:#3a2f14;border-color:#5b4a1e}
 .msg .who{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:3px}
-.msg .txt{white-space:pre-wrap;word-break:break-word}
+.msg .txt{white-space:pre-wrap;word-break:break-word;cursor:pointer}
 .msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
 .msg .meta .ok{color:var(--ok)}
 .msg .meta .pend{color:var(--mut);font-style:italic}
@@ -263,6 +263,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <label><input type="checkbox" id="stPin"> STATION</label>
         <label><input type="checkbox" id="stTrail"> TRAIL</label>
         <label><input type="checkbox" id="stRings"> RINGS</label>
+        <label><input type="checkbox" id="stHeat"> HEAT</label>
       </div>
       <button class="btn" id="btnRecage">RECAGE ON ME</button>
       <button class="btn" id="btnTapDrop" style="position:absolute;left:8px;bottom:104px;z-index:2;width:auto">TAP DROP</button>

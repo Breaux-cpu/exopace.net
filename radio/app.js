@@ -13,7 +13,7 @@ const S = {
   stats: { packets: 0, byType: {}, linkUpAt: 0, lastPktAt: 0 },
   renaming: null, tapDrop: false, sos: null, sosTimer: null, sel: null,
   telemHist: [], unread: 0, lowBattWarned: {},
-  nodeSel: null, nodeTime: null,
+  nodeSel: null, nodeTime: null, nodeWatch: {},
 };
 
 function fitKb() {
@@ -320,14 +320,15 @@ function sosLine(m) {
 function sosVibrate() {
   if (navigator.vibrate) { try { navigator.vibrate([300, 100, 300]); } catch (e) {} }
 }
-function sosNotify(s) {
+function sysNotify(title, body, tag) {
   if (!("Notification" in window)) return;
   if (Notification.permission === "granted") {
-    try { new Notification("EXOpace SOS", { body: s.msg + " — " + s.id, tag: "exo-sos" }); } catch (e) {}
+    try { new Notification(title, { body, tag }); } catch (e) {}
   } else if (Notification.permission === "default") {
-    Notification.requestPermission().then((p) => { if (p === "granted") sosNotify(s); });
+    Notification.requestPermission().then((p) => { if (p === "granted") sysNotify(title, body, tag); });
   }
 }
+function sosNotify(s) { sysNotify("EXOpace SOS", s.msg + " — " + s.id, "exo-sos"); }
 function raiseSos(m) {
   if (m.id === "me" || (S.myId && m.id === S.myId)) return;
   const s = { id: m.id, lat: m.lat, lon: m.lon, msg: sosLine(m), ts: m.ts || Math.floor(Date.now() / 1000), acked: false };
@@ -390,6 +391,9 @@ function addMsg(m) {
   syncChatEmpty();
   $("chatLog").scrollTop = 1e9;
   if (!own && !$("scr-chat").classList.contains("active")) { S.unread++; syncBadge(); }
+  if (!own && document.hidden && m.to && m.to !== "*" && (m.to === S.myId || m.to === "me")) {
+    sysNotify("EXOpace DM · " + (m.fromName || m.from || "peer"), chatText(m), "exo-dm");
+  }
 }
 function syncBadge() {
   const b = $("chatBadge");
@@ -512,6 +516,12 @@ $("chatSearch").oninput = () => {
   });
   syncChatEmpty();
 };
+$("chatLog").addEventListener("click", (e) => {
+  const txt = e.target.closest(".msg .txt");
+  if (!txt) return;
+  const t = txt.textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast("COPIED")).catch(() => {});
+});
 $("btnGpx").onclick = () => {
   const wpts = Object.keys(S.ways).map((i) => {
     const w = S.ways[i];
@@ -585,7 +595,7 @@ function syncGlobe() {
   if (S.globe) {
     S.globe.setMarkers(pts);
     S.globe.setTrail(S.trail, $("stTrail").checked);
-    S.globe.setHeat(S.rf);
+    S.globe.setHeat($("stHeat").checked ? S.rf : []);
     S.globe.setRings(
       $("stRings").checked && S.gps && S.gps.fix ? S.gps.lat : null,
       $("stRings").checked && S.gps && S.gps.fix ? S.gps.lon : null,
@@ -650,6 +660,7 @@ $("mapTip").addEventListener("click", (e) => {
 $("stPin").onchange = () => syncGlobe();
 $("stTrail").onchange = () => syncGlobe();
 $("stRings").onchange = () => syncGlobe();
+$("stHeat").onchange = () => syncGlobe();
 $("btnRecage").onclick = () => {
   if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
   if (!S.globe) return;
@@ -710,6 +721,19 @@ function bars(rssi) {
 function ago(ts) {
   const s = ts > 1e9 ? Math.max(0, (Date.now() / 1000) - ts) : ts;
   return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : Math.round(s / 3600) + "h";
+}
+function watchNodes() {
+  const now = Date.now() / 1000;
+  Object.keys(S.nodes).forEach((i) => {
+    const n = P.applyPresence(S.nodes[i], now);
+    const label = n.name || i;
+    if (n.quiet) {
+      if (!S.nodeWatch[i]) { S.nodeWatch[i] = true; toast("NODE LOST · " + label); sysNotify("EXOpace NODE LOST", label, "exo-node-" + i); }
+    } else if (S.nodeWatch[i]) {
+      S.nodeWatch[i] = false;
+      toast("NODE BACK · " + label);
+    }
+  });
 }
 function tickClock() {
   const d = new Date();
@@ -1179,3 +1203,4 @@ syncBadge();
 tickClock();
 setInterval(renderStats, 1000);
 setInterval(tickClock, 1000);
+setInterval(watchNodes, 5000);
