@@ -162,10 +162,11 @@
       tWater: { value: water || tDay },
       uSun: { value: new THREE.Vector3(1, 0.2, 0.15) },
     };
-    scene.add(new THREE.Mesh(
+    this.earth = new THREE.Mesh(
       new THREE.SphereGeometry(1, 64, 48),
       new THREE.ShaderMaterial({ uniforms: this.uniforms, vertexShader: EARTH_VERT, fragmentShader: EARTH_FRAG }),
-    ));
+    );
+    scene.add(this.earth);
 
     this.atmoU = { uSun: { value: this.uniforms.uSun.value }, uCam: { value: this.camera.position } };
     scene.add(new THREE.Mesh(
@@ -221,7 +222,7 @@
     });
     el.addEventListener("pointerup", (e) => {
       const d = self._drag; self._drag = null;
-      if (d && !d.moved && self.onPick) self.onPick(self.pick(e.clientX, e.clientY));
+      if (d && !d.moved && self.onPick) self.onPick(self.pick(e.clientX, e.clientY), e.clientX, e.clientY);
     });
     el.addEventListener("wheel", (e) => {
       e.preventDefault();
@@ -349,6 +350,39 @@
     });
   };
 
+  ExoGlobe.prototype.setRings = function (lat, lon, radii) {
+    if (!this.ringGroup) {
+      this.ringGroup = new THREE.Group();
+      this.scene.add(this.ringGroup);
+    }
+    while (this.ringGroup.children.length) {
+      const ch = this.ringGroup.children[0];
+      this.ringGroup.remove(ch);
+      if (ch.geometry) ch.geometry.dispose();
+    }
+    if (lat == null || lon == null || !radii || !radii.length) return;
+    const center = latLonToVec3(lat, lon, 1);
+    const n = center.clone().normalize();
+    const e1 = new THREE.Vector3(0, 1, 0).cross(n);
+    if (e1.length() < 1e-6) e1.set(1, 0, 0);
+    e1.normalize();
+    const e2 = new THREE.Vector3().crossVectors(n, e1).normalize();
+    radii.forEach((km) => {
+      const alpha = km / 6371;
+      const pts = [];
+      for (let i = 0; i <= 72; i++) {
+        const a = (i / 72) * Math.PI * 2;
+        const p = n.clone().multiplyScalar(Math.cos(alpha))
+          .add(e1.clone().multiplyScalar(Math.sin(alpha) * Math.cos(a)))
+          .add(e2.clone().multiplyScalar(Math.sin(alpha) * Math.sin(a)));
+        pts.push(p.x, p.y, p.z);
+      }
+      const g = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+      const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x7ee0ff, transparent: true, opacity: 0.45, toneMapped: false }));
+      this.ringGroup.add(line);
+    });
+  };
+
   ExoGlobe.prototype.recage = function (lat, lon) {
     if (lat == null || lon == null) { this._sph = { theta: 0.9, phi: 1.15, r: 3.05 }; return; }
     const p = latLonToVec3(lat, lon, 1);
@@ -366,6 +400,24 @@
     const hits = ray.intersectObjects(this.markGroup.children, false);
     if (hits[0] && hits[0].object.userData.marker) return hits[0].object.userData.marker;
     return null;
+  };
+
+  ExoGlobe.prototype.pickLatLon = function (cx, cy) {
+    if (!this.camera || !this.earth) return null;
+    const rect = this.canvas.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((cx - rect.left) / rect.width) * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1);
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(ndc, this.camera);
+    const hits = ray.intersectObject(this.earth, false);
+    if (!hits[0]) return null;
+    const p = hits[0].point;
+    const r = p.length();
+    const th = Math.acos(Math.max(-1, Math.min(1, p.y / r)));
+    const lat = 90 - (th * 180) / Math.PI;
+    let lon = (Math.atan2(p.z, -p.x) * 180) / Math.PI - 180;
+    while (lon > 180) lon -= 360;
+    while (lon < -180) lon += 360;
+    return { lat, lon };
   };
 
   global.ExoGlobe = ExoGlobe;

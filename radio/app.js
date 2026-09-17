@@ -10,6 +10,10 @@ const S = {
   myId: "", myName: "NODE", gps: null, nodes: {}, batt: [], tries: 0,
   keyDirty: false, keyClear: false, keySet: false, lastCfg: null, bleBuf: "",
   globe: null, ways: {}, rf: [], trail: [], rangeOn: false, rssiSpark: [], lastRssi: null, lastSnr: null,
+  stats: { packets: 0, byType: {}, linkUpAt: 0, lastPktAt: 0 },
+  renaming: null, tapDrop: false, sos: null, sosTimer: null, sel: null,
+  telemHist: [], unread: 0, lowBattWarned: {},
+  nodeSel: null, nodeTime: null,
 };
 
 function fitKb() {
@@ -30,6 +34,7 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
   document.querySelectorAll(".screen").forEach((x) => x.classList.remove("active"));
   b.classList.add("active");
   $("scr-" + b.dataset.s).classList.add("active");
+  if (b.dataset.s === "chat") { S.unread = 0; syncBadge(); }
   if (S.globe) S.globe.setActive(b.dataset.s === "map");
   if (b.dataset.s === "setup") syncInstallHint();
   if (b.dataset.s === "map") {
@@ -41,6 +46,8 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
 function toast(t) { const e = $("toast"); e.textContent = t; e.style.opacity = 1; setTimeout(() => e.style.opacity = 0, 1800); }
 function setPath(mode, up) {
   S.mode = mode;
+  if (up) { if (!S.stats.linkUpAt) S.stats.linkUpAt = Date.now() / 1000; }
+  else S.stats.linkUpAt = 0;
   $("hLink").classList.toggle("up", !!up);
   const c = $("btnConn"); const lbl = $("pathLbl");
   if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("modeTag").textContent = "DEV"; }
@@ -63,7 +70,15 @@ function setPath(mode, up) {
   syncMapChrome();
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
-function syncChatEmpty() { $("chatEmpty").style.display = $("chatLog").children.length ? "none" : ""; }
+function syncChatEmpty() {
+  const rows = [...$("chatLog").children];
+  const q = $("chatSearch") ? $("chatSearch").value.trim() : "";
+  const visible = rows.filter((el) => el.style.display !== "none").length;
+  const e = $("chatEmpty");
+  if (!rows.length) { e.textContent = "MESH QUIET. Wait for a peer."; e.style.display = ""; }
+  else if (!visible && q) { e.textContent = "NO MATCHES."; e.style.display = ""; }
+  else { e.style.display = "none"; }
+}
 function syncHeaderMeter() {
   const el = $("hMeter");
   if (!el) return;
@@ -230,6 +245,9 @@ function gpsFrom(m) {
 function chatText(m) { return m.text != null ? m.text : m.msg; }
 
 function handle(m) {
+  S.stats.packets++;
+  S.stats.byType[m.t] = (S.stats.byType[m.t] || 0) + 1;
+  S.stats.lastPktAt = Date.now() / 1000;
   switch (m.t) {
     case "hello":
       S.myId = m.id; S.myName = m.name || m.id; $("hName").textContent = S.myName;
@@ -249,6 +267,7 @@ function handle(m) {
       if (S.gps && S.gps.fix) {
         S.trail.push([S.gps.lat, S.gps.lon, Date.now() / 1000]);
         if (S.trail.length > 200) S.trail.shift();
+        ExoStore.put("tracks", { id: "trail", pts: S.trail });
         if (S.rangeOn) sampleRfHere();
       }
       break;
@@ -269,7 +288,9 @@ function handle(m) {
         mine: m.id === "me" || !m.id || (S.myId && m.id === S.myId),
       });
       S.ways[m.id] = { id: m.id, name: "SOS", lat: m.lat, lon: m.lon, kind: "sos" };
-      toast("SOS"); syncGlobe(); break;
+      toast("SOS"); syncGlobe();
+      raiseSos(m);
+      break;
     case "way":
       S.ways[m.id] = m; ExoStore.put("ways", m); renderWays(); syncGlobe(); break;
     case "track":
@@ -285,7 +306,8 @@ function handle(m) {
       else S.nodes[m.id] = m;
       renderNodes(); break;
     case "time":
-      break;
+      S.nodeTime = { epoch: m.epoch, mode: m.mode || "live", rate: m.rate != null ? m.rate : 1, at: Date.now() / 1000 };
+      renderStats(); break;
   }
 }
 
@@ -295,6 +317,57 @@ function sosLine(m) {
   if (/^sos\b/i.test(raw)) return raw;
   return "SOS " + raw;
 }
+function sosVibrate() {
+  if (navigator.vibrate) { try { navigator.vibrate([300, 100, 300]); } catch (e) {} }
+}
+function sosNotify(s) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") {
+    try { new Notification("EXOpace SOS", { body: s.msg + " — " + s.id, tag: "exo-sos" }); } catch (e) {}
+  } else if (Notification.permission === "default") {
+    Notification.requestPermission().then((p) => { if (p === "granted") sosNotify(s); });
+  }
+}
+function raiseSos(m) {
+  if (m.id === "me" || (S.myId && m.id === S.myId)) return;
+  const s = { id: m.id, lat: m.lat, lon: m.lon, msg: sosLine(m), ts: m.ts || Math.floor(Date.now() / 1000), acked: false };
+  S.sos = s;
+  $("sosWho").textContent = s.id;
+  $("sosMsg").textContent = s.msg;
+  $("sosBanner").hidden = false;
+  $("sosBanner").classList.remove("acked");
+  $("sosAck").textContent = "ACK";
+  sosVibrate();
+  sosNotify(s);
+  if (S.sosTimer) clearInterval(S.sosTimer);
+  S.sosTimer = setInterval(() => {
+    if (S.sos && !S.sos.acked) { sosVibrate(); toast("SOS UNACKED"); }
+  }, 30000);
+}
+function dismissSos() {
+  S.sos = null;
+  if (S.sosTimer) { clearInterval(S.sosTimer); S.sosTimer = null; }
+  $("sosBanner").hidden = true;
+}
+$("sosAck").onclick = () => {
+  const s = S.sos; if (!s) return;
+  s.acked = true;
+  const text = "ACK — on the way";
+  const went = send({ t: "chat", to: s.id, text, msg: text });
+  if (!went) echoOwnChat(text, s.id);
+  $("sosBanner").classList.add("acked");
+  $("sosAck").textContent = "ACKED";
+  if (S.sosTimer) { clearInterval(S.sosTimer); S.sosTimer = null; }
+  setTimeout(() => { if (S.sos && S.sos.acked) dismissSos(); }, 4000);
+};
+$("sosNav").onclick = () => {
+  const s = S.sos; if (!s) return;
+  if (s.lat != null && s.lon != null && S.globe) S.globe.recage(s.lat, s.lon);
+  const b = document.querySelector('nav button[data-s="map"]');
+  if (b) b.click();
+  toast("NAV SOS");
+};
+$("sosDismiss").onclick = dismissSos;
 function isOwnMsg(m) {
   const from = m.from || m.id;
   return !!(m.mine || from === "me" || m.fromName === "me" || (S.myId && from === S.myId));
@@ -306,13 +379,23 @@ function addMsg(m) {
   const ts = m.ts ? new Date(m.ts * 1000).toISOString().slice(11, 19) + " UTC" : "";
   let extra = "";
   if (m.ack) extra = '<span class="ok">✓ delivered</span>';
+  else if (own && m.to && m.to !== "*") extra = '<span class="pend">pending</span>';
   else if (!own && m.rssi !== undefined && m.rssi !== null) extra = m.rssi + " dBm · " + m.snr + " dB";
   const meta = ts && extra ? ts + " · " + extra : (ts || extra);
   d.innerHTML = '<div class="who">' + esc(own ? "YOU" : (m.fromName || m.from)) + (m.to && m.to !== "*" ? " → " + esc(m.toName || m.to) : "") + "</div>"
     + '<div class="txt">' + esc(chatText(m)) + '</div><div class="meta">' + meta + "</div>";
   $("chatLog").appendChild(d);
+  const q = $("chatSearch") ? $("chatSearch").value.trim().toLowerCase() : "";
+  if (q && !d.textContent.toLowerCase().includes(q)) d.style.display = "none";
   syncChatEmpty();
   $("chatLog").scrollTop = 1e9;
+  if (!own && !$("scr-chat").classList.contains("active")) { S.unread++; syncBadge(); }
+}
+function syncBadge() {
+  const b = $("chatBadge");
+  if (!b) return;
+  b.hidden = S.unread <= 0;
+  b.textContent = S.unread > 99 ? "99+" : S.unread;
 }
 function markAck(id) {
   const e = document.querySelector('.msg[data-mid="' + id + '"] .meta');
@@ -381,11 +464,87 @@ $("btnMaps").onclick = () => {
   const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
   window.open("https://maps.google.com/?q=" + g.lat + "," + g.lon, "_blank");
 };
+function sharePoint(m) {
+  const name = m.name || m.id || "EXOpace";
+  const text = name + " — " + m.lat.toFixed(6) + "," + m.lon.toFixed(6) + " (EXOpace Radio)";
+  const url = "https://maps.google.com/?q=" + m.lat + "," + m.lon;
+  if (navigator.share) {
+    navigator.share({ title: name, text, url }).catch(() => {});
+  } else {
+    navigator.clipboard && navigator.clipboard.writeText(text + " " + url);
+    toast("COPIED");
+  }
+}
+$("btnShare").onclick = () => {
+  const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
+  sharePoint({ name: S.myName || "ME", lat: g.lat, lon: g.lon });
+};
+function download(name, text) {
+  const blob = new Blob([text], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$("btnExportChat").onclick = () => {
+  const rows = [];
+  document.querySelectorAll("#chatLog .msg").forEach((el) => {
+    const who = (el.querySelector(".who") || {}).textContent || "";
+    const txt = (el.querySelector(".txt") || {}).textContent || "";
+    const meta = (el.querySelector(".meta") || {}).textContent || "";
+    rows.push("[" + meta + "] " + who + ": " + txt);
+  });
+  const text = "EXOpace Radio chat log\n" + new Date().toISOString() + "\n\n" + rows.join("\n");
+  download("exopace-chat.txt", text);
+  toast("CHAT EXPORTED");
+};
+$("btnClearChat").onclick = () => {
+  $("chatLog").innerHTML = "";
+  ExoStore.clear("chat");
+  syncChatEmpty();
+  toast("CHAT CLEARED");
+};
+$("chatSearch").oninput = () => {
+  const q = $("chatSearch").value.trim().toLowerCase();
+  [...$("chatLog").children].forEach((el) => {
+    el.style.display = !q || el.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+  syncChatEmpty();
+};
+$("btnGpx").onclick = () => {
+  const wpts = Object.keys(S.ways).map((i) => {
+    const w = S.ways[i];
+    return '  <wpt lat="' + w.lat + '" lon="' + w.lon + '"><name>' + esc(w.name) + "</name><desc>" + esc(w.kind) + "</desc></wpt>";
+  }).join("\n");
+  const trk = S.trail.length > 1
+    ? '  <trk><name>EXOpace trail</name><trkseg>\n' + S.trail.map((p) =>
+        '    <trkpt lat="' + p[0] + '" lon="' + p[1] + '"><time>' + new Date(p[2] * 1000).toISOString() + "</time></trkpt>"
+      ).join("\n") + "\n  </trkseg></trk>"
+    : "";
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="EXOpace Radio" xmlns="http://www.topografix.com/GPX/1/1">\n'
+    + wpts + (wpts && trk ? "\n" : "") + trk + "\n</gpx>\n";
+  download("exopace.gpx", xml);
+  toast("GPX EXPORTED");
+};
+$("btnSendTrack").onclick = () => {
+  if (S.trail.length < 2) return toast("NO TRAIL");
+  send(P.makeTrack({ id: S.myId || "me", pts: S.trail }));
+  toast("TRACK TX");
+};
 $("btnWay").onclick = () => {
   const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
+  dropWaypointAt(g.lat, g.lon);
+};
+function dropWaypointAt(lat, lon) {
   const id = "w" + Date.now().toString(36);
-  const w = P.makeWay({ id, name: "MARK", lat: g.lat, lon: g.lon, kind: $("wayKind").value || "meet" });
+  const w = P.makeWay({ id, name: "MARK", lat, lon, kind: $("wayKind").value || "meet" });
   send(w); handle(w); toast("WAYPOINT");
+}
+$("btnTapDrop").onclick = () => {
+  S.tapDrop = !S.tapDrop;
+  $("btnTapDrop").classList.toggle("primary", S.tapDrop);
+  toast(S.tapDrop ? "TAP DROP ON — tap the globe" : "TAP DROP OFF");
 };
 
 async function ensureGlobe() {
@@ -394,7 +553,14 @@ async function ensureGlobe() {
   try {
     S.globe = new ExoGlobe();
     await S.globe.mount($("globeC"));
-    S.globe.onPick = showDossier;
+    S.globe.onPick = (m, cx, cy) => {
+      if (S.tapDrop) {
+        const p = S.globe.pickLatLon(cx, cy);
+        if (p) { dropWaypointAt(p.lat, p.lon); S.tapDrop = false; $("btnTapDrop").classList.remove("primary"); }
+        return;
+      }
+      showDossier(m);
+    };
     S.globe.setActive($("scr-map").classList.contains("active"));
     syncGlobe();
   } catch (e) { toast("GLOBE FAIL"); }
@@ -420,6 +586,11 @@ function syncGlobe() {
     S.globe.setMarkers(pts);
     S.globe.setTrail(S.trail, $("stTrail").checked);
     S.globe.setHeat(S.rf);
+    S.globe.setRings(
+      $("stRings").checked && S.gps && S.gps.fix ? S.gps.lat : null,
+      $("stRings").checked && S.gps && S.gps.fix ? S.gps.lon : null,
+      [5, 10, 25],
+    );
   }
   const noMe = !(S.gps && S.gps.fix);
   const noPeer = !Object.keys(S.nodes).some((i) => S.nodes[i].lat != null);
@@ -428,9 +599,21 @@ function syncGlobe() {
     noPeer ? "MESH QUIET — peer dots appear when nodes report position." : "",
   ].filter(Boolean).join("\n");
 }
+function bearingDist(lat1, lon1, lat2, lon2) {
+  const R = 6371e3, toR = Math.PI / 180;
+  const p1 = lat1 * toR, p2 = lat2 * toR;
+  const dp = (lat2 - lat1) * toR, dl = (lon2 - lon1) * toR;
+  const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+  const distM = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const y = Math.sin(dl) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  const brg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  return { distM, brg };
+}
 function showDossier(m) {
   const tip = $("mapTip");
-  if (!m) { tip.style.display = "none"; return; }
+  if (!m) { tip.style.display = "none"; S.sel = null; return; }
+  S.sel = m;
   const lines = [m.name || "?", m.id || "",
     (m.lat != null ? (m.lat.toFixed(5) + " / " + m.lon.toFixed(5)) : ""),
     m.alt != null ? ("ALT " + Math.round(m.alt)) : "",
@@ -443,11 +626,30 @@ function showDossier(m) {
     m.kind === "st" ? "fixed pin" : "",
     m.kind === "sos" ? "SOS" : "",
   ].filter(Boolean);
-  tip.textContent = lines.join("\n");
+  if (S.gps && S.gps.fix && m.lat != null && m.lon != null) {
+    const bd = bearingDist(S.gps.lat, S.gps.lon, m.lat, m.lon);
+    lines.push("RANGE " + (bd.distM / 1000).toFixed(2) + " km · BRG " + Math.round(bd.brg) + "°");
+  }
+  let acts = "";
+  if (m.lat != null && m.lon != null) {
+    acts = '<div class="tipActs"><button class="btn" id="tipNav">NAV</button><button class="btn" id="tipShare">SHARE</button></div>';
+  }
+  tip.innerHTML = '<div class="tipTxt">' + esc(lines.join("\n")) + "</div>" + acts;
   tip.style.display = "block";
 }
+$("mapTip").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b || !S.sel) return;
+  if (b.id === "tipNav") {
+    if (S.globe) S.globe.recage(S.sel.lat, S.sel.lon);
+    toast("NAV");
+  } else if (b.id === "tipShare") {
+    sharePoint(S.sel);
+  }
+});
 $("stPin").onchange = () => syncGlobe();
 $("stTrail").onchange = () => syncGlobe();
+$("stRings").onchange = () => syncGlobe();
 $("btnRecage").onclick = () => {
   if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
   if (!S.globe) return;
@@ -469,9 +671,11 @@ function syncMapChrome() {
   if (way) { way.hidden = !hasFix; way.style.display = hasFix ? "" : "none"; }
   if (kind) { kind.hidden = !hasFix; kind.style.display = hasFix ? "" : "none"; }
   const copy = $("btnCopy");
+  const share = $("btnShare");
   const maps = $("btnMaps");
   const mapsHint = $("mapsHint");
   if (copy) { copy.hidden = !hasFix; copy.style.display = hasFix ? "" : "none"; }
+  if (share) { share.hidden = !hasFix; share.style.display = hasFix ? "" : "none"; }
   if (maps) { maps.hidden = !hasFix; maps.style.display = hasFix ? "" : "none"; }
   if (mapsHint) mapsHint.hidden = !hasFix;
   const compass = $("compass");
@@ -507,6 +711,36 @@ function ago(ts) {
   const s = ts > 1e9 ? Math.max(0, (Date.now() / 1000) - ts) : ts;
   return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : Math.round(s / 3600) + "h";
 }
+function tickClock() {
+  const d = new Date();
+  $("vClock").textContent = d.toISOString().slice(11, 19) + " UTC";
+  const nt = S.nodeTime;
+  if (nt && nt.epoch != null) {
+    const off = Math.round(nt.epoch - Date.now() / 1000);
+    $("vClockOff").textContent = "node " + (off > 0 ? "+" : "") + off + "s · " + nt.mode;
+  } else {
+    $("vClockOff").textContent = "node time not synced";
+  }
+}
+function renderStats() {
+  const s = S.stats;
+  $("stPkts").textContent = s.packets;
+  $("stNodes").textContent = Object.keys(S.nodes).length;
+  $("stUp").textContent = s.linkUpAt ? fmtUp(Date.now() / 1000 - s.linkUpAt) : "—";
+  $("stLast").textContent = s.lastPktAt ? ago(s.lastPktAt) + " ago" : "—";
+  const nt = S.nodeTime;
+  if (nt && nt.epoch != null) {
+    const off = Math.round(nt.epoch - Date.now() / 1000);
+    $("stClock").textContent = (off > 0 ? "+" : "") + off + "s";
+    $("stTime").textContent = nt.mode + (nt.rate && nt.rate !== 1 ? " " + nt.rate + "×" : "");
+  } else {
+    $("stClock").textContent = "—";
+    $("stTime").textContent = "—";
+  }
+  const top = Object.keys(s.byType).sort((a, b) => s.byType[b] - s.byType[a]).slice(0, 5)
+    .map((k) => k + " " + s.byType[k]).join(" · ");
+  $("stByType").textContent = top ? top : "no packets yet";
+}
 function renderNodes() {
   const ids = Object.keys(S.nodes);
   const sel = $("chatTo"); const cur = sel.value;
@@ -515,10 +749,21 @@ function renderNodes() {
   $("nodeList").innerHTML = ids.length ? ids.map((i) => {
     const n = P.applyPresence(S.nodes[i]);
     const fade = Math.round(n.conf * 100);
-    return '<div class="card node" style="opacity:' + (0.35 + 0.65 * n.conf) + '"><div><div class="nm">' + esc(n.name || "?") + '</div><div class="id">' + i + " · " + fade + "%</div></div>"
-      + '<div class="st">' + ago(n.last) + " ago<br>" + (n.batt != null ? n.batt + "%" : "") + "</div>" + bars(n.rssi ?? -140) + "</div>";
+    warnBatt(n.name || i, n.batt);
+    const acts = S.nodeSel === i
+      ? '<div class="row" style="flex:1 0 100%;gap:6px;margin-top:8px">'
+        + '<button class="btn" data-nact="nav" data-nid="' + i + '" style="width:auto;min-width:56px">NAV</button>'
+        + '<button class="btn" data-nact="share" data-nid="' + i + '" style="width:auto;min-width:56px">SHARE</button>'
+        + '<button class="btn" data-nact="msg" data-nid="' + i + '" style="width:auto;min-width:56px">MSG</button>'
+        + "</div>"
+      : "";
+    return '<div class="card node" data-nid="' + i + '" style="opacity:' + (0.35 + 0.65 * n.conf) + ';flex-wrap:wrap">'
+      + '<div><div class="nm">' + esc(n.name || "?") + '</div><div class="id">' + i + " · " + fade + "%</div></div>"
+      + '<div class="st">' + ago(n.last) + " ago<br>" + (n.batt != null ? n.batt + "%" : "") + "</div>" + bars(n.rssi ?? -140)
+      + acts + "</div>";
   }).join("") : '<div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div>';
   renderWays();
+  renderStats();
   syncGlobe();
 }
 function renderWays() {
@@ -527,8 +772,86 @@ function renderWays() {
   const ids = Object.keys(S.ways);
   el.innerHTML = ids.length ? ids.map((i) => {
     const w = S.ways[i];
-    return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + esc(w.kind) + "</div></div></div>";
+    if (S.renaming === i) {
+      return '<div class="card node"><div style="flex:1;min-width:0"><input id="wayName-' + i + '" class="wayName" maxlength="24" value="' + esc(w.name) + '"></div>'
+        + '<button class="btn" data-act="save" data-wid="' + i + '" style="width:auto;min-width:64px">SAVE</button></div>';
+    }
+    return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + esc(w.kind) + '</div></div>'
+      + '<div class="row" style="gap:6px;margin-left:auto">'
+      + '<button class="btn" data-act="nav" data-wid="' + i + '" style="width:auto;min-width:64px">NAV</button>'
+      + '<button class="btn" data-act="ren" data-wid="' + i + '" style="width:auto;min-width:64px">RENAME</button>'
+      + '<button class="btn" data-act="del" data-wid="' + i + '" style="width:auto;min-width:64px">DEL</button>'
+      + "</div></div>";
   }).join("") : '<div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div>';
+}
+$("wayList").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const id = btn.dataset.wid;
+  if (!id) return;
+  if (btn.dataset.act === "del") deleteWay(id);
+  else if (btn.dataset.act === "ren") startRename(id);
+  else if (btn.dataset.act === "save") saveRename(id);
+  else if (btn.dataset.act === "nav") navToWay(id);
+});
+function navToWay(id) {
+  const w = S.ways[id];
+  if (!w) return;
+  if (S.globe) S.globe.recage(w.lat, w.lon);
+  const b = document.querySelector('nav button[data-s="map"]');
+  if (b) b.click();
+  if (S.gps && S.gps.fix) {
+    const bd = bearingDist(S.gps.lat, S.gps.lon, w.lat, w.lon);
+    toast(w.name + " · " + (bd.distM / 1000).toFixed(2) + " km · BRG " + Math.round(bd.brg) + "°");
+  } else {
+    toast("NAV " + w.name);
+  }
+}
+$("nodeList").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-nact]");
+  if (btn) {
+    const id = btn.dataset.nid;
+    const n = S.nodes[id];
+    if (!n) return;
+    if (btn.dataset.nact === "nav") {
+      if (n.lat != null && n.lon != null && S.globe) S.globe.recage(+n.lat, +n.lon);
+      const b = document.querySelector('nav button[data-s="map"]');
+      if (b) b.click();
+      toast("NAV " + (n.name || id));
+    } else if (btn.dataset.nact === "share") {
+      if (n.lat == null || n.lon == null) return toast("NO POSITION");
+      sharePoint({ name: n.name || id, id, lat: +n.lat, lon: +n.lon });
+    } else if (btn.dataset.nact === "msg") {
+      const b = document.querySelector('nav button[data-s="chat"]');
+      if (b) b.click();
+      const sel = $("chatTo");
+      if ([...sel.options].some((o) => o.value === id)) sel.value = id;
+      $("chatText").focus();
+    }
+    return;
+  }
+  const card = e.target.closest(".card[data-nid]");
+  if (!card) return;
+  const id = card.dataset.nid;
+  S.nodeSel = S.nodeSel === id ? null : id;
+  renderNodes();
+});
+function deleteWay(id) {
+  delete S.ways[id];
+  ExoStore.del("ways", id);
+  renderWays(); syncGlobe();
+  toast("WAYPOINT DELETED");
+}
+function startRename(id) {
+  S.renaming = id;
+  renderWays();
+}
+function saveRename(id) {
+  const input = $("wayName-" + id);
+  const name = input ? input.value.trim() : "";
+  if (name) { S.ways[id].name = name; ExoStore.put("ways", S.ways[id]); }
+  S.renaming = null;
+  renderWays(); syncGlobe();
 }
 
 function syncTelemEmpty(has) {
@@ -548,7 +871,19 @@ function renderTelem(d) {
   if (d.rssi != null) S.lastRssi = d.rssi;
   if (d.snr != null) S.lastSnr = d.snr;
   S.rssiSpark.push(d.rssi ?? -120); if (S.rssiSpark.length > 48) S.rssiSpark.shift();
+  S.telemHist.push({ ts: Date.now() / 1000, batt: d.batt, rssi: d.rssi });
+  if (S.telemHist.length > 120) S.telemHist.shift();
+  ExoStore.put("telem", { id: "hist", samples: S.telemHist });
+  warnBatt("NODE", d.batt);
   drawBatt(); drawSpark();
+}
+function warnBatt(id, batt) {
+  if (batt == null) return;
+  if (batt < 20) {
+    if (!S.lowBattWarned[id]) { S.lowBattWarned[id] = true; toast("LOW BATTERY · " + id); }
+  } else if (batt >= 25) {
+    S.lowBattWarned[id] = false;
+  }
 }
 function fmtUp(s) { s = s || 0; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h + "h " + m + "m"; }
 function syncChartEmpty(canvasId, emptyId, has) {
@@ -621,15 +956,32 @@ $("cfgClearKey").onclick = () => {
   S.keyClear = true; S.keyDirty = false;
 };
 $("cfgSave").onclick = () => {
+  const freq = parseFloat($("cfgFreq").value);
+  const sf = parseInt($("cfgSf").value);
+  const txp = parseInt($("cfgTx").value);
+  const pass = $("cfgPass").value;
+  const gpsInt = parseInt($("cfgGpsInt").value) || 30;
+  const errs = [];
+  if (!(freq >= 400 && freq <= 1000)) errs.push("frequency");
+  if (!(sf >= 7 && sf <= 12)) errs.push("spreading factor");
+  if (!(txp >= 2 && txp <= 22)) errs.push("TX power 2-22 dBm");
+  if (pass && pass.length < 8) errs.push("AP password min 8");
+  if (!(gpsInt >= 5 && gpsInt <= 300)) errs.push("GPS interval 5-300s");
+  if (errs.length) return toast("CHECK " + errs[0].toUpperCase());
   const cfg = {
-    name: $("cfgName").value.trim() || "NODE", freq: parseFloat($("cfgFreq").value),
-    sf: parseInt($("cfgSf").value), txp: parseInt($("cfgTx").value), pass: $("cfgPass").value,
+    name: $("cfgName").value.trim().slice(0, 12) || "NODE", freq: freq,
+    sf: sf, txp: txp, pass: pass,
     gpsRx: parseInt($("cfgGpsRx").value), gpsTx: parseInt($("cfgGpsTx").value), gpsPwr: parseInt($("cfgGpsPwr").value),
-    gpsInt: parseInt($("cfgGpsInt").value) || 30,
+    gpsInt: gpsInt,
   };
   if (S.keyClear) cfg.clearKey = true;
   else if (S.keyDirty) { const k = $("cfgKey").value; if (k) cfg.key = k; }
+  toast("SAVED — RADIO REBOOTING");
   send({ t: "setcfg", cfg });
+};
+$("cfgRefresh").onclick = () => {
+  send({ t: "getcfg" });
+  toast("REFRESH REQUESTED");
 };
 
 function startDemo() {
@@ -759,6 +1111,17 @@ renderNodes();
     ways.forEach((w) => { if (w.id) S.ways[w.id] = w; });
     const rf = await ExoStore.all("rf");
     S.rf = rf.slice(-200);
+    const tracks = await ExoStore.all("tracks");
+    const trail = tracks.find((t) => t.id === "trail");
+    if (trail && Array.isArray(trail.pts)) S.trail = trail.pts.slice(-200);
+    const telem = await ExoStore.all("telem");
+    const hist = telem.find((t) => t.id === "hist");
+    if (hist && Array.isArray(hist.samples)) {
+      S.telemHist = hist.samples.slice(-120);
+      S.batt = S.telemHist.map((s) => s.batt || 0).slice(-60);
+      S.rssiSpark = S.telemHist.map((s) => (s.rssi == null ? -120 : s.rssi)).slice(-48);
+      drawBatt(); drawSpark();
+    }
   } catch (e) {}
   renderNodes();
 })();
@@ -812,3 +1175,7 @@ drawBatt();
 drawSpark();
 syncMapChrome();
 syncChatSend();
+syncBadge();
+tickClock();
+setInterval(renderStats, 1000);
+setInterval(tickClock, 1000);

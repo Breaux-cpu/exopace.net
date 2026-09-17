@@ -86,6 +86,7 @@ button,select,input{font:inherit;color:var(--text)}
 .msg .txt{white-space:pre-wrap;word-break:break-word}
 .msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
 .msg .meta .ok{color:var(--ok)}
+.msg .meta .pend{color:var(--mut);font-style:italic}
 #composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(4px + var(--kb));
   display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
 #composer[hidden]{display:none!important}
@@ -125,7 +126,7 @@ button,select,input{font:inherit;color:var(--text)}
 .mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
 .mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
 #btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
-#btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
+#btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnShare[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
 #posLL[hidden]{display:none!important}
 #posMeta[hidden]{display:none!important}
 .mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
@@ -189,6 +190,21 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
 .opt:disabled{opacity:.45;cursor:not-allowed}
 #remoteBox{display:none;margin:0 0 10px}
 #remoteBox.show{display:block}
+#sosBanner{position:fixed;top:0;left:0;right:0;z-index:30;background:#3a0f0a;border-bottom:2px solid #ff5c5c;
+  padding:10px 12px calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sosBanner[hidden]{display:none!important}
+#sosBanner.acked{background:#1c2a10;border-bottom-color:var(--ok)}
+#sosBanner .sosTxt{flex:1;min-width:0;font-family:var(--mono);font-size:12px;color:#ffd9d9;line-height:1.4}
+#sosBanner .sosTxt b{color:#ff5c5c;letter-spacing:.1em}
+#sosBanner.acked .sosTxt b{color:var(--ok)}
+#sosBanner .sosActs{display:flex;gap:8px}
+#sosBanner .sosActs .btn{width:auto;min-width:64px;padding:10px 12px;font-size:12px}
+.tipActs{display:flex;gap:8px;margin-top:8px}
+.tipActs .btn{width:auto;min-width:64px}
+.wayName{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--mono);min-height:44px;color:var(--text)}
+#chatBadge{display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:5px;
+  border-radius:8px;background:var(--warn);color:#141406;font-size:10px;font-weight:700;vertical-align:middle}
+#chatBadge[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -206,6 +222,15 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   <button class="conn" id="btnConn">CONNECT</button>
 </header>
 
+<div id="sosBanner" hidden>
+  <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span></div>
+  <div class="sosActs">
+    <button class="btn primary" id="sosAck">ACK</button>
+    <button class="btn" id="sosNav">NAV</button>
+    <button class="btn" id="sosDismiss">DISMISS</button>
+  </div>
+</div>
+
 <main>
   <section class="screen active" id="scr-chat">
     <div id="chatEmpty" class="card sub">MESH QUIET. Wait for a peer.</div>
@@ -215,6 +240,11 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
       <button class="btn" data-qtx="Need relay">Need relay</button>
       <button class="btn primary" data-qtx="SOS" data-sos="1">SOS</button>
     </div>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn" id="btnExportChat">EXPORT CHAT</button>
+      <button class="btn" id="btnClearChat">CLEAR</button>
+    </div>
+    <input id="chatSearch" class="wayName" placeholder="SEARCH CHAT" style="margin-bottom:8px">
     <div id="chatLog"></div>
     <div id="composer" hidden>
       <select id="chatTo"><option value="*">ALL</option></select>
@@ -232,8 +262,10 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="mapst" style="flex-direction:column;align-items:flex-start;gap:6px;right:8px;top:8px">
         <label><input type="checkbox" id="stPin"> STATION</label>
         <label><input type="checkbox" id="stTrail"> TRAIL</label>
+        <label><input type="checkbox" id="stRings"> RINGS</label>
       </div>
       <button class="btn" id="btnRecage">RECAGE ON ME</button>
+      <button class="btn" id="btnTapDrop" style="position:absolute;left:8px;bottom:104px;z-index:2;width:auto">TAP DROP</button>
       <button class="btn" id="btnRange" hidden style="position:absolute;left:8px;bottom:56px;z-index:2;width:auto">RANGE TEST</button>
     </div>
     <div class="card mapsec">
@@ -247,6 +279,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       </div>
       <div class="row" style="margin-top:8px">
         <button class="btn" id="btnCopy" hidden>COPY COORDS</button>
+        <button class="btn" id="btnShare" hidden>SHARE</button>
         <button class="btn" id="btnMaps" hidden>OPEN IN MAPS</button>
       </div>
       <div class="row" style="margin-top:8px">
@@ -258,10 +291,26 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   </section>
 
   <section class="screen" id="scr-nodes">
+    <h2>Mesh stats</h2>
+    <div class="card" id="meshStats">
+      <div class="grid2">
+        <div><div class="lbl">Packets</div><div class="big" id="stPkts" style="font-size:20px">0</div></div>
+        <div><div class="lbl">Nodes</div><div class="big" id="stNodes" style="font-size:20px">0</div></div>
+        <div><div class="lbl">Link uptime</div><div class="big" id="stUp" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Last packet</div><div class="big" id="stLast" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Clock</div><div class="big" id="stClock" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Time mode</div><div class="big" id="stTime" style="font-size:20px">—</div></div>
+      </div>
+      <div class="sub" id="stByType">no packets yet</div>
+    </div>
     <h2>Mesh roster</h2>
     <div id="nodeList"><div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div></div>
     <h2>Waypoints</h2>
     <div id="wayList"><div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnGpx">EXPORT GPX</button>
+      <button class="btn" id="btnSendTrack">SEND TRACK</button>
+    </div>
   </section>
 
   <section class="screen" id="scr-vitals">
@@ -273,6 +322,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px"></div><div class="sub" id="vSnr"></div></div>
       <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px"></div><div class="sub" id="vFreq"></div></div>
     </div>
+    <div class="card"><div class="lbl">UTC clock</div><div class="big" id="vClock" style="font-size:20px">--:--:--</div><div class="sub" id="vClockOff">node time not synced</div></div>
     <div class="card"><div class="lbl">Battery — last hour</div>
       <canvas id="battChart" width="300" height="128" hidden></canvas>
       <div class="sub" id="battEmpty">NO LAST-HOUR SAMPLES. Battery paints when the node reports.</div>
@@ -310,6 +360,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="field"><label>TX power (dBm)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
       <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
       <div class="field"><label>Channel key (AES-256)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
+      <button class="btn" id="cfgRefresh" style="margin-bottom:12px">REFRESH FROM RADIO</button>
       </div>
       <div class="sub" id="passHint" hidden>Set the node AP password on the radio before field use.</div>
       <div id="cfgHw" hidden>
@@ -329,7 +380,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </main>
 
 <nav>
-  <button data-s="chat" class="active">CHAT</button>
+  <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
   <button data-s="map">MAP</button>
   <button data-s="nodes">NET</button>
   <button data-s="vitals">NODE</button>
@@ -345,11 +396,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast"></div>
 
-<script src="env.js?v=47"></script>
+<script src="env.js?v=48"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=47"></script>
-<script src="store.js?v=47"></script>
-<script src="globe.js?v=47"></script>
-<script src="app.js?v=47"></script>
+<script src="protocol.js?v=48"></script>
+<script src="store.js?v=48"></script>
+<script src="globe.js?v=48"></script>
+<script src="app.js?v=48"></script>
 </body>
 </html>

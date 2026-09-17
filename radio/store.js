@@ -2,7 +2,7 @@
 (function (g) {
   const NAME = "exopace-radio";
   const VER = 1;
-  const STORES = ["chat", "nodes", "ways", "rf", "tracks"];
+  const STORES = ["chat", "nodes", "ways", "rf", "tracks", "telem"];
   let dbp = null;
 
   function open() {
@@ -39,6 +39,9 @@
     },
     all(store) {
       return tx(store, "readonly", (os) => os.getAll()).catch(() => []);
+    },
+    del(store, id) {
+      return tx(store, "readwrite", (os) => os.delete(id)).catch(() => {});
     },
     clear(store) {
       return tx(store, "readwrite", (os) => os.clear()).catch(() => {});
