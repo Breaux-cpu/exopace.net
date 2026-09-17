@@ -1,8 +1,8 @@
-/* IndexedDB — chat, nodes, waypoints, rf samples, tracks. Offline-first. */
+/* IndexedDB — chat, nodes, waypoints, rf samples, tracks, telemetry, system log. Offline-first. */
 (function (g) {
   const NAME = "exopace-radio";
-  const VER = 1;
-  const STORES = ["chat", "nodes", "ways", "rf", "tracks", "telem"];
+  const VER = 2;
+  const STORES = ["chat", "nodes", "ways", "rf", "tracks", "telem", "sys"];
   let dbp = null;
 
   function open() {

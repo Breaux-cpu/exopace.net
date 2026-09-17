@@ -15,6 +15,7 @@ const S = {
   telemHist: [], unread: 0, lowBattWarned: {},
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
+  events: [], rssiWarned: false,
 };
 
 function fitKb() {
@@ -46,9 +47,12 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
 
 function toast(t) { const e = $("toast"); e.textContent = t; e.style.opacity = 1; setTimeout(() => e.style.opacity = 0, 1800); }
 function setPath(mode, up) {
+  const prevUp = !!S.stats.linkUpAt;
   S.mode = mode;
   if (up) { if (!S.stats.linkUpAt) S.stats.linkUpAt = Date.now() / 1000; }
   else S.stats.linkUpAt = 0;
+  if (up && !prevUp) logEvent("LINK", mode === "demo" ? "demo mode on" : "link up");
+  else if (!up && prevUp) logEvent("LINK", "link down");
   $("hLink").classList.toggle("up", !!up);
   const c = $("btnConn"); const lbl = $("pathLbl");
   if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("modeTag").textContent = "DEV"; }
@@ -341,12 +345,14 @@ function raiseSos(m) {
   $("sosAck").textContent = "ACK";
   sosVibrate();
   sosNotify(s);
+  logEvent("SOS", "received from " + s.id);
   if (S.sosTimer) clearInterval(S.sosTimer);
   S.sosTimer = setInterval(() => {
     if (S.sos && !S.sos.acked) { sosVibrate(); toast("SOS UNACKED"); }
   }, 30000);
 }
 function dismissSos() {
+  if (S.sos) logEvent("SOS", "cleared");
   S.sos = null;
   if (S.sosTimer) { clearInterval(S.sosTimer); S.sosTimer = null; }
   $("sosBanner").hidden = true;
@@ -408,6 +414,7 @@ function markAck(id) {
   const time = (e.textContent || "").split(" · ")[0].trim();
   const keep = /^\d{2}:\d{2}:\d{2} UTC$/.test(time) ? time + " · " : "";
   e.innerHTML = keep + '<span class="ok">✓ delivered</span>';
+  logEvent("ACK", "delivered");
 }
 function esc(s) { return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function saveUi() {
@@ -575,6 +582,7 @@ function dropWaypointAt(lat, lon) {
   const id = "w" + Date.now().toString(36);
   const w = P.makeWay({ id, name: "MARK", lat, lon, kind: $("wayKind").value || "meet" });
   send(w); handle(w); toast("WAYPOINT");
+  logEvent("WAY", "dropped " + w.name + " (" + w.kind + ")");
 }
 $("btnTapDrop").onclick = () => {
   S.tapDrop = !S.tapDrop;
@@ -757,10 +765,11 @@ function watchNodes() {
     const n = P.applyPresence(S.nodes[i], now);
     const label = n.name || i;
     if (n.quiet) {
-      if (!S.nodeWatch[i]) { S.nodeWatch[i] = true; toast("NODE LOST · " + label); sysNotify("EXOpace NODE LOST", label, "exo-node-" + i); }
+      if (!S.nodeWatch[i]) { S.nodeWatch[i] = true; toast("NODE LOST · " + label); sysNotify("EXOpace NODE LOST", label, "exo-node-" + i); logEvent("NODE", "lost " + label); }
     } else if (S.nodeWatch[i]) {
       S.nodeWatch[i] = false;
       toast("NODE BACK · " + label);
+      logEvent("NODE", "back " + label);
     }
   });
 }
@@ -775,6 +784,30 @@ function tickClock() {
     $("vClockOff").textContent = "node time not synced";
   }
 }
+function logEvent(type, text) {
+  const ev = { ts: Date.now() / 1000, type, text };
+  S.events.push(ev);
+  if (S.events.length > 200) S.events.shift();
+  ExoStore.put("sys", ev);
+  renderEvents();
+}
+function renderEvents() {
+  const el = $("evLog");
+  if (!el) return;
+  if (!S.events.length) { el.innerHTML = '<div class="sub">No events yet.</div>'; return; }
+  el.innerHTML = S.events.slice(-60).reverse().map((e) =>
+    '<div class="evline"><span class="evt">' + esc(e.type) + '</span>' + esc(e.text) + '<span class="evago">' + ago(e.ts) + '</span></div>'
+  ).join("");
+}
+$("btnEvExport").onclick = () => {
+  if (!S.events.length) return toast("NO EVENTS");
+  const rows = S.events.map((e) => new Date(e.ts * 1000).toISOString() + " [" + e.type + "] " + e.text);
+  download("exopace-log.txt", "EXOpace Radio event log\n" + new Date().toISOString() + "\n\n" + rows.join("\n"));
+  toast("LOG EXPORTED");
+};
+$("btnEvClear").onclick = () => {
+  S.events = []; ExoStore.clear("sys"); renderEvents(); toast("LOG CLEARED");
+};
 function renderStats() {
   const s = S.stats;
   $("stPkts").textContent = s.packets;
@@ -923,10 +956,12 @@ $("nodeList").addEventListener("click", (e) => {
   renderNodes();
 });
 function deleteWay(id) {
+  const w = S.ways[id];
   delete S.ways[id];
   ExoStore.del("ways", id);
   renderWays(); syncGlobe();
   toast("WAYPOINT DELETED");
+  logEvent("WAY", "deleted " + (w ? w.name : id));
 }
 function startRename(id) {
   S.renaming = id;
@@ -935,7 +970,7 @@ function startRename(id) {
 function saveRename(id) {
   const input = $("wayName-" + id);
   const name = input ? input.value.trim() : "";
-  if (name) { S.ways[id].name = name; ExoStore.put("ways", S.ways[id]); }
+  if (name) { S.ways[id].name = name; ExoStore.put("ways", S.ways[id]); logEvent("WAY", "renamed to " + name); }
   S.renaming = null;
   renderWays(); syncGlobe();
 }
@@ -961,7 +996,16 @@ function renderTelem(d) {
   if (S.telemHist.length > 120) S.telemHist.shift();
   ExoStore.put("telem", { id: "hist", samples: S.telemHist });
   warnBatt("NODE", d.batt);
+  warnRssi(d.rssi);
   drawBatt(); drawSpark();
+}
+function warnRssi(rssi) {
+  if (rssi == null) return;
+  if (rssi < -120) {
+    if (!S.rssiWarned) { S.rssiWarned = true; toast("WEAK LINK · " + rssi + " dBm"); logEvent("RF", "weak link " + rssi + " dBm"); }
+  } else if (rssi > -114) {
+    S.rssiWarned = false;
+  }
 }
 function warnBatt(id, batt) {
   if (batt == null) return;
@@ -1063,6 +1107,7 @@ $("cfgSave").onclick = () => {
   if (S.keyClear) cfg.clearKey = true;
   else if (S.keyDirty) { const k = $("cfgKey").value; if (k) cfg.key = k; }
   toast("SAVED — RADIO REBOOTING");
+  logEvent("CFG", "saved " + cfg.name + " · " + cfg.freq + " MHz SF" + cfg.sf);
   send({ t: "setcfg", cfg });
 };
 $("cfgRefresh").onclick = () => {
@@ -1247,6 +1292,9 @@ renderNodes();
       S.rssiSpark = S.telemHist.map((s) => (s.rssi == null ? -120 : s.rssi)).slice(-48);
       drawBatt(); drawSpark();
     }
+    const sys = await ExoStore.all("sys");
+    S.events = sys.slice(-200);
+    renderEvents();
   } catch (e) {}
   renderNodes();
 })();

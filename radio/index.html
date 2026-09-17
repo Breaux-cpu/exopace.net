@@ -87,6 +87,9 @@ button,select,input{font:inherit;color:var(--text)}
 .msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
 .msg .meta .ok{color:var(--ok)}
 .msg .meta .pend{color:var(--mut);font-style:italic}
+.evline{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--line)}
+.evline .evt{color:var(--amber);min-width:46px;flex:none}
+.evline .evago{color:var(--mut);margin-left:auto;flex:none}
 #composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(4px + var(--kb));
   display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
 #composer[hidden]{display:none!important}
@@ -313,6 +316,14 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     <div class="row" style="margin-top:10px">
       <button class="btn" id="btnGpx">EXPORT GPX</button>
       <button class="btn" id="btnSendTrack">SEND TRACK</button>
+    </div>
+    <h2>Event log</h2>
+    <div class="card">
+      <div id="evLog"><div class="sub">No events yet.</div></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnEvExport">EXPORT LOG</button>
+        <button class="btn" id="btnEvClear">CLEAR</button>
+      </div>
     </div>
   </section>
 
