@@ -14,6 +14,7 @@ const S = {
   renaming: null, tapDrop: false, sos: null, sosTimer: null, sel: null,
   telemHist: [], unread: 0, lowBattWarned: {},
   nodeSel: null, nodeTime: null, nodeWatch: {},
+  sort: "rssi", savedChatTo: null,
 };
 
 function fitKb() {
@@ -409,6 +410,24 @@ function markAck(id) {
   e.innerHTML = keep + '<span class="ok">✓ delivered</span>';
 }
 function esc(s) { return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function saveUi() {
+  try {
+    localStorage.setItem("exopace-ui", JSON.stringify({
+      pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
+      sort: S.sort, chatTo: $("chatTo").value,
+    }));
+  } catch (e) {}
+}
+function loadUi() {
+  let u = {};
+  try { u = JSON.parse(localStorage.getItem("exopace-ui") || "{}") || {}; } catch (e) { u = {}; }
+  if (u.pin != null) $("stPin").checked = !!u.pin;
+  if (u.trail != null) $("stTrail").checked = !!u.trail;
+  if (u.rings != null) $("stRings").checked = !!u.rings;
+  if (u.heat != null) $("stHeat").checked = !!u.heat;
+  if (u.sort) S.sort = u.sort;
+  if (u.chatTo != null) S.savedChatTo = u.chatTo;
+}
 
 function echoOwnChat(text, to) {
   handle({
@@ -657,10 +676,14 @@ $("mapTip").addEventListener("click", (e) => {
     sharePoint(S.sel);
   }
 });
-$("stPin").onchange = () => syncGlobe();
-$("stTrail").onchange = () => syncGlobe();
-$("stRings").onchange = () => syncGlobe();
-$("stHeat").onchange = () => syncGlobe();
+$("stPin").onchange = () => { saveUi(); syncGlobe(); };
+$("stTrail").onchange = () => { saveUi(); syncGlobe(); };
+$("stRings").onchange = () => { saveUi(); syncGlobe(); };
+$("stHeat").onchange = () => { saveUi(); syncGlobe(); };
+$("btnSort").onclick = () => {
+  S.sort = S.sort === "rssi" ? "name" : S.sort === "name" ? "batt" : "rssi";
+  saveUi(); renderNodes();
+};
 $("btnRecage").onclick = () => {
   if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
   if (!S.globe) return;
@@ -764,12 +787,35 @@ function renderStats() {
   const top = Object.keys(s.byType).sort((a, b) => s.byType[b] - s.byType[a]).slice(0, 5)
     .map((k) => k + " " + s.byType[k]).join(" · ");
   $("stByType").textContent = top ? top : "no packets yet";
+  const near = nearestPeer();
+  $("stNearest").textContent = near
+    ? "nearest " + near.name + " · " + (near.distM / 1000).toFixed(2) + " km · BRG " + Math.round(near.brg) + "°"
+    : "nearest —";
+}
+function nearestPeer() {
+  const g = S.gps;
+  if (!g || !g.fix) return null;
+  let best = null;
+  Object.keys(S.nodes).forEach((i) => {
+    const n = S.nodes[i];
+    if (n.lat == null || n.lon == null) return;
+    const bd = bearingDist(g.lat, g.lon, +n.lat, +n.lon);
+    if (!best || bd.distM < best.distM) best = { name: n.name || i, distM: bd.distM, brg: bd.brg };
+  });
+  return best;
 }
 function renderNodes() {
-  const ids = Object.keys(S.nodes);
-  const sel = $("chatTo"); const cur = sel.value;
+  const ids = Object.keys(S.nodes).sort((a, b) => {
+    const A = P.applyPresence(S.nodes[a]), B = P.applyPresence(S.nodes[b]);
+    if (S.sort === "name") return String(A.name || a).localeCompare(String(B.name || b));
+    if (S.sort === "batt") return (B.batt == null ? -1 : B.batt) - (A.batt == null ? -1 : A.batt);
+    return (B.rssi == null ? -999 : B.rssi) - (A.rssi == null ? -999 : A.rssi);
+  });
+  const sel = $("chatTo"); const cur = sel.value !== "*" ? sel.value : (S.savedChatTo || "*");
   sel.innerHTML = '<option value="*">ALL</option>' + ids.map((i) => '<option value="' + i + '">' + esc(S.nodes[i].name || i) + "</option>").join("");
   sel.value = [...sel.options].some((o) => o.value === cur) ? cur : "*";
+  const labels = { rssi: "SIGNAL", name: "NAME", batt: "BATTERY" };
+  if ($("btnSort")) $("btnSort").textContent = "SORT · " + (labels[S.sort] || "SIGNAL");
   $("nodeList").innerHTML = ids.length ? ids.map((i) => {
     const n = P.applyPresence(S.nodes[i]);
     const fade = Math.round(n.conf * 100);
@@ -802,9 +848,10 @@ function renderWays() {
     }
     return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + esc(w.kind) + '</div></div>'
       + '<div class="row" style="gap:6px;margin-left:auto">'
-      + '<button class="btn" data-act="nav" data-wid="' + i + '" style="width:auto;min-width:64px">NAV</button>'
-      + '<button class="btn" data-act="ren" data-wid="' + i + '" style="width:auto;min-width:64px">RENAME</button>'
-      + '<button class="btn" data-act="del" data-wid="' + i + '" style="width:auto;min-width:64px">DEL</button>'
+      + '<button class="btn" data-act="nav" data-wid="' + i + '" style="width:auto;min-width:56px">NAV</button>'
+      + '<button class="btn" data-act="share" data-wid="' + i + '" style="width:auto;min-width:56px">SHARE</button>'
+      + '<button class="btn" data-act="ren" data-wid="' + i + '" style="width:auto;min-width:56px">REN</button>'
+      + '<button class="btn" data-act="del" data-wid="' + i + '" style="width:auto;min-width:56px">DEL</button>'
       + "</div></div>";
   }).join("") : '<div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div>';
 }
@@ -817,6 +864,7 @@ $("wayList").addEventListener("click", (e) => {
   else if (btn.dataset.act === "ren") startRename(id);
   else if (btn.dataset.act === "save") saveRename(id);
   else if (btn.dataset.act === "nav") navToWay(id);
+  else if (btn.dataset.act === "share") { const w = S.ways[id]; if (w) sharePoint(w); }
 });
 function navToWay(id) {
   const w = S.ways[id];
@@ -1195,6 +1243,8 @@ if (location.hash === "#map") {
   if ($("btnRangeCsv0")) $("btnRangeCsv0").onclick = () => { location.href = "/range0.csv"; };
 })();
 
+loadUi();
+$("chatTo").onchange = () => { S.savedChatTo = $("chatTo").value; saveUi(); };
 drawBatt();
 drawSpark();
 syncMapChrome();
