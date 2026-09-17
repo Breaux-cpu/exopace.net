@@ -5,8 +5,8 @@ One brand. Two surfaces. One protocol.
 | Surface | URL | What |
 |---------|-----|------|
 | **MOC** | https://exopace.net | Planetary / orbital mission control (Cesium) |
-| **Radio** | https://exopace.net/radio/ | SDR web app (dj SDR) — remote control for the RTL-SDR host |
-| **Mesh** | https://exopace.net/mesh/ | Installable field radio PWA |
+| **Radio** | https://exopace.net/radio/ | Installable field radio PWA |
+| **SDR** | `SDR.md` | Memphis RF sensor surface: decoder matrix + live view |
 | **Firmware** | `FIRMWARE.md` | Heltec V4 contract |
 
 Host: **https://exopace.net**  
@@ -20,10 +20,9 @@ exopace.com is a parking lander — leave it alone.
 Live source: **https://github.com/Breaux-cpu/exopace.net**. This GitHub tree **is** the shipped static PWA (Cloudflare Pages publish dump). There is **no** root `package.json`, no Vite `src/`, and no committed copy of `/mnt/gsdata/exopace/moc`. The workstation moc source was never pushed here. Do not invent a second repo.
 
 - **MOC** ships as hashed assets (`assets/index-B5yAHF7-.js` + `sat-CIpmmEb5.js`) plus `/cesium/`. Do not invent a second Mission Control.
-- **Radio** is the SDR web app: `radio/index.html`, `radio/unlock.html`, `radio/assets/`. It talks to the SDR host's `sdr-web` backend (Tailscale) via the `BASE` constant in `radio/index.html`.
-- **Mesh** is real source: `mesh/*.js`, `mesh/index.html`, `mesh/textures/`.
-- **Protocol** ESM: `protocol/index.js`. Mesh IIFE: `mesh/protocol.js`.
-- `env.js` / `mesh/env.js` are **prod**: `EXOPACE_ENV=prod`, `EXOPACE_ALLOW_DEMO=false`. Do not enable Demo in this tree.
+- **Radio** is real source: `radio/*.js`, `radio/index.html`, `radio/textures/`.
+- **Protocol** ESM: `protocol/index.js`. Radio IIFE: `radio/protocol.js`.
+- `env.js` / `radio/env.js` are **prod**: `EXOPACE_ENV=prod`, `EXOPACE_ALLOW_DEMO=false`. Do not enable Demo in this tree.
 
 ## Install Radio
 
@@ -92,6 +91,8 @@ See `FIRMWARE.md`. The `firmware/exopace_v4/` overlay and `~/nodelink` field tre
 ## SDR / ingest (not in this git tree)
 
 `SDR_AGENT.md` is the contract: readsb `aircraft.json` on localhost:8080, AIS-catcher optional, one RTL-SDR per band, no demo/fake tracks in prod. The USB dongle lives on workstation **jessy** — not on a Cloud Agent VM; do not open `/dev/bus/usb` here.
+
+The Memphis sensor (**dj**) is `SDR.md`: same no-fake rules but a wider verified matrix — ADS-B/AIS/APRS/POCSAG/ISM, Meteor LRPT + NOAA, ISS SSTV, ACARS, RS41 radiosonde tracking, P25/YSF voice, WSPR/FT8, RDS, wideband sweep, rtl_tcp — with a Tailnet phone web UI (`sdr-web`).
 
 The Python agent is `/mnt/gsdata/exopace/sdr-agent`. Public `wss://exopace.net/bridge/sensor` is **not** a Pages route yet. Until a Worker/ingest origin exists, MOC AIR/SEA/RF stay empty and must read **ERROR / OFFLINE / NO RF SAMPLES** — never invented tracks.
 

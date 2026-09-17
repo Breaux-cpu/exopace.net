@@ -2,6 +2,7 @@
 /FIRMWARE.md    /FIRMWARE.md    200
 /FEEDS.md       /FEEDS.md       200
 /SDR_AGENT.md   /SDR_AGENT.md   200
+/SDR.md         /SDR.md         200
 /env.js         /env.js         200
 /cesium/*       /cesium/:splat 200
 /mesh/three.min.js /mesh/three.min.js 200

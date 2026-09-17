@@ -24,6 +24,7 @@
 | AIR | OpenSky — CORS **not** open to this origin | **ERROR**, layer empty |
 | SEA | ingest/bridge AIS only | **ERROR**, layer empty |
 | RF | `GET {BRIDGE}/rf/grid` | **NO RF SAMPLES** |
+| RADIO-TEL | dj `sdr-web` widescan peaks + RS41 sonde positions (`SDR.md`) | **NO RF SAMPLES** |
 
 ## Run ingest
 
@@ -35,3 +36,10 @@ python3 /mnt/gsdata/exopace/bridge/token_tool.py mint radio1
 ```
 
 No placeholder API keys in the repo.
+
+## SDR surface
+
+The Memphis sensor (`SDR.md`) publishes live spectrum sweeps, decoder logs, and
+radiosonde/ADS-B/AIS positions from its Tailnet reader (`sdr-web`). Until the
+Pages ingest origin is wired, MOC RF shows **NO RF SAMPLES** — the sensor output
+is real, the shipper is not. Never ship invented RF samples.
