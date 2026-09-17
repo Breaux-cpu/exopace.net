@@ -45,6 +45,19 @@ returns peak frequency/dB via `GET /api/widescan`; the digital-voice decoders
 (P25/YSF/DMR/NXDN/D-STAR/M17) fan their decoded audio to the phone over
 `/stream`.
 
+### Native pass prediction
+
+`GET /api/passes` predicts upcoming **Meteor-M2-4 / M2-3 LRPT** and **ISS SSTV**
+passes for the Millington station on the board itself: `python3-sgp4` propagates
+the elements and az/el, AOS/LOS, max elevation and duration are interpolated at
+15 s. TLEs are merged from a Celestrak refresh (`weather` + `stations`, written to
+`~/.config/sdr-monitor/tle.txt` every 6 h), satdump's cache and the committed
+snapshots, keeping the newest epoch per satellite. The phone card lists the next
+24 h and loads a pass's decoder; setting `SDR_AUTOSAT` (e.g. `1` or `meteor,iss`)
+starts a pass automatically at AOS without preempting a live stream or job.
+Validated against the independent WhereTheISS ephemeris — the sub-satellite point
+matched to 0.001° once current elements were used.
+
 ### Optional SondeHub federation
 
 RS41 telemetry is tracked **locally by default**. Setting the `SONDEHUB_AMATEUR`
