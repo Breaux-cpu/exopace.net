@@ -290,7 +290,7 @@ assert(!/text: "SOS " \+ \(m\.msg/.test(meshApp), "SOS handler does not glue SOS
 const sdrHtml = read("radio/index.html");
 const sdrUnlock = read("radio/unlock.html");
 assert(sdrHtml.includes("dj SDR"), "SDR app title");
-assert(sdrHtml.includes('const BASE="http://100.64.185.111:8110"'), "SDR app points at the host backend");
+assert(sdrHtml.includes('const BASE="https://dj.tail0e44f5.ts.net:8443"'), "SDR app points at the host backend over HTTPS");
 assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
 assert(sdrHtml.includes("assets/leaflet.min.js") && sdrHtml.includes("assets/leaflet.css"), "SDR leaflet is local");
 assert(sdrHtml.includes("api_key=cb1_3pqj_1_3ae9e10bef10a2dc2ff55371"), "SDR CARTO tiles carry the API key");
@@ -299,6 +299,8 @@ assert(existsSync(join(root, "radio/assets/leaflet.min.js")) && existsSync(join(
 assert(sdrUnlock.includes("./?t="), "SDR unlock redirects to its own path");
 assert(!existsSync(join(root, "radio/app.js")) && !existsSync(join(root, "radio/sw.js")), "SDR app replaced the radio PWA at /radio/");
 assert(headers.includes("/radio/index.html") && headers.includes("/mesh/index.html"), "in-place SDR + mesh index are no-cache");
+assert(read("assets/index-B5yAHF7-.js").includes('href:"/radio/"'), "MOC RADIO button points at the SDR app");
+assert(read("404.html").includes('href="/radio/"'), "404 RADIO link points at the SDR app");
 
 // --- shipped MOC still has palette + quality + deep link (bundle, no Vite source) ---
 const moc = read("assets/index-B5yAHF7-.js");
