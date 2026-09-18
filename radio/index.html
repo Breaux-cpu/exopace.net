@@ -356,23 +356,31 @@ table{width:100%;border-collapse:collapse}
 </section>
 
 <section id="camera">
- <div class="card"><h2>Live view</h2>
-  <div class="grid" style="grid-template-columns:1fr 1fr">
-   <button class="b alt" id="camsrc-dj" onclick="camSrc('dj')">dj</button>
-   <button class="b alt" id="camsrc-jessy" onclick="camSrc('jessy')">jessy</button></div>
-  <div id="camstate" style="margin-top:9px"></div>
-  <img id="camimg" style="width:100%;border-radius:11px;margin-top:9px;display:none;
-   background:#0a0f16" alt="camera">
-  <div id="camoff" class="muted" style="margin-top:9px">camera stopped</div>
-  <div class="grid" style="margin-top:9px">
-   <button class="b" onclick="camStart()">Start</button>
-   <button class="b stop" onclick="camStop()">Stop</button></div>
-  <div class="grid" style="margin-top:7px">
-   <button class="b alt" onclick="camSnap()">Snapshot → phone</button></div>
-  <div class="muted" style="margin-top:8px">Released automatically ~25s after the last viewer
-   closes, so it isn't holding USB bandwidth in the background.</div>
- </div>
-</section>
+  <div class="card"><h2>Live view</h2>
+   <div id="camlock" style="margin-bottom:9px">
+    <div class="muted" style="margin-bottom:6px">Camera is locked. Enter the camera passcode to view.</div>
+    <div class="grid" style="grid-template-columns:1fr auto">
+     <input id="camcode" type="password" placeholder="camera passcode" style="background:#0d141d;border:1px solid #24313f;color:#e8f0f8;padding:10px;border-radius:8px;font-size:15px">
+     <button class="b" onclick="camUnlock()">Unlock</button></div>
+   </div>
+   <div id="camctl">
+   <div class="grid" style="grid-template-columns:1fr 1fr">
+    <button class="b alt" id="camsrc-dj" onclick="camSrc('dj')">dj</button>
+    <button class="b alt" id="camsrc-jessy" onclick="camSrc('jessy')">jessy</button></div>
+   <div id="camstate" style="margin-top:9px"></div>
+   <img id="camimg" style="width:100%;border-radius:11px;margin-top:9px;display:none;
+    background:#0a0f16" alt="camera">
+   <div id="camoff" class="muted" style="margin-top:9px">camera stopped</div>
+   <div class="grid" style="margin-top:9px">
+    <button class="b" onclick="camStart()">Start</button>
+    <button class="b stop" onclick="camStop()">Stop</button></div>
+   <div class="grid" style="margin-top:7px">
+    <button class="b alt" onclick="camSnap()">Snapshot → phone</button></div>
+   <div class="muted" style="margin-top:8px">Released automatically ~25s after the last viewer
+    closes, so it isn't holding USB bandwidth in the background.</div>
+   </div>
+  </div>
+ </section>
 
 <section id="tools">
  <div class="card"><h2>Agent</h2><div id="agentstate"></div>
@@ -847,27 +855,33 @@ function loadWifi(f,src){
  if(el('wifi').classList.contains('on'))wifiTimer=setTimeout(()=>loadWifi(),30000);
 }
 
-let camTimer=null,camSource='jessy';
+let camTimer=null,camSource='jessy',camTok=localStorage.getItem('sdrctok')||'';
+function camLocked(){return !camTok;}
+function camUnlock(){const v=el('camcode').value.trim();if(!v)return;camTok=v;localStorage.setItem('sdrctok',v);loadCam();}
 function camSrc(s){if(camSource===s)return;camStopView();camSource=s;
  el('camsrc-dj').classList.toggle('on',s==='dj');el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
 function camView(on){const i=el('camimg');
- if(on){i.src=BASE+'/camera/stream?src='+camSource+'&t='+T+'&_='+Date.now();i.style.display='block';el('camoff').style.display='none';}
+ if(on){i.src=BASE+'/camera/stream?src='+camSource+'&cam='+camTok+'&t='+T+'&_='+Date.now();i.style.display='block';el('camoff').style.display='none';}
  else{i.removeAttribute('src');i.style.display='none';el('camoff').style.display='block';}}
 function camStopView(){if(el('camimg')&&el('camimg').src)camView(false);clearTimeout(camTimer);}
-function loadCam(){api('/api/camera?src='+camSource).then(d=>{
- el('camstate').innerHTML=rows([
-  ['board',camSource],
-  ['camera',d.error?('<span class="bad">'+esc(d.error)+'</span>')
-     :d.running?'<span class="ok">live</span>':'<span class="bad">stopped</span>'],
-  ['device',d.device||'—'],['size',d.size?d.size+' @ '+d.fps+' fps':'—'],
-  ['viewers',d.viewers||0],['frames',d.frames||0]]);
- if(d.running&&el('camera').classList.contains('on')&&!el('camimg').src)camView(true);});
+function loadCam(){
+ if(camLocked()){el('camlock').style.display='';el('camctl').style.display='none';return;}
+ el('camlock').style.display='none';el('camctl').style.display='';
+ api('/api/camera?src='+camSource+'&cam='+camTok).then(d=>{
+  if(d.error==='camera locked'){camTok='';localStorage.removeItem('sdrctok');el('camlock').style.display='';el('camctl').style.display='none';return;}
+  el('camstate').innerHTML=rows([
+   ['board',camSource],
+   ['camera',d.error?('<span class="bad">'+esc(d.error)+'</span>')
+      :d.running?'<span class="ok">live</span>':'<span class="bad">stopped</span>'],
+   ['device',d.device||'—'],['size',d.size?d.size+' @ '+d.fps+' fps':'—'],
+   ['viewers',d.viewers||0],['frames',d.frames||0]]);
+  if(d.running&&el('camera').classList.contains('on')&&!el('camimg').src)camView(true);});
  clearTimeout(camTimer);camTimer=setTimeout(()=>{if(el('camera').classList.contains('on'))loadCam();},5000);}
-function camStart(){api('/api/camera/start?src='+camSource,{method:'POST'}).then(d=>{
+function camStart(){api('/api/camera/start?src='+camSource+'&cam='+camTok,{method:'POST'}).then(d=>{
  if(d.error){el('camstate').innerHTML='<div class="muted">'+d.error+'</div>';return;}
  camView(true);loadCam();});}
-function camStop(){camView(false);api('/api/camera/stop?src='+camSource,{method:'POST'}).then(()=>loadCam());}
-function camSnap(){window.open(BASE+'/api/camera/snap?src='+camSource+'&t='+T+'&_='+Date.now(),'_blank');}
+function camStop(){camView(false);api('/api/camera/stop?src='+camSource+'&cam='+camTok,{method:'POST'}).then(()=>loadCam());}
+function camSnap(){window.open(BASE+'/api/camera/snap?src='+camSource+'&cam='+camTok+'&t='+T+'&_='+Date.now(),'_blank');}
 
 let voiceTg='all',voiceOff=0;
 function voiceMore(){voiceOff+=100;loadVoice(undefined,true);}
