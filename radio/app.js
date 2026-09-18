@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false,
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null,
 };
 
 function fitKb() {
@@ -418,6 +418,7 @@ $("sosAck").onclick = () => {
 $("sosNav").onclick = () => {
   const s = S.sos; if (!s) return;
   if (s.lat != null && s.lon != null && S.globe) S.globe.recage(s.lat, s.lon);
+  if (s.lat != null && s.lon != null) setNav({ id: "sos-" + (s.id || "?"), name: "SOS " + (s.id || "peer"), lat: +s.lat, lon: +s.lon, kind: "sos" });
   const b = document.querySelector('nav button[data-s="map"]');
   if (b) b.click();
   toast("NAV SOS");
@@ -481,7 +482,7 @@ function saveUi() {
   try {
     localStorage.setItem("exopace-ui", JSON.stringify({
       pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
-      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars,
+      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget,
     }));
   } catch (e) {}
 }
@@ -495,6 +496,7 @@ function loadUi() {
   if (u.sort) S.sort = u.sort;
   if (u.tz) S.tz = u.tz;
   if (u.stars && typeof u.stars === "object") S.stars = u.stars;
+  if (u.navTarget && u.navTarget.lat != null) S.navTarget = u.navTarget;
   if (u.chatTo != null) S.savedChatTo = u.chatTo;
   if ($("btnTz")) $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
 }
@@ -1140,12 +1142,36 @@ $("wayList").addEventListener("click", (e) => {
   else if (btn.dataset.act === "nav") navToWay(id);
   else if (btn.dataset.act === "share") { const w = S.ways[id]; if (w) sharePoint(w); }
 });
+function setNav(t) {
+  S.navTarget = t || null;
+  saveUi();
+  renderNavHud();
+}
+function renderNavHud() {
+  const el = $("navHud");
+  if (!el) return;
+  const t = S.navTarget;
+  if (!t) { el.hidden = true; return; }
+  el.hidden = false;
+  $("navName").textContent = t.name || "TARGET";
+  if (S.gps && S.gps.fix && t.lat != null && t.lon != null) {
+    const bd = bearingDist(S.gps.lat, S.gps.lon, +t.lat, +t.lon);
+    $("navDist").textContent = fmtRange(bd);
+    $("navArrow").style.transform = "rotate(" + bd.brg + "deg)";
+    if (bd.distM < 25) { toast("ARRIVED · " + (t.name || "TARGET")); logEvent("NAV", "arrived " + (t.name || t.id)); setNav(null); }
+  } else {
+    $("navDist").textContent = "waiting for fix";
+    $("navArrow").style.transform = "rotate(0deg)";
+  }
+}
+$("navStop").onclick = () => { setNav(null); toast("NAV STOPPED"); };
 function navToWay(id) {
   const w = S.ways[id];
   if (!w) return;
   if (S.globe) S.globe.recage(w.lat, w.lon);
   const b = document.querySelector('nav button[data-s="map"]');
   if (b) b.click();
+  setNav({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind });
   if (S.gps && S.gps.fix) {
     const bd = bearingDist(S.gps.lat, S.gps.lon, w.lat, w.lon);
     toast(w.name + " · " + (bd.distM / 1000).toFixed(2) + " km · BRG " + Math.round(bd.brg) + "°");
@@ -1159,8 +1185,9 @@ $("nodeList").addEventListener("click", (e) => {
     const id = btn.dataset.nid;
     const n = S.nodes[id];
     if (!n) return;
-    if (btn.dataset.nact === "nav") {
+      if (btn.dataset.nact === "nav") {
       if (n.lat != null && n.lon != null && S.globe) S.globe.recage(+n.lat, +n.lon);
+      if (n.lat != null && n.lon != null) setNav({ id: id, name: n.name || id, lat: +n.lat, lon: +n.lon });
       const b = document.querySelector('nav button[data-s="map"]');
       if (b) b.click();
       toast("NAV " + (n.name || id));
@@ -1610,7 +1637,9 @@ syncChatSend();
 syncBadge();
 tickClock();
 renderAbout();
+renderNavHud();
 setInterval(renderStats, 1000);
+setInterval(renderNavHud, 1000);
 setInterval(tickClock, 1000);
 setInterval(watchNodes, 5000);
 document.addEventListener("keydown", (e) => {
