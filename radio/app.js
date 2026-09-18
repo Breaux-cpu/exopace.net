@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "",
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {},
 };
 
 function fitKb() {
@@ -38,6 +38,7 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
   b.classList.add("active");
   $("scr-" + b.dataset.s).classList.add("active");
   if (b.dataset.s === "chat") { S.unread = 0; syncBadge(); }
+  if (b.dataset.s === "setup") renderAbout();
   if (S.globe) S.globe.setActive(b.dataset.s === "map");
   if (b.dataset.s === "setup") syncInstallHint();
   if (b.dataset.s === "map") {
@@ -53,7 +54,13 @@ function setPath(mode, up) {
   if (up) { if (!S.stats.linkUpAt) S.stats.linkUpAt = Date.now() / 1000; }
   else S.stats.linkUpAt = 0;
   if (up && !prevUp) logEvent("LINK", mode === "demo" ? "demo mode on" : "link up");
-  else if (!up && prevUp) logEvent("LINK", "link down");
+  else if (!up && prevUp) {
+    logEvent("LINK", "link down");
+    if (document.hidden) {
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      sysNotify("EXOpace LINK DOWN", "Radio link lost", "exo-link");
+    }
+  }
   $("hLink").classList.toggle("up", !!up);
   const c = $("btnConn"); const lbl = $("pathLbl");
   if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("modeTag").textContent = "DEV"; }
@@ -444,8 +451,10 @@ function addMsg(m) {
   syncChatEmpty();
   $("chatLog").scrollTop = 1e9;
   if (!own && !$("scr-chat").classList.contains("active")) { S.unread++; syncBadge(); }
-  if (!own && document.hidden && m.to && m.to !== "*" && (m.to === S.myId || m.to === "me")) {
-    sysNotify("EXOpace DM · " + (m.fromName || m.from || "peer"), chatText(m), "exo-dm");
+  const dm = !own && m.to && m.to !== "*" && (m.to === S.myId || m.to === "me");
+  if (dm) {
+    if (navigator.vibrate) navigator.vibrate(80);
+    if (document.hidden) sysNotify("EXOpace DM · " + (m.fromName || m.from || "peer"), chatText(m), "exo-dm");
   }
 }
 function syncBadge() {
@@ -472,7 +481,7 @@ function saveUi() {
   try {
     localStorage.setItem("exopace-ui", JSON.stringify({
       pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
-      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz,
+      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars,
     }));
   } catch (e) {}
 }
@@ -485,6 +494,7 @@ function loadUi() {
   if (u.heat != null) $("stHeat").checked = !!u.heat;
   if (u.sort) S.sort = u.sort;
   if (u.tz) S.tz = u.tz;
+  if (u.stars && typeof u.stars === "object") S.stars = u.stars;
   if (u.chatTo != null) S.savedChatTo = u.chatTo;
   if ($("btnTz")) $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
 }
@@ -943,6 +953,21 @@ $("btnEvExport").onclick = () => {
 $("btnEvClear").onclick = () => {
   S.events = []; ExoStore.clear("sys"); renderEvents(); toast("LOG CLEARED");
 };
+function renderAbout() {
+  if (!$("aboutVer")) return;
+  const src = (document.querySelector('script[src*="app.js"]') || {}).src || "";
+  const m = src.match(/app\.js\?v=(\d+)/);
+  $("aboutVer").textContent = "EXOpace Radio v" + (m ? m[1] : "?") + " · protocol " + P.PROTOCOL_VER;
+  $("aboutStore").textContent = [
+    "chat " + $("chatLog").children.length,
+    "ways " + Object.keys(S.ways).length,
+    "nodes " + Object.keys(S.nodes).length,
+    "rf " + S.rf.length,
+    "telem " + S.telemHist.length,
+    "events " + S.events.length,
+  ].join(" · ");
+}
+$("btnAbout").onclick = () => { renderAbout(); toast("REFRESHED"); };
 function renderStats() {
   const s = S.stats;
   $("stPkts").textContent = s.packets;
@@ -980,6 +1005,8 @@ function nearestPeer() {
 }
 function renderNodes() {
   const ids = Object.keys(S.nodes).sort((a, b) => {
+    const sa = S.stars[a] ? 1 : 0, sb = S.stars[b] ? 1 : 0;
+    if (sa !== sb) return sb - sa;
     const A = P.applyPresence(S.nodes[a]), B = P.applyPresence(S.nodes[b]);
     if (S.sort === "name") return String(A.name || a).localeCompare(String(B.name || b));
     if (S.sort === "batt") return (B.batt == null ? -1 : B.batt) - (A.batt == null ? -1 : A.batt);
@@ -1000,10 +1027,11 @@ function renderNodes() {
         + '<button class="btn" data-nact="share" data-nid="' + i + '" style="width:auto;min-width:52px">SHARE</button>'
         + '<button class="btn" data-nact="info" data-nid="' + i + '" style="width:auto;min-width:52px">INFO</button>'
         + '<button class="btn" data-nact="msg" data-nid="' + i + '" style="width:auto;min-width:52px">MSG</button>'
+        + '<button class="btn" data-nact="star" data-nid="' + i + '" style="width:auto;min-width:52px">' + (S.stars[i] ? "★" : "☆") + "</button>"
         + "</div>"
       : "";
     return '<div class="card node" data-nid="' + i + '" style="opacity:' + (0.35 + 0.65 * n.conf) + ';flex-wrap:wrap">'
-      + '<div><div class="nm">' + esc(n.name || "?") + '</div><div class="id">' + i + " · " + fade + "%</div></div>"
+      + '<div><div class="nm">' + esc(n.name || "?") + (S.stars[i] ? " ★" : "") + '</div><div class="id">' + i + " · " + fade + "%</div></div>"
       + '<div class="st">' + ago(n.last) + " ago<br>" + (n.batt != null ? n.batt + "%" : "") + "</div>" + bars(n.rssi ?? -140)
       + acts + "</div>";
   }).join("") : '<div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div>';
@@ -1077,6 +1105,9 @@ $("nodeList").addEventListener("click", (e) => {
         kind: "peer", id, name: n.name, lat: n.lat != null ? +n.lat : null, lon: n.lon != null ? +n.lon : null,
         alt: n.alt, rssi: n.rssi, snr: n.snr, bat: n.batt, last: n.last, conf: P.applyPresence(n).conf,
       });
+    } else if (btn.dataset.nact === "star") {
+      if (S.stars[id]) delete S.stars[id]; else S.stars[id] = 1;
+      saveUi(); renderNodes();
     } else if (btn.dataset.nact === "msg") {
       const b = document.querySelector('nav button[data-s="chat"]');
       if (b) b.click();
@@ -1507,6 +1538,7 @@ syncMapChrome();
 syncChatSend();
 syncBadge();
 tickClock();
+renderAbout();
 setInterval(renderStats, 1000);
 setInterval(tickClock, 1000);
 setInterval(watchNodes, 5000);
