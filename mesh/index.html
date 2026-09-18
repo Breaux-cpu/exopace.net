@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EXOpace Radio</title>
+<link rel="canonical" href="https://exopace.net/mesh/">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#101208">
+<meta name="description" content="EXOpace Radio — an installable field-radio PWA: BLE mesh chat, waypoints, and a live map, offline-first.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EXOpace">
+<meta property="og:title" content="EXOpace Radio">
+<meta property="og:description" content="Installable field radio: BLE mesh chat, waypoints, and a live map, offline-first.">
+<meta property="og:url" content="https://exopace.net/mesh/">
+<meta property="og:image" content="https://exopace.net/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EXOpace Radio">
+<meta name="twitter:description" content="Installable field radio: BLE mesh chat, waypoints, and a live map, offline-first.">
+<meta name="twitter:image" content="https://exopace.net/og.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EXOpace">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#101208; --panel:#181b0f; --panel2:#1f2314; --line:#31371e;
+  --amber:#ffb454; --amber-dim:#7d6132; --text:#eae6d4; --mut:#9a976f;
+  --ok:#9fd356; --warn:#ff7043; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --kb:0px;
+}
+body.night{--bg:#0a0303;--panel:#160606;--panel2:#1d0808;--line:#3a1512;
+  --amber:#ff5a44;--amber-dim:#75261d;--text:#ffd6cf;--mut:#b8796f;
+  --ok:#ff7a5c;--warn:#ff3b22}
+body.night .mapwrap,body.night nav,body.night header,body.night #navHud{background:#0d0404}
+body.night header{background:linear-gradient(#170606,#0d0404)}
+body.night #toast{color:#1a0505}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
+  display:flex;flex-direction:column;overscroll-behavior:none}
+header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(--line);
+  padding:10px 14px 8px;display:flex;align-items:center;gap:10px;
+  padding-top:calc(10px + env(safe-area-inset-top));min-width:0;max-width:100%}
+.callsign{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
+.freq{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.08em}
+.meter{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:18px}
+#hMeter[hidden]{display:none!important}
+.meter b{width:4px;background:#3a3f24;border-radius:1px;display:block}
+.meter b.on{background:var(--amber)}
+.meter b:nth-child(1){height:5px}.meter b:nth-child(2){height:8px}.meter b:nth-child(3){height:11px}
+.meter b:nth-child(4){height:14px}.meter b:nth-child(5){height:17px}
+.link{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn);flex:0 0 9px}
+.link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;flex:0 0 auto;width:max-content;min-width:0;max-width:none;overflow:visible}
+#pathLbl.up{color:var(--ok)}
+#modeTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
+  padding:2px 6px;border-radius:3px;letter-spacing:.1em}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;
+  padding-bottom:calc(62px + env(safe-area-inset-bottom))}
+.screen{display:none;padding:14px;max-width:640px;margin:0 auto;width:100%}
+.screen.active{display:block}
+#scr-chat.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:0}
+#scr-map.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding:0;max-width:none;overflow:hidden}
+h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
+  text-transform:uppercase;margin:6px 0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;max-width:100%;min-width:0;overflow:hidden}
+#installHint{flex:0 0 auto;overflow:visible}
+#installHint[hidden]{display:none!important;pointer-events:none!important;height:0;margin:0;padding:0;border:0;overflow:hidden}
+#btnInst2[hidden],#btnHintHide[hidden]{display:none!important;pointer-events:none!important}
+/* Header leftover: beforeinstallprompt painted INSTALL on CHAT. Install lives on SET. */
+#btnInst,#btnInst[hidden]{display:none!important;pointer-events:none!important;width:0!important;height:0!important;min-width:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big{font-family:var(--mono);font-size:26px;color:var(--amber);line-height:1.1;word-break:break-all}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
+.sub{font-size:12px;color:var(--mut);margin-top:4px}
+button,select,input{font:inherit;color:var(--text)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+  font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;width:100%;min-height:44px}
+.btn.primary{background:var(--amber);color:#141406;border-color:var(--amber);font-weight:700}
+.btn:active{transform:translateY(1px)}
+.row{display:flex;gap:10px}
+#chatLog{display:flex;flex-direction:column;gap:8px;padding-bottom:8px;flex:1;overflow-y:auto}
+.msg{max-width:82%;padding:9px 12px;border-radius:12px;background:var(--panel2);
+  border:1px solid var(--line);align-self:flex-start}
+.msg.mine{align-self:flex-end;background:#3a2f14;border-color:#5b4a1e}
+.msg .who{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:3px}
+.msg .txt{white-space:pre-wrap;word-break:break-word;cursor:pointer}
+.msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
+.msg .meta .ok{color:var(--ok)}
+.msg .meta .pend{color:var(--mut);font-style:italic;cursor:pointer;text-decoration:underline dotted}
+.daydiv{text-align:center;color:var(--mut);font-family:var(--mono);font-size:10px;letter-spacing:.15em;margin:10px 0 6px}
+.evline{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--line)}
+.evline .evt{color:var(--amber);min-width:46px;flex:none}
+.evline .evago{color:var(--mut);margin-left:auto;flex:none}
+#composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(4px + var(--kb));
+  display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
+#composer[hidden]{display:none!important}
+#qtx[hidden]{display:none!important}
+#composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-width:0;min-height:44px;flex:0 1 auto}
+#composer input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
+#composer .send{width:auto;flex:0 0 auto}
+.fix{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  padding:3px 8px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
+.fix.on{color:#141406;background:var(--ok);border-color:var(--ok);font-weight:700}
+#compass{width:80px;height:80px;border:2px solid var(--line);border-radius:50%;margin:0;
+  flex:0 0 80px;position:relative;background:radial-gradient(circle,#1c2010 60%,#14170b)}
+#compass[hidden]{display:none!important}
+#needle{position:absolute;left:50%;top:50%;width:3px;height:30px;background:var(--amber);
+  transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);border-radius:2px;transition:transform .5s}
+#compass span{position:absolute;font-family:var(--mono);font-size:10px;color:var(--mut)}
+#compass .n{top:4px;left:50%;transform:translateX(-50%);color:var(--amber)}
+#compass .s{bottom:4px;left:50%;transform:translateX(-50%)}
+#compass .e{right:6px;top:50%;transform:translateY(-50%)}
+#compass .w{left:6px;top:50%;transform:translateY(-50%)}
+.node{display:flex;align-items:center;gap:12px}
+.node .meter{margin-left:auto}
+.node .nm{font-family:var(--mono);font-weight:700;color:var(--amber)}
+.node .id{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.node .st{font-family:var(--mono);font-size:11px;color:var(--mut);text-align:right}
+.mapwrap{flex:1;min-height:180px;position:relative;background:#101208}
+#globeC{width:100%;height:100%;display:block;touch-action:none}
+#mapEmpty{position:absolute;left:10px;right:92px;top:10px;font-family:var(--mono);
+  font-size:11px;color:var(--mut);white-space:pre-wrap;pointer-events:none;z-index:1}
+#mapTip{display:none;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+  font-family:var(--mono);font-size:11px;color:var(--text);white-space:pre-line}
+.mapst{position:absolute;right:8px;top:8px;z-index:2;font-family:var(--mono);font-size:10px;
+  letter-spacing:.12em;color:var(--mut);background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;padding:8px 10px;min-height:44px;display:flex;align-items:center}
+.mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
+.mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
+#btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
+#btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnShare[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
+#posLL[hidden]{display:none!important}
+#posMeta[hidden]{display:none!important}
+.mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
+.mapread{display:flex;align-items:center;gap:12px}
+.mapread .big{font-size:18px}
+#battChart,#rssiChart{width:100%;max-width:100%;min-width:0;height:64px;display:block;box-sizing:border-box}
+#rssiChart{height:48px}
+#battChart[hidden],#rssiChart[hidden]{display:none!important}
+#telemGrid[hidden]{display:none!important}
+#telemEmpty{margin-bottom:12px}
+#battEmpty,#rssiEmpty{margin-top:8px}
+.field{margin-bottom:12px}
+.field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;padding:10px 12px;font-family:var(--mono);min-height:44px}
+.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  color:var(--mut);text-transform:uppercase;margin-bottom:5px}
+#passHint{display:block;margin-top:8px;margin-bottom:12px}
+#passHint[hidden]{display:none!important}
+#freqHint[hidden]{display:none!important}
+#cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
+#cfgHw[hidden]{display:none!important}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;border-top:1px solid var(--line);
+  background:#14170b;height:calc(62px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px #0008}
+nav button{flex:1;background:none;border:none;padding:14px 0 12px;font-family:var(--mono);
+  font-size:12px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent}
+nav button.active{color:var(--amber);border-top-color:var(--amber);background:linear-gradient(#1c2010,#14170b)}
+#navHud{position:fixed;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom));z-index:31;
+  display:flex;align-items:center;gap:10px;background:#14170b;border:1px solid var(--amber);
+  border-radius:10px;padding:8px 10px;font-family:var(--mono);font-size:12px;box-shadow:0 4px 14px #0008}
+#navArrow{font-size:22px;line-height:1;color:var(--amber);display:inline-block;transition:transform .2s}
+#navName{color:var(--text);letter-spacing:.06em}
+#navDist{color:var(--amber);margin-top:2px}
+@media(max-width:420px){
+  header{gap:6px;padding-left:10px;padding-right:10px}
+  .callsign{font-size:16px}
+  .meter{margin-left:4px}
+  #pathLbl{width:max-content;min-width:0;max-width:none;letter-spacing:.06em;overflow:visible;text-overflow:clip}
+  .conn{padding:10px 6px;letter-spacing:.06em}
+  .screen{padding-left:10px;padding-right:10px}
+  #mapEmpty{right:132px}
+  #scr-setup{padding-top:8px;padding-bottom:8px}
+  #scr-setup h2{margin:0 0 6px}
+  #scr-setup .card{padding:10px;margin-bottom:0}
+  #scr-setup .field{margin-bottom:6px}
+  #scr-setup .sub{margin-top:2px}
+}
+@media(max-width:380px){
+  header{gap:4px}
+  .conn{padding:8px 5px}
+}
+#toast{position:fixed;left:50%;bottom:calc(88px + var(--kb));transform:translateX(-50%);background:var(--amber);
+  color:#141406;font-family:var(--mono);font-size:12px;font-weight:700;padding:8px 14px;
+  border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
+.conn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:700;
+  padding:10px 12px;cursor:pointer;width:auto;min-height:44px;flex:0 0 auto}
+.conn.up{color:var(--ok);border-color:var(--ok)}
+#sheet{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end}
+#sheet.show{display:flex}
+.sheet{width:100%;background:var(--panel);border-top:1px solid var(--line);
+  padding:16px 14px calc(16px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}
+.sheet h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--mut);margin-bottom:10px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+  border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;min-height:44px}
+.opt b{display:block;font-family:var(--mono);color:var(--amber);margin-bottom:3px}
+.opt span{font-size:12px;color:var(--mut)}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+#remoteBox{display:none;margin:0 0 10px}
+#remoteBox.show{display:block}
+#sosBanner{position:fixed;top:0;left:0;right:0;z-index:30;background:#3a0f0a;border-bottom:2px solid #ff5c5c;
+  padding:10px 12px calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sosBanner[hidden]{display:none!important}
+#sosBanner.acked{background:#1c2a10;border-bottom-color:var(--ok)}
+#sosBanner .sosTxt{flex:1;min-width:0;font-family:var(--mono);font-size:12px;color:#ffd9d9;line-height:1.4}
+#sosBanner .sosTxt b{color:#ff5c5c;letter-spacing:.1em}
+#sosBanner.acked .sosTxt b{color:var(--ok)}
+#sosBanner .sosActs{display:flex;gap:8px}
+#sosBanner .sosActs .btn{width:auto;min-width:64px;padding:10px 12px;font-size:12px}
+.tipActs{display:flex;gap:8px;margin-top:8px}
+.tipActs .btn{width:auto;min-width:64px}
+.wayName{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--mono);min-height:44px;color:var(--text)}
+#chatBadge{display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:5px;
+  border-radius:8px;background:var(--warn);color:#141406;font-size:10px;font-weight:700;vertical-align:middle}
+#chatBadge[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="callsign" id="hName">EXOpace</div>
+    <div class="freq" id="hFreq" hidden>--- MHz · SF-</div>
+  </div>
+  <span id="modeTag"></span>
+  <div class="meter" id="hMeter" hidden><b></b><b></b><b></b><b></b><b></b></div>
+  <div class="link" id="hLink"></div>
+  <span id="pathLbl">LINK DOWN</span>
+  <button class="conn" id="btnInst" hidden style="display:none">INSTALL</button>
+  <button class="conn" id="btnConn">CONNECT</button>
+</header>
+
+<div id="sosBanner" hidden role="alert" aria-live="assertive">
+  <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span> <span id="sosRange"></span></div>
+  <div class="sosActs">
+    <button class="btn primary" id="sosAck">ACK</button>
+    <button class="btn" id="sosNav">NAV</button>
+    <button class="btn" id="sosDismiss">DISMISS</button>
+  </div>
+</div>
+
+<main>
+  <section class="screen active" id="scr-chat">
+    <div id="chatEmpty" class="card sub">MESH QUIET. Wait for a peer.</div>
+    <div class="row" id="qtx" hidden style="margin-bottom:10px;flex-wrap:wrap">
+      <button class="btn" data-qtx="On station">On station</button>
+      <button class="btn" data-qtx="Moving">Moving</button>
+      <button class="btn" data-qtx="Need relay">Need relay</button>
+      <button class="btn primary" data-qtx="SOS" data-sos="1" title="Type a reason in the message box first to attach it">SOS</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn" id="btnExportChat">EXPORT CHAT</button>
+      <button class="btn" id="btnClearChat">CLEAR</button>
+      <button class="btn" id="btnTz">TIME UTC</button>
+    </div>
+    <input id="chatSearch" class="wayName" placeholder="SEARCH · @NAME FILTERS SENDER" style="margin-bottom:8px">
+    <div id="chatLog"></div>
+    <div id="composer" hidden>
+      <select id="chatTo"><option value="*">ALL</option></select>
+      <input id="chatText" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
+      <button class="btn send" id="btnSendLoc" style="width:auto;flex:0 0 auto" title="Send my position">LOC</button>
+      <button class="btn primary send" id="chatSend" hidden>TX</button>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-map">
+    <div class="mapwrap">
+      <canvas id="globeC"></canvas>
+      <div id="mapEmpty">WAITING FOR FIX — walk outside
+MESH QUIET — peer dots appear when nodes report position.</div>
+      <div id="mapTip"></div>
+      <div class="mapst" style="flex-direction:column;align-items:flex-start;gap:6px;right:8px;top:8px">
+        <label><input type="checkbox" id="stPin"> STATION</label>
+        <label><input type="checkbox" id="stTrail"> TRAIL</label>
+        <label><input type="checkbox" id="stRings"> RINGS</label>
+        <label><input type="checkbox" id="stHeat"> HEAT</label>
+      </div>
+      <button class="btn" id="btnRecage">RECAGE ON ME</button>
+      <button class="btn" id="btnTapDrop" style="position:absolute;left:8px;bottom:104px;z-index:2;width:auto">TAP DROP</button>
+      <button class="btn" id="btnRange" hidden style="position:absolute;left:8px;bottom:56px;z-index:2;width:auto">RANGE TEST</button>
+    </div>
+    <div class="card mapsec">
+      <div class="mapread">
+        <div>
+          <div class="lbl">My position <span class="fix" id="fixBadge">NO FIX</span></div>
+          <div class="big" id="posLL" hidden></div>
+          <div class="sub" id="posMeta" hidden><span id="posSpd"></span> · <span id="posAlt"></span></div>
+          <div class="sub" id="wpCount" hidden></div>
+        </div>
+        <div id="compass" hidden><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnCopy" hidden>COPY COORDS</button>
+        <button class="btn" id="btnShare" hidden>SHARE</button>
+        <button class="btn" id="btnMaps" hidden>OPEN IN MAPS</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="wayKind" hidden><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
+        <button class="btn" id="btnWay" hidden>DROP WAYPOINT</button>
+      </div>
+      <div class="sub" id="mapsHint" hidden>Maps opens when your phone has internet — the mesh itself needs none.</div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-nodes">
+    <h2>Mesh stats</h2>
+    <div class="card" id="meshStats">
+      <div class="grid2">
+        <div><div class="lbl">Packets</div><div class="big" id="stPkts" style="font-size:20px">0</div></div>
+        <div><div class="lbl">Nodes</div><div class="big" id="stNodes" style="font-size:20px">0</div></div>
+        <div><div class="lbl">Link uptime</div><div class="big" id="stUp" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Last packet</div><div class="big" id="stLast" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Clock</div><div class="big" id="stClock" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Time mode</div><div class="big" id="stTime" style="font-size:20px">—</div></div>
+      </div>
+      <div class="sub" id="stByType">no packets yet</div>
+      <div class="sub" id="stNearest">nearest —</div>
+      <div class="sub" id="stNearestWay">nearest way —</div>
+      <div class="sub" id="stTrip">trip —</div>
+    </div>
+    <h2>Mesh roster</h2>
+    <button class="btn" id="btnSort" style="width:auto;margin-bottom:8px">SORT · SIGNAL</button>
+    <button class="btn" id="btnNodesCsv" style="width:auto;margin-bottom:8px">EXPORT NODES</button>
+    <div id="nodeList"><div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div></div>
+    <h2>Waypoints</h2>
+    <button class="btn" id="btnWaySort" style="width:auto;margin-bottom:8px">SORT · NEWEST</button>
+    <button class="btn" id="btnWaysClear" style="width:auto;margin-bottom:8px">DELETE ALL</button>
+    <div id="wayList"><div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnGpx">EXPORT GPX</button>
+      <label class="btn" style="display:flex;align-items:center;justify-content:center">IMPORT GPX<input type="file" id="wptImportFile" accept=".gpx,application/gpx+xml,application/xml" hidden></label>
+      <button class="btn" id="btnSendTrack">SEND TRACK</button>
+      <button class="btn" id="btnTripReset">RESET TRIP</button>
+    </div>
+    <h2>Event log</h2>
+    <div class="card">
+      <select id="evFilter" class="wayName" style="margin-bottom:8px">
+        <option value="ALL">ALL</option>
+        <option value="LINK">LINK</option>
+        <option value="CHAT">CHAT</option>
+        <option value="WAY">WAY</option>
+        <option value="NAV">NAV</option>
+        <option value="SOS">SOS</option>
+        <option value="ACK">ACK</option>
+        <option value="NODE">NODE</option>
+        <option value="RF">RF</option>
+        <option value="CFG">CFG</option>
+      </select>
+      <div id="evLog"><div class="sub">No events yet.</div></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnEvExport">EXPORT LOG</button>
+        <button class="btn" id="btnEvClear">CLEAR</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-vitals">
+    <h2>Node vitals</h2>
+    <div class="card sub" id="telemEmpty">NO TELEMETRY. Vitals paint when the node reports.</div>
+    <div class="grid2" id="telemGrid" hidden>
+      <div class="card"><div class="lbl">Battery</div><div class="big" id="vBatt"></div><div class="sub" id="vVolt"></div></div>
+      <div class="card"><div class="lbl">Uptime</div><div class="big" id="vUp" style="font-size:20px"></div><div class="sub" id="vHeap"></div></div>
+      <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px"></div><div class="sub" id="vSnr"></div></div>
+      <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px"></div><div class="sub" id="vFreq"></div></div>
+    </div>
+    <div class="card"><div class="lbl">UTC clock</div><div class="big" id="vClock" style="font-size:20px">--:--:--</div><div class="sub" id="vClockOff">node time not synced</div></div>
+    <div class="card"><div class="lbl">Battery — last hour</div>
+      <canvas id="battChart" width="300" height="128" hidden></canvas>
+      <div class="sub" id="battEmpty">NO LAST-HOUR SAMPLES. Battery paints when the node reports.</div>
+    </div>
+    <div class="card"><div class="lbl">RSSI spark</div>
+      <canvas id="rssiChart" width="300" height="96" hidden></canvas>
+      <div class="sub" id="rssiEmpty">NO RSSI SAMPLES. Spark paints when a packet arrives.</div>
+    </div>
+    <div class="card">
+      <button class="btn" id="btnTelemCsv">DOWNLOAD TELEMETRY CSV</button>
+    </div>
+    <div class="card" id="rangeCard" hidden><div class="lbl">Range logger</div>
+      <div class="row">
+        <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
+        <button class="btn" id="btnRangeCsv0">OLDER CSV</button>
+      </div>
+      <div class="sub" id="rangeHint">One row per received packet.</div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-setup">
+    <div class="card" id="installHint">
+      <div class="lbl">Phone app</div>
+      <div class="sub" id="installTxt">https://exopace.net/mesh/ — INSTALL APP.</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnInst2" hidden>INSTALL APP</button>
+        <button class="btn" id="btnHintHide">HIDE</button>
+      </div>
+    </div>
+    <h2>Node setup</h2>
+    <div class="card">
+      <div id="cfgForm" hidden>
+      <div class="field"><label>Node name (callsign)</label><input id="cfgName" maxlength="12"></div>
+      <div class="field"><label>Frequency (MHz)</label>
+        <select id="cfgFreq"><option>915.0</option><option>906.875</option><option>868.0</option><option>433.0</option></select></div>
+      <div class="field"><label>Spreading factor (7 = fast · 12 = far)</label>
+        <select id="cfgSf"><option>7</option><option>8</option><option selected>9</option><option>10</option><option>11</option><option>12</option></select></div>
+      <div class="field"><label>TX power (dBm)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
+      <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
+      <div class="field"><label>Channel key (AES-256)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
+      <button class="btn" id="cfgRefresh" style="margin-bottom:12px">REFRESH FROM RADIO</button>
+      </div>
+      <div class="sub" id="passHint" hidden>Set the node AP password on the radio before field use.</div>
+      <div id="cfgHw" hidden>
+        <div class="field"><label>GPS report interval (sec)</label><input id="cfgGpsInt" type="number" min="5" max="300" value="30"></div>
+        <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
+        <div class="grid2">
+          <div class="field"><label>GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
+          <div class="field"><label>GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
+        </div>
+        <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
+        <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="btnCfgExport">EXPORT CONFIG</button>
+          <label class="btn" style="display:flex;align-items:center;justify-content:center">IMPORT<input type="file" id="cfgImportFile" accept="application/json,.json" hidden></label>
+        </div>
+      </div>
+      <div class="sub" id="freqHint" hidden>All nodes must share frequency + SF to hear each other.</div>
+      <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
+    </div>
+    <h2>Field</h2>
+    <div class="card">
+      <div class="field"><label>Arrival radius</label>
+        <select id="arriveR" class="wayName">
+          <option value="50">50 m</option>
+          <option value="100">100 m</option>
+          <option value="250">250 m</option>
+          <option value="500">500 m</option>
+        </select>
+      </div>
+      <div class="sub">Waypoint arrival alert fires inside this radius.</div>
+    </div>
+    <h2>About</h2>
+    <div class="card">
+      <div class="sub" id="aboutVer">—</div>
+      <div class="sub" id="aboutStore">—</div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnAbout">REFRESH</button>
+        <button class="btn" id="btnBackup">BACKUP ALL</button>
+        <label class="btn" style="display:flex;align-items:center;justify-content:center">RESTORE<input type="file" id="backupFile" accept="application/json,.json" hidden></label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnNight">NIGHT MODE</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="navHud" hidden>
+  <div id="navArrow">▲</div>
+  <div style="flex:1;min-width:0">
+    <div id="navName">—</div>
+    <div id="navDist">—</div>
+  </div>
+  <button class="btn" id="navStop" style="width:auto;min-width:60px">STOP</button>
+</div>
+
+<nav>
+  <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
+  <button data-s="map">MAP</button>
+  <button data-s="nodes">NET</button>
+  <button data-s="vitals">NODE</button>
+  <button data-s="setup">SET</button>
+</nav>
+<div id="sheet">
+  <div class="sheet">
+    <h3>Link</h3>
+    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>On the node AP, open http://192.168.4.1. This site is not the radio.</span></button>
+    <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
+    <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
+  </div>
+</div>
+<div id="toast" aria-live="polite"></div>
+
+<script src="env.js?v=60"></script>
+<script src="three.min.js"></script>
+<script src="protocol.js?v=60"></script>
+<script src="store.js?v=60"></script>
+<script src="globe.js?v=60"></script>
+<script src="app.js?v=60"></script>
+</body>
+</html>

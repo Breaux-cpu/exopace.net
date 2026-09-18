@@ -23,7 +23,7 @@ function json(rel) {
 }
 
 // --- env: prod cannot enable Demo ---
-for (const rel of ["env.js", "radio/env.js"]) {
+for (const rel of ["env.js", "mesh/env.js"]) {
   const src = read(rel);
   assert(/EXOPACE_ENV\s*=\s*"prod"/.test(src), `${rel} EXOPACE_ENV=prod`);
   assert(/EXOPACE_ALLOW_DEMO\s*=\s*false/.test(src), `${rel} EXOPACE_ALLOW_DEMO=false`);
@@ -33,11 +33,11 @@ for (const rel of ["env.js", "radio/env.js"]) {
 // --- real files the SPA must not swallow ---
 for (const rel of [
   "FIRMWARE.md",
-  "radio/index.html",
-  "radio/app.js",
-  "radio/textures/earth-day.jpg",
-  "radio/textures/earth-night.jpg",
-  "radio/textures/earth-water.png",
+  "mesh/index.html",
+  "mesh/app.js",
+  "mesh/textures/earth-day.jpg",
+  "mesh/textures/earth-night.jpg",
+  "mesh/textures/earth-water.png",
   "cesium/Cesium.js",
   "assets/index-B5yAHF7-.js",
   "assets/sat-CIpmmEb5.js",
@@ -102,16 +102,16 @@ assert(read("moc-phone.css").includes("span.chip:nth-child(n + 3)"), "phone .tl 
 
 // --- manifests ---
 const mocM = json("manifest.json");
-const radM = json("radio/manifest.json");
+const meshM = json("mesh/manifest.json");
 assert(mocM.start_url === "/" && mocM.display === "standalone", "MOC manifest standalone /");
-assert(radM.start_url === "./" && radM.scope === "./", "Radio manifest scoped to /radio/");
+assert(meshM.start_url === "./" && meshM.scope === "./", "Mesh manifest scoped to /mesh/");
 assert(mocM.icons.some((i) => i.purpose === "maskable"), "MOC maskable icon");
-assert(radM.icons.some((i) => String(i.purpose).includes("maskable")), "Radio maskable icon");
+assert(meshM.icons.some((i) => String(i.purpose).includes("maskable")), "Radio maskable icon");
 
 // --- service workers ---
 const mocSw = read("sw.js");
-const radSw = read("radio/sw.js");
-assert(mocSw.includes('"/radio"') || mocSw.includes("/radio/"), "MOC SW skips /radio/");
+const meshSw = read("mesh/sw.js");
+assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
 assert(mocSw.includes("exopace-moc-v69"), "MOC SW cache bumped");
@@ -120,15 +120,15 @@ assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does no
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
-assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v59"), "Radio SW cache bumped");
-assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
-assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
-assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
+assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
+assert(meshSw.includes("exopace-mesh-v60"), "Radio SW cache bumped");
+assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
+assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(meshSw), "Radio SW does not precache app.js");
+assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
 
-// --- redirects keep radio + firmware as real files ---
+// --- redirects keep mesh + radio + firmware as real files ---
 const redir = read("_redirects");
-assert(redir.includes("/radio/*") && redir.includes("/FIRMWARE.md"), "_redirects keeps radio + firmware");
+assert(redir.includes("/mesh/*") && redir.includes("/radio/*") && redir.includes("/FIRMWARE.md"), "_redirects keeps mesh + radio + firmware");
 assert(redir.includes("/lock/*") && redir.includes("/index.html"), "_redirects SPA-falls legacy /lock/* to index.html");
 assert(!redir.split("\n").some((l) => l.trim() === "/*              /index.html 200" || l.trim().startsWith("/* ")), "_redirects has no SPA catch-all");
 for (const route of ["/about", "/mission", "/ops", "/login", "/app"]) {
@@ -138,7 +138,7 @@ assert(!redir.includes("WORLD_DATA.md") && !redir.includes("sgp4.worker.js"), "_
 assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
-assert(headers.includes("/radio/app.js"), "Radio app.js is no-cache");
+assert(headers.includes("/mesh/app.js"), "Mesh app.js is no-cache");
 assert(read("index.html").includes("moc-phone.css?v=69"), "index cache-busts moc-phone.css");
 assert(read("index.html").includes("index-B5yAHF7-.js?v=69"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
@@ -181,7 +181,7 @@ const demo = proto.demoMesh();
 assert(demo.peers.length === 4 && demo.ways.length === 3, "demo mesh shape (DEV helper only)");
 
 // --- radio IIFE mirrors canonical constants ---
-const iife = read("radio/protocol.js");
+const iife = read("mesh/protocol.js");
 const ctx = { window: {} };
 vm.createContext(ctx);
 vm.runInContext(iife, ctx);
@@ -194,95 +194,108 @@ const rChat = R.parseLine(R.encode({ t: "chat", msg: "Moving" }));
 assert(rChat.text === "Moving", "IIFE chat normalize");
 
 // --- radio install path + no eager globe + demo stays locked ---
-const radioHtml = read("radio/index.html");
-const radioApp = read("radio/app.js");
-assert(radioHtml.includes('rel="manifest"') && radioHtml.includes("apple-touch-icon"), "Radio PWA head");
-assert(radioHtml.includes('rel="icon"'), "Radio favicon");
-assert(radioHtml.includes("exopace.net/radio"), "Radio install copy names /radio/");
-assert(radioApp.includes("beforeinstallprompt"), "Radio install prompt");
-assert(radioApp.includes("BLUETOOTH NOT AVAILABLE IN THIS BROWSER"), "Radio HTTPS does not claim it needs HTTPS");
-assert(radioApp.includes("if (navigator.bluetooth) return;"), "Radio only disables BLE when the browser has no Bluetooth");
-assert(radioApp.includes("exoAllowDemo"), "Radio demo helper stays gated");
-assert(!radioHtml.includes("optDemo") && !/Demo Dev only/i.test(radioHtml), "prod Radio HTML has no Demo option");
-assert(!radioHtml.includes("relay.example") && !radioHtml.includes("optRemote"), "prod Radio HTML has no example.com remote stub");
-assert(!/AP EXOpace-XXXX \/ nodelink/.test(radioHtml), "CONNECT sheet does not paint factory AP password");
-assert(!radioHtml.includes("Factory AP password is nodelink"), "SET does not treat this PWA as the node AP");
-assert(!/ensureGlobe\(\);\s*$/.test(radioApp.trim()), "Radio does not eager-mount globe on chat");
-assert(radioApp.includes("rangeCard") && radioApp.includes("card.remove()"), "guest NODE does not keep a Range logger card");
-assert(!radioApp.includes("join EXOpace-XXXX") && !radioApp.includes("Range CSV lives on the node"), "guest NODE has no AP-IP range dump");
-assert(radioHtml.includes('id="rangeCard" hidden'), "Range logger starts hidden and only mounts on the node AP");
-assert(radioApp.includes("walk outside") && !radioApp.includes("run DEMO"), "map empty state has no Demo nudge");
-assert(!radioApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
-assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP first paint has no Demo CTA");
-assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
-assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
-assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=59") && radioHtml.includes("env.js?v=59"), "Radio index cache-busts in-place JS");
-assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
-assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
-assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist stays");
-assert(radioApp.includes("function showInstallCard") && radioApp.includes("showInstallCard()"), "SET Phone app card is forced visible");
-assert(!/if \(isStandalone\(\) \|\| installHintDismissed\(\)\)/.test(radioApp), "standalone or HIDE persist does not zero #installHint");
-assert(!radioApp.includes('$("installHint").style.display = "none"'), "BLE connect does not zero the Phone app card");
+const meshHtml = read("mesh/index.html");
+const meshApp = read("mesh/app.js");
+assert(meshHtml.includes('rel="manifest"') && meshHtml.includes("apple-touch-icon"), "Radio PWA head");
+assert(meshHtml.includes('rel="icon"'), "Radio favicon");
+assert(meshHtml.includes("exopace.net/mesh"), "Mesh install copy names /mesh/");
+assert(meshApp.includes("beforeinstallprompt"), "Radio install prompt");
+assert(meshApp.includes("BLUETOOTH NOT AVAILABLE IN THIS BROWSER"), "Radio HTTPS does not claim it needs HTTPS");
+assert(meshApp.includes("if (navigator.bluetooth) return;"), "Radio only disables BLE when the browser has no Bluetooth");
+assert(meshApp.includes("exoAllowDemo"), "Radio demo helper stays gated");
+assert(!meshHtml.includes("optDemo") && !/Demo Dev only/i.test(meshHtml), "prod Radio HTML has no Demo option");
+assert(!meshHtml.includes("relay.example") && !meshHtml.includes("optRemote"), "prod Radio HTML has no example.com remote stub");
+assert(!/AP EXOpace-XXXX \/ nodelink/.test(meshHtml), "CONNECT sheet does not paint factory AP password");
+assert(!meshHtml.includes("Factory AP password is nodelink"), "SET does not treat this PWA as the node AP");
+assert(!/ensureGlobe\(\);\s*$/.test(meshApp.trim()), "Radio does not eager-mount globe on chat");
+assert(meshApp.includes("rangeCard") && meshApp.includes("card.remove()"), "guest NODE does not keep a Range logger card");
+assert(!meshApp.includes("join EXOpace-XXXX") && !meshApp.includes("Range CSV lives on the node"), "guest NODE has no AP-IP range dump");
+assert(meshHtml.includes('id="rangeCard" hidden'), "Range logger starts hidden and only mounts on the node AP");
+assert(meshApp.includes("walk outside") && !meshApp.includes("run DEMO"), "map empty state has no Demo nudge");
+assert(!meshApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
+assert(meshHtml.includes("walk outside") && !/run DEMO/i.test(meshHtml), "MAP first paint has no Demo CTA");
+assert(/#mapEmpty\{[^}]*right:132px/.test(meshHtml), "phone MAP empty-state parks off STATION/TRAIL");
+assert(meshHtml.includes("MESH QUIET. Power up a second node") && meshHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
+assert(meshApp.includes("renderNodes();") && meshApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
+assert(meshHtml.includes("app.js?v=60") && meshHtml.includes("env.js?v=60"), "Radio index cache-busts in-place JS");
+assert(/#installHint\{[^}]*flex:0 0 auto/.test(meshHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "Radio installHint does not flex-clip to a 30px sliver");
+assert(meshHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
+assert(meshApp.includes("exopace-radio-hide-install") && meshApp.includes("hideInstallHint"), "Radio HIDE persist stays");
+assert(meshApp.includes("function showInstallCard") && meshApp.includes("showInstallCard()"), "SET Phone app card is forced visible");
+assert(!/if \(isStandalone\(\) \|\| installHintDismissed\(\)\)/.test(meshApp), "standalone or HIDE persist does not zero #installHint");
+assert(!meshApp.includes('$("installHint").style.display = "none"'), "BLE connect does not zero the Phone app card");
 {
-  const chatSec = radioHtml.slice(radioHtml.indexOf('id="scr-chat"'), radioHtml.indexOf('id="scr-map"'));
-  const setSec = radioHtml.slice(radioHtml.indexOf('id="scr-setup"'));
+  const chatSec = meshHtml.slice(meshHtml.indexOf('id="scr-chat"'), meshHtml.indexOf('id="scr-map"'));
+  const setSec = meshHtml.slice(meshHtml.indexOf('id="scr-setup"'));
   assert(!chatSec.includes('id="installHint"'), "CHAT does not paint the phone-app installHint card");
   assert(setSec.includes('id="installHint"') && setSec.includes("id=\"btHelp\""), "installHint lives on SET with CONNECT pairing");
   const installTxt = setSec.slice(setSec.indexOf('id="installTxt"'), setSec.indexOf('id="btnInst2"'));
   const btHelp = setSec.slice(setSec.indexOf('id="btHelp"'));
-  assert(installTxt.includes("exopace.net/radio/") && installTxt.includes("INSTALL APP"), "SET Phone app copy keeps the URL and INSTALL APP");
+  assert(installTxt.includes("exopace.net/mesh/") && installTxt.includes("INSTALL APP"), "SET Phone app copy keeps the URL and INSTALL APP");
   assert(!/CONNECT → Bluetooth/.test(installTxt), "SET #installTxt does not repeat the pairing line");
   assert(btHelp.includes("CONNECT → Bluetooth → EXOpace-XXXX") && btHelp.includes("Do not pair in Android Settings."), "SET pairing stays once under NODE SETUP");
   assert((setSec.match(/CONNECT → Bluetooth → EXOpace-XXXX/g) || []).length === 1, "SET paints pairing copy once");
 }
-assert(!radioApp.includes("Then open EXOpace and CONNECT → Bluetooth"), "iOS installTxt does not repeat the pairing line");
-assert(radioHtml.includes('id="btnInst" hidden') && /#btnInst,#btnInst\[hidden\]\{[^}]*display:none/.test(radioHtml), "header INSTALL chip is hidden so CHAT is CONNECT only");
-assert(radioHtml.includes('id="btnConn">CONNECT'), "CONNECT stays in the Radio header");
-assert(!radioApp.includes('$("btnInst").style.display = ""') && radioApp.includes("syncInstallHint();"), "beforeinstallprompt does not unhide header INSTALL; SET installHint still syncs");
+assert(!meshApp.includes("Then open EXOpace and CONNECT → Bluetooth"), "iOS installTxt does not repeat the pairing line");
+assert(meshHtml.includes('id="btnInst" hidden') && /#btnInst,#btnInst\[hidden\]\{[^}]*display:none/.test(meshHtml), "header INSTALL chip is hidden so CHAT is CONNECT only");
+assert(meshHtml.includes('id="btnConn">CONNECT'), "CONNECT stays in the Radio header");
+assert(!meshApp.includes('$("btnInst").style.display = ""') && meshApp.includes("syncInstallHint();"), "beforeinstallprompt does not unhide header INSTALL; SET installHint still syncs");
 assert(read("moc-phone.css").includes("hud:has(.station) .layers.open") && read("moc-phone.css").includes("display: none !important"), "phone LAYERS panel hides while STATION is open");
 assert(read("moc-phone.css").includes("html:has(.station) #globe .cesium-viewer-bottom"), "phone Ion credits hide while STATION is open so they do not cover AOS/AZ");
-assert(/\.mapst label\{[^}]*min-height:44px/.test(radioHtml) && /\.mapst label\{[^}]*min-width:44px/.test(radioHtml), "MAP STATION/TRAIL taps are 44px");
-assert(/\.mapst input\[type=checkbox\]\{[^}]*min-height:22px/.test(radioHtml), "MAP STATION/TRAIL checkboxes are not native 13px");
-assert(radioHtml.includes('id="cfgHw" hidden') && radioHtml.includes("GPS RX pin") && radioHtml.includes("SAVE &amp; REBOOT RADIO"), "SET hardware pins start hidden while LINK DOWN");
-assert(radioApp.includes("cfgHw") && radioApp.includes("hw.hidden = !up"), "SET pins/SAVE only paint when the radio is up");
+assert(/\.mapst label\{[^}]*min-height:44px/.test(meshHtml) && /\.mapst label\{[^}]*min-width:44px/.test(meshHtml), "MAP STATION/TRAIL taps are 44px");
+assert(/\.mapst input\[type=checkbox\]\{[^}]*min-height:22px/.test(meshHtml), "MAP STATION/TRAIL checkboxes are not native 13px");
+assert(meshHtml.includes('id="cfgHw" hidden') && meshHtml.includes("GPS RX pin") && meshHtml.includes("SAVE &amp; REBOOT RADIO"), "SET hardware pins start hidden while LINK DOWN");
+assert(meshApp.includes("cfgHw") && meshApp.includes("hw.hidden = !up"), "SET pins/SAVE only paint when the radio is up");
 {
-  const hw = radioHtml.slice(radioHtml.indexOf('id="cfgHw"'), radioHtml.indexOf('id="cfgSave"'));
+  const hw = meshHtml.slice(meshHtml.indexOf('id="cfgHw"'), meshHtml.indexOf('id="cfgSave"'));
   assert(hw.includes("cfgGpsInt") && hw.includes("GPS report interval"), "SET GPS interval hides with pins while LINK DOWN");
 }
-assert(/#passHint\{[^}]*margin-bottom:12px/.test(radioHtml), "SET passHint has a real gap above Channel key");
-assert(radioHtml.includes('id="passHint" hidden') && /#passHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "SET passHint starts hidden while LINK DOWN");
-assert(radioApp.includes("passHint.hidden = !up"), "SET passHint hides with the password field while LINK DOWN");
-assert(radioHtml.includes('id="freqHint" hidden') && /#freqHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "SET freqHint starts hidden while LINK DOWN");
-assert(radioApp.includes("freqHint.hidden = !up"), "SET freqHint hides with Frequency and SF while LINK DOWN");
-assert(!radioHtml.includes("FIRMWARE.md") && !radioHtml.includes("this PWA is not the AP"), "SET pairing does not dump FIRMWARE.md or PWA-is-not-the-AP");
-assert(!radioApp.includes("FIRMWARE.md"), "Radio app does not point guests at FIRMWARE.md");
-assert(!radioHtml.includes("Not a Pages route") && !radioApp.includes("Not served from exopace.net"), "rangeHint has no Pages-implementation dump");
-assert(/#composer input\{flex:1;min-width:0/.test(radioHtml) && /#composer\{[^}]*min-width:0/.test(radioHtml), "Radio CHAT composer shrinks so TX stays on 360");
-assert(/#pathLbl\{[^}]*flex:0 0 auto/.test(radioHtml) && /#pathLbl\{[^}]*width:max-content/.test(radioHtml) && /#pathLbl\{[^}]*overflow:visible/.test(radioHtml), "Radio pathLbl shows full LINK DOWN at 360/390");
-assert(radioHtml.includes('id="hMeter" hidden') && /#hMeter\[hidden\]\{[^}]*display:none/.test(radioHtml), "header RF meter starts hidden while LINK DOWN");
-assert(radioApp.includes("function syncHeaderMeter") && radioApp.includes("el.hidden = !up"), "header RF meter stays hidden until the radio is up");
-assert(!radioHtml.includes("unsafely-treat-insecure-origin-as-secure"), "HTTPS Radio SET has no Chrome flags recipe");
-assert(!/const ASSETS = \[[^\]]*"index\.html"/.test(radSw), "Radio SW does not precache index.html");
-assert(radioApp.includes("if (b.dataset.s === \"map\")") && radioApp.includes("syncGlobe()"), "MAP tab paints quiet empty state before globe");
-assert(radioApp.includes("function isOwnMsg") && radioApp.includes('own ? "YOU"'), "own SOS/TX labels YOU not me");
-assert(!radioApp.includes("…sent") && !radioApp.includes("ackslot"), "chat meta does not invent …sent on local echo");
-assert(radioApp.includes(' + " UTC"') && radioApp.includes('ts + " · " + extra'), "chat meta omits trailing · when ack/RSSI are empty");
-assert(radioApp.includes("if (!went) echoOwnChat") && radioApp.includes("echoOwnChat(text, to)"), "LINK DOWN qtx/TX local-echo without inventing ack/RSSI");
-assert(radioApp.includes("function sosLine") && radioApp.includes("sosLine(m)"), "own SOS paints SOS, not SOS SOS");
-assert(radioApp.includes("if (went) toast(\"SOS TX\")") && !/send\([^)]*\);\s*handle\([^)]*\);\s*toast\("SOS TX"\)/.test(radioApp), "SOS does not claim TX while LINK DOWN");
-assert(radioHtml.includes("Channel key (AES-256)") && !radioHtml.includes("use CLEAR CHANNEL KEY for open mesh"), "SET channel-key label does not name the hidden CLEAR CHANNEL KEY control");
-assert(radioHtml.includes('id="cfgForm" hidden') && radioApp.includes("form.hidden = !up"), "SET name/freq/SF/TX/pass/key hide while LINK DOWN so there is no dead form");
-assert(radioHtml.includes('id="hFreq" hidden') && radioApp.includes("freq.hidden = !up"), "header does not paint dummy --- MHz / SF- while LINK DOWN");
-assert(radioHtml.includes("TX power (dBm)") && !/V4 PA/.test(radioHtml) && !/V4 PA/.test(radioApp), "SET TX power does not invent V4 PA hardware");
-assert(radioHtml.includes('id="cfgClearKey"') && radioHtml.includes("CLEAR CHANNEL KEY"), "CLEAR CHANNEL KEY stays inside cfgHw for when the radio is up");
-assert(radioHtml.includes('id="chatSend" hidden') && radioApp.includes("function syncChatSend"), "CHAT TX hides while LINK DOWN");
-assert(radioHtml.includes('id="qtx" hidden') && /#qtx\[hidden\]\{[^}]*display:none/.test(radioHtml), "CHAT qtx starts hidden while LINK DOWN");
-assert(radioApp.includes("qtx.hidden = !up"), "CHAT qtx hides with TX until the radio is up");
-assert(radioHtml.includes('id="composer" hidden') && /#composer\[hidden\]\{[^}]*display:none/.test(radioHtml), "CHAT composer starts hidden while LINK DOWN");
-assert(radioApp.includes("composer.hidden = !up") && radioApp.includes("Wait for a peer."), "CHAT composer and empty-state hide TX chrome while LINK DOWN");
-assert(radioHtml.includes("MESH QUIET. Wait for a peer.") && !radioHtml.includes("TX or wait for a peer."), "CHAT empty first-paint does not name hidden TX");
-assert(!/text: "SOS " \+ \(m\.msg/.test(radioApp), "SOS handler does not glue SOS onto a qtx that is already SOS");
+assert(/#passHint\{[^}]*margin-bottom:12px/.test(meshHtml), "SET passHint has a real gap above Channel key");
+assert(meshHtml.includes('id="passHint" hidden') && /#passHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "SET passHint starts hidden while LINK DOWN");
+assert(meshApp.includes("passHint.hidden = !up"), "SET passHint hides with the password field while LINK DOWN");
+assert(meshHtml.includes('id="freqHint" hidden') && /#freqHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "SET freqHint starts hidden while LINK DOWN");
+assert(meshApp.includes("freqHint.hidden = !up"), "SET freqHint hides with Frequency and SF while LINK DOWN");
+assert(!meshHtml.includes("FIRMWARE.md") && !meshHtml.includes("this PWA is not the AP"), "SET pairing does not dump FIRMWARE.md or PWA-is-not-the-AP");
+assert(!meshApp.includes("FIRMWARE.md"), "Radio app does not point guests at FIRMWARE.md");
+assert(!meshHtml.includes("Not a Pages route") && !meshApp.includes("Not served from exopace.net"), "rangeHint has no Pages-implementation dump");
+assert(/#composer input\{flex:1;min-width:0/.test(meshHtml) && /#composer\{[^}]*min-width:0/.test(meshHtml), "Radio CHAT composer shrinks so TX stays on 360");
+assert(/#pathLbl\{[^}]*flex:0 0 auto/.test(meshHtml) && /#pathLbl\{[^}]*width:max-content/.test(meshHtml) && /#pathLbl\{[^}]*overflow:visible/.test(meshHtml), "Radio pathLbl shows full LINK DOWN at 360/390");
+assert(meshHtml.includes('id="hMeter" hidden') && /#hMeter\[hidden\]\{[^}]*display:none/.test(meshHtml), "header RF meter starts hidden while LINK DOWN");
+assert(meshApp.includes("function syncHeaderMeter") && meshApp.includes("el.hidden = !up"), "header RF meter stays hidden until the radio is up");
+assert(!meshHtml.includes("unsafely-treat-insecure-origin-as-secure"), "HTTPS Radio SET has no Chrome flags recipe");
+assert(!/const ASSETS = \[[^\]]*"index\.html"/.test(meshSw), "Radio SW does not precache index.html");
+assert(meshApp.includes("if (b.dataset.s === \"map\")") && meshApp.includes("syncGlobe()"), "MAP tab paints quiet empty state before globe");
+assert(meshApp.includes("function isOwnMsg") && meshApp.includes('own ? "YOU"'), "own SOS/TX labels YOU not me");
+assert(!meshApp.includes("…sent") && !meshApp.includes("ackslot"), "chat meta does not invent …sent on local echo");
+assert(meshApp.includes(' + " UTC"') && meshApp.includes('ts + " · " + extra'), "chat meta omits trailing · when ack/RSSI are empty");
+assert(meshApp.includes("if (!went) echoOwnChat") && meshApp.includes("echoOwnChat(text, to)"), "LINK DOWN qtx/TX local-echo without inventing ack/RSSI");
+assert(meshApp.includes("function sosLine") && meshApp.includes("sosLine(m)"), "own SOS paints SOS, not SOS SOS");
+assert(meshApp.includes("if (went) toast(\"SOS TX\")") && !/send\([^)]*\);\s*handle\([^)]*\);\s*toast\("SOS TX"\)/.test(meshApp), "SOS does not claim TX while LINK DOWN");
+assert(meshHtml.includes("Channel key (AES-256)") && !meshHtml.includes("use CLEAR CHANNEL KEY for open mesh"), "SET channel-key label does not name the hidden CLEAR CHANNEL KEY control");
+assert(meshHtml.includes('id="cfgForm" hidden') && meshApp.includes("form.hidden = !up"), "SET name/freq/SF/TX/pass/key hide while LINK DOWN so there is no dead form");
+assert(meshHtml.includes('id="hFreq" hidden') && meshApp.includes("freq.hidden = !up"), "header does not paint dummy --- MHz / SF- while LINK DOWN");
+assert(meshHtml.includes("TX power (dBm)") && !/V4 PA/.test(meshHtml) && !/V4 PA/.test(meshApp), "SET TX power does not invent V4 PA hardware");
+assert(meshHtml.includes('id="cfgClearKey"') && meshHtml.includes("CLEAR CHANNEL KEY"), "CLEAR CHANNEL KEY stays inside cfgHw for when the radio is up");
+assert(meshHtml.includes('id="chatSend" hidden') && meshApp.includes("function syncChatSend"), "CHAT TX hides while LINK DOWN");
+assert(meshHtml.includes('id="qtx" hidden') && /#qtx\[hidden\]\{[^}]*display:none/.test(meshHtml), "CHAT qtx starts hidden while LINK DOWN");
+assert(meshApp.includes("qtx.hidden = !up"), "CHAT qtx hides with TX until the radio is up");
+assert(meshHtml.includes('id="composer" hidden') && /#composer\[hidden\]\{[^}]*display:none/.test(meshHtml), "CHAT composer starts hidden while LINK DOWN");
+assert(meshApp.includes("composer.hidden = !up") && meshApp.includes("Wait for a peer."), "CHAT composer and empty-state hide TX chrome while LINK DOWN");
+assert(meshHtml.includes("MESH QUIET. Wait for a peer.") && !meshHtml.includes("TX or wait for a peer."), "CHAT empty first-paint does not name hidden TX");
+assert(!/text: "SOS " \+ \(m\.msg/.test(meshApp), "SOS handler does not glue SOS onto a qtx that is already SOS");
+
+// --- SDR web app at /radio/ (dj SDR) ---
+const sdrHtml = read("radio/index.html");
+const sdrUnlock = read("radio/unlock.html");
+assert(sdrHtml.includes("dj SDR"), "SDR app title");
+assert(sdrHtml.includes('const BASE="http://100.106.193.8:8110"'), "SDR app points at the host backend");
+assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
+assert(sdrHtml.includes("assets/leaflet.min.js") && sdrHtml.includes("assets/leaflet.css"), "SDR leaflet is local");
+assert(!sdrHtml.includes('src="/assets/') && !sdrHtml.includes('href="/assets/'), "SDR app has no absolute /assets/ refs");
+assert(existsSync(join(root, "radio/assets/leaflet.min.js")) && existsSync(join(root, "radio/assets/leaflet.css")), "SDR leaflet assets exist");
+assert(sdrUnlock.includes("./?t="), "SDR unlock redirects to its own path");
+assert(!existsSync(join(root, "radio/app.js")) && !existsSync(join(root, "radio/sw.js")), "SDR app replaced the radio PWA at /radio/");
+assert(headers.includes("/radio/index.html") && headers.includes("/mesh/index.html"), "in-place SDR + mesh index are no-cache");
 
 // --- shipped MOC still has palette + quality + deep link (bundle, no Vite source) ---
 const moc = read("assets/index-B5yAHF7-.js");
@@ -586,7 +599,7 @@ assert(moc.includes("x.setSelected(W.id)") && moc.includes("nextEvent:up(W,x.clo
   assert(held.includes("AOS 02:02:02Z"), "up() cache stays on the frozen HOLD sim instant");
 }
 assert(!moc.includes('pass:"nodelink"'), "MOC live bundle does not ship a factory AP named nodelink");
-assert(!read("radio/protocol.js").includes("BASECAMP") && !read("radio/protocol.js").includes("RIG-1") && !read("radio/protocol.js").includes("TRK-2"), "Radio protocol has no BASECAMP / RIG-1 / TRK-2 fixtures");
+assert(!read("mesh/protocol.js").includes("BASECAMP") && !read("mesh/protocol.js").includes("RIG-1") && !read("mesh/protocol.js").includes("TRK-2"), "Radio protocol has no BASECAMP / RIG-1 / TRK-2 fixtures");
 assert(!read("protocol/index.js").includes("BASECAMP") && !read("protocol/index.js").includes("RIG-1"), "canonical protocol demo helper dropped BASECAMP / RIG-1 names");
 assert(!moc.includes('?"AUDIO":"TICKS"') && !moc.includes('"TICKS"'), "MOC sound chip is never labeled TICKS");
 assert(moc.includes('children:"AUDIO"'), "MOC sound chip stays AUDIO either way");
@@ -596,7 +609,7 @@ assert(!moc.includes('feed:"ERROR",imagery'), "MOC does not first-paint FEED ERR
 assert(!moc.includes("exopase.com"), "MOC bundle does not poll exopase.com");
 assert(!moc.includes("EXOPACE_BRIDGE unset") && !moc.includes("NO BRIDGE · EXOPACE_BRIDGE"), "MOC guest stoff does not leak EXOPACE_BRIDGE");
 assert(moc.includes('Wo("NO BRIDGE")'), "empty bridge stays OFFLINE · NO BRIDGE");
-assert(!read("radio/app.js").includes("EXOPACE_BRIDGE unset") && !read("radio/app.js").includes("unset in /env.js"), "Radio does not paint env-file leaks");
+assert(!read("mesh/app.js").includes("EXOPACE_BRIDGE unset") && !read("mesh/app.js").includes("unset in /env.js"), "Radio does not paint env-file leaks");
 assert(!moc.includes("unset in /env.js") && !moc.includes("EXOPACE_IMAGERY.ION_TOKEN"), "MOC imagery note does not leak /env.js");
 assert(moc.includes('_setImagery("ESRI FALLBACK")'), "empty imagery keys stay ESRI FALLBACK without a config dump");
 assert(moc.includes('_setImagery("OFFLINE")'), "failed imagery request stays guest OFFLINE");
@@ -674,26 +687,26 @@ assert(!moc.includes("setInterval(()=>x(Date.now()),1e3)"), "STATION passlist no
 assert(/@media \(max-width: 820px\)[\s\S]*\.palette\s*\{[^}]*display:\s*none/.test(read("moc-phone.css")), "phone hides the command palette");
 assert(index.includes('e.key !== "/"') && index.includes("max-width: 820px"), "phone / does not open the command palette");
 assert(/@media \(max-width: 380px\)[\s\S]*letter-spacing:\s*0/.test(read("moc-phone.css")), "360 search drops tracking so SAT NAME / NORAD fits");
-assert(/overflow-x:\s*hidden/.test(radioHtml), "Radio clips horizontal overflow");
-assert(/#battChart,#rssiChart\{width:100%;max-width:100%;min-width:0/.test(radioHtml), "Radio rssiChart scales to the NODE pane");
-assert(radioHtml.includes('id="battEmpty"') && radioHtml.includes("NO LAST-HOUR SAMPLES") && radioHtml.includes('id="rssiEmpty"') && radioHtml.includes("NO RSSI SAMPLES"), "NODE charts first-paint honest empty-states");
-assert(radioHtml.includes('id="telemEmpty"') && radioHtml.includes("NO TELEMETRY") && radioHtml.includes('id="telemGrid" hidden'), "NODE vitals first-paint honest empty-state instead of dummy -%");
-assert(!radioHtml.includes(">-%<") && !radioHtml.includes(">- V<") && !radioHtml.includes("heap -<") && !radioHtml.includes("SNR -<"), "NODE vitals HTML has no dummy dash readings");
-assert(/#telemGrid\[hidden\]\{[^}]*display:none/.test(radioHtml) && radioApp.includes("syncTelemEmpty"), "NODE dummy vitals stay hidden until the node reports");
-assert(!radioApp.includes("35.1495") && radioApp.includes("btnRecage") && radioApp.includes("WAITING FOR FIX"), "RECAGE ON ME waits for a GPS fix and does not fly to a dummy city");
-assert(radioHtml.includes('id="btnRange" hidden') && radioApp.includes("function syncMapChrome") && radioApp.includes("if (!radioUp()) return"), "MAP RANGE TEST is hidden while LINK DOWN and does not toggle without a radio");
-assert(radioHtml.includes('id="btnWay" hidden') && radioApp.includes("way.hidden = !hasFix"), "MAP DROP WAYPOINT is hidden until there is a GPS fix");
-assert(radioHtml.includes('id="btnCopy" hidden') && radioApp.includes("copy.hidden = !hasFix"), "MAP COPY COORDS is hidden until there is a GPS fix");
-assert(radioHtml.includes('id="btnMaps" hidden') && radioApp.includes("maps.hidden = !hasFix"), "MAP OPEN IN MAPS is hidden until there is a GPS fix");
-assert(radioHtml.includes('id="mapsHint" hidden') && /#mapsHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "MAP Maps-hint starts hidden until there is a GPS fix");
-assert(radioApp.includes("mapsHint.hidden = !hasFix"), "MAP Maps-hint stays hidden with OPEN IN MAPS until there is a GPS fix");
-assert(radioHtml.includes('id="compass" hidden') && /#compass\[hidden\]\{[^}]*display:none/.test(radioHtml), "MAP compass starts hidden until there is a GPS fix");
-assert(radioApp.includes("compass.hidden = !hasFix"), "MAP compass stays hidden until there is a GPS fix so it does not paint a dummy heading");
-assert(radioHtml.includes('id="posLL" hidden') && radioHtml.includes('id="posMeta" hidden') && !radioHtml.includes("--.-----"), "MAP dummy lat/lon starts hidden until there is a GPS fix");
-assert(/#posLL\[hidden\]\{[^}]*display:none/.test(radioHtml) && radioApp.includes("ll.hidden = !hasFix"), "MAP dummy --.----- / - · - stay hidden until there is a GPS fix");
-assert(radioApp.includes("syncChartEmpty") && radioApp.includes('S.batt.length > 0') && radioApp.includes('S.rssiSpark.length > 0'), "NODE charts hide the canvas until a real sample exists");
-assert(!/S\.batt\s*=\s*\[[^\]]*[1-9]/.test(radioApp) && radioApp.includes("batt: []") && radioApp.includes("rssiSpark: []"), "NODE does not invent a battery or RSSI series");
-assert(/\.card\{[^}]*overflow:hidden/.test(radioHtml), "Radio NODE cards cannot grow past the pane");
+assert(/overflow-x:\s*hidden/.test(meshHtml), "Radio clips horizontal overflow");
+assert(/#battChart,#rssiChart\{width:100%;max-width:100%;min-width:0/.test(meshHtml), "Radio rssiChart scales to the NODE pane");
+assert(meshHtml.includes('id="battEmpty"') && meshHtml.includes("NO LAST-HOUR SAMPLES") && meshHtml.includes('id="rssiEmpty"') && meshHtml.includes("NO RSSI SAMPLES"), "NODE charts first-paint honest empty-states");
+assert(meshHtml.includes('id="telemEmpty"') && meshHtml.includes("NO TELEMETRY") && meshHtml.includes('id="telemGrid" hidden'), "NODE vitals first-paint honest empty-state instead of dummy -%");
+assert(!meshHtml.includes(">-%<") && !meshHtml.includes(">- V<") && !meshHtml.includes("heap -<") && !meshHtml.includes("SNR -<"), "NODE vitals HTML has no dummy dash readings");
+assert(/#telemGrid\[hidden\]\{[^}]*display:none/.test(meshHtml) && meshApp.includes("syncTelemEmpty"), "NODE dummy vitals stay hidden until the node reports");
+assert(!meshApp.includes("35.1495") && meshApp.includes("btnRecage") && meshApp.includes("WAITING FOR FIX"), "RECAGE ON ME waits for a GPS fix and does not fly to a dummy city");
+assert(meshHtml.includes('id="btnRange" hidden') && meshApp.includes("function syncMapChrome") && meshApp.includes("if (!radioUp()) return"), "MAP RANGE TEST is hidden while LINK DOWN and does not toggle without a radio");
+assert(meshHtml.includes('id="btnWay" hidden') && meshApp.includes("way.hidden = !hasFix"), "MAP DROP WAYPOINT is hidden until there is a GPS fix");
+assert(meshHtml.includes('id="btnCopy" hidden') && meshApp.includes("copy.hidden = !hasFix"), "MAP COPY COORDS is hidden until there is a GPS fix");
+assert(meshHtml.includes('id="btnMaps" hidden') && meshApp.includes("maps.hidden = !hasFix"), "MAP OPEN IN MAPS is hidden until there is a GPS fix");
+assert(meshHtml.includes('id="mapsHint" hidden') && /#mapsHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "MAP Maps-hint starts hidden until there is a GPS fix");
+assert(meshApp.includes("mapsHint.hidden = !hasFix"), "MAP Maps-hint stays hidden with OPEN IN MAPS until there is a GPS fix");
+assert(meshHtml.includes('id="compass" hidden') && /#compass\[hidden\]\{[^}]*display:none/.test(meshHtml), "MAP compass starts hidden until there is a GPS fix");
+assert(meshApp.includes("compass.hidden = !hasFix"), "MAP compass stays hidden until there is a GPS fix so it does not paint a dummy heading");
+assert(meshHtml.includes('id="posLL" hidden') && meshHtml.includes('id="posMeta" hidden') && !meshHtml.includes("--.-----"), "MAP dummy lat/lon starts hidden until there is a GPS fix");
+assert(/#posLL\[hidden\]\{[^}]*display:none/.test(meshHtml) && meshApp.includes("ll.hidden = !hasFix"), "MAP dummy --.----- / - · - stay hidden until there is a GPS fix");
+assert(meshApp.includes("syncChartEmpty") && meshApp.includes('S.batt.length > 0') && meshApp.includes('S.rssiSpark.length > 0'), "NODE charts hide the canvas until a real sample exists");
+assert(!/S\.batt\s*=\s*\[[^\]]*[1-9]/.test(meshApp) && meshApp.includes("batt: []") && meshApp.includes("rssiSpark: []"), "NODE does not invent a battery or RSSI series");
+assert(/\.card\{[^}]*overflow:hidden/.test(meshHtml), "Radio NODE cards cannot grow past the pane");
 assert(!existsSync(join(root, "package.json")), "no fake Vite package.json");
 assert(!existsSync(join(root, "src")), "no invented moc/src tree");
 assert(!existsSync(join(root, "sdr-agent")), "no invented sdr-agent tree");

@@ -10,7 +10,7 @@ Operator-owned SDR decoders → this agent → authenticated ingest → MOC AIRC
 
 **Not a dragnet.** You run readsb / AIS-catcher. We only parse their published JSON.
 
-Prod has **no** `--demo` / `--fake` / sample-track mode. `EXOPACE_FAKE` is refused when `EXOPACE_ENV=prod`. Radio PWA at `/radio` stays.
+Prod has **no** `--demo` / `--fake` / sample-track mode. `EXOPACE_FAKE` is refused when `EXOPACE_ENV=prod`. Mesh radio PWA moved to `/mesh`; `/radio` is now the SDR web app.
 
 ## Install decoders (upstream)
 

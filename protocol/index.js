@@ -5,7 +5,7 @@
  * Existing: hello, cfg, chat, hist, ack, gps, telem, nodes, sys, setcfg
  * New:      sos, way, track, rf, presence, time
  *
- * This ESM file is the source of truth. radio/protocol.js is the browser IIFE
+ * This ESM file is the source of truth. mesh/protocol.js is the browser IIFE
  * (no bundler). Keep constants and type names identical. The shipped MOC
  * bundle inlined an earlier copy — do not invent a second protocol.
  */

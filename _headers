@@ -4,11 +4,11 @@
 # while 390 still paints the old chips / credits / INSTALL overlap.
 /sw.js
   Cache-Control: no-cache
-/radio/sw.js
+/mesh/sw.js
   Cache-Control: no-cache
 /env.js
   Cache-Control: no-cache
-/radio/env.js
+/mesh/env.js
   Cache-Control: no-cache
 /index.html
   Cache-Control: no-cache
@@ -16,7 +16,7 @@
   Cache-Control: no-cache
 /manifest.json
   Cache-Control: no-cache
-/radio/manifest.json
+/mesh/manifest.json
   Cache-Control: no-cache
 /pwa-install.js
   Cache-Control: no-cache
@@ -24,11 +24,15 @@
   Cache-Control: no-cache
 /assets/index-B5yAHF7-.js
   Cache-Control: no-cache
-/radio/app.js
+/mesh/app.js
+  Cache-Control: no-cache
+/mesh/index.html
+  Cache-Control: no-cache
+/mesh/protocol.js
   Cache-Control: no-cache
 /radio/index.html
   Cache-Control: no-cache
-/radio/protocol.js
+/radio/unlock.html
   Cache-Control: no-cache
 /tle/stations.txt
   Cache-Control: no-cache
@@ -49,7 +53,7 @@
 # Was inheriting the Pages default; repeat visits refetched on every deploy.
 /cesium/*
   Cache-Control: public, max-age=31536000, immutable
-/radio/three.min.js
+/mesh/three.min.js
   Cache-Control: public, max-age=31536000, immutable
-/radio/textures/*
+/mesh/textures/*
   Cache-Control: public, max-age=31536000, immutable

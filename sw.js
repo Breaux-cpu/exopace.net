@@ -25,7 +25,8 @@ function noStore(url) {
 function skip(url) {
   if (url.origin !== location.origin) return true;
   const p = url.pathname;
-  // Radio has its own SW + scope. Never steal /radio or treat it as the SPA.
+  // Mesh radio and SDR app have their own scopes. Never steal them.
+  if (p === "/mesh" || p.startsWith("/mesh/")) return true;
   if (p === "/radio" || p.startsWith("/radio/")) return true;
   if (p.startsWith("/cesium/")) return true;
   if (p.startsWith("/protocol/")) return true;

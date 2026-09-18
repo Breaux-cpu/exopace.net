@@ -1,4 +1,4 @@
-const CACHE = "exopace-radio-v59";
+const CACHE = "exopace-mesh-v60";
 // Do not precache index.html — in-place CSS (composer / pathLbl) must not pin.
 const ASSETS = [
   "three.min.js",
@@ -17,16 +17,16 @@ function noStore(url) {
   const p = url.pathname;
   return (
     /(?:^|\/)(app|env|protocol|store|globe)\.js$/.test(p) ||
-    p === "/radio" ||
-    p === "/radio/" ||
-    p === "/radio/index.html"
+    p === "/mesh" ||
+    p === "/mesh/" ||
+    p === "/mesh/index.html"
   );
 }
 
 function skip(url) {
   if (url.origin !== location.origin) return true;
   // Node AP CSVs and anything outside this PWA scope.
-  if (!url.pathname.startsWith("/radio")) return true;
+  if (!url.pathname.startsWith("/mesh")) return true;
   return false;
 }
 

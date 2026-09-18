@@ -1,497 +1,1003 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!doctype html><html><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>EXOpace Radio</title>
-<link rel="canonical" href="https://exopace.net/radio/">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#101208">
-<meta name="description" content="EXOpace Radio — an installable field-radio PWA: BLE mesh chat, waypoints, and a live map, offline-first.">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="EXOpace">
-<meta property="og:title" content="EXOpace Radio">
-<meta property="og:description" content="Installable field radio: BLE mesh chat, waypoints, and a live map, offline-first.">
-<meta property="og:url" content="https://exopace.net/radio/">
-<meta property="og:image" content="https://exopace.net/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="EXOpace Radio">
-<meta name="twitter:description" content="Installable field radio: BLE mesh chat, waypoints, and a live map, offline-first.">
-<meta name="twitter:image" content="https://exopace.net/og.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070a0f">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="EXOpace">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>dj SDR</title>
+<link rel="stylesheet" href="assets/leaflet.css">
 <style>
-:root{
-  --bg:#101208; --panel:#181b0f; --panel2:#1f2314; --line:#31371e;
-  --amber:#ffb454; --amber-dim:#7d6132; --text:#eae6d4; --mut:#9a976f;
-  --ok:#9fd356; --warn:#ff7043; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --kb:0px;
-}
-body.night{--bg:#0a0303;--panel:#160606;--panel2:#1d0808;--line:#3a1512;
-  --amber:#ff5a44;--amber-dim:#75261d;--text:#ffd6cf;--mut:#b8796f;
-  --ok:#ff7a5c;--warn:#ff3b22}
-body.night .mapwrap,body.night nav,body.night header,body.night #navHud{background:#0d0404}
-body.night header{background:linear-gradient(#170606,#0d0404)}
-body.night #toast{color:#1a0505}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;max-width:100%;overflow-x:hidden}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
-  display:flex;flex-direction:column;overscroll-behavior:none}
-header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(--line);
-  padding:10px 14px 8px;display:flex;align-items:center;gap:10px;
-  padding-top:calc(10px + env(safe-area-inset-top));min-width:0;max-width:100%}
-.callsign{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
-.freq{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.08em}
-.meter{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:18px}
-#hMeter[hidden]{display:none!important}
-.meter b{width:4px;background:#3a3f24;border-radius:1px;display:block}
-.meter b.on{background:var(--amber)}
-.meter b:nth-child(1){height:5px}.meter b:nth-child(2){height:8px}.meter b:nth-child(3){height:11px}
-.meter b:nth-child(4){height:14px}.meter b:nth-child(5){height:17px}
-.link{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn);flex:0 0 9px}
-.link.up{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-#pathLbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--warn);white-space:nowrap;flex:0 0 auto;width:max-content;min-width:0;max-width:none;overflow:visible}
-#pathLbl.up{color:var(--ok)}
-#modeTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
-  padding:2px 6px;border-radius:3px;letter-spacing:.1em}
-main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;
-  padding-bottom:calc(62px + env(safe-area-inset-bottom))}
-.screen{display:none;padding:14px;max-width:640px;margin:0 auto;width:100%}
-.screen.active{display:block}
-#scr-chat.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:0}
-#scr-map.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding:0;max-width:none;overflow:hidden}
-h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
-  text-transform:uppercase;margin:6px 0 10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;max-width:100%;min-width:0;overflow:hidden}
-#installHint{flex:0 0 auto;overflow:visible}
-#installHint[hidden]{display:none!important;pointer-events:none!important;height:0;margin:0;padding:0;border:0;overflow:hidden}
-#btnInst2[hidden],#btnHintHide[hidden]{display:none!important;pointer-events:none!important}
-/* Header leftover: beforeinstallprompt painted INSTALL on CHAT. Install lives on SET. */
-#btnInst,#btnInst[hidden]{display:none!important;pointer-events:none!important;width:0!important;height:0!important;min-width:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.big{font-family:var(--mono);font-size:26px;color:var(--amber);line-height:1.1;word-break:break-all}
-.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
-.sub{font-size:12px;color:var(--mut);margin-top:4px}
-button,select,input{font:inherit;color:var(--text)}
-.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;
-  font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;width:100%;min-height:44px}
-.btn.primary{background:var(--amber);color:#141406;border-color:var(--amber);font-weight:700}
-.btn:active{transform:translateY(1px)}
-.row{display:flex;gap:10px}
-#chatLog{display:flex;flex-direction:column;gap:8px;padding-bottom:8px;flex:1;overflow-y:auto}
-.msg{max-width:82%;padding:9px 12px;border-radius:12px;background:var(--panel2);
-  border:1px solid var(--line);align-self:flex-start}
-.msg.mine{align-self:flex-end;background:#3a2f14;border-color:#5b4a1e}
-.msg .who{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:3px}
-.msg .txt{white-space:pre-wrap;word-break:break-word;cursor:pointer}
-.msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
-.msg .meta .ok{color:var(--ok)}
-.msg .meta .pend{color:var(--mut);font-style:italic;cursor:pointer;text-decoration:underline dotted}
-.daydiv{text-align:center;color:var(--mut);font-family:var(--mono);font-size:10px;letter-spacing:.15em;margin:10px 0 6px}
-.evline{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--line)}
-.evline .evt{color:var(--amber);min-width:46px;flex:none}
-.evline .evago{color:var(--mut);margin-left:auto;flex:none}
-#composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(4px + var(--kb));
-  display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
-#composer[hidden]{display:none!important}
-#qtx[hidden]{display:none!important}
-#composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
-  font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-width:0;min-height:44px;flex:0 1 auto}
-#composer input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
-#composer .send{width:auto;flex:0 0 auto}
-.fix{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
-  padding:3px 8px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
-.fix.on{color:#141406;background:var(--ok);border-color:var(--ok);font-weight:700}
-#compass{width:80px;height:80px;border:2px solid var(--line);border-radius:50%;margin:0;
-  flex:0 0 80px;position:relative;background:radial-gradient(circle,#1c2010 60%,#14170b)}
-#compass[hidden]{display:none!important}
-#needle{position:absolute;left:50%;top:50%;width:3px;height:30px;background:var(--amber);
-  transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);border-radius:2px;transition:transform .5s}
-#compass span{position:absolute;font-family:var(--mono);font-size:10px;color:var(--mut)}
-#compass .n{top:4px;left:50%;transform:translateX(-50%);color:var(--amber)}
-#compass .s{bottom:4px;left:50%;transform:translateX(-50%)}
-#compass .e{right:6px;top:50%;transform:translateY(-50%)}
-#compass .w{left:6px;top:50%;transform:translateY(-50%)}
-.node{display:flex;align-items:center;gap:12px}
-.node .meter{margin-left:auto}
-.node .nm{font-family:var(--mono);font-weight:700;color:var(--amber)}
-.node .id{font-family:var(--mono);font-size:11px;color:var(--mut)}
-.node .st{font-family:var(--mono);font-size:11px;color:var(--mut);text-align:right}
-.mapwrap{flex:1;min-height:180px;position:relative;background:#101208}
-#globeC{width:100%;height:100%;display:block;touch-action:none}
-#mapEmpty{position:absolute;left:10px;right:92px;top:10px;font-family:var(--mono);
-  font-size:11px;color:var(--mut);white-space:pre-wrap;pointer-events:none;z-index:1}
-#mapTip{display:none;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;
-  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
-  font-family:var(--mono);font-size:11px;color:var(--text);white-space:pre-line}
-.mapst{position:absolute;right:8px;top:8px;z-index:2;font-family:var(--mono);font-size:10px;
-  letter-spacing:.12em;color:var(--mut);background:var(--panel);border:1px solid var(--line);
-  border-radius:6px;padding:8px 10px;min-height:44px;display:flex;align-items:center}
-.mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
-.mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
-#btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
-#btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnShare[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
-#posLL[hidden]{display:none!important}
-#posMeta[hidden]{display:none!important}
-.mapsec{flex:0 0 auto;margin:8px 10px 10px;padding:10px}
-.mapread{display:flex;align-items:center;gap:12px}
-.mapread .big{font-size:18px}
-#battChart,#rssiChart{width:100%;max-width:100%;min-width:0;height:64px;display:block;box-sizing:border-box}
-#rssiChart{height:48px}
-#battChart[hidden],#rssiChart[hidden]{display:none!important}
-#telemGrid[hidden]{display:none!important}
-#telemEmpty{margin-bottom:12px}
-#battEmpty,#rssiEmpty{margin-top:8px}
-.field{margin-bottom:12px}
-.field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);
-  border-radius:8px;padding:10px 12px;font-family:var(--mono);min-height:44px}
-.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
-  color:var(--mut);text-transform:uppercase;margin-bottom:5px}
-#passHint{display:block;margin-top:8px;margin-bottom:12px}
-#passHint[hidden]{display:none!important}
-#freqHint[hidden]{display:none!important}
-#cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
-#cfgHw[hidden]{display:none!important}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;border-top:1px solid var(--line);
-  background:#14170b;height:calc(62px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px #0008}
-nav button{flex:1;background:none;border:none;padding:14px 0 12px;font-family:var(--mono);
-  font-size:12px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent}
-nav button.active{color:var(--amber);border-top-color:var(--amber);background:linear-gradient(#1c2010,#14170b)}
-#navHud{position:fixed;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom));z-index:31;
-  display:flex;align-items:center;gap:10px;background:#14170b;border:1px solid var(--amber);
-  border-radius:10px;padding:8px 10px;font-family:var(--mono);font-size:12px;box-shadow:0 4px 14px #0008}
-#navArrow{font-size:22px;line-height:1;color:var(--amber);display:inline-block;transition:transform .2s}
-#navName{color:var(--text);letter-spacing:.06em}
-#navDist{color:var(--amber);margin-top:2px}
-@media(max-width:420px){
-  header{gap:6px;padding-left:10px;padding-right:10px}
-  .callsign{font-size:16px}
-  .meter{margin-left:4px}
-  #pathLbl{width:max-content;min-width:0;max-width:none;letter-spacing:.06em;overflow:visible;text-overflow:clip}
-  .conn{padding:10px 6px;letter-spacing:.06em}
-  .screen{padding-left:10px;padding-right:10px}
-  #mapEmpty{right:132px}
-  #scr-setup{padding-top:8px;padding-bottom:8px}
-  #scr-setup h2{margin:0 0 6px}
-  #scr-setup .card{padding:10px;margin-bottom:0}
-  #scr-setup .field{margin-bottom:6px}
-  #scr-setup .sub{margin-top:2px}
-}
-@media(max-width:380px){
-  header{gap:4px}
-  .conn{padding:8px 5px}
-}
-#toast{position:fixed;left:50%;bottom:calc(88px + var(--kb));transform:translateX(-50%);background:var(--amber);
-  color:#141406;font-family:var(--mono);font-size:12px;font-weight:700;padding:8px 14px;
-  border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
-.conn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:700;
-  padding:10px 12px;cursor:pointer;width:auto;min-height:44px;flex:0 0 auto}
-.conn.up{color:var(--ok);border-color:var(--ok)}
-#sheet{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end}
-#sheet.show{display:flex}
-.sheet{width:100%;background:var(--panel);border-top:1px solid var(--line);
-  padding:16px 14px calc(16px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}
-.sheet h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--mut);margin-bottom:10px}
-.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
-  border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;min-height:44px}
-.opt b{display:block;font-family:var(--mono);color:var(--amber);margin-bottom:3px}
-.opt span{font-size:12px;color:var(--mut)}
-.opt:disabled{opacity:.45;cursor:not-allowed}
-#remoteBox{display:none;margin:0 0 10px}
-#remoteBox.show{display:block}
-#sosBanner{position:fixed;top:0;left:0;right:0;z-index:30;background:#3a0f0a;border-bottom:2px solid #ff5c5c;
-  padding:10px 12px calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-#sosBanner[hidden]{display:none!important}
-#sosBanner.acked{background:#1c2a10;border-bottom-color:var(--ok)}
-#sosBanner .sosTxt{flex:1;min-width:0;font-family:var(--mono);font-size:12px;color:#ffd9d9;line-height:1.4}
-#sosBanner .sosTxt b{color:#ff5c5c;letter-spacing:.1em}
-#sosBanner.acked .sosTxt b{color:var(--ok)}
-#sosBanner .sosActs{display:flex;gap:8px}
-#sosBanner .sosActs .btn{width:auto;min-width:64px;padding:10px 12px;font-size:12px}
-.tipActs{display:flex;gap:8px;margin-top:8px}
-.tipActs .btn{width:auto;min-width:64px}
-.wayName{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--mono);min-height:44px;color:var(--text)}
-#chatBadge{display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:5px;
-  border-radius:8px;background:var(--warn);color:#141406;font-size:10px;font-weight:700;vertical-align:middle}
-#chatBadge[hidden]{display:none!important}
-</style>
-</head>
-<body>
-
-<header>
-  <div>
-    <div class="callsign" id="hName">EXOpace</div>
-    <div class="freq" id="hFreq" hidden>--- MHz · SF-</div>
-  </div>
-  <span id="modeTag"></span>
-  <div class="meter" id="hMeter" hidden><b></b><b></b><b></b><b></b><b></b></div>
-  <div class="link" id="hLink"></div>
-  <span id="pathLbl">LINK DOWN</span>
-  <button class="conn" id="btnInst" hidden style="display:none">INSTALL</button>
-  <button class="conn" id="btnConn">CONNECT</button>
-</header>
-
-<div id="sosBanner" hidden role="alert" aria-live="assertive">
-  <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span> <span id="sosRange"></span></div>
-  <div class="sosActs">
-    <button class="btn primary" id="sosAck">ACK</button>
-    <button class="btn" id="sosNav">NAV</button>
-    <button class="btn" id="sosDismiss">DISMISS</button>
-  </div>
-</div>
-
-<main>
-  <section class="screen active" id="scr-chat">
-    <div id="chatEmpty" class="card sub">MESH QUIET. Wait for a peer.</div>
-    <div class="row" id="qtx" hidden style="margin-bottom:10px;flex-wrap:wrap">
-      <button class="btn" data-qtx="On station">On station</button>
-      <button class="btn" data-qtx="Moving">Moving</button>
-      <button class="btn" data-qtx="Need relay">Need relay</button>
-      <button class="btn primary" data-qtx="SOS" data-sos="1" title="Type a reason in the message box first to attach it">SOS</button>
-    </div>
-    <div class="row" style="margin-bottom:10px">
-      <button class="btn" id="btnExportChat">EXPORT CHAT</button>
-      <button class="btn" id="btnClearChat">CLEAR</button>
-      <button class="btn" id="btnTz">TIME UTC</button>
-    </div>
-    <input id="chatSearch" class="wayName" placeholder="SEARCH · @NAME FILTERS SENDER" style="margin-bottom:8px">
-    <div id="chatLog"></div>
-    <div id="composer" hidden>
-      <select id="chatTo"><option value="*">ALL</option></select>
-      <input id="chatText" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
-      <button class="btn send" id="btnSendLoc" style="width:auto;flex:0 0 auto" title="Send my position">LOC</button>
-      <button class="btn primary send" id="chatSend" hidden>TX</button>
-    </div>
-  </section>
-
-  <section class="screen" id="scr-map">
-    <div class="mapwrap">
-      <canvas id="globeC"></canvas>
-      <div id="mapEmpty">WAITING FOR FIX — walk outside
-MESH QUIET — peer dots appear when nodes report position.</div>
-      <div id="mapTip"></div>
-      <div class="mapst" style="flex-direction:column;align-items:flex-start;gap:6px;right:8px;top:8px">
-        <label><input type="checkbox" id="stPin"> STATION</label>
-        <label><input type="checkbox" id="stTrail"> TRAIL</label>
-        <label><input type="checkbox" id="stRings"> RINGS</label>
-        <label><input type="checkbox" id="stHeat"> HEAT</label>
-      </div>
-      <button class="btn" id="btnRecage">RECAGE ON ME</button>
-      <button class="btn" id="btnTapDrop" style="position:absolute;left:8px;bottom:104px;z-index:2;width:auto">TAP DROP</button>
-      <button class="btn" id="btnRange" hidden style="position:absolute;left:8px;bottom:56px;z-index:2;width:auto">RANGE TEST</button>
-    </div>
-    <div class="card mapsec">
-      <div class="mapread">
-        <div>
-          <div class="lbl">My position <span class="fix" id="fixBadge">NO FIX</span></div>
-          <div class="big" id="posLL" hidden></div>
-          <div class="sub" id="posMeta" hidden><span id="posSpd"></span> · <span id="posAlt"></span></div>
-          <div class="sub" id="wpCount" hidden></div>
-        </div>
-        <div id="compass" hidden><div id="needle"></div><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn" id="btnCopy" hidden>COPY COORDS</button>
-        <button class="btn" id="btnShare" hidden>SHARE</button>
-        <button class="btn" id="btnMaps" hidden>OPEN IN MAPS</button>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <select id="wayKind" hidden><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
-        <button class="btn" id="btnWay" hidden>DROP WAYPOINT</button>
-      </div>
-      <div class="sub" id="mapsHint" hidden>Maps opens when your phone has internet — the mesh itself needs none.</div>
-    </div>
-  </section>
-
-  <section class="screen" id="scr-nodes">
-    <h2>Mesh stats</h2>
-    <div class="card" id="meshStats">
-      <div class="grid2">
-        <div><div class="lbl">Packets</div><div class="big" id="stPkts" style="font-size:20px">0</div></div>
-        <div><div class="lbl">Nodes</div><div class="big" id="stNodes" style="font-size:20px">0</div></div>
-        <div><div class="lbl">Link uptime</div><div class="big" id="stUp" style="font-size:20px">—</div></div>
-        <div><div class="lbl">Last packet</div><div class="big" id="stLast" style="font-size:20px">—</div></div>
-        <div><div class="lbl">Clock</div><div class="big" id="stClock" style="font-size:20px">—</div></div>
-        <div><div class="lbl">Time mode</div><div class="big" id="stTime" style="font-size:20px">—</div></div>
-      </div>
-      <div class="sub" id="stByType">no packets yet</div>
-      <div class="sub" id="stNearest">nearest —</div>
-      <div class="sub" id="stNearestWay">nearest way —</div>
-      <div class="sub" id="stTrip">trip —</div>
-    </div>
-    <h2>Mesh roster</h2>
-    <button class="btn" id="btnSort" style="width:auto;margin-bottom:8px">SORT · SIGNAL</button>
-    <button class="btn" id="btnNodesCsv" style="width:auto;margin-bottom:8px">EXPORT NODES</button>
-    <div id="nodeList"><div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div></div>
-    <h2>Waypoints</h2>
-    <button class="btn" id="btnWaySort" style="width:auto;margin-bottom:8px">SORT · NEWEST</button>
-    <button class="btn" id="btnWaysClear" style="width:auto;margin-bottom:8px">DELETE ALL</button>
-    <div id="wayList"><div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div></div>
-    <div class="row" style="margin-top:10px">
-      <button class="btn" id="btnGpx">EXPORT GPX</button>
-      <label class="btn" style="display:flex;align-items:center;justify-content:center">IMPORT GPX<input type="file" id="wptImportFile" accept=".gpx,application/gpx+xml,application/xml" hidden></label>
-      <button class="btn" id="btnSendTrack">SEND TRACK</button>
-      <button class="btn" id="btnTripReset">RESET TRIP</button>
-    </div>
-    <h2>Event log</h2>
-    <div class="card">
-      <select id="evFilter" class="wayName" style="margin-bottom:8px">
-        <option value="ALL">ALL</option>
-        <option value="LINK">LINK</option>
-        <option value="CHAT">CHAT</option>
-        <option value="WAY">WAY</option>
-        <option value="NAV">NAV</option>
-        <option value="SOS">SOS</option>
-        <option value="ACK">ACK</option>
-        <option value="NODE">NODE</option>
-        <option value="RF">RF</option>
-        <option value="CFG">CFG</option>
-      </select>
-      <div id="evLog"><div class="sub">No events yet.</div></div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn" id="btnEvExport">EXPORT LOG</button>
-        <button class="btn" id="btnEvClear">CLEAR</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="screen" id="scr-vitals">
-    <h2>Node vitals</h2>
-    <div class="card sub" id="telemEmpty">NO TELEMETRY. Vitals paint when the node reports.</div>
-    <div class="grid2" id="telemGrid" hidden>
-      <div class="card"><div class="lbl">Battery</div><div class="big" id="vBatt"></div><div class="sub" id="vVolt"></div></div>
-      <div class="card"><div class="lbl">Uptime</div><div class="big" id="vUp" style="font-size:20px"></div><div class="sub" id="vHeap"></div></div>
-      <div class="card"><div class="lbl">Last RSSI</div><div class="big" id="vRssi" style="font-size:20px"></div><div class="sub" id="vSnr"></div></div>
-      <div class="card"><div class="lbl">Radio</div><div class="big" id="vTx" style="font-size:20px"></div><div class="sub" id="vFreq"></div></div>
-    </div>
-    <div class="card"><div class="lbl">UTC clock</div><div class="big" id="vClock" style="font-size:20px">--:--:--</div><div class="sub" id="vClockOff">node time not synced</div></div>
-    <div class="card"><div class="lbl">Battery — last hour</div>
-      <canvas id="battChart" width="300" height="128" hidden></canvas>
-      <div class="sub" id="battEmpty">NO LAST-HOUR SAMPLES. Battery paints when the node reports.</div>
-    </div>
-    <div class="card"><div class="lbl">RSSI spark</div>
-      <canvas id="rssiChart" width="300" height="96" hidden></canvas>
-      <div class="sub" id="rssiEmpty">NO RSSI SAMPLES. Spark paints when a packet arrives.</div>
-    </div>
-    <div class="card">
-      <button class="btn" id="btnTelemCsv">DOWNLOAD TELEMETRY CSV</button>
-    </div>
-    <div class="card" id="rangeCard" hidden><div class="lbl">Range logger</div>
-      <div class="row">
-        <button class="btn" id="btnRangeCsv">DOWNLOAD CSV</button>
-        <button class="btn" id="btnRangeCsv0">OLDER CSV</button>
-      </div>
-      <div class="sub" id="rangeHint">One row per received packet.</div>
-    </div>
-  </section>
-
-  <section class="screen" id="scr-setup">
-    <div class="card" id="installHint">
-      <div class="lbl">Phone app</div>
-      <div class="sub" id="installTxt">https://exopace.net/radio/ — INSTALL APP.</div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="btnInst2" hidden>INSTALL APP</button>
-        <button class="btn" id="btnHintHide">HIDE</button>
-      </div>
-    </div>
-    <h2>Node setup</h2>
-    <div class="card">
-      <div id="cfgForm" hidden>
-      <div class="field"><label>Node name (callsign)</label><input id="cfgName" maxlength="12"></div>
-      <div class="field"><label>Frequency (MHz)</label>
-        <select id="cfgFreq"><option>915.0</option><option>906.875</option><option>868.0</option><option>433.0</option></select></div>
-      <div class="field"><label>Spreading factor (7 = fast · 12 = far)</label>
-        <select id="cfgSf"><option>7</option><option>8</option><option selected>9</option><option>10</option><option>11</option><option>12</option></select></div>
-      <div class="field"><label>TX power (dBm)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
-      <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
-      <div class="field"><label>Channel key (AES-256)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
-      <button class="btn" id="cfgRefresh" style="margin-bottom:12px">REFRESH FROM RADIO</button>
-      </div>
-      <div class="sub" id="passHint" hidden>Set the node AP password on the radio before field use.</div>
-      <div id="cfgHw" hidden>
-        <div class="field"><label>GPS report interval (sec)</label><input id="cfgGpsInt" type="number" min="5" max="300" value="30"></div>
-        <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
-        <div class="grid2">
-          <div class="field"><label>GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
-          <div class="field"><label>GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
-        </div>
-        <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
-        <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="btnCfgExport">EXPORT CONFIG</button>
-          <label class="btn" style="display:flex;align-items:center;justify-content:center">IMPORT<input type="file" id="cfgImportFile" accept="application/json,.json" hidden></label>
-        </div>
-      </div>
-      <div class="sub" id="freqHint" hidden>All nodes must share frequency + SF to hear each other.</div>
-      <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
-    </div>
-    <h2>Field</h2>
-    <div class="card">
-      <div class="field"><label>Arrival radius</label>
-        <select id="arriveR" class="wayName">
-          <option value="50">50 m</option>
-          <option value="100">100 m</option>
-          <option value="250">250 m</option>
-          <option value="500">500 m</option>
-        </select>
-      </div>
-      <div class="sub">Waypoint arrival alert fires inside this radius.</div>
-    </div>
-    <h2>About</h2>
-    <div class="card">
-      <div class="sub" id="aboutVer">—</div>
-      <div class="sub" id="aboutStore">—</div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn" id="btnAbout">REFRESH</button>
-        <button class="btn" id="btnBackup">BACKUP ALL</button>
-        <label class="btn" style="display:flex;align-items:center;justify-content:center">RESTORE<input type="file" id="backupFile" accept="application/json,.json" hidden></label>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn" id="btnNight">NIGHT MODE</button>
-      </div>
-    </div>
-  </section>
-</main>
-
-<div id="navHud" hidden>
-  <div id="navArrow">▲</div>
-  <div style="flex:1;min-width:0">
-    <div id="navName">—</div>
-    <div id="navDist">—</div>
-  </div>
-  <button class="btn" id="navStop" style="width:auto;min-width:60px">STOP</button>
-</div>
-
+:root{--bg:#070a0f;--bg2:#0b111a;--card:#0d141d;--card2:#111a26;--line:#1e2a3a;
+ --text:#e6edf6;--muted:#8597ad;--accent:#38bdf8;--accent2:#22d3ee;--ok:#34d399;
+ --bad:#f87171;--warn:#fbbf24;--radius:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(1200px 500px at 80% -10%,#101c2c 0%,var(--bg) 55%);
+ color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;
+ padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:9;background:linear-gradient(var(--bg) 70%,transparent);
+ padding:12px 14px 0}
+h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+h1::before{content:"";width:9px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));box-shadow:0 0 12px #22d3ee66}
+.sub{font-size:12px;color:var(--muted);margin:3px 0 10px}
+nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;background:transparent;border:1px solid transparent;color:var(--muted);
+ padding:8px 13px;border-radius:999px;font-size:13px;font-weight:500;transition:.18s}
+nav button.on{background:linear-gradient(180deg,#123148,#0b2b45 60%,#0a2845);
+ border-color:#1c4a6e;color:#bfe6ff;box-shadow:0 1px 8px #0ea5e922}
+main{padding:14px}section{display:none;animation:fade .22s ease}section.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
+ border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 0 #ffffff08 inset}
+.card h2{margin:0 0 10px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;
+ letter-spacing:1px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #16202d;font-size:14px}
+.row:last-child{border-bottom:0}
+.k{color:var(--muted);min-width:0;overflow:hidden}.k b{color:var(--text);font-weight:600}
+.v{color:#eef5fb;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+button.b{background:linear-gradient(180deg,#1d7de0,#1a6bcf);border:0;color:#fff;padding:12px;
+ border-radius:11px;font-size:14px;font-weight:600;width:100%;transition:.15s;box-shadow:0 2px 10px #1d7de033}
+button.b.alt{background:#182238;color:#cfe0f0;box-shadow:none}
+button.b.stop{background:linear-gradient(180deg,#d5483c,#b9342a);box-shadow:0 2px 10px #c9372c33}
+button.b:active{transform:scale(.97);opacity:.85}
+input,select{background:#0a1018;border:1px solid #22304a;color:#eef5fb;padding:11px;
+ border-radius:10px;font-size:16px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus{border-color:var(--accent)}
+.pill{display:inline-block;background:#101a28;border:1px solid #243a52;border-radius:6px;
+ padding:2px 7px;font-size:11px;color:var(--muted);white-space:nowrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--muted);font-size:13px}
+canvas{width:100%;display:block;background:#070c13;border:1px solid #14202e;border-radius:10px}
+audio{width:100%;margin-top:9px}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.presets button{background:#101a28;border:1px solid #22304a;color:#cfe0f0;padding:10px 8px;
+ border-radius:10px;font-size:13px;text-align:left;transition:.15s}
+.presets button.on{background:#0f2c44;border-color:#1f6ebd;color:#bfe6ff}
+.presets button:active{transform:scale(.98)}
+.presets small{display:block;color:var(--muted);font-size:11px}
+.f{font-variant-numeric:tabular-nums}
+pre{background:#070c13;border:1px solid #14202e;border-radius:10px;padding:10px;font-size:11.5px;
+ line-height:1.5;max-height:300px;overflow:auto;margin:0;white-space:pre-wrap;word-break:break-word}
+.meter{height:8px;border-radius:5px;background:#0a1018;border:1px solid #1a2840;overflow:hidden;margin-top:7px}
+.meter div{height:100%;width:0%;border-radius:5px;transition:width .4s ease;
+ background:linear-gradient(90deg,#10b981,#f59e0b 55%,#ef4444)}
+.badge{display:inline-block;min-width:17px;text-align:center;background:#d5483c;color:#fff;
+ border-radius:999px;font-size:10px;font-weight:700;padding:1px 5px;vertical-align:top}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+th.sig,td{padding:3px 6px;border-bottom:1px solid #15202e;text-align:left}
+table{width:100%;border-collapse:collapse}
+.label-sm{font-size:11px;color:var(--muted);margin:9px 0 4px;letter-spacing:.4px;text-transform:uppercase}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);z-index:50;
+ background:#0f2438;border:1px solid #1f6ebd;color:#dff3ff;padding:10px 16px;border-radius:10px;
+ font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%}
+.toast.show{transform:translateX(-50%);opacity:1}
+</style></head><body>
+<header><h1>dj SDR</h1><div class="sub" id="sub">connecting…</div>
 <nav>
-  <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
-  <button data-s="map">MAP</button>
-  <button data-s="nodes">NET</button>
-  <button data-s="vitals">NODE</button>
-  <button data-s="setup">SET</button>
-</nav>
-<div id="sheet">
-  <div class="sheet">
-    <h3>Link</h3>
-    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>On the node AP, open http://192.168.4.1. This site is not the radio.</span></button>
-    <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
-    <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
-  </div>
-</div>
-<div id="toast" aria-live="polite"></div>
+ <button data-t="listen" class="on">Listen</button>
+ <button data-t="band">Band</button>
+ <button data-t="watch">Live</button>
+ <button data-t="scan">Scan</button>
+ <button data-t="maps">Maps</button>
+ <button data-t="replay">Replays</button>
+ <button data-t="decode">Decode</button>
+ <button data-t="devices">Devices</button>
+ <button data-t="events">Events</button>
+ <button data-t="clips">Clips</button>
+ <button data-t="voice">Voice</button>
+ <button data-t="ble">Bluetooth</button>
+ <button data-t="wifi">WiFi</button>
+ <button data-t="camera">Cam</button>
+ <button data-t="weekly">Weekly</button>
+ <button data-t="tools">Tools</button>
+</nav></header><main>
 
-<script src="env.js?v=59"></script>
-<script src="three.min.js"></script>
-<script src="protocol.js?v=59"></script>
-<script src="store.js?v=59"></script>
-<script src="globe.js?v=59"></script>
-<script src="app.js?v=59"></script>
-</body>
-</html>
+<section id="listen" class="on">
+ <div class="card"><h2>Tune</h2>
+  <div style="display:flex;gap:8px"><input id="freq" value="162.475M" inputmode="decimal">
+   <button class="b" style="width:96px" onclick="listen()">Listen</button></div>
+  <div id="np" class="muted" style="margin-top:9px">stopped</div>
+  <div id="rds" style="display:none;margin-top:6px"></div>
+  <div class="meter"><div id="smbar"></div></div>
+  <div id="smtxt" class="muted" style="font-size:11px;margin-top:3px">signal —</div>
+  <audio id="au" controls preload="none"></audio>
+  <div class="grid" style="margin-top:9px">
+   <button class="b stop" onclick="stopAll()">Stop</button>
+   <button class="b alt" onclick="rec()">Record 10s</button></div>
+  <div class="card" style="margin:10px 0 0;border-radius:11px;box-shadow:none">
+   <div style="display:flex;justify-content:space-between;align-items:center">
+    <span class="muted" style="font-size:13px">Squelch-record squelch opens</span>
+    <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
+     threshold <input id="sqsq" value="-35" inputmode="decimal" style="width:76px;padding:8px"></label></div>
+   <div class="grid" style="margin-top:9px">
+    <button class="b alt" id="sqb" onclick="sqRec(true)">Arm recorder</button>
+    <button class="b stop" id="sqoff" style="display:none" onclick="sqRec(false)">Disarm</button></div>
+   <div class="muted" id="sqst" style="font-size:12px;margin-top:7px">idle — records only while the
+    squelch is open (audio above threshold), split into clips as traffic stops.</div>
+  </div>
+  <div class="muted" style="margin-top:9px;font-size:12px">The stream keeps running on jessy after you
+   leave — close the phone or lose wifi and it reattaches when you come back.</div>
+ </div>
+ <div class="card"><h2>Bookmarks</h2>
+  <div style="display:flex;gap:7px;margin-bottom:9px">
+   <input id="bmname" placeholder="name this frequency">
+   <button class="b alt" style="width:84px" onclick="addBm()">Save</button></div>
+  <div class="presets" id="bm"></div>
+ </div>
+</section>
+
+<section id="band">
+ <div class="card"><h2>Band</h2><select id="band" onchange="bandChanged()"></select>
+  <canvas id="cv" height="240" style="margin-top:10px;height:130px"></canvas>
+  <div class="muted" id="sm" style="margin-top:6px"></div></div>
+ <div class="card"><h2>Waterfall (time ↓)</h2>
+  <canvas id="wf" height="300" style="height:160px"></canvas>
+  <div class="muted" id="wm" style="margin-top:6px"></div></div>
+ <div class="card"><h2>Strongest signals</h2><div id="peaks"></div></div>
+ <div class="card"><h2>Any frequency range (live sweep)</h2>
+  <div class="muted">Sweeps whatever you ask for right now — not limited to monitored bands.
+   24 MHz to 1.7 GHz, up to 60 MHz wide.</div>
+  <div class="grid3" style="margin-top:10px"><input id="qs1" value="144M" inputmode="decimal">
+   <input id="qs2" value="148M" inputmode="decimal">
+   <button class="b" onclick="quickScan()">Sweep</button></div>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">
+   <button class="b alt" onclick="wide('24M','1700M')">full survey</button>
+   <button class="b alt" onclick="qs('118M','137M')">air</button>
+   <button class="b alt" onclick="qs('154M','156M')">fire VHF</button>
+   <button class="b alt" onclick="qs('851M','861M')">fire 800</button></div>
+  <canvas id="qcv" height="220" style="height:110px;margin-top:10px"></canvas>
+  <div id="qsout" style="margin-top:9px"></div></div>
+ <div class="card"><h2>Full-band survey &amp; signal discovery</h2>
+  <div class="muted">One rtl_power pass grids the whole 24 MHz – 1.7 GHz range and flags every
+   signal it finds, strongest first. It fills in as the sweep advances (a full pass takes a few
+   minutes) and holds the dongle until it's done or you stop it. Tap any discovery to listen.</div>
+  <div class="grid3" style="margin-top:10px">
+   <input id="ws1" value="24M" inputmode="decimal">
+   <input id="ws2" value="1700M" inputmode="decimal">
+   <button class="b" onclick="wide()">Survey</button></div>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">
+   <button class="b alt" onclick="wide('24M','1700M',1000000)">full</button>
+   <button class="b alt" onclick="wide('88M','960M',250000)">88–960</button>
+   <button class="b alt" onclick="wide('118M','500M',100000)">air+sat</button>
+   <button class="b stop" onclick="wideStop()">Stop</button></div>
+  <canvas id="wcv" height="220" style="height:120px;margin-top:10px"></canvas>
+  <div class="muted" id="wsmeta" style="margin-top:6px">not running — pick a range and Survey.</div>
+  <div id="wspk" style="margin-top:9px"></div></div>
+</section>
+
+<section id="watch">
+ <div class="card"><h2>Live waterfall</h2>
+  <div class="muted">Browse a whole band on the SDR and tap a signal to listen. This locks
+   the dongle (any listen/decode pauses), so stop it when you're done.</div>
+  <div class="grid3" style="margin:10px 0 8px">
+   <input id="wffrom" value="100M" inputmode="decimal">
+   <input id="wfto" value="102M" inputmode="decimal">
+   <button class="b" onclick="wfStart()">Start</button></div>
+  <div class="presets">
+   <button onclick="wfSet('88M','108M')">FM broadcast<small>100 – 102 MHz</small></button>
+   <button onclick="wfSet('118M','137M')">Aviation VHF<small>120 – 122.4 MHz</small></button>
+   <button onclick="wfSet('144M','148M')">2 m ham<small>144 – 146.4 MHz</small></button>
+   <button onclick="wfSet('156M','163M')">Marine VHF<small>156 – 158.4 MHz</small></button>
+   <button onclick="wfSet('420M','450M')">70 cm<small>430 – 432.4 MHz</small></button>
+   <button onclick="wfSet('435M','438M')">SAT downlink<small>435 – 437.4 MHz</small></button>
+  </div>
+  <canvas id="lwf" height="340" style="height:200px;margin-top:10px;cursor:crosshair"></canvas>
+  <div class="muted" id="lwfm" style="margin-top:6px">not running — pick a range and Start.</div>
+  <div id="lwfpeaks" style="margin-top:8px"></div></div>
+</section>
+
+<section id="scan">
+ <div class="card"><h2>Scanner</h2>
+  <div class="muted">Cycles channels with a short probe, parks on the first one that breaks
+   the squelch and plays it. Add your own channels below the presets.</div>
+  <div class="presets" style="margin-top:10px">
+   <button onclick="scanPreset('marine')">Marine VHF<small>156.05 – 162.55</small></button>
+   <button onclick="scanPreset('air')">Aviation AM<small>118 – 137 MHz</small></button>
+   <button onclick="scanPreset('fm')">FM radio<small>88.1 – 107.9</small></button>
+  </div>
+  <div class="label-sm">custom channels (comma-separated)</div>
+  <input id="scanfreqs" value="154.070M,154.310M,154.445M" inputmode="decimal">
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+   <input id="scansq" value="-45" inputmode="decimal" style="padding:10px" title="squelch (dBFS)">
+   <input id="scanhold" value="8" inputmode="numeric" style="padding:10px" title="hold seconds">
+   <button class="b" onclick="scanStart()">Scan</button></div>
+  <div class="grid" style="margin-top:8px">
+   <button class="b alt" onclick="prescan('fm');">FM scan</button>
+   <button class="b stop" onclick="scanStop()">Stop scan</button></div>
+  <div id="scanstate" style="margin-top:10px"></div>
+  <audio id="scanao" controls preload="none" style="margin-top:7px"></audio>
+ </div>
+</section>
+
+<section id="maps">
+ <div class="card"><h2>Map — positions heard on the air</h2>
+  <div class="muted">Aircraft over ADS-B, ships over AIS, APRS trackers and weather-balloon
+   radiosondes all get plotted as they're demod'd on this board. Ships time out after 15 min,
+   APRS after 30, planes after 2, sondes after 60.</div>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px">
+   <button class="b alt on" id="mapk-ais" onclick="pickMap('ais')">Ships</button>
+   <button class="b alt" id="mapk-adsb" onclick="pickMap('adsb')">Planes</button>
+   <button class="b alt" id="mapk-aprs" onclick="pickMap('aprs')">APRS</button>
+   <button class="b alt" id="mapk-sonde" onclick="pickMap('sonde')">Sondes</button>
+   <button class="b alt" id="mapk-replay" onclick="pickMap('replay')">All</button></div>
+  <div id="map" style="height:62vh;border:1px solid var(--line);border-radius:12px;margin-top:10px;background:#0b1118"></div>
+  <div class="muted" id="mapstate" style="margin-top:7px"></div>
+ </div>
+</section>
+
+<section id="decode">
+ <div class="card"><h2>Decoder</h2>
+  <select id="jobkind">
+   <option value="adsb">Aircraft (ADS-B 1090)</option>
+   <option value="ism">ISM devices (rtl_433)</option>
+   <option value="ais">Ships (AIS)</option>
+   <option value="pagers">Pagers (POCSAG/FLEX)</option>
+   <option value="aprs">APRS packet (144.39)</option>
+   <option value="sat">Weather satellite (Meteor LRPT)</option>
+   <option value="sstv">ISS SSTV (Robot 36 image)</option>
+   <option value="acars">ACARS (airline datalink)</option>
+   <option value="sonde">Radiosonde (weather balloon)</option>
+   <option value="p25">Memphis P25 PD/Fire/SO (859.9375)</option>
+   <option value="ysf">C4FM Fusion / YSF</option>
+   <option value="wspr">WSPR decode (28.1261)</option>
+   <option value="ft8">FT8 decode (144.174)</option>
+  </select>
+  <input id="jobfreq" placeholder="frequency (blank = default)" style="margin-top:8px">
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+   <button class="b alt" onclick="job('sat','137.9M')">Meteor M2-4<small>137.900</small></button>
+   <button class="b alt" onclick="job('sat','137.1M')">Meteor alt<small>137.100</small></button>
+   <button class="b alt" onclick="job('sat','137.9125M')">Meteor alt<small>137.9125</small></button></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+   <button class="b alt" onclick="job('acars','131.55M')">ACARS<small>131.550</small></button>
+   <button class="b alt" onclick="job('sonde','401.5M')">Radiosonde<small>401.5 – 405</small></button>
+   <button class="b alt" onclick="job('sstv','437.55M')">ISS SSTV<small>437.550</small></button></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+   <button class="b alt" onclick="job('ysf','444.4M')">WB4KOG Fusion<small>444.400</small></button>
+   <button class="b alt" onclick="job('ysf','145.5625M')">YSF call VHF<small>145.5625</small></button>
+   <button class="b alt" onclick="job('ysf','445.5625M')">YSF call UHF<small>445.5625</small></button></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+   <button class="b alt" onclick="job('wspr','28.1246M')">WSPR 30m<small>28.1246</small></button>
+   <button class="b alt" onclick="job('wspr','')">WSPR 10m<small>default 28.1261</small></button></div>
+  <div class="grid" style="margin-top:8px">
+   <button class="b" onclick="startJob()">Start</button>
+   <button class="b stop" onclick="stopJob()">Stop</button></div>
+  <div class="muted" id="jobstate" style="margin-top:9px">idle</div>
+  <audio id="jobau" controls preload="none" style="margin-top:8px"></audio>
+   <div class="muted" style="margin-top:8px">Decoders pause the survival monitor (and each other)
+   while they run. P25 follows the downtown Memphis simulcast control channel (Fire/EMS only);
+   Meteor LRPT needs a satellite overhead (~15 min, 137.9 MHz); ISS SSTV needs a pass and takes
+   a 130 s capture per picture; radiosondes launch ~11:00 & 23:00 UTC. WSPR decodes 10-minute
+   transmissions.</div></div>
+  <div class="card"><h2>Satellite passes — next 24 h</h2>
+   <div class="muted">Predicted on the board with SGP4 from CelesTrak TLEs for the Millington
+    station (elements refresh every 6 h). Tap <b>load</b> to set the decoder, then start it when
+    the pass is up — or set <span class="pill">SDR_AUTOSAT=1</span> (e.g. <span class="pill">meteor,iss</span>)
+    to start a pass automatically.</div>
+   <div id="passes" style="margin-top:8px"><div class="muted">loading…</div></div></div>
+  <div class="card"><h2>Aircraft</h2><div id="acl"><div class="muted">start the ADS-B decoder</div></div></div>
+ <div class="card"><h2>Live output</h2><pre id="joblines">—</pre></div>
+</section>
+
+<section id="devices">
+ <div class="card"><h2>Decoded devices</h2><div id="devs"></div></div>
+ <div class="card"><h2>Active carriers</h2><div id="carriers"></div></div>
+ <div class="card"><h2>Band occupancy</h2><div id="bands"></div></div>
+</section>
+
+<section id="events">
+ <div class="card"><h2>Recent events
+  <button class="b alt" id="notifb" style="width:auto;float:right;padding:6px 12px;font-size:12px"
+   onclick="notifToggle()">Notifications off</button></h2><div id="evs"></div></div>
+</section>
+
+<section id="clips"><div class="card"><h2>Recordings</h2>
+ <div class="muted">Squelch clips are cut by the live stream (no transcription); monitored-band
+  clips are transcribed on this board with Vosk — offline, nothing leaves the house.</div>
+ <div id="clipl" style="margin-top:9px"></div></div></section>
+
+<section id="voice">
+ <div class="card"><h2>P25 voice</h2>
+  <div class="muted">Every call the trunk decoder followed, transcribed on this board. The
+   vocoder throws away a lot before we hear it, so read these as a searchable gist.</div>
+  <div id="voicestate" style="margin-top:9px"></div>
+  <input id="voiceq" placeholder="search transcripts" autocapitalize="off"
+   style="margin-top:9px" onkeydown="if(event.key==='Enter')loadVoice()">
+  <div id="voicetgs" class="grid" style="margin-top:9px"></div>
+ </div>
+ <div class="card"><h2>Calls</h2><div id="voicel"></div>
+  <button class="b alt" id="voicemore" style="display:none;margin-top:9px"
+   onclick="voiceMore()">Load more</button></div>
+</section>
+
+<section id="weekly">
+ <div class="card"><h2>P25 weekly log</h2>
+  <div class="muted">Talkgroups the trunk decoder heard, week by week. A trunked system hands
+   out voice channels on demand, so the durable identity is the talkgroup, not the frequency.</div>
+  <div id="weeksel" class="grid" style="margin-top:9px"></div>
+ </div>
+ <div class="card"><div id="weeklog" class="muted">loading…</div></div>
+</section>
+
+<section id="ble">
+ <div class="card"><h2>Bluetooth observer</h2>
+  <div class="muted">Passive. Listens to BLE broadcasts on 2.4 GHz — a different radio from the
+   SDR, so it runs at the same time as everything else.</div>
+  <div id="blestate" style="margin-top:9px"></div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" onclick="bleCmd('start')">Start scanner</button>
+   <button class="b stop" onclick="bleCmd('stop')">Stop</button></div>
+ </div>
+ <div class="card"><h2>Filter</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
+   <button class="b alt" onclick="loadBle('all')">All</button>
+   <button class="b alt" onclick="loadBle('drone-remoteid')">Drones</button>
+   <button class="b alt" onclick="loadBle('surveillance')">Cameras</button>
+   <button class="b alt" onclick="loadBle('tracker')">Trackers</button></div>
+ </div>
+ <div class="card"><h2>Devices</h2><div id="bledevs"></div></div>
+</section>
+
+<section id="wifi">
+ <div class="card"><h2>AP census</h2>
+  <div class="muted">A normal scan from the managed interface — nothing transmitted, nothing
+   disrupted. Picks up drone Remote ID beacons, NAN, and known camera SSIDs.</div>
+  <div id="wifistate" style="margin-top:9px"></div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b alt" onclick="loadWifi(undefined,'jessy')">jessy</button>
+   <button class="b alt" onclick="loadWifi(undefined,'dj')">dj</button></div>
+ </div>
+ <div class="card"><h2>Filter</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px">
+   <button class="b alt" onclick="loadWifi('all')">All</button>
+   <button class="b alt" onclick="loadWifi('drone-remoteid')">Drones</button>
+   <button class="b alt" onclick="loadWifi('surveillance')">Cameras</button></div>
+ </div>
+ <div class="card"><h2>Access points</h2><div id="wifiaps"></div></div>
+</section>
+
+<section id="camera">
+ <div class="card"><h2>Live view</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+   <button class="b alt" id="camsrc-dj" onclick="camSrc('dj')">dj</button>
+   <button class="b alt" id="camsrc-jessy" onclick="camSrc('jessy')">jessy</button></div>
+  <div id="camstate" style="margin-top:9px"></div>
+  <img id="camimg" style="width:100%;border-radius:11px;margin-top:9px;display:none;
+   background:#0a0f16" alt="camera">
+  <div id="camoff" class="muted" style="margin-top:9px">camera stopped</div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" onclick="camStart()">Start</button>
+   <button class="b stop" onclick="camStop()">Stop</button></div>
+  <div class="grid" style="margin-top:7px">
+   <button class="b alt" onclick="camSnap()">Snapshot → phone</button></div>
+  <div class="muted" style="margin-top:8px">Released automatically ~25s after the last viewer
+   closes, so it isn't holding USB bandwidth in the background.</div>
+ </div>
+</section>
+
+<section id="tools">
+ <div class="card"><h2>Agent</h2><div id="agentstate"></div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" onclick="mon('start')">Start</button>
+   <button class="b stop" onclick="mon('stop')">Stop</button></div></div>
+ <div class="card"><h2>P25 trunk</h2><div id="p25state"></div>
+  <div class="muted" style="margin-top:8px">Holds the dongle while it runs. Starting a decode
+   or a stream pauses it automatically and brings it back when you stop.</div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" onclick="p25('start')">Start</button>
+   <button class="b stop" onclick="p25('stop')">Stop</button></div></div>
+ <div class="card"><h2>Remote SDR server</h2>
+  <div class="muted">Serves this dongle over Tailscale on port 1234 for SDR++ / gqrx / SDR Touch.</div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" onclick="job('rtcp')">Start rtl_tcp</button>
+   <button class="b stop" onclick="stopJob()">Stop</button></div></div>
+ <div class="card"><h2>Raw IQ capture</h2>
+  <div class="grid3"><input id="iqf" value="433.92M"><input id="iqs" value="10">
+   <button class="b" onclick="iq()">Record</button></div>
+  <div class="muted" id="iqout" style="margin-top:8px">frequency · seconds — find the recording
+   under Replays in the Listen page favorites, or in ~/sdr-captures.</div></div>
+ <div class="card"><h2>Usage</h2><div id="usage"></div></div>
+ <div class="card"><h2>Tasks</h2><div id="tasks"></div></div>
+ <div class="card"><h2>Capabilities</h2><div id="caps"></div></div>
+</section>
+
+<section id="replay">
+ <div class="card"><h2>IQ recordings</h2>
+  <div class="muted">Full-rate captures from Tools → Raw IQ capture. Rendered as a waterfall
+   on this board from the raw bytes — nothing is sent anywhere.</div>
+  <div id="replist" style="margin-top:9px"></div></div>
+ <div class="card" id="replayview" style="display:none"><h2>Replay</h2>
+  <div class="grid3">
+   <input id="rpf0" placeholder="from MHz (zoom)">
+   <input id="rpf1" placeholder="to MHz">
+   <button class="b alt" onclick="reRender()">Re-render</button></div>
+  <canvas id="rpv" height="320" style="height:180px;margin-top:9px"></canvas>
+  <div class="muted" id="rpinfo" style="margin-top:6px"></div>
+  <div class="grid" style="margin-top:8px">
+   <button class="b" onclick="rpListen()">Listen at golden frequency</button></div></div>
+</section>
+</main><script src="assets/leaflet.min.js"></script><script>
+const T=new URLSearchParams(location.search).get('t')||localStorage.getItem('sdrtok')||'';
+if(new URLSearchParams(location.search).get('t'))localStorage.setItem('sdrtok',T);
+const BASE="http://100.106.193.8:8110";
+const api=(p,o={})=>fetch(BASE+p+(p.includes('?')?'&':'?')+'t='+T,o).then(r=>r.json());
+const el=id=>document.getElementById(id);
+const rows=a=>a.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')||'<div class="muted">nothing yet</div>';
+const mhz=f=>(f/1e6).toFixed(4)+' MHz';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let jobTimer=null,notifOn=localStorage.getItem('sdrnotif')==='1',evSeen='',toastT=null;
+
+function toast(m){const t=el('toast');if(!t)return;t.textContent=m;t.classList.add('show');
+ clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+
+function showTab(name){
+ const b=document.querySelector(`nav button[data-t="${name}"]`);
+ if(!b||!el(name))return;
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on');el(name).classList.add('on');
+ history.replaceState(null,'','#'+name);
+ ({band:()=>{loadSpec();loadWf();loadWide()},devices:loadDev,events:loadEv,clips:loadClips,
+   tools:()=>{loadStatus();loadCaps();loadUsage()},decode:()=>{loadJob();loadPasses()},ble:()=>loadBle(),
+   wifi:()=>loadWifi(),camera:loadCam,voice:()=>loadVoice(),weekly:()=>loadWeekly(),
+   watch:loadLiveWf,scan:loadScanner,maps:()=>loadMaps(),replay:loadReplays})[name]?.();
+ if(name!=='camera')camStopView();
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+(function(){const want=new URLSearchParams(location.search).get('tab')||location.hash.replace('#','');
+ if(want)setTimeout(()=>showTab(want),150);})();
+
+let liveWanted=false,reconnectT=null;
+function attach(){const a=el('au');a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}
+function listen(f){const q=f||el('freq').value;if(f){el('freq').value=f;
+ const mo=String(f).match(/^[0-9.]+/);if(mo)el('freq').value=mo[0]+'M';}
+ liveWanted=true;el('np').textContent='tuning '+q+' …';
+ api('/api/stream/start?f='+encodeURIComponent(q),{method:'POST'}).then(r=>{
+  if(r.error||r.ok===false){el('np').textContent='error: '+(r.error||'could not start');liveWanted=false;return;}
+  attach();setTimeout(loadStatus,2500);});}
+function stopAll(){liveWanted=false;clearTimeout(reconnectT);
+ const a=el('au');a.pause();a.removeAttribute('src');a.load();
+ api('/api/stream/stop',{method:'POST'}).then(()=>{el('np').textContent='stopped';
+  el('rds').style.display='none';smSet(null);});}
+function scheduleReattach(){if(!liveWanted)return;clearTimeout(reconnectT);
+ reconnectT=setTimeout(()=>{if(liveWanted){el('np').textContent='reconnecting…';attach();}},1500);}
+window.addEventListener('DOMContentLoaded',()=>{
+ const a=el('au');['error','ended','stalled'].forEach(e=>a.addEventListener(e,scheduleReattach));});
+document.addEventListener('visibilitychange',()=>{
+ if(!document.hidden&&liveWanted&&el('au').paused)attach();});
+function rec(){el('np').textContent='recording 10s…';
+ api('/api/clip?f='+encodeURIComponent(el('freq').value)+'&s=10',{method:'POST'})
+  .then(r=>{el('np').textContent=r.ok?('saved '+r.name):('failed: '+r.error);loadClips();});}
+function sqRec(on){
+ const q='on='+(on?1:0)+'&auto=1&sq='+encodeURIComponent(el('sqsq').value)+'&secs=3600&pre=2';
+ api('/api/stream/record?'+q,{method:'POST'}).then(r=>{
+  if(r.error){toast('recorder: '+r.error);return;}
+  el('sqb').style.display=on?'none':'';
+  el('sqoff').style.display=on?'':'none';
+  toast(on?'Squelch recorder armed':'Squelch recorder disarmed');loadStatus();});}
+function mon(c){api('/api/monitor/'+c,{method:'POST'}).then(loadStatus);}
+function p25(c){api('/api/p25/'+c,{method:'POST'}).then(loadStatus);}
+
+function job(k,f){api('/api/job/start?kind='+k+(f?'&f='+encodeURIComponent(f):''),{method:'POST'})
+ .then(r=>{el('jobstate').textContent=r.error?('error: '+r.error):('running '+r.kind);loadJob();});}
+function prep(k,f){el('jobkind').value=k;el('jobfreq').value=(f/1e6)+'M';
+ el('jobstate').textContent='loaded '+k+' @ '+(f/1e6).toFixed(4)+' MHz — press Start when the pass is up';
+ window.scrollTo({top:0,behavior:'smooth'});}
+let passTimer=null;
+function loadPasses(){api('/api/passes?hours=24&min_el=10').then(d=>{
+ const box=el('passes');if(!box)return;
+ if(d.error){box.innerHTML='<div class="muted">'+esc(d.error)+'</div>';return;}
+ if(!d.passes||!d.passes.length){box.innerHTML='<div class="muted">no passes ≥10° in the next 24 h</div>';return;}
+ const now=Date.now();
+ box.innerHTML=d.passes.slice(0,14).map(p=>{
+  const dt=(p.aos_epoch*1000-now)/60000, when=new Date(p.aos_epoch*1000);
+  const hm=when.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const cd=dt<1?'now':'in '+Math.round(dt)+' min';
+  return '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,.08)">'
+   +'<b>'+esc(p.label)+'</b> <span class="muted">'+esc(p.sat||'')+'</span><br>'
+   +'<span class="'+(dt<15?'ok':'')+'">'+hm+'</span> · max '+p.max_el.toFixed(0)+'° · '
+   +Math.round(p.duration_s/60)+' min · <span class="muted">'+cd+', az '+p.az_aos+'°→'+p.az_los+'°</span> '
+   +'<button class="b alt" style="width:auto;padding:4px 10px;font-size:12px" onclick="prep(\''+p.job+'\','+p.freq+')">load</button></div>';
+ }).join('');
+ clearTimeout(passTimer);
+ if(el('decode').classList.contains('on'))passTimer=setTimeout(loadPasses,300000);
+});}
+function startJob(){job(el('jobkind').value,el('jobfreq').value);}
+function stopJob(){api('/api/job/stop',{method:'POST'}).then(()=>{el('jobstate').textContent='idle';
+ const a=el('jobau');if(a){a.pause();a.removeAttribute('src');a.load();}});}
+
+function loadJob(){
+ api('/api/job').then(j=>{
+  el('jobstate').textContent=j.job
+   ?`${j.job.label} · ${Math.round(j.job.seconds)}s · ${j.job.count} lines`
+    +(j.job.note?' · '+j.job.note:'')
+    +(j.job.dead?`  ⚠ process exited (${j.job.exit}) — see output below`:'')
+   :'idle';
+  el('joblines').textContent=(j.lines||[]).slice(-60).map(l=>l.t+'  '+l.s).join('\n')||'—';
+  if(j.modes_msgs!=null)el('jobstate').textContent+=` · ${j.modes_msgs} Mode-S msgs`;
+  if(j.job && (j.job.kind==='p25'||j.job.kind==='ysf')){
+   const a=el('jobau');
+   if(a && (!a.src || a.paused)){a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}}
+  el('acl').innerHTML=(j.aircraft&&j.aircraft.length)?rows(j.aircraft.map(a=>[
+   `${a.flight||a.hex}<br><span class="muted">${a.hex} · ${a.lat?a.lat.toFixed(3)+','+a.lon.toFixed(3):'no position'}</span>`,
+   `${a.alt!=null?a.alt+' ft':'—'}<br><span class="muted">${a.speed!=null?Math.round(a.speed)+' kt':''} ${a.rssi!=null?a.rssi+' dB':''}</span>`]))
+   :'<div class="muted">no aircraft (start the ADS-B decoder; 1090 MHz needs a short antenna)</div>';
+ });
+ clearTimeout(jobTimer);
+ if(el('decode').classList.contains('on'))jobTimer=setTimeout(loadJob,3000);
+}
+
+function smSet(lvl){
+ const b=el('smbar');
+ if(lvl==null){if(b)b.style.width='0%';el('smtxt').textContent='signal —';return;}
+ const p=Math.max(0,Math.min(1,(lvl+90)/65));if(b)b.style.width=(p*100)+'%';
+ el('smtxt').textContent=`signal ${lvl.toFixed?lvl.toFixed(1):lvl} dBFS`;
+}
+
+function loadStatus(){api('/api/status').then(s=>{
+ el('sub').innerHTML=`${s.host} · agent <span class="${s.agent=='active'?'ok':'bad'}">${s.agent}</span>`
+  +` · p25 <span class="${s.p25?'ok':'bad'}">${s.p25?'on':'off'}</span>`
+  +` · ${s.counts.sweeps} sweeps · ${s.counts.events} events`;
+ const st=s.stream;
+ if(st){
+  el('np').textContent=`▶ LIVE ${mhz(st.freq_hz)} (${st.mode}) · ${st.label} · ${Math.round(st.seconds)}s · ${st.listeners} listener(s)`;
+  smSet(st.level);
+  const rd=st.rds||{};
+  if(rd.ps||rd.rt){el('rds').style.display='block';
+   el('rds').innerHTML=`<div class="pill">${esc(rd.ps||'')}</div>`
+    +(rd.rt?` <span class="muted" style="font-size:12px">${esc(rd.rt)}</span>`:'');
+  } else el('rds').style.display='none';
+  const rc=st.rec;
+  el('sqst').innerHTML=rc&&rc.armed
+   ?(rc.on?`<span class="ok">● recording — ${rc.name}</span>`:`<span class="warn">armed — waiting for squelch to open</span>`)
+   :'idle — records only while the squelch is open, split into clips as traffic stops.';
+  if(rc&&rc.armed){el('sqb').style.display='none';el('sqoff').style.display='';}
+ }else{
+  el('np').textContent=s.job?`job: ${s.job.label}${s.job.dead?' (process exited '+s.job.exit+')':''}`:'stopped';
+  smSet(null);el('rds').style.display='none';}
+ el('p25state').innerHTML=rows([['service',`<span class="${s.p25?'ok':'bad'}">${s.p25?'active':'stopped'}</span>`]]);
+ el('agentstate').innerHTML=rows([['service',`<span class="${s.agent=='active'?'ok':'bad'}">${s.agent}</span>`],
+  ['sweeps',s.counts.sweeps],['events',s.counts.events],['devices',s.counts.ism_seen],
+  ['clips',s.counts.capture_log],['database',s.db_mb+' MB'],['gain',s.gain],['ppm',s.ppm]]);
+ if(s.scanner)el('scanstate').innerHTML=scannerHTML(s.scanner);
+ el('tasks').innerHTML=rows(s.tasks.map(t=>[`${t.name} <span class="pill">${t.interval_min}m</span>`,
+  t.last_min==null?'—':`${t.last_min}m ago ${t.ok?'<span class="ok">ok</span>':'<span class="bad">err</span>'}`]));
+ const bands=s.tasks.filter(t=>!t.name.startsWith('decode')&&t.name!='ais');
+ const want=bands.map(t=>t.name+(t.enabled?'':' (off)')).join('|');
+ if(el('band').dataset.sig!==want){
+  const cur=el('band').value;el('band').dataset.sig=want;
+  el('band').innerHTML=bands.map(t=>
+   `<option value="${t.name}"${t.enabled?'':' style="color:#66809a"'}>${t.name}${t.enabled?'':' — not monitored'}</option>`).join('');
+  if(cur)el('band').value=cur;}
+}).catch(()=>el('sub').textContent='offline');}
+
+function scannerHTML(sc){
+ return rows([['status',sc.running?'<span class="ok">scanning</span>':'<span class="bad">stopped</span>'],
+  ['now',sc.parked?'<span class="ok">PARKED — transmitting</span>':`trying ${mhz(sc.freq)}`],
+  ['signal',sc.level!=null?sc.level+' dBFS':'—'],
+  ['channel',(sc.idx+1)+' / '+sc.n],
+  ['squelch',sc.sq+' dBFS'],['hold',sc.hold+'s']]);}
+
+(function checkScanAudio(){
+ if(el('scan').classList.contains('on'))api('/api/status').then(s=>{
+  if(s.stream&&s.stream.listeners===0&&el('scanao').paused){
+   const a=el('scanao');a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}});
+ setTimeout(checkScanAudio,4000);})();
+
+function scanPreset(k){api('/api/scanner/start?preset='+k,{method:'POST'}).then(r=>{
+ if(r.ok)toast('Scanning '+r.n+' channels');else toast('scan: '+(r.error||'failed'));loadScanner();});}
+function scanStart(){
+ const freqs=el('scanfreqs').value.split(',').map(s=>s.trim()).filter(Boolean).join(',');
+ const sq=el('scansq').value,hold=el('scanhold').value;
+ api('/api/scanner/start?freqs='+encodeURIComponent(freqs)+'&sq='+sq+'&hold='+hold,{method:'POST'})
+  .then(r=>{if(r.ok)toast('Scanning '+r.n+' channels');else toast('scan: '+(r.error||'failed'));loadScanner();});}
+function scanStop(){api('/api/scanner/stop',{method:'POST'}).then(()=>{el('scanstate').innerHTML='';
+ const a=el('scanao');a.pause();a.removeAttribute('src');a.load();});}
+function loadScanner(){api('/api/status').then(s=>{
+ if(s.scanner){el('scanstate').innerHTML=scannerHTML(s.scanner);const a=el('scanao');
+  if(s.stream&&(!a.src||a.paused)&&liveWanted!==true){a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}}
+ else el('scanstate').innerHTML=rows([['status','<span class="bad">stopped</span>'],['now','—']]);
+ clearTimeout(scanTimer);if(el('scan').classList.contains('on'))scanTimer=setTimeout(loadScanner,2500);});}
+let scanTimer=null;
+
+function drawBars(cid,pts,floor){const c=el(cid),x=c.getContext('2d');
+ const W=c.width=c.clientWidth*2,H=c.height;x.clearRect(0,0,W,H);
+ if(!pts.length)return;const ds=pts.map(p=>p.d),lo=Math.min(...ds),hi=Math.max(...ds),r=(hi-lo)||1;
+ const bw=W/pts.length;pts.forEach((p,i)=>{const h=((p.d-lo)/r)*(H-10);
+  x.fillStyle=p.d>floor+10?'#38bdf8':'#24313f';x.fillRect(i*bw,H-h,Math.max(1,bw-1),h);});}
+
+function bandChanged(){loadSpec();loadWf();}
+function qs(a,b){el('qs1').value=a;el('qs2').value=b;quickScan();}
+function loadSpec(){const b=el('band').value;if(!b)return;
+ api('/api/spectrum?band='+b).then(d=>{
+  if(!d.points.length){el('sm').textContent='no sweep yet';el('peaks').innerHTML='';return;}
+  drawBars('cv',d.points,d.floor);
+  el('sm').textContent=`${mhz(d.f_start)} – ${mhz(d.f_stop)} · floor ${d.floor} dBm · ${d.age_min}m ago`;
+  el('peaks').innerHTML=rows(d.peaks.map(p=>[
+   `<span class="f">${mhz(p.f)}</span><br><span class="muted">${p.id}</span>`,
+   `${p.d} dBm<br><button class="pill" onclick="listen('${(p.f/1e6).toFixed(4)}M')">listen</button>`]));});}
+
+function loadWf(){const b=el('band').value;if(!b)return;
+ api('/api/waterfall?band='+b).then(d=>{
+  const c=el('wf'),x=c.getContext('2d');
+  if(!d.rows||!d.rows.length){x.clearRect(0,0,c.width,c.height);el('wm').textContent='not enough sweeps yet';return;}
+  const W=c.width=d.cols,H=c.height=d.rows.length;const img=x.createImageData(W,H);
+  const lo=d.lo,rg=(d.hi-d.lo)||1;
+  for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++){
+   let v=(d.rows[y][xx]-lo)/rg;v=Math.max(0,Math.min(1,v));const i=(y*W+xx)*4;
+   img.data[i]=Math.round(255*Math.min(1,v*1.6));
+   img.data[i+1]=Math.round(255*Math.max(0,Math.min(1,v*1.6-0.4)));
+   img.data[i+2]=Math.round(255*Math.max(0,Math.min(1,v*2.2-1.1))+40*(1-v));
+   img.data[i+3]=255;}
+  x.putImageData(img,0,0);
+  el('wm').textContent=`${mhz(d.f_start)} – ${mhz(d.f_stop)} · ${d.rows.length} sweeps over ${d.span_min}m`;});}
+
+function quickScan(){el('qsout').innerHTML='<div class="muted">sweeping… (about 15s)</div>';
+ api('/api/quickscan?a='+encodeURIComponent(el('qs1').value)+'&b='+encodeURIComponent(el('qs2').value),
+  {method:'POST'}).then(d=>{
+  if(d.error){el('qsout').innerHTML='<div class="muted">'+d.error+'</div>';return;}
+  drawBars('qcv',d.points||[],d.floor);
+  el('qsout').innerHTML=`<div class="muted" style="margin-bottom:6px">${mhz(d.f_start)} – ${mhz(d.f_stop)} · floor ${d.floor} dBm</div>`
+   +rows(d.peaks.map(p=>[
+   `<span class="f">${mhz(p.f)}</span><br><span class="muted">${p.id}</span>`,
+   `${p.d} dBm<br><button class="pill" onclick="listen('${(p.f/1e6).toFixed(4)}M')">listen</button>`]));});}
+
+let wsTimer=null;
+function wide(a,b,bin){
+ if(a!=null)el('ws1').value=a;if(b!=null)el('ws2').value=b;
+ const q='?a='+encodeURIComponent(el('ws1').value)+'&b='+encodeURIComponent(el('ws2').value)
+  +(bin?'&bin='+bin:'');
+ el('wsmeta').textContent='starting survey…';el('wspk').innerHTML='';
+ api('/api/widescan'+q,{method:'POST'}).then(r=>{
+  if(r.error){el('wsmeta').textContent='survey: '+r.error;return;}
+  toast('surveying '+mhz(r.started)+' – '+mhz(r.stopped_at)+' · bin '+Math.round(r.bin/1000)+'k');
+  loadWide();});}
+function wideStop(){api('/api/widescan/stop',{method:'POST'}).then(()=>{el('wsmeta').textContent='survey stopped';loadWide();});}
+function drawWide(d){const c=el('wcv'),x=c.getContext('2d');
+ const W=c.width=c.clientWidth*2,H=c.height;x.clearRect(0,0,W,H);
+ if(!d.xs||!d.xs.length)return;
+ const ys=d.ys,lo=Math.min(...ys),hi=Math.max(...ys),r=(hi-lo)||1,bw=W/d.xs.length;
+ for(let i=0;i<d.xs.length;i++){const h=((ys[i]-lo)/r)*(H-8);
+  x.fillStyle='#38bdf8';x.fillRect(i*bw,H-h,Math.max(1,bw),h);}
+ x.fillStyle='#64748b';x.font='20px monospace';
+ x.fillText(mhz(d.f_start),2,H-3);x.fillText(mhz(d.f_stop),W-120,H-3);}
+function loadWide(){api('/api/widescan').then(d=>{
+ if(d.error){el('wsmeta').textContent=d.error;clearTimeout(wsTimer);return;}
+ if(!d.xs||!d.xs.length){
+  if(!d.running)el('wsmeta').textContent='not running — pick a range and Survey.';
+  clearTimeout(wsTimer);if(d.running)wsTimer=setTimeout(loadWide,3000);return;}
+ drawWide(d);
+ el('wsmeta').textContent=`${mhz(d.f_start)} – ${mhz(d.f_stop)} · ${d.filled}/${d.total} bins (${d.pct}%) · bin ${Math.round(d.bin/1000)}k · ${d.done?'done':'sweeping…'}`;
+ el('wspk').innerHTML=(d.peaks&&d.peaks.length?rows(d.peaks.map(p=>[
+  `<span class="f">${mhz(p.f)}</span><br><span class="muted">${Mlabel(p.f)}</span>`,
+  `${p.db} dB<br><button class="pill" onclick="listen('${(p.f/1e6).toFixed(4)}M')">listen</button>`]))
+  :'<div class="muted">discovering…</div>');
+ clearTimeout(wsTimer);
+ if(d.running&&el('band').classList.contains('on'))wsTimer=setTimeout(loadWide,3000);});}
+
+let wfTimer=null;
+function wfSet(a,b){el('wffrom').value=a;el('wfto').value=b;wfStart();}
+function wfStart(){
+ api('/api/waterfall/start?from='+encodeURIComponent(el('wffrom').value)
+  +'&to='+encodeURIComponent(el('wfto').value),{method:'POST'}).then(r=>{
+  if(r.error){el('lwfm').textContent=r.error;return;}el('lwfm').textContent='starting…';loadLiveWf();});}
+function quickStopWf(){api('/api/waterfall/stop',{method:'POST'});}
+function renderWfCanvas(cid,d){
+ const c=el(cid),x=c.getContext('2d');
+ if(!d.running||!d.rows||!d.rows.length){x.clearRect(0,0,c.width,c.height);return false;}
+ const W=c.width=d.cols,H=c.height=d.rows.length;const img=x.createImageData(W,H);
+ const lo=d.lo,rg=(d.hi-d.lo)||1;
+ for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++){
+  let v=(d.rows[y][xx]-lo)/rg;v=Math.max(0,Math.min(1,v));const i=(y*W+xx)*4;
+  img.data[i]=Math.round(255*Math.min(1,v*1.6));
+  img.data[i+1]=Math.round(255*Math.max(0,Math.min(1,v*1.6-0.4)));
+  img.data[i+2]=Math.round(255*Math.max(0,Math.min(1,v*2.2-1.1))+40*(1-v));
+  img.data[i+3]=255;}
+ x.putImageData(img,0,0);return true;}
+function loadLiveWf(){
+ api('/api/waterfall/live').then(d=>{
+  if(!d.running){el('lwfm').textContent='not running — pick a range and Start.';el('lwfpeaks').innerHTML='';
+   const c=el('lwf'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);return;}
+  renderWfCanvas('lwf',d);
+  el('lwfm').textContent=`${mhz(d.f_start)} – ${mhz(d.f_stop)} · ${d.rows.length} rows · live ${Math.round(d.seconds)}s — tap a signal to listen`;
+  const peaks=d.peaks||[];
+  el('lwfpeaks').innerHTML=peaks.length?rows(peaks.map(p=>[
+   `<span class="f">${mhz(p.f)}</span><br><span class="muted">${p.id}</span>`,
+   `${p.d} dB<br><button class="pill" onclick="listen('${(p.f/1e6).toFixed(4)}M')">listen</button>`]))
+   :'<div class="muted">no strong peaks yet — peaks fill as the scan completes</div>';
+  clearTimeout(wfTimer);
+  if(el('watch').classList.contains('on'))wfTimer=setTimeout(loadLiveWf,2500);});}
+el('lwf').addEventListener('click',function(ev){
+ api('/api/waterfall/live').then(d=>{
+  if(!d.running)return;
+  const r=this.getBoundingClientRect(),frac=(ev.clientX-r.left)/r.width;
+  const f=Math.round(d.f_start+frac*(d.f_stop-d.f_start));
+  const best=(d.peaks||[]).reduce((a,p)=>Math.abs(p.f-f)<Math.abs(a-p.f)?p:a,d.f_start??d.peaks?.[0]?.f??f);
+  const fh=best&&Math.abs(best.f-f)<(d.f_stop-d.f_start)/4?best.f:null;
+  const tgt=fh||f;
+  const lbl=(d.peaks||[]).find(p=>p.f===fh)?.id||Mlabel(tgt);
+  el('np').textContent='tuning '+mhz(tgt)+' ('+lbl+') …';
+  showTab('listen');
+  setTimeout(()=>listen(mhz(tgt)),50);});});
+function Mlabel(f){
+ const s={88.:'FM broadcast',108.:'air band',137.:'VHF',144.:'2m ham',156.:'marine VHF',
+  400.:'70cm (ATV/SAT)',430.:'70cm ham',468.:'ISM'};
+ for(const k in s)if(f>=k*1e6&&f<k*1e6+8000000)return s[k];
+ return '—';}
+
+let map=null,mapKind='ais',mapTimer=null,mapLayer=null;
+function pickMap(k){
+ if(mapKind===k)return;
+ mapKind=k;
+ document.querySelectorAll('[id^="mapk-"]').forEach(b=>b.classList.remove('on'));
+ el('mapk-'+k).classList.add('on');
+ loadMaps();}
+function loadMaps(){
+ if(!window.L){el('mapstate').textContent='leaflet not loaded';return;}
+ if(!map)map=L.map('map').setView([35.0,-90.0],7);
+ if(!mapLayer){L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  {maxZoom:13,attribution:'© CARTO'}).addTo(map);}
+const kinds=mapKind==='replay'?['ais','adsb','aprs','sonde']:[mapKind];
+  Promise.all(kinds.map(k=>api('/api/map?k='+k))).then(all=>{
+   if(mapLayer)map.removeLayer(mapLayer);
+   mapLayer=L.layerGroup().addTo(map);
+   const cols={ais:'#22d3ee',adsb:'#f59e0b',aprs:'#34d399',sonde:'#f472b6'};
+  const icon=lk=>L.divIcon({iconSize:[13,13],className:'',
+   html:`<div style="width:11px;height:11px;border-radius:50%;background:${cols[lk]||'#22d3ee'};border:2px solid #0b1118;box-shadow:0 0 8px ${cols[lk]||'#22d3ee'}88"></div>`});
+  let n=0;
+  all.forEach((d,k) => d.items.forEach(it=>{
+   n++;
+   const lbl=mapKind==='replay'?('['+kinds[k].toUpperCase()+'] '+it.label):it.label;
+   const m=L.marker([it.lat,it.lon],{icon:icon(kinds[k])}).addTo(mapLayer);
+   m.bindPopup(`<b>${esc(lbl)}</b><br><span style="color:#8ba1b8">${esc(it.extra||'')}</span>`);}));
+  el('mapstate').innerHTML=`<span class="ok">●</span> ${n} position(s) — ${kinds.join('/')}`;
+ }).catch(e=>el('mapstate').textContent='map error: '+e);
+ clearTimeout(mapTimer);
+ if(el('maps').classList.contains('on'))mapTimer=setTimeout(loadMaps,12000);}
+
+function loadDev(){api('/api/census').then(d=>{
+ el('devs').innerHTML=d.devices.length?rows(d.devices.map(x=>[
+  `${x.model}<br><span class="muted">id ${x.dev_id} · ${x.band}</span>`,
+  `${x.count} msgs<br><span class="muted">${x.last}</span>`]))
+  :'<div class="muted">No decodable devices heard yet — the stock antenna is deaf at 433/915 MHz. A tuned quarter-wave changes this.</div>';
+ el('carriers').innerHTML=rows(d.carriers.map(x=>[
+  `<span class="f">${mhz(x.freq_hz)}</span><br><span class="muted">${x.id}</span>`,
+  `${x.hits} hits<br><span class="muted">${x.last}</span>`]));
+ el('bands').innerHTML=rows(d.bands.map(x=>[`${x.band}<br><span class="muted">${x.peak_id}</span>`,
+  `${x.pct}% active<br><span class="muted">peak ${x.peak_d} dBm</span>`]));});}
+
+function loadEv(){api('/api/events?hours=48').then(e=>{
+ const k=e.length?e[0].when+e[0].kind+e[0].id:'';
+ if(evSeen&&evSeen!==k&&notifOn&&typeof Notification!=='undefined'&&Notification.permission==='granted'
+   &&document.hidden){new Notification('dj SDR',{body:'new event: '+e[0].kind+' '+e[0].band});}
+ evSeen=k;
+ el('evs').innerHTML=e.length?rows(e.map(x=>[
+  `${x.kind==='new-device'?(x.model+' id='+x.dev_id):`<span class="f">${mhz(x.freq_hz)}</span>`}<br><span class="muted">${x.id||x.band}</span>`,
+  `${x.when}<br><span class="muted">${x.dbm!=null?('+'+x.delta_db+' dB'):x.kind}</span>`]))
+  :'<div class="muted">No events yet — each band needs ~8 sweeps before it can flag a change.</div>';});}
+function notifToggle(){
+ notifOn=!notifOn;localStorage.setItem('sdrnotif',notifOn?'1':'0');
+ const b=el('notifb');b.textContent=notifOn?'Notifications on':'Notifications off';
+ if(notifOn&&typeof Notification!=='undefined'&&Notification.permission==='default')Notification.requestPermission();
+ toast(notifOn?'Browser notifications on (grant the prompt to get alerts)':'Notifications off');}
+if(notifOn&&typeof Notification!=='undefined')el('notifb').textContent='Notifications on';
+
+function loadClips(){api('/api/clips').then(c=>{
+ el('clipl').innerHTML=c.length?c.map(x=>
+  x.kind==='sat'
+  ? `<div class="row" style="display:block">
+  <div style="display:flex;justify-content:space-between"><span class="k f">${x.mhz}</span>
+  <span class="v muted">${x.when} · ${x.kb} KB</span></div>
+  <img src="${BASE}/satimg/${encodeURIComponent(x.name)}?t=${T}" alt="" style="width:100%;margin-top:8px;border-radius:8px"></div>`
+  : `<div class="row" style="display:block">
+  <div style="display:flex;justify-content:space-between"><span class="k f">${x.mhz}</span>
+  <span class="v muted">${x.when} · ${x.kb} KB</span></div>
+  <audio controls preload="none" src="${BASE}/clips/${x.name}?t=${T}"></audio>
+  ${x.kind==='sq'
+    ?'<div class="muted" style="margin-top:6px"><span class="pill">squelch clip</span> not transcribed</div>'
+    :x.text===null?'<div class="muted" style="margin-top:6px">transcribing…</div>'
+    :x.text?`<div style="margin-top:6px">${esc(x.text)}</div>`
+    :'<div class="muted" style="margin-top:6px">no speech</div>'}</div>`).join('')
+  :'<div class="muted">no recordings yet</div>';});}
+
+function loadBm(){api('/api/bookmarks').then(p=>{el('bm').innerHTML=p.map(x=>
+ `<button onclick="listen('${x.f}')">${x.label}<small>${x.f} · ${x.note||''}</small></button>`).join('');});}
+function addBm(){const n=el('bmname').value.trim();if(!n)return;
+ api('/api/bookmarks',{method:'POST',body:JSON.stringify({label:n,f:el('freq').value,note:'saved'})})
+  .then(()=>{el('bmname').value='';loadBm();});}
+
+function iq(){el('iqout').textContent='recording…';
+ api('/api/iq?f='+encodeURIComponent(el('iqf').value)+'&s='+el('iqs').value,{method:'POST'})
+  .then(r=>{el('iqout').textContent=r.ok?`${r.name} (${r.mb} MB, ${r.free_mb} MB free)`:('failed: '+r.error);
+   loadReplays();});}
+
+let bleFilter='all',bleTimer=null;
+let wifiFilter='all',wifiSrc='jessy',wifiTimer=null;
+function loadWifi(f,src){
+ if(f!==undefined)wifiFilter=f;
+ if(src!==undefined)wifiSrc=src;
+ api('/api/wifi?src='+wifiSrc+'&f='+wifiFilter).then(d=>{
+  const sm=d.summary||{};
+  el('wifistate').innerHTML=rows([
+   ['vantage point',(d.host||wifiSrc)+(wifiSrc==='dj'?' (over USB link)':'')],
+   ['scanner',d.running?'<span class="ok">fresh</span>':'<span class="bad">stale</span>'],
+   ['access points',d.total||0],
+   ['drone Remote ID',sm['drone-remoteid']||0],
+   ['possible cameras',sm['surveillance']||0],
+   ['maybe cameras (OUI only)',sm['surveillance-maybe']||0],
+   ['NAN devices',sm['nan']||0],
+   ['last scan',d.age_s!=null?d.age_s+'s ago':'—']]);
+  if(d.error){el('wifiaps').innerHTML='<div class="muted">'+d.error+'</div>';return;}
+  el('wifiaps').innerHTML=d.aps.length?d.aps.map(a=>{
+   const rid=a.remote_id;let extra='';
+   if(rid){const b=rid.basic_id||{},L=rid.location||{},op=rid.operator_id||{};
+    extra=`<div class="muted" style="margin-top:4px">DRONE ${b.uas_id||''} `
+     +(L.lat?`· ${L.lat.toFixed(5)},${L.lon.toFixed(5)} · ${L.alt_geo_m}m · ${L.speed_ms}m/s`:'')
+     +(op.operator?` · operator ${op.operator}`:'')+`</div>`;}
+   const tags=(a.tags||[]).map(t=>`<span class="pill">${t}</span>`).join(' ');
+   return `<div class="row" style="display:block">
+    <div style="display:flex;justify-content:space-between;gap:8px">
+     <span class="k">${a.ssid||'(hidden)'}<br><span class="muted f">${a.bssid}</span></span>
+     <span class="v">${a.signal_dbm!=null?a.signal_dbm+' dBm':''}<br>
+      <span class="muted">ch ${a.channel!=null?a.channel:'?'}</span></span></div>
+    <div class="tags">${tags}</div>${extra}
+    <div class="muted" style="margin-top:3px">${(a.notes||[]).join(' · ')}</div></div>`;
+  }).join(''):'<div class="muted">nothing matching that filter</div>';
+ });
+ clearTimeout(wifiTimer);
+ if(el('wifi').classList.contains('on'))wifiTimer=setTimeout(()=>loadWifi(),30000);
+}
+
+let camTimer=null,camSource='dj';
+function camSrc(s){if(camSource===s)return;camStopView();camSource=s;
+ el('camsrc-dj').classList.toggle('on',s==='dj');el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
+function camView(on){const i=el('camimg');
+ if(on){i.src=BASE+'/camera/stream?src='+camSource+'&t='+T+'&_='+Date.now();i.style.display='block';el('camoff').style.display='none';}
+ else{i.removeAttribute('src');i.style.display='none';el('camoff').style.display='block';}}
+function camStopView(){if(el('camimg')&&el('camimg').src)camView(false);clearTimeout(camTimer);}
+function loadCam(){api('/api/camera?src='+camSource).then(d=>{
+ el('camstate').innerHTML=rows([
+  ['board',camSource],
+  ['camera',d.error?('<span class="bad">'+esc(d.error)+'</span>')
+     :d.running?'<span class="ok">live</span>':'<span class="bad">stopped</span>'],
+  ['device',d.device||'—'],['size',d.size?d.size+' @ '+d.fps+' fps':'—'],
+  ['viewers',d.viewers||0],['frames',d.frames||0]]);
+ if(d.running&&el('camera').classList.contains('on')&&!el('camimg').src)camView(true);});
+ clearTimeout(camTimer);camTimer=setTimeout(()=>{if(el('camera').classList.contains('on'))loadCam();},5000);}
+function camStart(){api('/api/camera/start?src='+camSource,{method:'POST'}).then(d=>{
+ if(d.error){el('camstate').innerHTML='<div class="muted">'+d.error+'</div>';return;}
+ camView(true);loadCam();});}
+function camStop(){camView(false);api('/api/camera/stop?src='+camSource,{method:'POST'}).then(()=>loadCam());}
+function camSnap(){window.open(BASE+'/api/camera/snap?src='+camSource+'&t='+T+'&_='+Date.now(),'_blank');}
+
+let voiceTg='all',voiceOff=0;
+function voiceMore(){voiceOff+=100;loadVoice(undefined,true);}
+function loadVoice(tg,append){
+ if(tg!==undefined){voiceTg=tg;voiceOff=0;}
+ if(!append)voiceOff=0;
+ const q=el('voiceq')?el('voiceq').value.trim():'';
+ api('/api/p25calls?tg='+encodeURIComponent(voiceTg)+'&q='+encodeURIComponent(q)+'&off='+voiceOff).then(d=>{
+  el('voicestate').innerHTML=rows([
+   ['calls on file',d.total||0],['awaiting transcription',d.pending||0],
+   ['whisper transcripts',d.upgraded||0],['audio expired',d.expired||0],
+   ['showing',voiceOff+(d.calls||[]).length]]);
+  el('voicetgs').innerHTML='<button class="b alt'+(voiceTg==='all'?' on':'')+'" onclick="loadVoice(\'all\')">All</button>'
+   +(d.groups||[]).slice(0,14).map(g=>
+    `<button class="b alt${g[0]===voiceTg?' on':''}" onclick="loadVoice(${JSON.stringify(g[0]).replace(/"/g,'&quot;')})">${esc(g[0])} <small>${g[1]}</small></button>`).join('');
+  const html=(d.calls||[]).length?d.calls.map(c=>
+   `<div class="row" style="display:block">
+    <div style="display:flex;justify-content:space-between">
+     <span class="k">${esc(c.tg)}</span>
+     <span class="v muted">${c.when}${c.secs!=null?' · '+c.secs+'s':''} · radio ${c.src}</span></div>
+    ${c.audio?`<audio controls preload="none" src="${BASE}/p25wav/${encodeURIComponent(c.name)}?t=${T}"></audio>`
+     :'<div class="muted" style="margin-top:4px">audio expired — transcript kept</div>'}
+    ${c.text===null?'<div class="muted" style="margin-top:6px">transcribing…</div>'
+     :c.text?`<div style="margin-top:6px">${esc(c.text)}
+       <span class="muted" style="font-size:11px">· ${c.engine}${c.engine==='vosk'?' (rough)':''}</span></div>`
+     :'<div class="muted" style="margin-top:6px">no speech</div>'}</div>`).join('')
+   :'<div class="muted">nothing matching</div>';
+  if(append)el('voicel').insertAdjacentHTML('beforeend',html);
+  else el('voicel').innerHTML=html;
+  const btn=el('voicemore');if(btn)btn.style.display=d.more?'block':'none';});}
+
+let weekPick=null;
+function loadWeekly(w){if(w!==undefined)weekPick=w;
+ api('/api/weekly'+(weekPick?'?w='+encodeURIComponent(weekPick):'')).then(d=>{
+  el('weeksel').innerHTML=(d.weeks||[]).map(n=>
+   `<button class="b alt${n===d.week?' on':''}" onclick="loadWeekly('${n}')">${n}</button>`)
+   .join('')||'<div class="muted">no reports yet</div>';
+  weekPick=d.week;
+  el('weeklog').innerHTML=d.text?md(d.text):('<div class="muted">'+(d.error||'nothing yet')+'</div>');});}
+function md(t){
+ const out=[];let tbl=null;
+ for(const raw of t.split('\n')){
+  const line=raw.trim();
+  if(/^\|/.test(line)){
+   const cells=line.slice(1,-1).split('|').map(c=>c.trim());
+   if(cells.every(c=>/^:?-{2,}:?$/.test(c)))continue;
+   if(!tbl){tbl=true;out.push('<table>');out.push('<tr>'+cells.map(c=>`<th style="text-align:left;padding:3px 6px;border-bottom:1px solid #223048">${fmt(c)}</th>`).join('')+'</tr>');continue;}
+   out.push('<tr>'+cells.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid #15202e">${fmt(c)}</td>`).join('')+'</tr>');continue;
+  }
+  if(tbl){out.push('</table>');tbl=null;}
+  if(/^# /.test(line))out.push('<h2>'+esc(line.slice(2))+'</h2>');
+  else if(/^## /.test(line))out.push('<h3 style="margin:14px 0 4px">'+esc(line.slice(3))+'</h3>');
+  else if(/^- /.test(line))out.push('<div>• '+fmt(line.slice(2))+'</div>');
+  else if(line)out.push('<div class="muted" style="margin:4px 0">'+fmt(line)+'</div>');}
+ if(tbl)out.push('</table>');
+ return out.join('');}
+function fmt(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/_(.+?)_/g,'<i>$1</i>');}
+function bleCmd(c){api('/api/ble/'+c,{method:'POST'}).then(()=>setTimeout(()=>loadBle(),2500));}
+function loadBle(f){if(f!==undefined)bleFilter=f;
+ api('/api/ble?f='+bleFilter).then(d=>{
+  const sm=d.summary||{};
+  el('blestate').innerHTML=rows([
+   ['scanner',d.running?'<span class="ok">running</span>':'<span class="bad">stopped</span>'],
+   ['devices heard',d.total||0],['drone Remote ID',sm['drone-remoteid']||0],
+   ['possible cameras',sm['surveillance']||0],['trackers',sm['tracker']||0]]);
+  if(d.error){el('bledevs').innerHTML='<div class="muted">'+d.error+'</div>';return;}
+  el('bledevs').innerHTML=d.devices.length?d.devices.map(x=>{
+   const rid=x.remote_id;let extra='';
+   if(rid){const b=rid.basic_id||{},L=rid.location||{},op=rid.operator_id||{};
+    extra=`<div class="muted" style="margin-top:4px">DRONE ${b.uas_id||''} `
+     +(L.lat?`· ${L.lat.toFixed(5)},${L.lon.toFixed(5)} · ${L.alt_geo_m}m · ${L.speed_ms}m/s`:'')
+     +(op.operator?` · operator ${op.operator}`:'')+`</div>`;}
+   const tags=(x.tags||[]).map(t=>`<span class="pill">${t}</span>`).join(' ');
+   return `<div class="row" style="display:block">
+    <div style="display:flex;justify-content:space-between;gap:8px">
+     <span class="k">${(x.name||'(no name)')}<br><span class="muted f">${x.address}</span></span>
+     <span class="v">${x.rssi!=null?x.rssi+' dBm':''}<br><span class="muted">${x.age_s}s ago</span></span></div>
+    <div class="tags">${tags}</div>${extra}
+    <div class="muted" style="margin-top:3px">${(x.notes||[]).join(' · ')}</div></div>`;
+  }).join(''):'<div class="muted">nothing matching that filter</div>';
+ });
+ clearTimeout(bleTimer);
+ if(el('ble').classList.contains('on'))bleTimer=setTimeout(()=>loadBle(),5000);}
+
+function loadCaps(){api('/api/capabilities').then(c=>{el('caps').innerHTML=rows(c.map(x=>
+ [x.does,x.present?'<span class="ok">'+x.tool+'</span>':'<span class="bad">missing</span>']));});}
+function loadUsage(){api('/api/usage').then(d=>{
+ el('usage').innerHTML=rows([
+  ['requests (rolling)',d.total],
+  ['last request',(d.last.length?d.last[d.last.length-1].p:'—')]]
+  +(d.per_ip||[]).map(x=>[x.ip,x.n+' reqs']));});}
+
+let rpData=null;
+function loadReplays(){api('/api/replays').then(list=>{
+ el('replist').innerHTML=list.length?list.map(x=>
+  `<div class="row"><span class="k f">${x.mhz}<br><span class="muted">${x.rate/1e6} Msps · ${x.mb} MB · ${x.when}</span></span>
+   <span class="v"><button class="pill" onclick="viewReplay('${x.name}')">view</button></span></div>`).join('')
+  :'<div class="muted">no IQ recordings yet — make one under Tools.</div>';});}
+function viewReplay(n){api('/api/replay?n='+encodeURIComponent(n)).then(d=>{
+ if(d.error){toast(d.error);return;}
+ rpData=d;rpData._name=n;el('replayview').style.display='block';
+ renderWfData('rpv',d);rpInfo();});}
+function reRender(){
+ const f0=el('rpf0').value.trim(),f1=el('rpf1').value.trim();
+ if(!rpData)return;
+ const base=rpData.freq_hz;
+ function mhzVal(v){const n=parseFloat(v);return n?n*1e6:null;}
+ const p0=mhzVal(f0),p1=mhzVal(f1);
+ let u='/api/replay?n='+encodeURIComponent(rpData._name);
+ if(p0!==null)u+='&f0='+p0;
+ if(p1!==null)u+='&f1='+p1;
+ api(u).then(d=>{if(d.error){toast(d.error);return;}
+  rpData=d;renderWfData('rpv',d);rpInfo();});}
+function renderWfData(cid,d){
+ const c=el(cid),x=c.getContext('2d');
+ if(!d.rows||!d.rows.length){x.clearRect(0,0,c.width,c.height);return;}
+ const W=c.width=d.cols,H=c.height=d.rows.length;const img=x.createImageData(W,H);
+ const lo=d.lo,rg=(d.hi-d.lo)||1;
+ for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++){
+  let v=(d.rows[y][xx]-lo)/rg;v=Math.max(0,Math.min(1,v));const i=(y*W+xx)*4;
+  img.data[i]=Math.round(255*Math.min(1,v*1.6));
+  img.data[i+1]=Math.round(255*Math.max(0,Math.min(1,v*1.6-0.4)));
+  img.data[i+2]=Math.round(255*Math.max(0,Math.min(1,v*2.2-1.1))+40*(1-v));
+  img.data[i+3]=255;}
+ x.putImageData(img,0,0);}
+function rpInfo(){if(!rpData)return;
+ el('rpinfo').innerHTML=`${mhz(rpData.f_start)} – ${mhz(rpData.f_stop)} · ${rpData.secs}s recorded, ${rpData.secs_shown}s shown`;}
+function rpListen(){if(!rpData)return;const f=(rpData.freq_hz);listen(mhz(f));showTab('listen');}
+
+loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
+</script>
+<div class="toast" id="toast"></div>
+</body></html>

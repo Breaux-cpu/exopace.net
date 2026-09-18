@@ -4,8 +4,8 @@
 /SDR_AGENT.md   /SDR_AGENT.md   200
 /env.js         /env.js         200
 /cesium/*       /cesium/:splat 200
-/radio/three.min.js /radio/three.min.js 200
-/radio/textures/*   /radio/textures/:splat 200
+/mesh/three.min.js /mesh/three.min.js 200
+/mesh/textures/*   /mesh/textures/:splat 200
 /assets/*       /assets/:splat 200
 /sw.js          /sw.js 200
 /manifest.json  /manifest.json 200
@@ -18,6 +18,8 @@
 /icon-maskable.svg /icon-maskable.svg 200
 /radio          /radio/ 301
 /radio/*        /radio/:splat 200
+/mesh           /mesh/ 301
+/mesh/*         /mesh/:splat 200
 /lock/*         /index.html 200
 # These are not product surfaces. Never serve Mission Control as them.
 /about          /404.html 404
