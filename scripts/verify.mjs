@@ -121,7 +121,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(radSw.includes("location.origin"), "Radio SW same-origin only");
-assert(radSw.includes("exopace-radio-v56"), "Radio SW cache bumped");
+assert(radSw.includes("exopace-radio-v57"), "Radio SW cache bumped");
 assert(radSw.includes('cache: "no-store"') && radSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(radSw), "Radio SW does not precache app.js");
 assert(!radSw.includes("e.respondWith") || radSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -217,7 +217,7 @@ assert(radioHtml.includes("walk outside") && !/run DEMO/i.test(radioHtml), "MAP 
 assert(/#mapEmpty\{[^}]*right:132px/.test(radioHtml), "phone MAP empty-state parks off STATION/TRAIL");
 assert(radioHtml.includes("MESH QUIET. Power up a second node") && radioHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(radioApp.includes("renderNodes();") && radioApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
-assert(radioHtml.includes("app.js?v=56") && radioHtml.includes("env.js?v=56"), "Radio index cache-busts in-place JS");
+assert(radioHtml.includes("app.js?v=57") && radioHtml.includes("env.js?v=57"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(radioHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(radioHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(radioHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(radioApp.includes("exopace-radio-hide-install") && radioApp.includes("hideInstallHint"), "Radio HIDE persist stays");
