@@ -493,11 +493,12 @@ function addMsg(m) {
     b.onclick = () => { dropWaypointAt(c.lat, c.lon); b.disabled = true; };
     d.appendChild(b);
   }
+  const nearBottom = $("chatLog").scrollTop + $("chatLog").clientHeight >= $("chatLog").scrollHeight - 60;
   $("chatLog").appendChild(d);
   const q = $("chatSearch") ? $("chatSearch").value.trim().toLowerCase() : "";
   if (q && !chatMatches(d, q)) { d.style.display = "none"; if (div) div.style.display = "none"; }
   syncChatEmpty();
-  $("chatLog").scrollTop = 1e9;
+  if (nearBottom) $("chatLog").scrollTop = 1e9;
   if (!own && !$("scr-chat").classList.contains("active")) { S.unread++; syncBadge(); }
   const dm = !own && m.to && m.to !== "*" && (m.to === S.myId || m.to === "me");
   if (dm) {
