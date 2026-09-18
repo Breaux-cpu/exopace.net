@@ -116,6 +116,26 @@
     return t;
   }
 
+  function makeLabel(text, color) {
+    const c = document.createElement("canvas");
+    c.width = 256; c.height = 64;
+    const g = c.getContext("2d");
+    g.font = "bold 34px monospace";
+    const tw = g.measureText(text).width + 24;
+    c.width = Math.max(Math.ceil(tw), 32);
+    g.font = "bold 34px monospace";
+    g.fillStyle = "rgba(0,0,0,0.55)";
+    g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = color || "#eae6d4";
+    g.textBaseline = "middle";
+    g.fillText(text, 12, c.height / 2);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false, toneMapped: false }));
+    s.scale.set((c.width / 256) * 0.09, 0.09, 1);
+    return s;
+  }
+
   function loadTex(url, srgb) {
     return new Promise((resolve) => {
       new THREE.TextureLoader().load(url, (t) => {
@@ -299,6 +319,12 @@
       mesh.position.copy(p);
       mesh.userData.marker = m;
       this.markGroup.add(mesh);
+      if (m.kind === "way" || m.kind === "sos") {
+        const lbl = makeLabel(String(m.name || "").slice(0, 12), m.kind === "sos" ? "#ff5c5c" : "#eae6d4");
+        lbl.position.copy(p.clone().normalize().multiplyScalar(1.05));
+        lbl.userData.marker = m;
+        this.markGroup.add(lbl);
+      }
       if (m.kind === "me") {
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(0.024, 0.03, 24),

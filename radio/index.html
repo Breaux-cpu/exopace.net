@@ -342,6 +342,18 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     </div>
     <h2>Event log</h2>
     <div class="card">
+      <select id="evFilter" class="wayName" style="margin-bottom:8px">
+        <option value="ALL">ALL</option>
+        <option value="LINK">LINK</option>
+        <option value="CHAT">CHAT</option>
+        <option value="WAY">WAY</option>
+        <option value="NAV">NAV</option>
+        <option value="SOS">SOS</option>
+        <option value="ACK">ACK</option>
+        <option value="NODE">NODE</option>
+        <option value="RF">RF</option>
+        <option value="CFG">CFG</option>
+      </select>
       <div id="evLog"><div class="sub">No events yet.</div></div>
       <div class="row" style="margin-top:8px">
         <button class="btn" id="btnEvExport">EXPORT LOG</button>

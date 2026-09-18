@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null, arriveR: 100, rssiHist: {},
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null, arriveR: 100, rssiHist: {}, evFilter: "ALL",
 };
 
 function fitKb() {
@@ -1086,10 +1086,13 @@ function renderEvents() {
   const el = $("evLog");
   if (!el) return;
   if (!S.events.length) { el.innerHTML = '<div class="sub">No events yet.</div>'; return; }
-  el.innerHTML = S.events.slice(-60).reverse().map((e) =>
+  const f = S.evFilter || "ALL";
+  const rows = S.events.slice(-60).reverse().filter((e) => f === "ALL" || e.type === f);
+  el.innerHTML = rows.length ? rows.map((e) =>
     '<div class="evline"><span class="evt">' + esc(e.type) + '</span>' + esc(e.text) + '<span class="evago">' + ago(e.ts) + '</span></div>'
-  ).join("");
+  ).join("") : '<div class="sub">No ' + f.toLowerCase() + " events.</div>";
 }
+$("evFilter").onchange = () => { S.evFilter = $("evFilter").value; renderEvents(); };
 $("btnEvExport").onclick = () => {
   if (!S.events.length) return toast("NO EVENTS");
   const rows = S.events.map((e) => new Date(e.ts * 1000).toISOString() + " [" + e.type + "] " + e.text);
