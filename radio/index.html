@@ -93,6 +93,7 @@ button,select,input{font:inherit;color:var(--text)}
 .msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
 .msg .meta .ok{color:var(--ok)}
 .msg .meta .pend{color:var(--mut);font-style:italic;cursor:pointer;text-decoration:underline dotted}
+.daydiv{text-align:center;color:var(--mut);font-family:var(--mono);font-size:10px;letter-spacing:.15em;margin:10px 0 6px}
 .evline{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--line)}
 .evline .evt{color:var(--amber);min-width:46px;flex:none}
 .evline .evago{color:var(--mut);margin-left:auto;flex:none}
@@ -416,6 +417,18 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       </div>
       <div class="sub" id="freqHint" hidden>All nodes must share frequency + SF to hear each other.</div>
       <div class="sub" id="btHelp">CONNECT → Bluetooth → EXOpace-XXXX. Do not pair in Android Settings.</div>
+    </div>
+    <h2>Field</h2>
+    <div class="card">
+      <div class="field"><label>Arrival radius</label>
+        <select id="arriveR" class="wayName">
+          <option value="50">50 m</option>
+          <option value="100">100 m</option>
+          <option value="250">250 m</option>
+          <option value="500">500 m</option>
+        </select>
+      </div>
+      <div class="sub">Waypoint arrival alert fires inside this radius.</div>
     </div>
     <h2>About</h2>
     <div class="card">

@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null,
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null, arriveR: 100,
 };
 
 function fitKb() {
@@ -428,6 +428,18 @@ function isOwnMsg(m) {
   const from = m.from || m.id;
   return !!(m.mine || from === "me" || m.fromName === "me" || (S.myId && from === S.myId));
 }
+function dayKey(ts) {
+  const d = new Date((ts || 0) * 1000);
+  return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+function dayLabel(ts) {
+  const d = new Date(ts * 1000);
+  const today = new Date();
+  const yest = new Date(Date.now() - 86400000);
+  if (d.toDateString() === today.toDateString()) return "TODAY";
+  if (d.toDateString() === yest.toDateString()) return "YESTERDAY";
+  return d.toDateString().toUpperCase();
+}
 function parseCoord(t) {
   const m = String(t == null ? "" : t).match(/(-?\d{1,3}\.\d{3,})\s*(?:,|\s)\s*(-?\d{1,3}\.\d{3,})/);
   if (!m) return null;
@@ -454,6 +466,17 @@ function addMsg(m) {
   const metaEl = d.querySelector(".meta");
   metaEl.dataset.ts = ts;
   metaEl.dataset.extra = extra;
+  let div = null;
+  if (m.ts) {
+    const last = $("chatLog").lastElementChild;
+    const lastTs = last && last.dataset.ts ? parseInt(last.dataset.ts, 10) : 0;
+    if (lastTs && dayKey(m.ts) !== dayKey(lastTs)) {
+      div = document.createElement("div");
+      div.className = "daydiv";
+      div.textContent = "— " + dayLabel(m.ts) + " —";
+      $("chatLog").appendChild(div);
+    }
+  }
   const c = parseCoord(chatText(m));
   if (c) {
     const b = document.createElement("button");
@@ -465,7 +488,7 @@ function addMsg(m) {
   }
   $("chatLog").appendChild(d);
   const q = $("chatSearch") ? $("chatSearch").value.trim().toLowerCase() : "";
-  if (q && !chatMatches(d, q)) d.style.display = "none";
+  if (q && !chatMatches(d, q)) { d.style.display = "none"; if (div) div.style.display = "none"; }
   syncChatEmpty();
   $("chatLog").scrollTop = 1e9;
   if (!own && !$("scr-chat").classList.contains("active")) { S.unread++; syncBadge(); }
@@ -499,7 +522,7 @@ function saveUi() {
   try {
     localStorage.setItem("exopace-ui", JSON.stringify({
       pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
-      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget, night: S.night, waySort: S.waySort,
+      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget, night: S.night, waySort: S.waySort, arriveR: S.arriveR,
     }));
   } catch (e) {}
 }
@@ -516,6 +539,7 @@ function loadUi() {
   if (u.navTarget && u.navTarget.lat != null) S.navTarget = u.navTarget;
   if (u.night) S.night = true;
   if (u.waySort) S.waySort = u.waySort;
+  if (u.arriveR) S.arriveR = +u.arriveR;
   if (u.chatTo != null) S.savedChatTo = u.chatTo;
   if ($("btnTz")) $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
 }
@@ -995,12 +1019,13 @@ function checkWaypoints() {
     const w = S.ways[i];
     if (w.lat == null || w.lon == null) return;
     const d = bearingDist(g.lat, g.lon, +w.lat, +w.lon).distM;
-    if (d < 100 && !w.arrived) {
+    const r = S.arriveR || 100;
+    if (d < r && !w.arrived) {
       w.arrived = true;
       toast("ARRIVED · " + w.name);
       logEvent("NAV", "arrived " + w.name);
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-    } else if (d > 250 && w.arrived) {
+    } else if (d > r * 2.5 && w.arrived) {
       w.arrived = false;
     }
   });
@@ -1073,6 +1098,11 @@ function applyNight() {
   document.body.classList.toggle("night", !!S.night);
   if ($("btnNight")) $("btnNight").classList.toggle("primary", !!S.night);
 }
+$("arriveR").onchange = () => {
+  S.arriveR = +$("arriveR").value || 100;
+  saveUi();
+  toast("ARRIVAL " + S.arriveR + " m");
+};
 $("btnNight").onclick = () => {
   S.night = !S.night;
   saveUi(); applyNight();
@@ -1767,6 +1797,7 @@ syncBadge();
 tickClock();
 renderAbout();
 applyNight();
+if ($("arriveR")) $("arriveR").value = String(S.arriveR);
 startHeading();
 renderNavHud();
 setInterval(renderStats, 1000);
