@@ -61,7 +61,8 @@ header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(-
 #pathLbl.up{color:var(--ok)}
 #modeTag{display:none;font-family:var(--mono);font-size:10px;color:#0e1006;background:var(--amber);
   padding:2px 6px;border-radius:3px;letter-spacing:.1em}
-main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;
+  padding-bottom:calc(62px + env(safe-area-inset-bottom))}
 .screen{display:none;padding:14px;max-width:640px;margin:0 auto;width:100%}
 .screen.active{display:block}
 #scr-chat.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:0}
@@ -158,11 +159,11 @@ button,select,input{font:inherit;color:var(--text)}
 #freqHint[hidden]{display:none!important}
 #cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
 #cfgHw[hidden]{display:none!important}
-nav{display:flex;border-top:1px solid var(--line);background:#14170b;
-  padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:none;padding:12px 0 10px;font-family:var(--mono);
-  font-size:10px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent;min-height:48px}
-nav button.active{color:var(--amber);border-top-color:var(--amber)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;border-top:1px solid var(--line);
+  background:#14170b;height:calc(62px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px #0008}
+nav button{flex:1;background:none;border:none;padding:14px 0 12px;font-family:var(--mono);
+  font-size:12px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent}
+nav button.active{color:var(--amber);border-top-color:var(--amber);background:linear-gradient(#1c2010,#14170b)}
 #navHud{position:fixed;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom));z-index:31;
   display:flex;align-items:center;gap:10px;background:#14170b;border:1px solid var(--amber);
   border-radius:10px;padding:8px 10px;font-family:var(--mono);font-size:12px;box-shadow:0 4px 14px #0008}
@@ -486,11 +487,11 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 </div>
 <div id="toast" aria-live="polite"></div>
 
-<script src="env.js?v=58"></script>
+<script src="env.js?v=59"></script>
 <script src="three.min.js"></script>
-<script src="protocol.js?v=58"></script>
-<script src="store.js?v=58"></script>
-<script src="globe.js?v=58"></script>
-<script src="app.js?v=58"></script>
+<script src="protocol.js?v=59"></script>
+<script src="store.js?v=59"></script>
+<script src="globe.js?v=59"></script>
+<script src="app.js?v=59"></script>
 </body>
 </html>
