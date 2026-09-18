@@ -806,6 +806,11 @@ function dropWaypointAt(lat, lon) {
   send(w); handle(w); toast("WAYPOINT");
   logEvent("WAY", "dropped " + w.name + " (" + w.kind + ")");
 }
+function shareWay(w) {
+  const went = send(P.makeWay({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind }));
+  if (went) { toast("WAYPOINT SENT"); logEvent("WAY", "shared " + w.name + " (" + w.kind + ")"); }
+  else toast("NOT SENT — NO LINK");
+}
 $("btnTapDrop").onclick = () => {
   S.tapDrop = !S.tapDrop;
   $("btnTapDrop").classList.toggle("primary", S.tapDrop);
@@ -1331,7 +1336,7 @@ $("wayList").addEventListener("click", (e) => {
   else if (btn.dataset.act === "ren") startRename(id);
   else if (btn.dataset.act === "save") saveRename(id);
   else if (btn.dataset.act === "nav") navToWay(id);
-  else if (btn.dataset.act === "share") { const w = S.ways[id]; if (w) sharePoint(w); }
+  else if (btn.dataset.act === "share") { const w = S.ways[id]; if (w) shareWay(w); }
 });
 function setNav(t) {
   S.navTarget = t || null;
