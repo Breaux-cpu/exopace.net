@@ -428,6 +428,14 @@ function isOwnMsg(m) {
   const from = m.from || m.id;
   return !!(m.mine || from === "me" || m.fromName === "me" || (S.myId && from === S.myId));
 }
+function parseCoord(t) {
+  const m = String(t == null ? "" : t).match(/(-?\d{1,3}\.\d{3,})\s*(?:,|\s)\s*(-?\d{1,3}\.\d{3,})/);
+  if (!m) return null;
+  const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
+  if (!isFinite(lat) || !isFinite(lon)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat, lon };
+}
 function addMsg(m) {
   const own = isOwnMsg(m);
   const d = document.createElement("div");
@@ -446,6 +454,15 @@ function addMsg(m) {
   const metaEl = d.querySelector(".meta");
   metaEl.dataset.ts = ts;
   metaEl.dataset.extra = extra;
+  const c = parseCoord(chatText(m));
+  if (c) {
+    const b = document.createElement("button");
+    b.className = "btn";
+    b.style.cssText = "width:auto;min-width:0;padding:4px 8px;margin-top:6px;font-size:10px;letter-spacing:.08em";
+    b.textContent = "ADD WAY " + c.lat.toFixed(4) + "," + c.lon.toFixed(4);
+    b.onclick = () => { dropWaypointAt(c.lat, c.lon); b.disabled = true; };
+    d.appendChild(b);
+  }
   $("chatLog").appendChild(d);
   const q = $("chatSearch") ? $("chatSearch").value.trim().toLowerCase() : "";
   if (q && !d.textContent.toLowerCase().includes(q)) d.style.display = "none";
@@ -715,6 +732,16 @@ $("btnTelemCsv").onclick = () => {
   const rows = S.telemHist.map((s) => new Date(s.ts * 1000).toISOString() + "," + (s.batt ?? "") + "," + (s.rssi ?? ""));
   download("exopace-telemetry.csv", "time,batt,rssi\n" + rows.join("\n"));
   toast("TELEMETRY CSV");
+};
+$("btnSendLoc").onclick = () => {
+  const g = S.gps;
+  if (!g || !g.fix) return toast("WAITING FOR FIX");
+  const to = $("chatTo") ? $("chatTo").value : "*";
+  const text = "POS " + (+g.lat).toFixed(5) + ", " + (+g.lon).toFixed(5);
+  const went = send({ t: "chat", to, text, msg: text });
+  if (!went) { echoOwnChat(text, to); return toast("NOT LINKED"); }
+  logEvent("CHAT", "pos to " + to);
+  toast("POSITION SENT");
 };
 $("btnWay").onclick = () => {
   const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
