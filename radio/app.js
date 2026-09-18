@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {},
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false,
 };
 
 function fitKb() {
@@ -690,6 +690,23 @@ $("btnSendTrack").onclick = () => {
   send(P.makeTrack({ id: S.myId || "me", pts: S.trail }));
   toast("TRACK TX");
 };
+$("btnTripReset").onclick = () => {
+  if (!S.trail.length) return toast("NO TRAIL");
+  if (!S.tripArmed) {
+    S.tripArmed = true;
+    $("btnTripReset").classList.add("primary");
+    toast("TAP AGAIN TO CLEAR TRAIL");
+    setTimeout(() => { S.tripArmed = false; $("btnTripReset").classList.remove("primary"); }, 4000);
+    return;
+  }
+  S.tripArmed = false;
+  $("btnTripReset").classList.remove("primary");
+  S.trail = [];
+  ExoStore.put("tracks", { id: "trail", pts: [] });
+  syncGlobe(); renderStats();
+  toast("TRIP RESET");
+  logEvent("NAV", "trip reset");
+};
 $("btnTelemCsv").onclick = () => {
   if (!S.telemHist.length) return toast("NO TELEMETRY");
   const rows = S.telemHist.map((s) => new Date(s.ts * 1000).toISOString() + "," + (s.batt ?? "") + "," + (s.rssi ?? ""));
@@ -990,6 +1007,21 @@ function renderStats() {
   $("stNearest").textContent = near
     ? "nearest " + near.name + " · " + (near.distM / 1000).toFixed(2) + " km · BRG " + Math.round(near.brg) + "°"
     : "nearest —";
+  $("stTrip").textContent = fmtTrip();
+}
+function tripStats() {
+  const t = S.trail;
+  let dist = 0;
+  for (let i = 1; i < t.length; i++) dist += bearingDist(t[i - 1][0], t[i - 1][1], t[i][0], t[i][1]).distM;
+  const dur = t.length > 1 ? Math.max(0, t[t.length - 1][2] - t[0][2]) : 0;
+  return { distM: dist, durS: dur, avgMps: dur > 0 ? dist / dur : 0 };
+}
+function fmtTrip() {
+  if (S.trail.length < 2) return "trip —";
+  const s = tripStats();
+  const d = s.distM < 1000 ? Math.round(s.distM) + " m" : (s.distM / 1000).toFixed(2) + " km";
+  const m = Math.floor(s.durS / 60);
+  return "trip " + d + " · " + m + "m · avg " + s.avgMps.toFixed(1) + " m/s";
 }
 function nearestPeer() {
   const g = S.gps;
@@ -1048,6 +1080,9 @@ function renderWays() {
     if (S.renaming === i) {
       return '<div class="card node" style="flex-wrap:wrap"><div style="flex:1 0 100%"><input id="wayName-' + i + '" class="wayName" maxlength="24" value="' + esc(w.name) + '"></div>'
         + '<div style="flex:1 0 100%;margin-top:6px"><input id="wayNote-' + i + '" class="wayName" maxlength="80" placeholder="note (optional)" value="' + esc(w.note || "") + '"></div>'
+        + '<select id="wayKind-' + i + '" class="wayName" style="flex:1 0 100%;margin-top:6px">'
+        + ["meet", "hazard", "cache", "home"].map((k) => '<option value="' + k + '"' + (w.kind === k ? " selected" : "") + ">" + k.toUpperCase() + "</option>").join("")
+        + "</select>"
         + '<button class="btn" data-act="save" data-wid="' + i + '" style="width:auto;min-width:64px;margin-top:6px">SAVE</button></div>';
     }
     const sub = esc(w.kind) + (w.note ? " · " + esc(w.note) : "") + (S.gps && S.gps.fix && w.lat != null && w.lon != null ? " · " + fmtRange(bearingDist(S.gps.lat, S.gps.lon, +w.lat, +w.lon)) : "");
@@ -1138,11 +1173,13 @@ function startRename(id) {
 function saveRename(id) {
   const ni = $("wayName-" + id);
   const no = $("wayNote-" + id);
+  const nk = $("wayKind-" + id);
   const name = ni ? ni.value.trim() : "";
   const note = no ? no.value.trim() : "";
   if (S.ways[id]) {
     if (name) S.ways[id].name = name;
     S.ways[id].note = note;
+    if (nk && nk.value) S.ways[id].kind = nk.value;
     ExoStore.put("ways", S.ways[id]);
     logEvent("WAY", "saved " + (S.ways[id].name || id));
   }
