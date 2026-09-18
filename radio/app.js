@@ -855,6 +855,9 @@ function syncGlobe() {
       $("stRings").checked && S.gps && S.gps.fix ? S.gps.lon : null,
       [5, 10, 25],
     );
+    if (S.navTarget && S.navTarget.lat != null && S.navTarget.lon != null) {
+      S.globe.setRing(+S.navTarget.lat, +S.navTarget.lon, (S.arriveR || 100) / 1000, 0xffb454);
+    }
   }
   const noMe = !(S.gps && S.gps.fix);
   const noPeer = !Object.keys(S.nodes).some((i) => S.nodes[i].lat != null);
@@ -1156,6 +1159,18 @@ $("backupFile").onchange = (e) => {
   };
   r.readAsText(f);
 };
+function nearestWay() {
+  const g = S.gps;
+  if (!g || !g.fix) return null;
+  let best = null;
+  Object.keys(S.ways).forEach((i) => {
+    const w = S.ways[i];
+    if (w.lat == null || w.lon == null) return;
+    const bd = bearingDist(g.lat, g.lon, +w.lat, +w.lon);
+    if (!best || bd.distM < best.distM) best = { name: w.name || i, distM: bd.distM, brg: bd.brg };
+  });
+  return best;
+}
 function renderStats() {
   const s = S.stats;
   $("stPkts").textContent = s.packets;
@@ -1178,6 +1193,10 @@ function renderStats() {
   $("stNearest").textContent = near
     ? "nearest " + near.name + " · " + (near.distM / 1000).toFixed(2) + " km · BRG " + Math.round(near.brg) + "°"
     : "nearest —";
+  const nw = nearestWay();
+  $("stNearestWay").textContent = nw
+    ? "nearest way " + nw.name + " · " + (nw.distM < 1000 ? Math.round(nw.distM) + " m" : (nw.distM / 1000).toFixed(2) + " km") + " · BRG " + Math.round(nw.brg) + "°"
+    : "nearest way —";
   $("stTrip").textContent = fmtTrip();
 }
 function tripStats() {

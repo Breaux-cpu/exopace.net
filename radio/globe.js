@@ -351,6 +351,32 @@
     });
   };
 
+  ExoGlobe.prototype.setRing = function (lat, lon, km, color) {
+    if (!this.ringGroup) {
+      this.ringGroup = new THREE.Group();
+      this.scene.add(this.ringGroup);
+    }
+    if (lat == null || lon == null || km == null) return;
+    const center = latLonToVec3(lat, lon, 1);
+    const n = center.clone().normalize();
+    const e1 = new THREE.Vector3(0, 1, 0).cross(n);
+    if (e1.length() < 1e-6) e1.set(1, 0, 0);
+    e1.normalize();
+    const e2 = new THREE.Vector3().crossVectors(n, e1).normalize();
+    const alpha = km / 6371;
+    const pts = [];
+    for (let i = 0; i <= 72; i++) {
+      const a = (i / 72) * Math.PI * 2;
+      const p = n.clone().multiplyScalar(Math.cos(alpha))
+        .add(e1.clone().multiplyScalar(Math.sin(alpha) * Math.cos(a)))
+        .add(e2.clone().multiplyScalar(Math.sin(alpha) * Math.sin(a)));
+      pts.push(p.x, p.y, p.z);
+    }
+    const g = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+    const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: color || 0x7ee0ff, transparent: true, opacity: 0.45, toneMapped: false }));
+    this.ringGroup.add(line);
+  };
+
   ExoGlobe.prototype.setRings = function (lat, lon, radii) {
     if (!this.ringGroup) {
       this.ringGroup = new THREE.Group();
@@ -362,26 +388,7 @@
       if (ch.geometry) ch.geometry.dispose();
     }
     if (lat == null || lon == null || !radii || !radii.length) return;
-    const center = latLonToVec3(lat, lon, 1);
-    const n = center.clone().normalize();
-    const e1 = new THREE.Vector3(0, 1, 0).cross(n);
-    if (e1.length() < 1e-6) e1.set(1, 0, 0);
-    e1.normalize();
-    const e2 = new THREE.Vector3().crossVectors(n, e1).normalize();
-    radii.forEach((km) => {
-      const alpha = km / 6371;
-      const pts = [];
-      for (let i = 0; i <= 72; i++) {
-        const a = (i / 72) * Math.PI * 2;
-        const p = n.clone().multiplyScalar(Math.cos(alpha))
-          .add(e1.clone().multiplyScalar(Math.sin(alpha) * Math.cos(a)))
-          .add(e2.clone().multiplyScalar(Math.sin(alpha) * Math.sin(a)));
-        pts.push(p.x, p.y, p.z);
-      }
-      const g = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-      const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x7ee0ff, transparent: true, opacity: 0.45, toneMapped: false }));
-      this.ringGroup.add(line);
-    });
+    radii.forEach((km) => this.setRing(lat, lon, km, 0x7ee0ff));
   };
 
   ExoGlobe.prototype.recage = function (lat, lon) {

@@ -238,7 +238,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
   <button class="conn" id="btnConn">CONNECT</button>
 </header>
 
-<div id="sosBanner" hidden>
+<div id="sosBanner" hidden role="alert" aria-live="assertive">
   <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span> <span id="sosRange"></span></div>
   <div class="sosActs">
     <button class="btn primary" id="sosAck">ACK</button>
@@ -323,6 +323,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       </div>
       <div class="sub" id="stByType">no packets yet</div>
       <div class="sub" id="stNearest">nearest —</div>
+      <div class="sub" id="stNearestWay">nearest way —</div>
       <div class="sub" id="stTrip">trip —</div>
     </div>
     <h2>Mesh roster</h2>
@@ -471,7 +472,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
   </div>
 </div>
-<div id="toast"></div>
+<div id="toast" aria-live="polite"></div>
 
 <script src="env.js?v=54"></script>
 <script src="three.min.js"></script>
