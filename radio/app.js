@@ -16,6 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
+  tz: "utc", seenMsg: {},
 };
 
 function fitKb() {
@@ -262,6 +263,11 @@ function handle(m) {
       $("hFreq").textContent = m.cfg.freq + " MHz · SF" + m.cfg.sf; break;
     case "chat":
       if (m.text == null && m.msg != null) m.text = m.msg;
+      if (m.msgId && S.seenMsg[m.msgId]) break;
+      if (m.msgId) {
+        S.seenMsg[m.msgId] = 1;
+        if (Object.keys(S.seenMsg).length > 500) S.seenMsg = { [m.msgId]: 1 };
+      }
       addMsg(m); ExoStore.put("chat", { id: m.msgId || ("c" + Date.now()), ...m }); break;
     case "hist":
       (m.m || []).forEach(handle); break;
@@ -274,6 +280,7 @@ function handle(m) {
         if (S.trail.length > 200) S.trail.shift();
         ExoStore.put("tracks", { id: "trail", pts: S.trail });
         if (S.rangeOn) sampleRfHere();
+        checkWaypoints();
       }
       break;
     case "telem":
@@ -384,7 +391,8 @@ function addMsg(m) {
   const own = isOwnMsg(m);
   const d = document.createElement("div");
   d.className = "msg" + (own ? " mine" : ""); d.dataset.mid = m.msgId || "";
-  const ts = m.ts ? new Date(m.ts * 1000).toISOString().slice(11, 19) + " UTC" : "";
+  d.dataset.ts = String(m.ts || "");
+  const ts = m.ts ? fmtTs(m.ts) : "";
   let extra = "";
   if (m.ack) extra = '<span class="ok">✓ delivered</span>';
   else if (own && m.to && m.to !== "*") extra = '<span class="pend">pending</span>';
@@ -392,6 +400,9 @@ function addMsg(m) {
   const meta = ts && extra ? ts + " · " + extra : (ts || extra);
   d.innerHTML = '<div class="who">' + esc(own ? "YOU" : (m.fromName || m.from)) + (m.to && m.to !== "*" ? " → " + esc(m.toName || m.to) : "") + "</div>"
     + '<div class="txt">' + esc(chatText(m)) + '</div><div class="meta">' + meta + "</div>";
+  const metaEl = d.querySelector(".meta");
+  metaEl.dataset.ts = ts;
+  metaEl.dataset.extra = extra;
   $("chatLog").appendChild(d);
   const q = $("chatSearch") ? $("chatSearch").value.trim().toLowerCase() : "";
   if (q && !d.textContent.toLowerCase().includes(q)) d.style.display = "none";
@@ -411,17 +422,22 @@ function syncBadge() {
 function markAck(id) {
   const e = document.querySelector('.msg[data-mid="' + id + '"] .meta');
   if (!e) return;
-  const time = (e.textContent || "").split(" · ")[0].trim();
-  const keep = /^\d{2}:\d{2}:\d{2} UTC$/.test(time) ? time + " · " : "";
-  e.innerHTML = keep + '<span class="ok">✓ delivered</span>';
+  const delivered = '<span class="ok">✓ delivered</span>';
+  e.dataset.extra = delivered;
+  e.innerHTML = (e.dataset.ts ? e.dataset.ts + " · " : "") + delivered;
   logEvent("ACK", "delivered");
+}
+function fmtTs(t) {
+  const d = new Date(t * 1000);
+  if (S.tz === "local") return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) + " LCL";
+  return d.toISOString().slice(11, 19) + " UTC";
 }
 function esc(s) { return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function saveUi() {
   try {
     localStorage.setItem("exopace-ui", JSON.stringify({
       pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
-      sort: S.sort, chatTo: $("chatTo").value,
+      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz,
     }));
   } catch (e) {}
 }
@@ -433,7 +449,9 @@ function loadUi() {
   if (u.rings != null) $("stRings").checked = !!u.rings;
   if (u.heat != null) $("stHeat").checked = !!u.heat;
   if (u.sort) S.sort = u.sort;
+  if (u.tz) S.tz = u.tz;
   if (u.chatTo != null) S.savedChatTo = u.chatTo;
+  if ($("btnTz")) $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
 }
 
 function echoOwnChat(text, to) {
@@ -548,6 +566,47 @@ $("chatLog").addEventListener("click", (e) => {
   const t = txt.textContent;
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast("COPIED")).catch(() => {});
 });
+$("btnTz").onclick = () => {
+  S.tz = S.tz === "utc" ? "local" : "utc";
+  $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
+  saveUi();
+  [...$("chatLog").children].forEach((el) => {
+    const raw = +el.dataset.ts;
+    const meta = el.querySelector(".meta");
+    if (!meta || !raw) return;
+    const newTs = fmtTs(raw);
+    const extra = meta.dataset.extra || "";
+    meta.dataset.ts = newTs;
+    meta.innerHTML = newTs && extra ? newTs + " · " + extra : (newTs || extra);
+  });
+  toast("TIME " + (S.tz === "utc" ? "UTC" : "LOCAL"));
+};
+$("wptImportFile").onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const doc = new DOMParser().parseFromString(r.result, "application/xml");
+      const wpts = [...doc.getElementsByTagName("wpt")];
+      let n = 0;
+      wpts.forEach((el) => {
+        const lat = parseFloat(el.getAttribute("lat")), lon = parseFloat(el.getAttribute("lon"));
+        if (!isFinite(lat) || !isFinite(lon)) return;
+        const nameEl = el.getElementsByTagName("name")[0];
+        const name = (nameEl && nameEl.textContent ? nameEl.textContent : "MARK").trim().slice(0, 24) || "MARK";
+        const id = "w" + Date.now().toString(36) + n;
+        const w = P.makeWay({ id, name, lat, lon, kind: "meet" });
+        S.ways[id] = w; ExoStore.put("ways", w); n++;
+      });
+      renderWays(); syncGlobe();
+      toast(n ? "IMPORTED " + n + " WAYPOINTS" : "NO WAYPOINTS IN FILE");
+      if (n) logEvent("WAY", "imported " + n + " from GPX");
+    } catch (err) { toast("BAD GPX FILE"); }
+    e.target.value = "";
+  };
+  r.readAsText(f);
+};
 $("btnGpx").onclick = () => {
   const wpts = Object.keys(S.ways).map((i) => {
     const w = S.ways[i];
@@ -758,6 +817,23 @@ function bars(rssi) {
 function ago(ts) {
   const s = ts > 1e9 ? Math.max(0, (Date.now() / 1000) - ts) : ts;
   return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : Math.round(s / 3600) + "h";
+}
+function checkWaypoints() {
+  const g = S.gps;
+  if (!g || !g.fix) return;
+  Object.keys(S.ways).forEach((i) => {
+    const w = S.ways[i];
+    if (w.lat == null || w.lon == null) return;
+    const d = bearingDist(g.lat, g.lon, +w.lat, +w.lon).distM;
+    if (d < 100 && !w.arrived) {
+      w.arrived = true;
+      toast("ARRIVED · " + w.name);
+      logEvent("NAV", "arrived " + w.name);
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    } else if (d > 250 && w.arrived) {
+      w.arrived = false;
+    }
+  });
 }
 function watchNodes() {
   const now = Date.now() / 1000;

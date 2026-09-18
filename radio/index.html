@@ -246,6 +246,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
     <div class="row" style="margin-bottom:10px">
       <button class="btn" id="btnExportChat">EXPORT CHAT</button>
       <button class="btn" id="btnClearChat">CLEAR</button>
+      <button class="btn" id="btnTz">TIME UTC</button>
     </div>
     <input id="chatSearch" class="wayName" placeholder="SEARCH CHAT" style="margin-bottom:8px">
     <div id="chatLog"></div>
@@ -315,6 +316,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     <div id="wayList"><div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div></div>
     <div class="row" style="margin-top:10px">
       <button class="btn" id="btnGpx">EXPORT GPX</button>
+      <label class="btn" style="display:flex;align-items:center;justify-content:center">IMPORT GPX<input type="file" id="wptImportFile" accept=".gpx,application/gpx+xml,application/xml" hidden></label>
       <button class="btn" id="btnSendTrack">SEND TRACK</button>
     </div>
     <h2>Event log</h2>
