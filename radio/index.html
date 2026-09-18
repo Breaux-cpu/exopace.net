@@ -847,7 +847,7 @@ function loadWifi(f,src){
  if(el('wifi').classList.contains('on'))wifiTimer=setTimeout(()=>loadWifi(),30000);
 }
 
-let camTimer=null,camSource='dj';
+let camTimer=null,camSource='jessy';
 function camSrc(s){if(camSource===s)return;camStopView();camSource=s;
  el('camsrc-dj').classList.toggle('on',s==='dj');el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
 function camView(on){const i=el('camimg');

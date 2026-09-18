@@ -292,6 +292,7 @@ const sdrUnlock = read("radio/unlock.html");
 assert(sdrHtml.includes("dj SDR"), "SDR app title");
 assert(sdrHtml.includes('const BASE="https://dj.tail0e44f5.ts.net"'), "SDR app points at the host backend over HTTPS");
 assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
+assert(sdrHtml.includes("camSource='jessy'"), "SDR camera defaults to jessy (dj has no capture device)");
 assert(sdrHtml.includes("assets/leaflet.min.js") && sdrHtml.includes("assets/leaflet.css"), "SDR leaflet is local");
 assert(sdrHtml.includes("api_key=cb1_3pqj_1_3ae9e10bef10a2dc2ff55371"), "SDR CARTO tiles carry the API key");
 assert(!sdrHtml.includes('src="/assets/') && !sdrHtml.includes('href="/assets/'), "SDR app has no absolute /assets/ refs");
