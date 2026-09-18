@@ -291,6 +291,7 @@ assert(sdrHtml.includes("dj SDR"), "SDR app title");
 assert(sdrHtml.includes('const BASE="http://100.64.185.111:8110"'), "SDR app points at the host backend");
 assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
 assert(sdrHtml.includes("assets/leaflet.min.js") && sdrHtml.includes("assets/leaflet.css"), "SDR leaflet is local");
+assert(sdrHtml.includes("api_key=cb1_3pqj_1_3ae9e10bef10a2dc2ff55371"), "SDR CARTO tiles carry the API key");
 assert(!sdrHtml.includes('src="/assets/') && !sdrHtml.includes('href="/assets/'), "SDR app has no absolute /assets/ refs");
 assert(existsSync(join(root, "radio/assets/leaflet.min.js")) && existsSync(join(root, "radio/assets/leaflet.css")), "SDR leaflet assets exist");
 assert(sdrUnlock.includes("./?t="), "SDR unlock redirects to its own path");

@@ -734,7 +734,7 @@ function pickMap(k){
 function loadMaps(){
  if(!window.L){el('mapstate').textContent='leaflet not loaded';return;}
  if(!map)map=L.map('map').setView([35.0,-90.0],7);
- if(!mapLayer){L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+ if(!mapLayer){L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_3pqj_1_3ae9e10bef10a2dc2ff55371',
   {maxZoom:13,attribution:'© CARTO'}).addTo(map);}
 const kinds=mapKind==='replay'?['ais','adsb','aprs','sonde']:[mapKind];
   Promise.all(kinds.map(k=>api('/api/map?k='+k))).then(all=>{
