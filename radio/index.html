@@ -253,14 +253,14 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
       <button class="btn" data-qtx="On station">On station</button>
       <button class="btn" data-qtx="Moving">Moving</button>
       <button class="btn" data-qtx="Need relay">Need relay</button>
-      <button class="btn primary" data-qtx="SOS" data-sos="1">SOS</button>
+      <button class="btn primary" data-qtx="SOS" data-sos="1" title="Type a reason in the message box first to attach it">SOS</button>
     </div>
     <div class="row" style="margin-bottom:10px">
       <button class="btn" id="btnExportChat">EXPORT CHAT</button>
       <button class="btn" id="btnClearChat">CLEAR</button>
       <button class="btn" id="btnTz">TIME UTC</button>
     </div>
-    <input id="chatSearch" class="wayName" placeholder="SEARCH CHAT" style="margin-bottom:8px">
+    <input id="chatSearch" class="wayName" placeholder="SEARCH · @NAME FILTERS SENDER" style="margin-bottom:8px">
     <div id="chatLog"></div>
     <div id="composer" hidden>
       <select id="chatTo"><option value="*">ALL</option></select>

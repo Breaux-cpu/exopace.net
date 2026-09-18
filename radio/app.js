@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false,
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0,
 };
 
 function fitKb() {
@@ -465,7 +465,7 @@ function addMsg(m) {
   }
   $("chatLog").appendChild(d);
   const q = $("chatSearch") ? $("chatSearch").value.trim().toLowerCase() : "";
-  if (q && !d.textContent.toLowerCase().includes(q)) d.style.display = "none";
+  if (q && !chatMatches(d, q)) d.style.display = "none";
   syncChatEmpty();
   $("chatLog").scrollTop = 1e9;
   if (!own && !$("scr-chat").classList.contains("active")) { S.unread++; syncBadge(); }
@@ -531,9 +531,16 @@ function echoOwnChat(text, to) {
     ts: Math.floor(Date.now() / 1000),
   });
 }
+function txGuard() {
+  const now = Date.now();
+  if (now - (S.lastTx || 0) < 700) return false;
+  S.lastTx = now;
+  return true;
+}
 $("chatSend").onclick = () => {
   if (!radioUp()) return;
   const t = $("chatText").value.trim(); if (!t) return;
+  if (!txGuard()) return toast("HOLD ON — AIRTIME");
   const to = $("chatTo").value;
   const went = send({ t: "chat", to, text: t, msg: t });
   $("chatText").value = "";
@@ -545,13 +552,18 @@ document.querySelectorAll("[data-qtx]").forEach((b) => {
     const text = b.dataset.qtx;
     if (b.dataset.sos) {
       const g = S.gps;
-      const pkt = P.makeSos({ id: S.myId || "me", lat: g && g.lat, lon: g && g.lon, msg: text });
+      const note = ($("chatText") && $("chatText").value.trim()) || text;
+      const pkt = P.makeSos({ id: S.myId || "me", lat: g && g.lat, lon: g && g.lon, msg: note });
       const went = send(pkt);
       handle(pkt);
+      if ($("chatText")) $("chatText").value = "";
+      logEvent("SOS", "sent " + (g && g.fix ? "with fix" : "no fix"));
       if (went) toast("SOS TX");
+      else toast("SOS NOT SENT");
       return;
     }
     const to = $("chatTo").value;
+    if (!txGuard()) return toast("HOLD ON — AIRTIME");
     if (!send({ t: "chat", to, text, msg: text })) echoOwnChat(text, to);
   };
 });
@@ -622,10 +634,18 @@ $("btnClearChat").onclick = () => {
 $("chatSearch").oninput = () => {
   const q = $("chatSearch").value.trim().toLowerCase();
   [...$("chatLog").children].forEach((el) => {
-    el.style.display = !q || el.textContent.toLowerCase().includes(q) ? "" : "none";
+    el.style.display = chatMatches(el, q) ? "" : "none";
   });
   syncChatEmpty();
 };
+function chatMatches(el, q) {
+  if (!q) return true;
+  if (q[0] === "@") {
+    const who = el.querySelector(".who");
+    return (who ? who.textContent : "").toLowerCase().includes(q.slice(1));
+  }
+  return el.textContent.toLowerCase().includes(q);
+}
 $("chatLog").addEventListener("click", (e) => {
   const pend = e.target.closest(".pend");
   if (pend) { retryMsg(pend.closest(".msg")); return; }
