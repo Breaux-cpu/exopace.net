@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0,
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest",
 };
 
 function fitKb() {
@@ -499,7 +499,7 @@ function saveUi() {
   try {
     localStorage.setItem("exopace-ui", JSON.stringify({
       pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
-      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget, night: S.night,
+      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget, night: S.night, waySort: S.waySort,
     }));
   } catch (e) {}
 }
@@ -515,6 +515,7 @@ function loadUi() {
   if (u.stars && typeof u.stars === "object") S.stars = u.stars;
   if (u.navTarget && u.navTarget.lat != null) S.navTarget = u.navTarget;
   if (u.night) S.night = true;
+  if (u.waySort) S.waySort = u.waySort;
   if (u.chatTo != null) S.savedChatTo = u.chatTo;
   if ($("btnTz")) $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
 }
@@ -890,8 +891,13 @@ $("stTrail").onchange = () => { saveUi(); syncGlobe(); };
 $("stRings").onchange = () => { saveUi(); syncGlobe(); };
 $("stHeat").onchange = () => { saveUi(); syncGlobe(); };
 $("btnSort").onclick = () => {
-  S.sort = S.sort === "rssi" ? "name" : S.sort === "name" ? "batt" : "rssi";
+  S.sort = S.sort === "rssi" ? "name" : S.sort === "name" ? "batt" : S.sort === "batt" ? "newest" : "rssi";
   saveUi(); renderNodes();
+};
+$("btnWaySort").onclick = () => {
+  S.waySort = S.waySort === "dist" ? "name" : S.waySort === "name" ? "newest" : "dist";
+  if (S.waySort === "dist" && !(S.gps && S.gps.fix)) toast("DISTANCE NEEDS A FIX");
+  saveUi(); renderWays();
 };
 $("btnRecage").onclick = () => {
   if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
@@ -1135,12 +1141,13 @@ function renderNodes() {
     const A = P.applyPresence(S.nodes[a]), B = P.applyPresence(S.nodes[b]);
     if (S.sort === "name") return String(A.name || a).localeCompare(String(B.name || b));
     if (S.sort === "batt") return (B.batt == null ? -1 : B.batt) - (A.batt == null ? -1 : A.batt);
+    if (S.sort === "newest") return (B.last || 0) - (A.last || 0);
     return (B.rssi == null ? -999 : B.rssi) - (A.rssi == null ? -999 : A.rssi);
   });
   const sel = $("chatTo"); const cur = sel.value !== "*" ? sel.value : (S.savedChatTo || "*");
   sel.innerHTML = '<option value="*">ALL</option>' + ids.map((i) => '<option value="' + i + '">' + esc(S.nodes[i].name || i) + "</option>").join("");
   sel.value = [...sel.options].some((o) => o.value === cur) ? cur : "*";
-  const labels = { rssi: "SIGNAL", name: "NAME", batt: "BATTERY" };
+  const labels = { rssi: "SIGNAL", name: "NAME", batt: "BATTERY", newest: "NEWEST" };
   if ($("btnSort")) $("btnSort").textContent = "SORT · " + (labels[S.sort] || "SIGNAL");
   $("nodeList").innerHTML = ids.length ? ids.map((i) => {
     const n = P.applyPresence(S.nodes[i]);
@@ -1164,10 +1171,29 @@ function renderNodes() {
   renderStats();
   syncGlobe();
 }
+function wayTs(w) {
+  if (w.ts) return +w.ts;
+  const n = parseInt(String(w.id || "").slice(1), 36);
+  return isFinite(n) ? n : 0;
+}
 function renderWays() {
   const el = $("wayList");
   if (!el) return;
   const ids = Object.keys(S.ways);
+  const fix = S.gps && S.gps.fix;
+  if (S.waySort === "dist" && fix) {
+    const d = (i) => {
+      const w = S.ways[i];
+      return w.lat == null ? Infinity : bearingDist(S.gps.lat, S.gps.lon, +w.lat, +w.lon).distM;
+    };
+    ids.sort((a, b) => d(a) - d(b));
+  } else if (S.waySort === "name") {
+    ids.sort((a, b) => String(S.ways[a].name || "").localeCompare(String(S.ways[b].name || "")));
+  } else {
+    ids.sort((a, b) => wayTs(S.ways[b]) - wayTs(S.ways[a]));
+  }
+  const wayLbl = $("btnWaySort");
+  if (wayLbl) wayLbl.textContent = "SORT · " + (S.waySort === "dist" ? "DISTANCE" : S.waySort === "name" ? "NAME" : "NEWEST");
   el.innerHTML = ids.length ? ids.map((i) => {
     const w = S.ways[i];
     if (S.renaming === i) {
