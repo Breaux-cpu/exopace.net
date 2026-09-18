@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {},
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "",
 };
 
 function fitKb() {
@@ -171,6 +171,34 @@ async function bindUart(svc) {
   return { notifyCh, writeCh };
 }
 
+async function attachBle(dev) {
+  const gatt = await dev.gatt.connect();
+  const svc = await gatt.getPrimaryService(BLE_SVC);
+  const { notifyCh, writeCh } = await bindUart(svc);
+  await notifyCh.startNotifications();
+  notifyCh.oncharacteristicvaluechanged = (ev) => {
+    onStreamChunk(new TextDecoder().decode(ev.target.value));
+  };
+  return writeCh;
+}
+
+async function reconnectBle(dev) {
+  for (let i = 0; i < 5; i++) {
+    await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+    if (S.bleDev !== dev || S.demo) return;
+    try {
+      S.bleRx = await attachBle(dev);
+      setPath("bt", true);
+      logEvent("LINK", "BT reconnected");
+      toast("BT RECONNECTED");
+      return;
+    } catch (e) {}
+  }
+  if (S.bleDev === dev) { S.bleDev = null; S.bleRx = null; }
+  logEvent("LINK", "BT reconnect failed");
+  toast("BT RETRY FAILED — TAP CONNECT");
+}
+
 async function connectBle() {
   if (!window.isSecureContext || !navigator.bluetooth) { toast("NEEDS SECURE CONTEXT"); return; }
   let picked = false;
@@ -180,21 +208,18 @@ async function connectBle() {
       optionalServices: [BLE_SVC],
     });
     picked = true;
-    const gatt = await dev.gatt.connect();
-    const svc = await gatt.getPrimaryService(BLE_SVC);
-    const { notifyCh, writeCh } = await bindUart(svc);
-    await notifyCh.startNotifications();
-    notifyCh.addEventListener("characteristicvaluechanged", (ev) => {
-      onStreamChunk(new TextDecoder().decode(ev.target.value));
-    });
+    const writeCh = await attachBle(dev);
     stopDemo(); closeWifi();
     S.bleRx = writeCh; S.bleDev = dev; S.bleBuf = "";
     setPath("bt", true);
     syncInstallHint();
+    logEvent("LINK", "BT connected " + (dev.name || ""));
     dev.addEventListener("gattserverdisconnected", () => {
       if (S.bleDev !== dev) return;
-      S.bleRx = null; S.bleDev = null;
+      S.bleRx = null;
       if (!S.demo) setPath("bt", false);
+      logEvent("LINK", "BT disconnected — retrying");
+      reconnectBle(dev);
     });
   } catch (e) {
     toast(picked ? "BT FAILED" : "BT CANCELLED");
@@ -712,6 +737,11 @@ function bearingDist(lat1, lon1, lat2, lon2) {
   const brg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
   return { distM, brg };
 }
+function fmtRange(bd) {
+  if (!bd) return "—";
+  const d = bd.distM < 1000 ? Math.round(bd.distM) + " m" : (bd.distM / 1000).toFixed(2) + " km";
+  return d + " · " + Math.round(bd.brg) + "°";
+}
 function showDossier(m) {
   const tip = $("mapTip");
   if (!m) { tip.style.display = "none"; S.sel = null; return; }
@@ -962,7 +992,8 @@ function renderWays() {
       return '<div class="card node"><div style="flex:1;min-width:0"><input id="wayName-' + i + '" class="wayName" maxlength="24" value="' + esc(w.name) + '"></div>'
         + '<button class="btn" data-act="save" data-wid="' + i + '" style="width:auto;min-width:64px">SAVE</button></div>';
     }
-    return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + esc(w.kind) + '</div></div>'
+    const sub = esc(w.kind) + (S.gps && S.gps.fix && w.lat != null && w.lon != null ? " · " + fmtRange(bearingDist(S.gps.lat, S.gps.lon, +w.lat, +w.lon)) : "");
+    return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + sub + '</div></div>'
       + '<div class="row" style="gap:6px;margin-left:auto">'
       + '<button class="btn" data-act="nav" data-wid="' + i + '" style="width:auto;min-width:56px">NAV</button>'
       + '<button class="btn" data-act="share" data-wid="' + i + '" style="width:auto;min-width:56px">SHARE</button>'
@@ -1060,7 +1091,7 @@ function renderTelem(d) {
   syncTelemEmpty(true);
   $("vBatt").textContent = (d.batt ?? "-") + "%"; $("vVolt").textContent = (d.vbat ?? 0).toFixed(2) + " V";
   $("vUp").textContent = fmtUp(d.up); $("vHeap").textContent = "heap " + Math.round((d.heap || 0) / 1024) + " KB";
-  $("vRssi").textContent = (d.rssi ?? "-") + " dBm"; $("vSnr").textContent = "SNR " + (d.snr ?? "-") + " dB";
+  $("vRssi").textContent = (d.rssi ?? "-") + " dBm " + rssiArrow(d.rssi); $("vSnr").textContent = "SNR " + (d.snr ?? "-") + " dB";
   $("vTx").textContent = (d.txp ?? "-") + " dBm"; $("vFreq").textContent = (d.freq ?? "-") + " MHz";
   const m = bars(d.rssi ?? -140); $("hMeter").outerHTML = m.replace('class="meter"', 'class="meter" id="hMeter"');
   syncHeaderMeter();
@@ -1074,6 +1105,17 @@ function renderTelem(d) {
   warnBatt("NODE", d.batt);
   warnRssi(d.rssi);
   drawBatt(); drawSpark();
+}
+function rssiArrow(rssi) {
+  if (rssi == null) return "";
+  let a = "";
+  if (S.prevRssi != null) {
+    const d = rssi - S.prevRssi;
+    if (d >= 2) a = "▲";
+    else if (d <= -2) a = "▼";
+  }
+  S.prevRssi = rssi;
+  return a;
 }
 function warnRssi(rssi) {
   if (rssi == null) return;
@@ -1431,3 +1473,15 @@ tickClock();
 setInterval(renderStats, 1000);
 setInterval(tickClock, 1000);
 setInterval(watchNodes, 5000);
+document.addEventListener("keydown", (e) => {
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "select" || tag === "textarea") return;
+  const tabs = ["chat", "map", "nodes", "vitals", "setup"];
+  if (e.key >= "1" && e.key <= "5") {
+    const b = document.querySelector('nav button[data-s="' + tabs[+e.key - 1] + '"]');
+    if (b) b.click();
+  } else if (e.key === "Escape") {
+    if (S.sos) dismissSos();
+    else if (S.nodeSel) { S.nodeSel = null; renderNodes(); }
+  }
+});
