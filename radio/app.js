@@ -366,6 +366,13 @@ function sysNotify(title, body, tag) {
   }
 }
 function sosNotify(s) { sysNotify("EXOpace SOS", s.msg + " — " + s.id, "exo-sos"); }
+function syncSosRange() {
+  const el = $("sosRange");
+  if (!el) return;
+  const s = S.sos;
+  if (!s || s.lat == null || s.lon == null || !S.gps || !S.gps.fix) { el.textContent = ""; return; }
+  el.textContent = "(" + fmtRange(bearingDist(S.gps.lat, S.gps.lon, +s.lat, +s.lon)) + ")";
+}
 function raiseSos(m) {
   if (m.id === "me" || (S.myId && m.id === S.myId)) return;
   const s = { id: m.id, lat: m.lat, lon: m.lon, msg: sosLine(m), ts: m.ts || Math.floor(Date.now() / 1000), acked: false };
@@ -378,6 +385,7 @@ function raiseSos(m) {
   sosVibrate();
   sosNotify(s);
   logEvent("SOS", "received from " + s.id);
+  syncSosRange();
   if (S.sosTimer) clearInterval(S.sosTimer);
   S.sosTimer = setInterval(() => {
     if (S.sos && !S.sos.acked) { sosVibrate(); toast("SOS UNACKED"); }
@@ -417,6 +425,8 @@ function addMsg(m) {
   const d = document.createElement("div");
   d.className = "msg" + (own ? " mine" : ""); d.dataset.mid = m.msgId || "";
   d.dataset.ts = String(m.ts || "");
+  d.dataset.text = chatText(m) || "";
+  d.dataset.to = m.to || "*";
   const ts = m.ts ? fmtTs(m.ts) : "";
   let extra = "";
   if (m.ack) extra = '<span class="ok">✓ delivered</span>';
@@ -528,6 +538,7 @@ function renderGps() {
   }
   renderNodes();
   syncMapChrome();
+  syncSosRange();
 }
 $("btnCopy").onclick = () => {
   const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
@@ -586,11 +597,24 @@ $("chatSearch").oninput = () => {
   syncChatEmpty();
 };
 $("chatLog").addEventListener("click", (e) => {
+  const pend = e.target.closest(".pend");
+  if (pend) { retryMsg(pend.closest(".msg")); return; }
   const txt = e.target.closest(".msg .txt");
   if (!txt) return;
   const t = txt.textContent;
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast("COPIED")).catch(() => {});
 });
+function retryMsg(el) {
+  if (!el) return;
+  const text = el.dataset.text || "";
+  const to = el.dataset.to || "*";
+  if (!text) return;
+  if (!send({ t: "chat", to, text, msg: text })) return toast("LINK DOWN");
+  el.remove();
+  syncChatEmpty();
+  toast("RETRY SENT");
+  logEvent("CHAT", "retry to " + to);
+}
 $("btnTz").onclick = () => {
   S.tz = S.tz === "utc" ? "local" : "utc";
   $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
@@ -620,8 +644,11 @@ $("wptImportFile").onchange = (e) => {
         if (!isFinite(lat) || !isFinite(lon)) return;
         const nameEl = el.getElementsByTagName("name")[0];
         const name = (nameEl && nameEl.textContent ? nameEl.textContent : "MARK").trim().slice(0, 24) || "MARK";
+        const cmtEl = el.getElementsByTagName("cmt")[0];
+        const note = (cmtEl && cmtEl.textContent ? cmtEl.textContent : "").trim().slice(0, 80);
         const id = "w" + Date.now().toString(36) + n;
         const w = P.makeWay({ id, name, lat, lon, kind: "meet" });
+        if (note) w.note = note;
         S.ways[id] = w; ExoStore.put("ways", w); n++;
       });
       renderWays(); syncGlobe();
@@ -635,7 +662,8 @@ $("wptImportFile").onchange = (e) => {
 $("btnGpx").onclick = () => {
   const wpts = Object.keys(S.ways).map((i) => {
     const w = S.ways[i];
-    return '  <wpt lat="' + w.lat + '" lon="' + w.lon + '"><name>' + esc(w.name) + "</name><desc>" + esc(w.kind) + "</desc></wpt>";
+    return '  <wpt lat="' + w.lat + '" lon="' + w.lon + '"><name>' + esc(w.name) + "</name><desc>" + esc(w.kind) + "</desc>"
+      + (w.note ? "<cmt>" + esc(w.note) + "</cmt>" : "") + "</wpt>";
   }).join("\n");
   const trk = S.trail.length > 1
     ? '  <trk><name>EXOpace trail</name><trkseg>\n' + S.trail.map((p) =>
@@ -702,7 +730,7 @@ function collectPts() {
   });
   Object.keys(S.ways).forEach((i) => {
     const w = S.ways[i];
-    pts.push({ kind: w.kind === "sos" ? "sos" : "way", id: w.id, lat: w.lat, lon: w.lon, name: w.name, wayKind: w.kind, conf: 1 });
+    pts.push({ kind: w.kind === "sos" ? "sos" : "way", id: w.id, lat: w.lat, lon: w.lon, name: w.name, wayKind: w.kind, note: w.note, conf: 1 });
   });
   if ($("stPin").checked) pts.push({ kind: "st", lat: P.STATION.lat, lon: P.STATION.lon, name: "STATION", id: "STATION", conf: 1 });
   return pts;
@@ -757,6 +785,7 @@ function showDossier(m) {
     m.kind === "me" ? "you" : "",
     m.kind === "st" ? "fixed pin" : "",
     m.kind === "sos" ? "SOS" : "",
+    m.note ? ("NOTE " + m.note) : "",
   ].filter(Boolean);
   if (S.gps && S.gps.fix && m.lat != null && m.lon != null) {
     const bd = bearingDist(S.gps.lat, S.gps.lon, m.lat, m.lon);
@@ -989,10 +1018,11 @@ function renderWays() {
   el.innerHTML = ids.length ? ids.map((i) => {
     const w = S.ways[i];
     if (S.renaming === i) {
-      return '<div class="card node"><div style="flex:1;min-width:0"><input id="wayName-' + i + '" class="wayName" maxlength="24" value="' + esc(w.name) + '"></div>'
-        + '<button class="btn" data-act="save" data-wid="' + i + '" style="width:auto;min-width:64px">SAVE</button></div>';
+      return '<div class="card node" style="flex-wrap:wrap"><div style="flex:1 0 100%"><input id="wayName-' + i + '" class="wayName" maxlength="24" value="' + esc(w.name) + '"></div>'
+        + '<div style="flex:1 0 100%;margin-top:6px"><input id="wayNote-' + i + '" class="wayName" maxlength="80" placeholder="note (optional)" value="' + esc(w.note || "") + '"></div>'
+        + '<button class="btn" data-act="save" data-wid="' + i + '" style="width:auto;min-width:64px;margin-top:6px">SAVE</button></div>';
     }
-    const sub = esc(w.kind) + (S.gps && S.gps.fix && w.lat != null && w.lon != null ? " · " + fmtRange(bearingDist(S.gps.lat, S.gps.lon, +w.lat, +w.lon)) : "");
+    const sub = esc(w.kind) + (w.note ? " · " + esc(w.note) : "") + (S.gps && S.gps.fix && w.lat != null && w.lon != null ? " · " + fmtRange(bearingDist(S.gps.lat, S.gps.lon, +w.lat, +w.lon)) : "");
     return '<div class="card node"><div><div class="nm">' + esc(w.name) + '</div><div class="id">' + sub + '</div></div>'
       + '<div class="row" style="gap:6px;margin-left:auto">'
       + '<button class="btn" data-act="nav" data-wid="' + i + '" style="width:auto;min-width:56px">NAV</button>'
@@ -1075,9 +1105,16 @@ function startRename(id) {
   renderWays();
 }
 function saveRename(id) {
-  const input = $("wayName-" + id);
-  const name = input ? input.value.trim() : "";
-  if (name) { S.ways[id].name = name; ExoStore.put("ways", S.ways[id]); logEvent("WAY", "renamed to " + name); }
+  const ni = $("wayName-" + id);
+  const no = $("wayNote-" + id);
+  const name = ni ? ni.value.trim() : "";
+  const note = no ? no.value.trim() : "";
+  if (S.ways[id]) {
+    if (name) S.ways[id].name = name;
+    S.ways[id].note = note;
+    ExoStore.put("ways", S.ways[id]);
+    logEvent("WAY", "saved " + (S.ways[id].name || id));
+  }
   S.renaming = null;
   renderWays(); syncGlobe();
 }

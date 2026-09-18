@@ -290,7 +290,8 @@
       if (m.lat == null || m.lon == null) return;
       const p = latLonToVec3(m.lat, m.lon, 1.012);
       const conf = m.conf == null ? 1 : m.conf;
-      const color = m.kind === "me" ? 0xffb454 : m.kind === "sos" ? 0xff5c5c : m.kind === "way" ? 0x9fd356 : m.kind === "st" ? 0x9a976f : 0x7ee0ff;
+      const wayCol = { meet: 0x9fd356, hazard: 0xff7043, cache: 0xffd166, home: 0x7ee0ff }[m.wayKind] || 0x9fd356;
+      const color = m.kind === "me" ? 0xffb454 : m.kind === "sos" ? 0xff5c5c : m.kind === "way" ? wayCol : m.kind === "st" ? 0x9a976f : 0x7ee0ff;
       const mesh = new THREE.Mesh(
         new THREE.SphereGeometry(m.kind === "me" ? 0.018 : 0.014, 10, 8),
         new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.22 + 0.78 * conf, toneMapped: false }),

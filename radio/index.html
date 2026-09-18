@@ -86,7 +86,7 @@ button,select,input{font:inherit;color:var(--text)}
 .msg .txt{white-space:pre-wrap;word-break:break-word;cursor:pointer}
 .msg .meta{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:4px;text-align:right}
 .msg .meta .ok{color:var(--ok)}
-.msg .meta .pend{color:var(--mut);font-style:italic}
+.msg .meta .pend{color:var(--mut);font-style:italic;cursor:pointer;text-decoration:underline dotted}
 .evline{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--line)}
 .evline .evt{color:var(--amber);min-width:46px;flex:none}
 .evline .evago{color:var(--mut);margin-left:auto;flex:none}
@@ -226,7 +226,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber)}
 </header>
 
 <div id="sosBanner" hidden>
-  <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span></div>
+  <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span> <span id="sosRange"></span></div>
   <div class="sosActs">
     <button class="btn primary" id="sosAck">ACK</button>
     <button class="btn" id="sosNav">NAV</button>
