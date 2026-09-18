@@ -1,4 +1,4 @@
-const CACHE = "exopace-radio-v51";
+const CACHE = "exopace-radio-v52";
 // Do not precache index.html — in-place CSS (composer / pathLbl) must not pin.
 const ASSETS = [
   "three.min.js",
