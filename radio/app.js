@@ -985,6 +985,40 @@ function renderAbout() {
   ].join(" · ");
 }
 $("btnAbout").onclick = () => { renderAbout(); toast("REFRESHED"); };
+$("btnBackup").onclick = () => {
+  let ui = {};
+  try { ui = JSON.parse(localStorage.getItem("exopace-ui") || "{}") || {}; } catch (e) { ui = {}; }
+  download("exopace-backup.json", JSON.stringify({
+    app: "exopace-radio", v: 1, ts: new Date().toISOString(),
+    ways: S.ways, stars: S.stars, ui,
+  }, null, 2));
+  toast("BACKUP EXPORTED");
+  logEvent("CFG", "backup exported");
+};
+$("backupFile").onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let d;
+    try { d = JSON.parse(r.result); } catch (err) { return toast("BAD JSON"); }
+    if (!d || d.app !== "exopace-radio") return toast("NOT A BACKUP");
+    let n = 0;
+    if (d.ways && typeof d.ways === "object") {
+      Object.keys(d.ways).forEach((k) => {
+        const w = d.ways[k];
+        if (w && w.id && w.lat != null && w.lon != null) { S.ways[w.id] = w; ExoStore.put("ways", w); n++; }
+      });
+    }
+    if (d.stars && typeof d.stars === "object") Object.assign(S.stars, d.stars);
+    saveUi();
+    renderWays(); renderNodes();
+    toast("RESTORED " + n + " WAY");
+    logEvent("CFG", "restore " + n + " way");
+    e.target.value = "";
+  };
+  r.readAsText(f);
+};
 function renderStats() {
   const s = S.stats;
   $("stPkts").textContent = s.packets;
