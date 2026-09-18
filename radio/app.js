@@ -839,7 +839,7 @@ function collectPts() {
   });
   Object.keys(S.ways).forEach((i) => {
     const w = S.ways[i];
-    pts.push({ kind: w.kind === "sos" ? "sos" : "way", id: w.id, lat: w.lat, lon: w.lon, name: w.name, wayKind: w.kind, note: w.note, conf: 1 });
+    pts.push({ kind: w.kind === "sos" ? "sos" : "way", id: w.id, lat: w.lat, lon: w.lon, name: w.name, wayKind: w.kind, note: w.note, ts: wayTs(w), conf: 1 });
   });
   if ($("stPin").checked) pts.push({ kind: "st", lat: P.STATION.lat, lon: P.STATION.lon, name: "STATION", id: "STATION", conf: 1 });
   return pts;
@@ -901,6 +901,8 @@ function showDossier(m) {
     m.kind === "st" ? "fixed pin" : "",
     m.kind === "sos" ? "SOS" : "",
     m.note ? ("NOTE " + m.note) : "",
+    m.ver ? ("FW " + m.ver) : "",
+    m.ts ? ("CREATED " + fmtTs(m.ts)) : "",
   ].filter(Boolean);
   if (S.gps && S.gps.fix && m.lat != null && m.lon != null) {
     const bd = bearingDist(S.gps.lat, S.gps.lon, m.lat, m.lon);
@@ -1201,17 +1203,28 @@ function renderStats() {
 }
 function tripStats() {
   const t = S.trail;
-  let dist = 0;
-  for (let i = 1; i < t.length; i++) dist += bearingDist(t[i - 1][0], t[i - 1][1], t[i][0], t[i][1]).distM;
+  let dist = 0, maxD = 0;
+  for (let i = 1; i < t.length; i++) {
+    const d = bearingDist(t[i - 1][0], t[i - 1][1], t[i][0], t[i][1]).distM;
+    dist += d;
+  }
+  if (t.length > 1) {
+    const s0 = t[0];
+    for (let i = 1; i < t.length; i++) {
+      const d = bearingDist(s0[0], s0[1], t[i][0], t[i][1]).distM;
+      if (d > maxD) maxD = d;
+    }
+  }
   const dur = t.length > 1 ? Math.max(0, t[t.length - 1][2] - t[0][2]) : 0;
-  return { distM: dist, durS: dur, avgMps: dur > 0 ? dist / dur : 0 };
+  return { distM: dist, durS: dur, avgMps: dur > 0 ? dist / dur : 0, maxM: maxD };
 }
 function fmtTrip() {
   if (S.trail.length < 2) return "trip —";
   const s = tripStats();
   const d = s.distM < 1000 ? Math.round(s.distM) + " m" : (s.distM / 1000).toFixed(2) + " km";
   const m = Math.floor(s.durS / 60);
-  return "trip " + d + " · " + m + "m · avg " + s.avgMps.toFixed(1) + " m/s";
+  const mx = s.maxM < 1000 ? Math.round(s.maxM) + " m" : (s.maxM / 1000).toFixed(2) + " km";
+  return "trip " + d + " · " + m + "m · avg " + s.avgMps.toFixed(1) + " m/s · max " + mx;
 }
 function nearestPeer() {
   const g = S.gps;
