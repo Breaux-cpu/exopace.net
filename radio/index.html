@@ -418,7 +418,7 @@ table{width:100%;border-collapse:collapse}
 </main><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||localStorage.getItem('sdrtok')||'';
 if(new URLSearchParams(location.search).get('t'))localStorage.setItem('sdrtok',T);
-const BASE="https://dj.tail0e44f5.ts.net:8443";
+const BASE="https://dj.tail0e44f5.ts.net";
 const api=(p,o={})=>fetch(BASE+p+(p.includes('?')?'&':'?')+'t='+T,o).then(r=>r.json());
 const el=id=>document.getElementById(id);
 const rows=a=>a.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')||'<div class="muted">nothing yet</div>';
