@@ -424,8 +424,7 @@ table{width:100%;border-collapse:collapse}
    <button class="b" onclick="rpListen()">Listen at golden frequency</button></div></div>
 </section>
 </main><script src="assets/leaflet.min.js"></script><script>
-const T=new URLSearchParams(location.search).get('t')||localStorage.getItem('sdrtok')||'Password';
-if(new URLSearchParams(location.search).get('t'))localStorage.setItem('sdrtok',T);
+const T=new URLSearchParams(location.search).get('t')||'Password';
 const BASE="https://dj.tail0e44f5.ts.net";
 const api=(p,o={})=>fetch(BASE+p+(p.includes('?')?'&':'?')+'t='+T,o).then(r=>r.json());
 const el=id=>document.getElementById(id);

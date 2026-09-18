@@ -292,7 +292,7 @@ const sdrUnlock = read("radio/unlock.html");
 assert(sdrHtml.includes("dj SDR"), "SDR app title");
 assert(sdrHtml.includes('const BASE="https://dj.tail0e44f5.ts.net"'), "SDR app points at the host backend over HTTPS");
 assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
-assert(sdrHtml.includes("localStorage.getItem('sdrtok')||'Password'"), "SDR app falls back to the host token so it works without ?t=");
+assert(sdrHtml.includes("const T=new URLSearchParams(location.search).get('t')||'Password'"), "SDR app always uses the host token (no stale localStorage)");
 assert(sdrHtml.includes("camSource='jessy'"), "SDR camera defaults to jessy (dj has no capture device)");
 assert(sdrHtml.includes('id="camlock"') && sdrHtml.includes("camTok=localStorage.getItem('sdrctok')"), "SDR camera is passcode-locked");
 assert(sdrHtml.includes("&cam='+camTok"), "SDR camera requests carry the camera passcode");
