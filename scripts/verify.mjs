@@ -288,7 +288,7 @@ assert(!/text: "SOS " \+ \(m\.msg/.test(meshApp), "SOS handler does not glue SOS
 const sdrHtml = read("radio/index.html");
 const sdrUnlock = read("radio/unlock.html");
 assert(sdrHtml.includes("dj SDR"), "SDR app title");
-assert(sdrHtml.includes('const BASE="http://100.106.193.8:8110"'), "SDR app points at the host backend");
+assert(sdrHtml.includes('const BASE="http://100.64.185.111:8110"'), "SDR app points at the host backend");
 assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
 assert(sdrHtml.includes("assets/leaflet.min.js") && sdrHtml.includes("assets/leaflet.css"), "SDR leaflet is local");
 assert(!sdrHtml.includes('src="/assets/') && !sdrHtml.includes('href="/assets/'), "SDR app has no absolute /assets/ refs");
