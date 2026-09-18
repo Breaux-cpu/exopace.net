@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null, arriveR: 100,
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null, arriveR: 100, rssiHist: {},
 };
 
 function fitKb() {
@@ -318,7 +318,14 @@ function handle(m) {
     case "telem":
       renderTelem(m.d || m); break;
     case "nodes":
-      (m.list || []).forEach((n) => { S.nodes[n.id] = n; ExoStore.put("nodes", { ...n, id: n.id }); });
+      (m.list || []).forEach((n) => {
+        S.nodes[n.id] = n; ExoStore.put("nodes", { ...n, id: n.id });
+        if (n.rssi != null) {
+          const h = S.rssiHist[n.id] || (S.rssiHist[n.id] = []);
+          h.push(n.rssi);
+          if (h.length > 40) h.shift();
+        }
+      });
       renderNodes(); break;
     case "sys":
       toast(m.msg); break;
@@ -851,6 +858,9 @@ function syncGlobe() {
   }
   const noMe = !(S.gps && S.gps.fix);
   const noPeer = !Object.keys(S.nodes).some((i) => S.nodes[i].lat != null);
+  const wc = Object.keys(S.ways).length;
+  const wcEl = $("wpCount");
+  if (wcEl) { wcEl.hidden = !wc; wcEl.textContent = wc + " waypoint" + (wc > 1 ? "s" : ""); }
   $("mapEmpty").textContent = [
     noMe ? "WAITING FOR FIX — walk outside" : "",
     noPeer ? "MESH QUIET — peer dots appear when nodes report position." : "",
@@ -898,6 +908,10 @@ function showDossier(m) {
     acts = '<div class="tipActs"><button class="btn" id="tipNav">NAV</button><button class="btn" id="tipShare">SHARE</button></div>';
   }
   tip.innerHTML = '<div class="tipTxt">' + esc(lines.join("\n")) + "</div>" + acts;
+  if (m.kind === "peer" && S.rssiHist[m.id] && S.rssiHist[m.id].length > 1) {
+    tip.innerHTML += '<canvas id="rssiSpark" width="140" height="36" style="width:140px;height:36px;margin-top:6px"></canvas>';
+    drawSpark($("rssiSpark"), S.rssiHist[m.id], -140, -60);
+  }
   tip.style.display = "block";
 }
 $("mapTip").addEventListener("click", (e) => {
@@ -1429,7 +1443,7 @@ function renderTelem(d) {
   ExoStore.put("telem", { id: "hist", samples: S.telemHist });
   warnBatt("NODE", d.batt);
   warnRssi(d.rssi);
-  drawBatt(); drawSpark();
+  drawBatt(); drawRssiChart();
 }
 function rssiArrow(rssi) {
   if (rssi == null) return "";
@@ -1476,16 +1490,18 @@ function drawBatt() {
     i ? x.lineTo(px, py) : x.moveTo(px, py);
   }); x.stroke();
 }
-function drawSpark() {
-  const c = $("rssiChart"); if (!c) return;
+function drawRssiChart() {
   const has = S.rssiSpark.length > 0;
   syncChartEmpty("rssiChart", "rssiEmpty", has);
-  if (!has) return;
+drawRssiChart();
+}
+function drawSpark(c, data, lo, hi) {
+  if (!c || !data || data.length < 2) return;
   const x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height);
   x.strokeStyle = "#7ee0ff"; x.lineWidth = 2; x.beginPath();
-  S.rssiSpark.forEach((v, i) => {
-    const px = i / (Math.max(S.rssiSpark.length - 1, 1)) * c.width;
-    const py = c.height - ((v + 140) / 80) * c.height;
+  data.forEach((v, i) => {
+    const px = i / (Math.max(data.length - 1, 1)) * c.width;
+    const py = c.height - ((v - (lo || -140)) / ((hi || -60) - (lo || -140))) * c.height;
     i ? x.lineTo(px, py) : x.moveTo(px, py);
   }); x.stroke();
 }
@@ -1733,7 +1749,7 @@ renderNodes();
       S.telemHist = hist.samples.slice(-120);
       S.batt = S.telemHist.map((s) => s.batt || 0).slice(-60);
       S.rssiSpark = S.telemHist.map((s) => (s.rssi == null ? -120 : s.rssi)).slice(-48);
-      drawBatt(); drawSpark();
+      drawBatt(); drawRssiChart();
     }
     const sys = await ExoStore.all("sys");
     S.events = sys.slice(-200);
@@ -1790,7 +1806,7 @@ if (location.hash === "#map") {
 loadUi();
 $("chatTo").onchange = () => { S.savedChatTo = $("chatTo").value; saveUi(); };
 drawBatt();
-drawSpark();
+drawSpark($("rssiChart"), S.rssiSpark, -140, -60);
 syncMapChrome();
 syncChatSend();
 syncBadge();
