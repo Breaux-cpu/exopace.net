@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest",
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false, lastTx: 0, waySort: "newest", hdg: null,
 };
 
 function fitKb() {
@@ -899,6 +899,34 @@ $("btnWaySort").onclick = () => {
   if (S.waySort === "dist" && !(S.gps && S.gps.fix)) toast("DISTANCE NEEDS A FIX");
   saveUi(); renderWays();
 };
+let waysArmed = false;
+$("btnWaysClear").onclick = () => {
+  if (!Object.keys(S.ways).length) return toast("NO WAYPOINTS");
+  if (!waysArmed) {
+    waysArmed = true;
+    $("btnWaysClear").classList.add("primary");
+    toast("TAP AGAIN TO DELETE ALL");
+    setTimeout(() => { waysArmed = false; $("btnWaysClear").classList.remove("primary"); }, 4000);
+    return;
+  }
+  waysArmed = false;
+  $("btnWaysClear").classList.remove("primary");
+  const n = Object.keys(S.ways).length;
+  Object.keys(S.ways).forEach((k) => ExoStore.del("ways", k));
+  S.ways = {};
+  renderWays(); syncGlobe();
+  toast("ALL WAYPOINTS DELETED");
+  logEvent("WAY", "deleted all (" + n + ")");
+};
+$("btnNodesCsv").onclick = () => {
+  const rows = Object.keys(S.nodes).map((i) => {
+    const n = P.applyPresence(S.nodes[i]);
+    return [i, n.name || "", n.rssi ?? "", n.snr ?? "", n.batt ?? "", n.lat ?? "", n.lon ?? "", n.last ? new Date(n.last * 1000).toISOString() : ""].join(",");
+  });
+  if (!rows.length) return toast("NO NODES");
+  download("exopace-nodes.csv", "id,name,rssi,snr,batt,lat,lon,last\n" + rows.join("\n"));
+  toast("NODES CSV");
+};
 $("btnRecage").onclick = () => {
   if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
   if (!S.globe) return;
@@ -1230,6 +1258,18 @@ function setNav(t) {
   saveUi();
   renderNavHud();
 }
+function startHeading() {
+  if (!("DeviceOrientationEvent" in window)) return;
+  const cb = (e) => {
+    if (e.webkitCompassHeading != null) S.hdg = e.webkitCompassHeading;
+    else if (e.alpha != null) S.hdg = (360 - e.alpha) % 360;
+  };
+  if (typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission().then((p) => { if (p === "granted") window.addEventListener("deviceorientation", cb); }).catch(() => {});
+  } else {
+    window.addEventListener("deviceorientation", cb);
+  }
+}
 function renderNavHud() {
   const el = $("navHud");
   if (!el) return;
@@ -1239,8 +1279,14 @@ function renderNavHud() {
   $("navName").textContent = t.name || "TARGET";
   if (S.gps && S.gps.fix && t.lat != null && t.lon != null) {
     const bd = bearingDist(S.gps.lat, S.gps.lon, +t.lat, +t.lon);
-    $("navDist").textContent = fmtRange(bd);
-    $("navArrow").style.transform = "rotate(" + bd.brg + "deg)";
+    if (S.hdg != null) {
+      const rel = ((bd.brg - S.hdg + 540) % 360) - 180;
+      $("navDist").textContent = fmtRange(bd) + " · HDG " + Math.round(S.hdg) + "°";
+      $("navArrow").style.transform = "rotate(" + rel + "deg)";
+    } else {
+      $("navDist").textContent = fmtRange(bd);
+      $("navArrow").style.transform = "rotate(" + bd.brg + "deg)";
+    }
     if (bd.distM < 25) { toast("ARRIVED · " + (t.name || "TARGET")); logEvent("NAV", "arrived " + (t.name || t.id)); setNav(null); }
   } else {
     $("navDist").textContent = "waiting for fix";
@@ -1721,6 +1767,7 @@ syncBadge();
 tickClock();
 renderAbout();
 applyNight();
+startHeading();
 renderNavHud();
 setInterval(renderStats, 1000);
 setInterval(renderNavHud, 1000);
