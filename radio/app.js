@@ -16,7 +16,7 @@ const S = {
   nodeSel: null, nodeTime: null, nodeWatch: {},
   sort: "rssi", savedChatTo: null,
   events: [], rssiWarned: false,
-  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null,
+  tz: "utc", seenMsg: {}, prevRssi: null, rssiTrend: "", stars: {}, tripArmed: false, navTarget: null, night: false,
 };
 
 function fitKb() {
@@ -482,7 +482,7 @@ function saveUi() {
   try {
     localStorage.setItem("exopace-ui", JSON.stringify({
       pin: $("stPin").checked, trail: $("stTrail").checked, rings: $("stRings").checked, heat: $("stHeat").checked,
-      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget,
+      sort: S.sort, chatTo: $("chatTo").value, tz: S.tz, stars: S.stars, navTarget: S.navTarget, night: S.night,
     }));
   } catch (e) {}
 }
@@ -497,6 +497,7 @@ function loadUi() {
   if (u.tz) S.tz = u.tz;
   if (u.stars && typeof u.stars === "object") S.stars = u.stars;
   if (u.navTarget && u.navTarget.lat != null) S.navTarget = u.navTarget;
+  if (u.night) S.night = true;
   if (u.chatTo != null) S.savedChatTo = u.chatTo;
   if ($("btnTz")) $("btnTz").textContent = S.tz === "utc" ? "TIME UTC" : "TIME LCL";
 }
@@ -987,6 +988,15 @@ function renderAbout() {
   ].join(" · ");
 }
 $("btnAbout").onclick = () => { renderAbout(); toast("REFRESHED"); };
+function applyNight() {
+  document.body.classList.toggle("night", !!S.night);
+  if ($("btnNight")) $("btnNight").classList.toggle("primary", !!S.night);
+}
+$("btnNight").onclick = () => {
+  S.night = !S.night;
+  saveUi(); applyNight();
+  toast(S.night ? "NIGHT MODE ON" : "NIGHT MODE OFF");
+};
 $("btnBackup").onclick = () => {
   let ui = {};
   try { ui = JSON.parse(localStorage.getItem("exopace-ui") || "{}") || {}; } catch (e) { ui = {}; }
@@ -1637,6 +1647,7 @@ syncChatSend();
 syncBadge();
 tickClock();
 renderAbout();
+applyNight();
 renderNavHud();
 setInterval(renderStats, 1000);
 setInterval(renderNavHud, 1000);

@@ -34,6 +34,12 @@
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --kb:0px;
 }
+body.night{--bg:#0a0303;--panel:#160606;--panel2:#1d0808;--line:#3a1512;
+  --amber:#ff5a44;--amber-dim:#75261d;--text:#ffd6cf;--mut:#b8796f;
+  --ok:#ff7a5c;--warn:#ff3b22}
+body.night .mapwrap,body.night nav,body.night header,body.night #navHud{background:#0d0404}
+body.night header{background:linear-gradient(#170606,#0d0404)}
+body.night #toast{color:#1a0505}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;max-width:100%;overflow-x:hidden}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
@@ -415,6 +421,9 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <button class="btn" id="btnAbout">REFRESH</button>
         <button class="btn" id="btnBackup">BACKUP ALL</button>
         <label class="btn" style="display:flex;align-items:center;justify-content:center">RESTORE<input type="file" id="backupFile" accept="application/json,.json" hidden></label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btnNight">NIGHT MODE</button>
       </div>
     </div>
   </section>
