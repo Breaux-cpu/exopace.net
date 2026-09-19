@@ -34,6 +34,7 @@ repo.
 | FT8 | 144.174 MHz | `rtl-ft8` (graceful absent) | decode attempt, no hard fail |
 | RDS | broadcast FM | `redsea` | station/program metadata |
 | Wideband sweep | 24–1700 MHz | `rtl_power` | power/SNR grid + peak detection |
+| TEMPEST | accidental video emission (VGA/HDMI timing radiation) | `sdr-tempest auto` | emission verdict + coarse video raster |
 | raw IQ | any band | `rtl_tcp` | remote SDR for any client |
 
 ## Position layers
@@ -70,6 +71,10 @@ sensor; the uploader is off unless explicitly configured.
 
 - `sdr-ble` — Bluetooth observer (Remote ID drones, surveillance gear, trackers)
 - `sdr-wifi-scan` / `sdr-wifi-pull` — Wi-Fi AP census over iw + jessy vantage
+- `sdr-tempest` — accidental video-emission detector (`auto` one-shot verdict +
+  coarse raster; `probe` single-frequency). Phone **TEMPEST → AUTO SCAN** runs
+  `POST /api/tempest/auto`; rasters + `manifest.json` land in
+  `~/sdr-captures/tempest/…` and list under **TEMPEST** in the reader.
 - `sdr-transcribe` — offline STT (Vosk) + whisper.cpp HQ pass over radio clips
 
 ## Lawful use
