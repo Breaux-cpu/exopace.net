@@ -22,8 +22,8 @@ the digital-voice modes C4FM/YSF, DMR, NXDN96, D-STAR and M17 (`dsd-neo`
 (`rtl_power` peaks), and raw IQ (`rtl_tcp`). Decoders capture FM-demodulated
 mono, so the sonde chain is `rtl_fm -M fm`. Satellite passes are predicted on the
 board itself (`python3-sgp4`, `GET /api/passes`) from Celestrak-refreshed TLEs, and
-can auto-record at AOS via `SDR_AUTOSAT`. Optional RS41 federation to SondeHub is
-opt-in via `SONDEHUB_AMATEUR` and off by default.
+can auto-record at AOS and stop ~1 min after LOS via `SDR_AUTOSAT`. Optional RS41
+federation to SondeHub is opt-in via `SONDEHUB_AMATEUR` and off by default.
 
 ## Install decoders (upstream)
 

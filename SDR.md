@@ -55,7 +55,8 @@ the elements and az/el, AOS/LOS, max elevation and duration are interpolated at
 `~/.config/sdr-monitor/tle.txt` every 6 h), satdump's cache and the committed
 snapshots, keeping the newest epoch per satellite. The phone card lists the next
 24 h and loads a pass's decoder; setting `SDR_AUTOSAT` (e.g. `1` or `meteor,iss`)
-starts a pass automatically at AOS without preempting a live stream or job.
+starts a pass automatically at AOS and stops it ~1 min after LOS, without
+preempting a live stream or job.
 Validated against the independent WhereTheISS ephemeris — the sub-satellite point
 matched to 0.001° once current elements were used.
 
