@@ -21,7 +21,7 @@
       const row = rows[i];
       bag.add({
         position: Cesium.Cartesian3.fromDegrees(row.lon, row.lat, altOf(row)),
-        pixelSize: 4,
+        pixelSize: 7,
         color: color,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       });
@@ -35,12 +35,13 @@
     try {
       if (airOn) {
         const body = await (await fetch(AIR)).json();
-        airPoints = draw(viewer, airPoints, body.aircraft, Cesium.Color.fromCssColorString("#7ee0ff"), (row) => Math.max(row.alt || 0, 100));
+        airPoints = draw(viewer, airPoints, body.aircraft, Cesium.Color.fromCssColorString("#7ee0ff"), (row) => Math.max(row.alt || 0, 400));
       } else if (airPoints) airPoints.removeAll();
       if (seaOn) {
         const body = await (await fetch(SEA)).json();
-        seaPoints = draw(viewer, seaPoints, body.ships, Cesium.Color.fromCssColorString("#ffe08a"), () => 0);
+        seaPoints = draw(viewer, seaPoints, body.ships, Cesium.Color.fromCssColorString("#ffe08a"), () => 80);
       } else if (seaPoints) seaPoints.removeAll();
+      viewer.scene.requestRender();
     } catch (err) {
       /* a failed feed leaves the last points in place */
     }
@@ -65,9 +66,11 @@
     const bar = document.createElement("div");
     bar.id = "exo-traffic";
     bar.style.position = "absolute";
-    bar.style.left = "16px";
-    bar.style.bottom = "52px";
-    bar.style.zIndex = "5";
+    bar.style.left = "14px";
+    bar.style.bottom = "calc(112px + env(safe-area-inset-bottom))";
+    bar.style.zIndex = "6";
+    bar.style.display = "flex";
+    bar.style.gap = "4px";
     bar.append(
       button("AIRCRAFT", () => {
         airOn = !airOn;
