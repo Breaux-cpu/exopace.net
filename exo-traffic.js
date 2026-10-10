@@ -4,10 +4,13 @@
   const SEA = "https://cams.exopace.net/api/traffic/sea";
   let airOn = true;
   let seaOn = true;
-  let airPoints = null;
+  let airPlanes = null;
   let seaPoints = null;
   let airColor = null;
+  let airPick = null;
   let seaColor = null;
+  let planeImage = null;
+  let planeScale = null;
   let loading = false;
   let pending = false;
   let hooked = false;
@@ -17,13 +20,83 @@
   function colors() {
     if (airColor || !window.Cesium) return;
     airColor = Cesium.Color.fromCssColorString("#7ee0ff");
+    airPick = Cesium.Color.fromCssColorString("#ffe08a");
     seaColor = Cesium.Color.fromCssColorString("#ffe08a");
+    planeScale = new Cesium.NearFarScalar(8.0e5, 1, 1.5e7, 0.55);
   }
 
-  function collection(viewer) {
-    const points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
-    points._exo = new Map();
-    return points;
+  function points(viewer) {
+    const bag = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+    bag._exo = new Map();
+    return bag;
+  }
+
+  function planes(viewer) {
+    const bag = viewer.scene.primitives.add(new Cesium.BillboardCollection());
+    bag._exo = new Map();
+    return bag;
+  }
+
+  function planeMark() {
+    if (planeImage) return planeImage;
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const pen = canvas.getContext("2d");
+    function shape() {
+      pen.beginPath();
+      pen.moveTo(32, 5);
+      pen.lineTo(36, 20);
+      pen.lineTo(58, 32);
+      pen.lineTo(58, 37);
+      pen.lineTo(37, 33);
+      pen.lineTo(37, 46);
+      pen.lineTo(48, 54);
+      pen.lineTo(48, 58);
+      pen.lineTo(32, 51);
+      pen.lineTo(16, 58);
+      pen.lineTo(16, 54);
+      pen.lineTo(27, 46);
+      pen.lineTo(27, 33);
+      pen.lineTo(6, 37);
+      pen.lineTo(6, 32);
+      pen.lineTo(28, 20);
+      pen.closePath();
+    }
+    pen.fillStyle = "#061018";
+    pen.save();
+    pen.translate(0, 1.5);
+    shape();
+    pen.fill();
+    pen.restore();
+    pen.fillStyle = "#ffffff";
+    shape();
+    pen.fill();
+    planeImage = canvas;
+    return canvas;
+  }
+
+  // Screen rotation for a nose-up icon. Positive Cesium rotation is counter-clockwise.
+  function nose(lon, lat, headingDeg, camera) {
+    const rad = Math.PI / 180;
+    const lonRad = lon * rad;
+    const latRad = lat * rad;
+    const sinLon = Math.sin(lonRad);
+    const cosLon = Math.cos(lonRad);
+    const sinLat = Math.sin(latRad);
+    const cosLat = Math.cos(latRad);
+    const heading = headingDeg * rad;
+    const sinH = Math.sin(heading);
+    const cosH = Math.cos(heading);
+    const x = -sinLon * sinH - sinLat * cosLon * cosH;
+    const y = cosLon * sinH - sinLat * sinLon * cosH;
+    const z = cosLat * cosH;
+    const right = camera.right;
+    const up = camera.up;
+    const dx = x * right.x + y * right.y + z * right.z;
+    const dy = x * up.x + y * up.y + z * up.z;
+    if (dx * dx + dy * dy < 1e-8) return 0;
+    return -Math.atan2(dx, dy);
   }
 
   function meters(lon1, lat1, lon2, lat2) {
@@ -87,7 +160,7 @@
   }
 
   function syncShips(viewer, rows) {
-    if (!seaPoints) seaPoints = collection(viewer);
+    if (!seaPoints) seaPoints = points(viewer);
     const live = seaPoints._exo;
     const seen = new Set();
     const list = rows || [];
@@ -108,41 +181,85 @@
     }
   }
 
+  function pointSize(point) {
+    const size = point.pixelSize;
+    if (size == null) return 0;
+    return typeof size.getValue === "function" ? size.getValue() : size;
+  }
+
+  function pointColor(point) {
+    const color = point.color;
+    if (!color) return null;
+    if (typeof color.getValue === "function") return color.getValue(Cesium.JulianDate.now());
+    return color;
+  }
+
+  function shrinkSats(viewer) {
+    const list = viewer.entities && viewer.entities.values;
+    if (!list) return;
+    for (let i = 0; i < list.length; i++) {
+      const ent = list[i];
+      if (!ent || typeof ent.id !== "string" || ent.id.slice(0, 4) !== "sat:" || !ent.point) continue;
+      const color = pointColor(ent.point);
+      const picked = color && color.red > 0.95 && color.green > 0.75 && color.blue < 0.7;
+      const want = picked ? 4 : 2;
+      if (pointSize(ent.point) !== want) ent.point.pixelSize = want;
+    }
+  }
+
   function step() {
     const viewer = window.EXOPACE_VIEWER;
-    if (!viewer || !window.Cesium || !airOn) return;
+    if (!viewer || !window.Cesium) return;
+    shrinkSats(viewer);
+    const card = document.getElementById("exo-craft");
+    const shown = selected ? airTrack.get(selected) : null;
+    if (card) {
+      if (!shown || !airOn) card.hidden = true;
+      else {
+        card.hidden = false;
+        const feet = Math.round(shown.alt * 3.28084).toLocaleString("en-US");
+        card.textContent = shown.call + " · " + feet + " ft";
+      }
+    }
+    if (!airOn) return;
     colors();
-    if (!airPoints) airPoints = collection(viewer);
-    const live = airPoints._exo;
+    if (!airPlanes) airPlanes = planes(viewer);
+    const live = airPlanes._exo;
+    const image = planeMark();
     const seen = new Set();
     const now = Date.now();
     for (const track of airTrack.values()) {
       seen.add(track.id);
       const at = pose(track, now);
       const position = Cesium.Cartesian3.fromDegrees(at.lon, at.lat, at.alt);
+      const picked = selected === track.id;
+      const size = picked ? 22 : 15;
       const prim = live.get(track.id);
-      const size = selected === track.id ? 12 : 8;
       if (prim) {
         prim.position = position;
-        prim.pixelSize = size;
+        prim.rotation = nose(at.lon, at.lat, track.heading, viewer.camera);
+        prim.width = size;
+        prim.height = size;
+        prim.color = picked ? airPick : airColor;
       } else {
-        live.set(track.id, airPoints.add({ id: track.id, position, pixelSize: size, color: airColor }));
+        live.set(track.id, airPlanes.add({
+          id: track.id,
+          position,
+          image,
+          width: size,
+          height: size,
+          rotation: nose(at.lon, at.lat, track.heading, viewer.camera),
+          color: picked ? airPick : airColor,
+          scaleByDistance: planeScale,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        }));
       }
     }
     for (const [id, prim] of live) {
       if (seen.has(id)) continue;
-      airPoints.remove(prim);
+      airPlanes.remove(prim);
       live.delete(id);
-    }
-    const card = document.getElementById("exo-craft");
-    const track = selected ? airTrack.get(selected) : null;
-    if (card) {
-      if (!track) card.hidden = true;
-      else {
-        card.hidden = false;
-        const feet = Math.round(track.alt * 3.28084).toLocaleString("en-US");
-        card.textContent = track.call + " · " + feet + " ft";
-      }
     }
     if (viewer.scene.requestRenderMode) viewer.scene.requestRender();
   }
@@ -183,7 +300,7 @@
       } else {
         airTrack.clear();
         selected = null;
-        clearBag(airPoints);
+        clearBag(airPlanes);
       }
       if (seaOn) {
         const body = await (await fetch(SEA)).json();
