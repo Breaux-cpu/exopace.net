@@ -2,8 +2,9 @@
 (function () {
   var STORMS = "https://cams.exopace.net/api/weather/storms";
   var RADAR = "https://cams.exopace.net/api/weather/radar";
+  var CREDIT = "Radar © RainViewer";
   var storms = [];
-  var radar = { host: "", frames: [], attribution: "", tileUrl: "" };
+  var radar = { host: "", frames: [], past: [], attribution: CREDIT, tileUrl: "" };
 
   function loadStorms() {
     return fetch(STORMS, {
@@ -29,12 +30,12 @@
     });
   }
 
-  /* Latest observed frame. Tile path matches the weather service:
-     {host}{path}/256/{z}/{x}/{y}/2/1_1.png — RainViewer only, zoom 0–7. */
-  function tileUrl(data) {
+  /* Past RainViewer frames only.
+     {host}{path}/256/{z}/{x}/{y}/2/1_1.png — color 2, suffix 1_1, zoom 0–7.
+     Nowcast and infrared paths are not turned into tile URLs. */
+  function rainHost(data) {
     var host = data && typeof data.host === "string" ? data.host : "";
-    var frames = data && Array.isArray(data.frames) ? data.frames : [];
-    if (!host || !frames.length) return "";
+    if (!host) return "";
     var hostname = "";
     try {
       hostname = new URL(host).hostname;
@@ -42,16 +43,31 @@
       return "";
     }
     if (!/(^|\.)rainviewer\.com$/i.test(hostname)) return "";
-    var frame = null;
-    for (var i = 0; i < frames.length; i++) {
-      if (frames[i] && frames[i].path && !frames[i].forecast) frame = frames[i];
-    }
-    if (!frame) frame = frames[frames.length - 1];
-    if (!frame || !frame.path) return "";
-    var path = String(frame.path);
-    if (path.charAt(0) !== "/") path = "/" + path;
     if (host.charAt(host.length - 1) === "/") host = host.slice(0, -1);
+    return host;
+  }
+
+  function frameUrl(host, frame) {
+    if (!host || !frame || frame.forecast) return "";
+    var path = frame.path ? String(frame.path) : "";
+    if (!path || /infrared|satellite|nowcast/i.test(path)) return "";
+    if (path.indexOf("/radar/") === -1) return "";
+    if (path.charAt(0) !== "/") path = "/" + path;
     return host + path + "/256/{z}/{x}/{y}/2/1_1.png";
+  }
+
+  function pastFrames(data) {
+    var host = rainHost(data);
+    var frames = data && Array.isArray(data.frames) ? data.frames : [];
+    var out = [];
+    if (!host) return out;
+    for (var i = 0; i < frames.length; i++) {
+      var url = frameUrl(host, frames[i]);
+      if (!url) continue;
+      var time = Number(frames[i].time);
+      out.push({ time: Number.isFinite(time) ? time : 0, tileUrl: url });
+    }
+    return out;
   }
 
   function loadRadar() {
@@ -64,11 +80,13 @@
       }
       return res.json();
     }).then(function (data) {
+      var past = pastFrames(data);
       radar = {
-        host: data && typeof data.host === "string" ? data.host : "",
+        host: rainHost(data),
         frames: data && Array.isArray(data.frames) ? data.frames : [],
-        attribution: data && typeof data.attribution === "string" ? data.attribution : "",
-        tileUrl: tileUrl(data),
+        past: past,
+        attribution: CREDIT,
+        tileUrl: past.length ? past[past.length - 1].tileUrl : "",
       };
       api.radar = radar;
       return radar;

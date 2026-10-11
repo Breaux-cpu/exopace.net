@@ -608,6 +608,34 @@ html.exo-booting a.radio-link {
   }
 }
 
+#exo-radar-clock {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+}
+#exo-radar-clock[hidden] {
+  display: none !important;
+}
+#exo-radar-time,
+#exo-radar-live {
+  white-space: nowrap;
+}
+#exo-radar-time {
+  color: #7ee0ff;
+  font: 11px "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+#exo-radar-live {
+  color: #ff7070;
+  font: 10px "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: 0.14em;
+}
+#exo-radar-live[hidden] {
+  display: none !important;
+}
+
 /* Weather tray: one row plus a one-line legend. Not a full-screen sheet. */
 @media (max-width: 820px) {
   #exo-traffic {
@@ -643,6 +671,21 @@ html.exo-booting a.radio-link {
     line-height: 14px;
     white-space: nowrap !important;
     max-width: 100%;
+    overflow-x: auto;
+  }
+  #exo-radar-clock .btn,
+  #exo-radar-time,
+  #exo-radar-live {
+    flex: 0 0 auto;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #exo-radar-live[hidden] {
+    display: none !important;
   }
   #exo-craft,
   #exo-storm {
