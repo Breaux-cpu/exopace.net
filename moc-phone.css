@@ -607,3 +607,56 @@ html.exo-booting a.radio-link {
     letter-spacing: 0;
   }
 }
+
+/* Weather tray: one row plus a one-line legend. Not a full-screen sheet. */
+@media (max-width: 820px) {
+  #exo-traffic {
+    left: 14px !important;
+    right: 14px !important;
+    width: auto !important;
+    max-width: calc(100vw - 28px);
+    bottom: calc(168px + env(safe-area-inset-bottom)) !important;
+    max-height: 96px;
+    overflow: hidden;
+    z-index: 15;
+  }
+  #exo-traffic-row {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+  #exo-traffic .btn,
+  #exo-sea-caption {
+    flex: 0 0 auto;
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+  }
+  #exo-sea-caption {
+    display: inline-flex;
+    align-items: center;
+  }
+  #exo-legend {
+    font-size: 10px !important;
+    line-height: 14px;
+    white-space: nowrap !important;
+    max-width: 100%;
+  }
+  #exo-craft,
+  #exo-storm {
+    left: 14px !important;
+    max-width: min(220px, calc(100vw - 28px));
+    bottom: calc(320px + env(safe-area-inset-bottom)) !important;
+    z-index: 15;
+  }
+  #exo-storm a {
+    color: #7ee0ff;
+  }
+}
+@media (max-width: 420px) {
+  #exo-legend {
+    font-size: 9px !important;
+  }
+}

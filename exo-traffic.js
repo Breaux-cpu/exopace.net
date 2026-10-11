@@ -1,16 +1,28 @@
-/* Aircraft, ships, and Locate me on the Mission Control globe. */
+/* Aircraft, ships, radar, storms, and Locate me on the Mission Control globe. */
 (function () {
   const AIR = "https://cams.exopace.net/api/traffic/air";
   const SEA = "https://cams.exopace.net/api/traffic/sea";
+  const STORM_URL = "https://cams.exopace.net/api/weather/storms";
   let airOn = true;
   let seaOn = true;
+  let radarOn = true;
+  let stormOn = true;
   let airPlanes = null;
   let seaPoints = null;
+  let stormPoints = null;
+  let radarLayer = null;
+  let radarUrl = "";
   let airColor = null;
   let airPick = null;
   let seaColor = null;
+  let stormColor = null;
   let planeImage = null;
   let planeScale = null;
+  let stormSelected = null;
+  let stormCardId = "";
+  let stormQueryApplied = false;
+  let seaRegion = "Baltic";
+  const stormMeta = new Map();
   let loading = false;
   let pending = false;
   let hooked = false;
@@ -22,6 +34,7 @@
     airColor = Cesium.Color.fromCssColorString("#7ee0ff");
     airPick = Cesium.Color.fromCssColorString("#ffe08a");
     seaColor = Cesium.Color.fromCssColorString("#ffe08a");
+    stormColor = Cesium.Color.fromCssColorString("#ff7043");
     planeScale = new Cesium.NearFarScalar(8.0e5, 1, 1.5e7, 0.55);
   }
 
@@ -181,6 +194,128 @@
     }
   }
 
+  function hideFacility(viewer) {
+    const ent = viewer.entities && viewer.entities.getById && viewer.entities.getById("facility:gs");
+    if (ent && ent.show !== false) ent.show = false;
+  }
+
+  function stormList(data) {
+    const list = Array.isArray(data) ? data : data && (data.features || data.storms) || [];
+    const rows = [];
+    for (let i = 0; i < list.length; i++) {
+      const feature = list[i];
+      if (!feature) continue;
+      const props = feature.properties || feature;
+      const kind = String(props.kind || "");
+      if (kind && kind !== "storm") continue;
+      const geom = feature.geometry;
+      let lon = NaN;
+      let lat = NaN;
+      if (geom && geom.type === "Point" && Array.isArray(geom.coordinates)) {
+        lon = Number(geom.coordinates[0]);
+        lat = Number(geom.coordinates[1]);
+      } else if (Number.isFinite(Number(feature.lon)) && Number.isFinite(Number(feature.lat))) {
+        lon = Number(feature.lon);
+        lat = Number(feature.lat);
+      }
+      if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+      const id = "storm:" + i + ":" + String(props.id || props.name || "");
+      rows.push({
+        id,
+        name: props.name ? String(props.name) : "Storm",
+        type: props.label ? String(props.label) : kind || "Storm",
+        wind: props.wind ? String(props.wind) : "",
+        pressure: props.pressure ? String(props.pressure) : "",
+        lon,
+        lat,
+      });
+    }
+    return rows;
+  }
+
+  function syncStorms(viewer, data) {
+    if (!stormPoints) stormPoints = points(viewer);
+    const live = stormPoints._exo;
+    const seen = new Set();
+    const rows = stormList(data);
+    stormMeta.clear();
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      seen.add(row.id);
+      stormMeta.set(row.id, row);
+      const position = Cesium.Cartesian3.fromDegrees(row.lon, row.lat, 150);
+      const prim = live.get(row.id);
+      if (prim) prim.position = position;
+      else {
+        live.set(row.id, stormPoints.add({
+          id: row.id,
+          position,
+          pixelSize: 9,
+          color: stormColor,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 1,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        }));
+      }
+    }
+    for (const [id, prim] of live) {
+      if (seen.has(id)) continue;
+      stormPoints.remove(prim);
+      live.delete(id);
+    }
+    if (stormSelected && !stormMeta.has(stormSelected)) stormSelected = null;
+    openStormQuery();
+  }
+
+  function stormWanted() {
+    try {
+      return (new URLSearchParams(window.location.search).get("storm") || "").trim().toLowerCase();
+    } catch (err) {
+      return "";
+    }
+  }
+
+  function openStormQuery() {
+    if (stormQueryApplied) return;
+    const want = stormWanted();
+    if (!want) {
+      stormQueryApplied = true;
+      return;
+    }
+    for (const row of stormMeta.values()) {
+      if (String(row.name || "").trim().toLowerCase() !== want) continue;
+      stormSelected = row.id;
+      selected = null;
+      stormQueryApplied = true;
+      return;
+    }
+  }
+
+  function clearRadar(viewer) {
+    if (radarLayer && viewer && viewer.imageryLayers) {
+      viewer.imageryLayers.remove(radarLayer, true);
+    }
+    radarLayer = null;
+    radarUrl = "";
+  }
+
+  function showRadar(viewer, info) {
+    const url = info && info.tileUrl;
+    if (!url) return;
+    if (radarLayer && radarUrl === url) return;
+    clearRadar(viewer);
+    const provider = new Cesium.UrlTemplateImageryProvider({
+      url,
+      minimumLevel: 0,
+      maximumLevel: 7,
+      credit: info.attribution || "Radar © RainViewer",
+    });
+    radarLayer = viewer.imageryLayers.addImageryProvider(provider);
+    radarLayer.alpha = 0.55;
+    radarUrl = url;
+    if (viewer.scene.requestRenderMode) viewer.scene.requestRender();
+  }
+
   function pointSize(point) {
     const size = point.pixelSize;
     if (size == null) return 0;
@@ -207,9 +342,41 @@
     }
   }
 
+  function fillStormCard(card, row) {
+    card.replaceChildren();
+    const name = document.createElement("div");
+    name.textContent = row.name;
+    const type = document.createElement("div");
+    type.textContent = row.type;
+    card.append(name, type);
+    if (row.wind) {
+      const wind = document.createElement("div");
+      wind.textContent = row.wind;
+      card.append(wind);
+    }
+    if (row.pressure) {
+      const pressure = document.createElement("div");
+      pressure.textContent = row.pressure;
+      card.append(pressure);
+    }
+    const link = document.createElement("a");
+    const stormName = row.name ? String(row.name).trim() : "";
+    link.href = stormName
+      ? "https://cams.exopace.net/map?storm=" + encodeURIComponent(stormName)
+      : "https://cams.exopace.net/map";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Open on Cams";
+    link.style.color = "#7ee0ff";
+    link.style.display = "inline-block";
+    link.style.marginTop = "4px";
+    card.append(link);
+  }
+
   function step() {
     const viewer = window.EXOPACE_VIEWER;
     if (!viewer || !window.Cesium) return;
+    hideFacility(viewer);
     shrinkSats(viewer);
     const card = document.getElementById("exo-craft");
     const shown = selected ? airTrack.get(selected) : null;
@@ -221,7 +388,22 @@
         card.textContent = shown.call + " · " + feet + " ft";
       }
     }
-    if (!airOn) return;
+    const stormCard = document.getElementById("exo-storm");
+    const storm = stormSelected ? stormMeta.get(stormSelected) : null;
+    if (stormCard) {
+      if (!storm || !stormOn) {
+        stormCard.hidden = true;
+        stormCardId = "";
+      } else if (stormCardId !== storm.id) {
+        stormCard.hidden = false;
+        fillStormCard(stormCard, storm);
+        stormCardId = storm.id;
+      } else stormCard.hidden = false;
+    }
+    if (!airOn) {
+      if (viewer.scene.requestRenderMode) viewer.scene.requestRender();
+      return;
+    }
     colors();
     if (!airPlanes) airPlanes = planes(viewer);
     const live = airPlanes._exo;
@@ -271,8 +453,15 @@
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     handler.setInputAction((click) => {
       const hit = viewer.scene.pick(click.position);
-      const id = hit && (typeof hit.id === "string" ? hit.id : hit.primitive && hit.primitive.id);
-      selected = id && airTrack.has(String(id)) ? String(id) : null;
+      const raw = hit && (typeof hit.id === "string" ? hit.id : hit.primitive && hit.primitive.id);
+      const id = raw != null ? String(raw) : "";
+      if (id && stormMeta.has(id)) {
+        stormSelected = id;
+        selected = null;
+      } else {
+        stormSelected = null;
+        selected = id && airTrack.has(id) ? id : null;
+      }
       step();
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
   }
@@ -304,11 +493,39 @@
       }
       if (seaOn) {
         const body = await (await fetch(SEA)).json();
+        if (body && body.region) {
+          seaRegion = String(body.region);
+          const caption = document.getElementById("exo-sea-caption");
+          if (caption) caption.textContent = seaRegion;
+        }
         syncShips(viewer, body.ships);
       } else clearBag(seaPoints);
       step();
     } catch (err) {
       /* a failed feed leaves the last points in place */
+    }
+    try {
+      const weather = window.EXOPACE_WEATHER;
+      if (radarOn && weather && typeof weather.loadRadar === "function") {
+        const info = await weather.loadRadar();
+        if (radarOn) showRadar(viewer, info);
+      } else clearRadar(viewer);
+      if (stormOn) {
+        let data = null;
+        if (weather && typeof weather.loadStorms === "function") data = await weather.loadStorms();
+        else {
+          const res = await fetch(STORM_URL, { credentials: "omit", cache: "no-store" });
+          if (res.ok) data = await res.json();
+        }
+        if (stormOn && data) syncStorms(viewer, data);
+      } else {
+        stormSelected = null;
+        stormMeta.clear();
+        clearBag(stormPoints);
+      }
+      step();
+    } catch (err) {
+      /* a failed weather feed leaves the last layer in place */
     } finally {
       loading = false;
       if (pending) {
@@ -372,8 +589,32 @@
     bar.style.bottom = "calc(112px + env(safe-area-inset-bottom))";
     bar.style.zIndex = "6";
     bar.style.display = "flex";
+    bar.style.flexDirection = "column";
+    bar.style.alignItems = "flex-start";
     bar.style.gap = "4px";
-    bar.append(
+    bar.style.maxWidth = "calc(100vw - 28px)";
+    const row = document.createElement("div");
+    row.id = "exo-traffic-row";
+    row.style.display = "flex";
+    row.style.flexWrap = "wrap";
+    row.style.gap = "4px";
+    row.style.maxWidth = "100%";
+    const seaCaption = document.createElement("span");
+    seaCaption.id = "exo-sea-caption";
+    seaCaption.textContent = seaRegion || "Baltic";
+    seaCaption.style.alignSelf = "center";
+    seaCaption.style.color = "#ffe08a";
+    seaCaption.style.font = "10px IBM Plex Mono, ui-monospace, monospace";
+    seaCaption.style.letterSpacing = "0.08em";
+    const cameras = document.createElement("a");
+    cameras.className = "btn";
+    cameras.href = "https://cams.exopace.net/map";
+    cameras.target = "_blank";
+    cameras.rel = "noopener noreferrer";
+    cameras.textContent = "Cameras";
+    cameras.style.marginLeft = "6px";
+    cameras.style.textDecoration = "none";
+    row.append(
       button("AIRCRAFT", () => {
         airOn = !airOn;
         void load();
@@ -384,19 +625,55 @@
         void load();
         return seaOn;
       }),
+      seaCaption,
+      button("RADAR", () => {
+        radarOn = !radarOn;
+        void load();
+        return radarOn;
+      }),
+      button("STORMS", () => {
+        stormOn = !stormOn;
+        void load();
+        return stormOn;
+      }),
+      cameras,
     );
+    const legend = document.createElement("p");
+    legend.id = "exo-legend";
+    legend.textContent = "Planes are aircraft, dots are satellites, amber points are ships.";
+    legend.style.margin = "0";
+    legend.style.color = "#7d9088";
+    legend.style.font = "11px IBM Plex Sans, system-ui, sans-serif";
+    legend.style.letterSpacing = "0";
+    legend.style.whiteSpace = "nowrap";
+    bar.append(row, legend);
     const card = document.createElement("div");
     card.id = "exo-craft";
     card.hidden = true;
     card.style.position = "absolute";
     card.style.left = "14px";
-    card.style.bottom = "calc(156px + env(safe-area-inset-bottom))";
+    card.style.bottom = "calc(188px + env(safe-area-inset-bottom))";
     card.style.zIndex = "6";
     card.style.padding = "6px 10px";
     card.style.border = "1px solid rgba(126,224,255,.45)";
     card.style.background = "rgba(3,6,11,.9)";
     card.style.color = "#e6f0ea";
     card.style.font = "12px IBM Plex Mono, ui-monospace, monospace";
+    card.style.maxWidth = "min(220px, calc(100vw - 28px))";
+    const stormCard = document.createElement("div");
+    stormCard.id = "exo-storm";
+    stormCard.hidden = true;
+    stormCard.style.position = "absolute";
+    stormCard.style.left = "14px";
+    stormCard.style.bottom = "calc(210px + env(safe-area-inset-bottom))";
+    stormCard.style.zIndex = "6";
+    stormCard.style.padding = "6px 10px";
+    stormCard.style.border = "1px solid rgba(126,224,255,.45)";
+    stormCard.style.background = "rgba(3,6,11,.9)";
+    stormCard.style.color = "#e6f0ea";
+    stormCard.style.font = "12px IBM Plex Mono, ui-monospace, monospace";
+    stormCard.style.maxWidth = "min(220px, calc(100vw - 28px))";
+    stormCard.style.lineHeight = "1.35";
     const locateBtn = document.createElement("button");
     locateBtn.id = "exo-locate";
     locateBtn.type = "button";
@@ -408,7 +685,7 @@
     locateBtn.style.bottom = "calc(120px + env(safe-area-inset-bottom))";
     locateBtn.style.zIndex = "6";
     locateBtn.addEventListener("click", locate);
-    hud.append(bar, card, locateBtn);
+    hud.append(bar, card, stormCard, locateBtn);
     return true;
   }
 
