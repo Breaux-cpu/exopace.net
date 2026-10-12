@@ -324,6 +324,7 @@
     const rows = [];
     const tracks = [];
     const cones = [];
+    const products = [];
     for (let i = 0; i < list.length; i++) {
       const feature = list[i];
       if (!feature) continue;
@@ -350,6 +351,15 @@
       if (lines.length) tracks.push({ props, lines });
       const cone = coneGeom(feature, props);
       if (cone) cones.push({ props, geom: cone });
+      const productKind = String(props.kind || "");
+      if (productKind === "wsp34" || productKind === "wsp50" || productKind === "wsp64" || productKind === "arrival-early" || productKind === "arrival-likely" || productKind === "outlook-2d" || productKind === "outlook-7d") {
+        const geom = polyGeom(feature.geometry);
+        if (geom) products.push({ props, geom, kind: productKind, shape: "polygon" });
+        const geomLine = feature.geometry;
+        if (geomLine && geomLine.type === "LineString" && Array.isArray(geomLine.coordinates)) {
+          products.push({ props, lines: [geomLine.coordinates], kind: productKind, shape: "line" });
+        }
+      }
     }
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -359,7 +369,7 @@
         break;
       }
     }
-    return { rows, tracks, cones };
+    return { rows, tracks, cones, products };
   }
 
   function flatRing(ring) {
@@ -454,6 +464,31 @@
       n += 1;
       addCone(viewer, "stormcone:" + owner + ":" + n, pack.cones[i].geom);
     }
+    const productColors = {
+      wsp34: Cesium.Color.fromCssColorString("#7ee0ff").withAlpha(0.28),
+      wsp50: Cesium.Color.fromCssColorString("#1490d0").withAlpha(0.32),
+      wsp64: Cesium.Color.fromCssColorString("#0e78b8").withAlpha(0.36),
+      "arrival-early": Cesium.Color.fromCssColorString("#ffe08a").withAlpha(0.16),
+      "arrival-likely": Cesium.Color.fromCssColorString("#ffe08a").withAlpha(0.3),
+      "outlook-2d": Cesium.Color.fromCssColorString("#e6c56a").withAlpha(0.18),
+      "outlook-7d": Cesium.Color.fromCssColorString("#b0893e").withAlpha(0.16),
+    };
+    const savedCone = coneColor;
+    const savedTrack = trackColor;
+    for (let i = 0; i < (pack.products || []).length; i++) {
+      const item = pack.products[i];
+      n += 1;
+      if (item.shape === "line" && item.lines) {
+        trackColor = productColors[item.kind] || savedTrack;
+        for (let k = 0; k < item.lines.length; k++) addTrack(viewer, "stormproduct:" + item.kind + ":" + n + ":" + k, item.lines[k]);
+        continue;
+      }
+      if (!item.geom) continue;
+      coneColor = productColors[item.kind] || savedCone;
+      addCone(viewer, "stormproduct:" + item.kind + ":" + n, item.geom);
+    }
+    coneColor = savedCone;
+    trackColor = savedTrack;
     for (let i = 0; i < pack.tracks.length; i++) {
       const owner = encodeURIComponent(shapeOwner(pack.tracks[i].props, pack.rows));
       const lines = pack.tracks[i].lines;
