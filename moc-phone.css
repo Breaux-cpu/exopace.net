@@ -704,3 +704,18 @@ html.exo-booting a.radio-link {
     font-size: 9px !important;
   }
 }
+
+@media (max-width: 720px) {
+  #exo-traffic-row {
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+  }
+  #exo-traffic-row > .btn,
+  #exo-traffic-row > a.btn,
+  #exo-traffic-row > #exo-sea-caption {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}

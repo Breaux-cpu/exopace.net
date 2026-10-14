@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070a0f">
 <meta name="mobile-web-app-capable" content="yes">
-<title>dj SDR</title>
+<title>EXOpace Radio</title>
 <link rel="stylesheet" href="assets/leaflet.css">
 <style>
 :root{--bg:#070a0f;--bg2:#0b111a;--card:#0d141d;--card2:#111a26;--line:#1e2a3a;
@@ -73,7 +73,7 @@ table{width:100%;border-collapse:collapse}
  font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%}
 .toast.show{transform:translateX(-50%);opacity:1}
 </style></head><body>
-<header><h1>dj SDR</h1><div class="sub" id="sub">connecting…</div>
+<header><h1>EXOpace Radio</h1><div class="sub" id="sub">connecting…</div>
 <nav>
  <button data-t="listen" class="on">Listen</button>
  <button data-t="band">Band</button>
@@ -759,13 +759,13 @@ const kinds=mapKind==='replay'?['ais','adsb','aprs','sonde']:[mapKind];
   const icon=lk=>L.divIcon({iconSize:[13,13],className:'',
    html:`<div style="width:11px;height:11px;border-radius:50%;background:${cols[lk]||'#22d3ee'};border:2px solid #0b1118;box-shadow:0 0 8px ${cols[lk]||'#22d3ee'}88"></div>`});
   let n=0;
-  all.forEach((d,k) => d.items.forEach(it=>{
+  all.forEach((d,k) => (d && d.items || []).forEach(it=>{
    n++;
    const lbl=mapKind==='replay'?('['+kinds[k].toUpperCase()+'] '+it.label):it.label;
    const m=L.marker([it.lat,it.lon],{icon:icon(kinds[k])}).addTo(mapLayer);
    m.bindPopup(`<b>${esc(lbl)}</b><br><span style="color:#8ba1b8">${esc(it.extra||'')}</span>`);}));
   el('mapstate').innerHTML=`<span class="ok">●</span> ${n} position(s) — ${kinds.join('/')}`;
- }).catch(e=>el('mapstate').textContent='map error: '+e);
+ }).catch(()=>el('mapstate').textContent='Map positions did not load. The tuner still works.');
  clearTimeout(mapTimer);
  if(el('maps').classList.contains('on'))mapTimer=setTimeout(loadMaps,12000);}
 
@@ -783,7 +783,7 @@ function loadDev(){api('/api/census').then(d=>{
 function loadEv(){api('/api/events?hours=48').then(e=>{
  const k=e.length?e[0].when+e[0].kind+e[0].id:'';
  if(evSeen&&evSeen!==k&&notifOn&&typeof Notification!=='undefined'&&Notification.permission==='granted'
-   &&document.hidden){new Notification('dj SDR',{body:'new event: '+e[0].kind+' '+e[0].band});}
+   &&document.hidden){new Notification('EXOpace Radio',{body:'new event: '+e[0].kind+' '+e[0].band});}
  evSeen=k;
  el('evs').innerHTML=e.length?rows(e.map(x=>[
   `${x.kind==='new-device'?(x.model+' id='+x.dev_id):`<span class="f">${mhz(x.freq_hz)}</span>`}<br><span class="muted">${x.id||x.band}</span>`,

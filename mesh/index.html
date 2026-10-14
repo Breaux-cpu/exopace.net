@@ -164,9 +164,10 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;border-top:1p
 nav button{flex:1;background:none;border:none;padding:14px 0 12px;min-height:44px;font-family:var(--mono);
   font-size:12px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent}
 nav button.active{color:var(--amber);border-top-color:var(--amber);background:linear-gradient(#1c2010,#14170b)}
-#navHud{position:fixed;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom));z-index:31;
+#navHud{position:fixed;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom) + 8px);z-index:31;
   display:flex;align-items:center;gap:10px;background:#14170b;border:1px solid var(--amber);
   border-radius:10px;padding:8px 10px;font-family:var(--mono);font-size:12px;box-shadow:0 4px 14px #0008}
+#navHud[hidden]{display:none!important;pointer-events:none!important}
 #navArrow{font-size:22px;line-height:1;color:var(--amber);display:inline-block;transition:transform .2s}
 #navName{color:var(--text);letter-spacing:.06em}
 #navDist{color:var(--amber);margin-top:2px}
@@ -262,7 +263,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
       <button class="btn" id="btnClearChat">CLEAR</button>
       <button class="btn" id="btnTz">TIME UTC</button>
     </div>
-    <input id="chatSearch" class="wayName" placeholder="SEARCH · @NAME FILTERS SENDER" style="margin-bottom:8px">
+    <input id="chatSearch" class="wayName" placeholder="Search by name or sender" style="margin-bottom:8px">
     <div id="chatLog"></div>
     <div id="composer" hidden>
       <select id="chatTo"><option value="*">ALL</option></select>
@@ -492,6 +493,23 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 <script src="protocol.js?v=61"></script>
 <script src="store.js?v=61"></script>
 <script src="globe.js?v=61"></script>
+<script>
+(function () {
+  var hud = document.getElementById("navHud");
+  if (!hud) return;
+  var proto = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "hidden");
+  function navRunning() {
+    var t = window.S && S.navTarget;
+    return !!(t && t.lat != null && t.lon != null);
+  }
+  Object.defineProperty(hud, "hidden", {
+    configurable: true,
+    enumerable: proto.enumerable,
+    get: function () { return proto.get.call(this); },
+    set: function (v) { proto.set.call(this, navRunning() ? !!v : true); }
+  });
+})();
+</script>
 <script src="app.js?v=61"></script>
 </body>
 </html>
