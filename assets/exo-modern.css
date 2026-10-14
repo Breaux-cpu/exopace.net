@@ -1,0 +1,35 @@
+/* Shared night surface for Mission, Radio, and Mesh. */
+html,
+body {
+  background-color: #03060b;
+  background-image:
+    linear-gradient(180deg, rgba(3, 6, 11, 0.28), #03060b 46%),
+    url("/assets/exo-horizon.jpg");
+  background-size: cover, cover;
+  background-position: center top, center top;
+  background-repeat: no-repeat;
+}
+
+body:has(#decode) {
+  background-image:
+    linear-gradient(180deg, rgba(3, 6, 11, 0.35), #070a0f 48%),
+    url("/assets/exo-radio.jpg");
+}
+
+body:has(#composer) {
+  background-image:
+    linear-gradient(180deg, rgba(16, 18, 8, 0.4), #101208 48%),
+    url("/assets/exo-mesh.jpg");
+}
+
+#boot-void {
+  background:
+    linear-gradient(180deg, rgba(3, 6, 11, 0.5), rgba(3, 6, 11, 0.84)),
+    url("/assets/exo-horizon.jpg") center / cover no-repeat !important;
+}
+
+button,
+button.b,
+.btn {
+  border-radius: 12px;
+}
