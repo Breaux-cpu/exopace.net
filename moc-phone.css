@@ -719,3 +719,30 @@ html.exo-booting a.radio-link {
     text-overflow: clip;
   }
 }
+
+@media (max-width: 720px) {
+  #exo-traffic {
+    left: auto !important;
+    right: 14px !important;
+    width: min(240px, calc(100vw - 150px)) !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  #exo-sea-caption {
+    flex: 1 1 100% !important;
+    white-space: normal !important;
+    line-height: 1.3;
+    max-width: 100%;
+  }
+  #exo-legend {
+    white-space: normal !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #exo-locate {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+  }
+}

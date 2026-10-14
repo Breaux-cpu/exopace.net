@@ -13,7 +13,7 @@
 body{margin:0;background:radial-gradient(1200px 500px at 80% -10%,#101c2c 0%,var(--bg) 55%);
  color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;
  padding-bottom:calc(16px + env(safe-area-inset-bottom))}
-header{position:sticky;top:0;z-index:9;background:linear-gradient(var(--bg) 70%,transparent);
+header{position:sticky;top:0;z-index:9;background:var(--bg);
  padding:12px 14px 0}
 h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
 h1::before{content:"";width:9px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));box-shadow:0 0 12px #22d3ee66}
@@ -72,6 +72,13 @@ table{width:100%;border-collapse:collapse}
  background:#0f2438;border:1px solid #1f6ebd;color:#dff3ff;padding:10px 16px;border-radius:10px;
  font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%}
 .toast.show{transform:translateX(-50%);opacity:1}
+
+button.b{min-height:44px}
+button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
+@media (max-width:640px){
+  #decode .grid{grid-template-columns:1fr !important}
+  #decode{padding-bottom:calc(48px + env(safe-area-inset-bottom))}
+}
 </style></head><body>
 <header><h1>EXOpace Radio</h1><div class="sub" id="sub">connecting…</div>
 <nav>
@@ -749,8 +756,8 @@ function pickMap(k){
 function loadMaps(){
  if(!window.L){el('mapstate').textContent='leaflet not loaded';return;}
  if(!map)map=L.map('map').setView([35.0,-90.0],7);
- if(!mapLayer){L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_3pqj_1_3ae9e10bef10a2dc2ff55371',
-  {maxZoom:13,attribution:'© CARTO'}).addTo(map);}
+ if(!mapLayer){L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);}
 const kinds=mapKind==='replay'?['ais','adsb','aprs','sonde']:[mapKind];
   Promise.all(kinds.map(k=>api('/api/map?k='+k))).then(all=>{
    if(mapLayer)map.removeLayer(mapLayer);
