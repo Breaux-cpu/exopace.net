@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>EXOpace Radio</title>
+<title>EXOpace Mesh</title>
 <link rel="canonical" href="https://exopace.net/mesh/">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#101208">
-<meta name="description" content="EXOpace Radio — an installable field-radio PWA: BLE mesh chat, waypoints, and a live map, offline-first.">
+<meta name="description" content="EXOpace Mesh — an installable field-radio PWA: BLE mesh chat, waypoints, and a live map, offline-first.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EXOpace">
-<meta property="og:title" content="EXOpace Radio">
+<meta property="og:title" content="EXOpace Mesh">
 <meta property="og:description" content="Installable field radio: BLE mesh chat, waypoints, and a live map, offline-first.">
 <meta property="og:url" content="https://exopace.net/mesh/">
 <meta property="og:image" content="https://exopace.net/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="EXOpace Radio">
+<meta name="twitter:title" content="EXOpace Mesh">
 <meta name="twitter:description" content="Installable field radio: BLE mesh chat, waypoints, and a live map, offline-first.">
 <meta name="twitter:image" content="https://exopace.net/og.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -65,7 +65,8 @@ main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;displa
   padding-bottom:calc(62px + env(safe-area-inset-bottom))}
 .screen{display:none;padding:14px;max-width:640px;margin:0 auto;width:100%}
 .screen.active{display:block}
-#scr-chat.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:0}
+#scr-chat.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:calc(84px + var(--kb))}
+#scr-nodes{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
 #scr-map.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding:0;max-width:none;overflow:hidden}
 h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
   text-transform:uppercase;margin:6px 0 10px}
@@ -98,9 +99,10 @@ button,select,input{font:inherit;color:var(--text)}
 .evline{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--line)}
 .evline .evt{color:var(--amber);min-width:46px;flex:none}
 .evline .evago{color:var(--mut);margin-left:auto;flex:none}
-#composer{position:sticky;bottom:calc(62px + env(safe-area-inset-bottom) + 8px);background:var(--bg);padding:8px 0 calc(4px + var(--kb));
-  display:flex;gap:8px;z-index:3;min-width:0;max-width:100%}
-#composer[hidden]{display:none!important}
+#composer{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom) + 8px);z-index:25;
+  display:flex;align-items:center;gap:8px;min-height:60px;box-sizing:border-box;
+  padding:8px 14px calc(8px + var(--kb));background:var(--bg);border-top:1px solid var(--line)}
+#composer[hidden]{display:flex!important;visibility:visible!important}
 #qtx[hidden]{display:none!important}
 #composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
   font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-width:0;min-height:44px;flex:0 1 auto}
@@ -265,7 +267,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
     </div>
     <input id="chatSearch" class="wayName" placeholder="Search by name or sender" style="margin-bottom:8px">
     <div id="chatLog"></div>
-    <div id="composer" hidden>
+    <div id="composer">
       <select id="chatTo"><option value="*">ALL</option></select>
       <input id="chatText" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
       <button class="btn send" id="btnSendLoc" style="width:auto;flex:0 0 auto" title="Send my position">LOC</button>
@@ -509,7 +511,35 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     set: function (v) { proto.set.call(this, navRunning() ? !!v : true); }
   });
 })();
+(function () {
+  var c = document.getElementById("composer");
+  if (!c) return;
+  var proto = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "hidden");
+  function show() { proto.set.call(c, false); }
+  show();
+  Object.defineProperty(c, "hidden", {
+    configurable: true,
+    enumerable: proto.enumerable,
+    get: function () { return false; },
+    set: function () { show(); }
+  });
+})();
 </script>
 <script src="app.js?v=61"></script>
+<script>
+(function () {
+  var el = document.getElementById("aboutVer");
+  function meshAbout() {
+    if (!el) return;
+    var t = el.textContent || "";
+    if (t.indexOf("EXOpace Radio") === -1) return;
+    el.textContent = t.replace(/EXOpace Radio/g, "EXOpace Mesh");
+  }
+  if (el) new MutationObserver(meshAbout).observe(el, { childList: true, characterData: true, subtree: true });
+  meshAbout();
+  if (document.title.indexOf("EXOpace Radio") !== -1)
+    document.title = document.title.replace(/EXOpace Radio/g, "EXOpace Mesh");
+})();
+</script>
 </body>
 </html>
