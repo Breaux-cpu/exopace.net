@@ -20,8 +20,9 @@ h1::before{content:"";width:9px;height:18px;border-radius:3px;background:linear-
 .sub{font-size:12px;color:var(--muted);margin:3px 0 10px}
 nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
-nav button{flex:0 0 auto;background:transparent;border:1px solid transparent;color:var(--muted);
+nav button{flex:0 0 auto;min-height:44px;background:transparent;border:1px solid transparent;color:var(--muted);
  padding:8px 13px;border-radius:999px;font-size:13px;font-weight:500;transition:.18s}
+@media (max-width:640px){nav{flex-wrap:wrap;overflow-x:auto}}
 nav button.on{background:linear-gradient(180deg,#123148,#0b2b45 60%,#0a2845);
  border-color:#1c4a6e;color:#bfe6ff;box-shadow:0 1px 8px #0ea5e922}
 main{padding:14px}section{display:none;animation:fade .22s ease}section.on{display:block}
@@ -102,11 +103,11 @@ table{width:100%;border-collapse:collapse}
   <div id="smtxt" class="muted" style="font-size:11px;margin-top:3px">signal —</div>
   <audio id="au" controls preload="none"></audio>
   <div class="grid" style="margin-top:9px">
-   <button class="b stop" onclick="stopAll()">Stop</button>
+   <button class="b" id="livebtn" onclick="listen()">Listen</button>
    <button class="b alt" onclick="rec()">Record 10s</button></div>
   <div class="card" style="margin:10px 0 0;border-radius:11px;box-shadow:none">
    <div style="display:flex;justify-content:space-between;align-items:center">
-    <span class="muted" style="font-size:13px">Squelch-record squelch opens</span>
+    <span class="muted" style="font-size:13px">Record while the squelch is open</span>
     <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
      threshold <input id="sqsq" value="-35" inputmode="decimal" style="width:76px;padding:8px"></label></div>
    <div class="grid" style="margin-top:9px">
@@ -115,8 +116,8 @@ table{width:100%;border-collapse:collapse}
    <div class="muted" id="sqst" style="font-size:12px;margin-top:7px">idle — records only while the
     squelch is open (audio above threshold), split into clips as traffic stops.</div>
   </div>
-  <div class="muted" style="margin-top:9px;font-size:12px">The stream keeps running on jessy after you
-   leave — close the phone or lose wifi and it reattaches when you come back.</div>
+  <div class="muted" style="margin-top:9px;font-size:12px">The stream keeps running on the radio after you
+   leave and reattaches when the phone comes back.</div>
  </div>
  <div class="card"><h2>Bookmarks</h2>
   <div style="display:flex;gap:7px;margin-bottom:9px">
@@ -457,16 +458,23 @@ let liveWanted=false,reconnectT=null;
 function attach(){const a=el('au');a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}
 function listen(f){const q=f||el('freq').value;if(f){el('freq').value=f;
  const mo=String(f).match(/^[0-9.]+/);if(mo)el('freq').value=mo[0]+'M';}
- liveWanted=true;el('np').textContent='tuning '+q+' …';
+ liveWanted=true;el('np').textContent='tuning '+q+' …';syncPlayBtn();
  api('/api/stream/start?f='+encodeURIComponent(q),{method:'POST'}).then(r=>{
-  if(r.error||r.ok===false){el('np').textContent='error: '+(r.error||'could not start');liveWanted=false;return;}
+  if(r.error||r.ok===false){el('np').textContent='error: '+(r.error||'could not start');liveWanted=false;syncPlayBtn();return;}
   attach();setTimeout(loadStatus,2500);});}
 function stopAll(){liveWanted=false;clearTimeout(reconnectT);
  const a=el('au');a.pause();a.removeAttribute('src');a.load();
  api('/api/stream/stop',{method:'POST'}).then(()=>{el('np').textContent='stopped';
-  el('rds').style.display='none';smSet(null);});}
+  el('rds').style.display='none';smSet(null);syncPlayBtn();});}
+function syncPlayBtn(){
+ const b=el('livebtn');if(!b)return;
+ const np=el('np').textContent||'';
+ const running=((np.indexOf('LIVE ')>=0&&np.indexOf('LIVE ')<4)||liveWanted)&&np!=='stopped';
+ if(running){b.textContent='Stop';b.className='b stop';b.disabled=false;b.onclick=stopAll;}
+ else{b.textContent='Listen';b.className='b';b.disabled=false;b.onclick=function(){listen();};}
+}
 function scheduleReattach(){if(!liveWanted)return;clearTimeout(reconnectT);
- reconnectT=setTimeout(()=>{if(liveWanted){el('np').textContent='reconnecting…';attach();}},1500);}
+ reconnectT=setTimeout(()=>{if(liveWanted){el('np').textContent='reconnecting…';syncPlayBtn();attach();}},1500);}
 window.addEventListener('DOMContentLoaded',()=>{
  const a=el('au');['error','ended','stalled'].forEach(e=>a.addEventListener(e,scheduleReattach));});
 document.addEventListener('visibilitychange',()=>{

@@ -508,8 +508,8 @@ html.exo-booting a.radio-link {
     left: auto !important;
     right: 8px !important;
     max-width: min(36vw, calc(100vw - 16px));
-    max-height: 96px;
-    overflow: hidden;
+    max-height: 176px;
+    overflow: auto;
     contain: paint;
     transform: none;
     transform-origin: top right !important;
@@ -649,8 +649,8 @@ html.exo-booting a.radio-link {
     z-index: 15;
   }
   #exo-traffic-row {
-    flex-wrap: nowrap !important;
-    overflow-x: auto;
+    flex-wrap: wrap !important;
+    overflow: visible;
     max-width: 100%;
     -webkit-overflow-scrolling: touch;
   }
@@ -665,6 +665,7 @@ html.exo-booting a.radio-link {
   #exo-sea-caption {
     display: inline-flex;
     align-items: center;
+    text-transform: uppercase;
   }
   #exo-legend {
     font-size: 10px !important;
