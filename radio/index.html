@@ -461,7 +461,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    observer on your own SDR host. The phone app does not need it.</div>
  </div>
  <div class="card"><h2>Download</h2>
-  <a class="b" href="/sentinel/sentinel.apk" download style="display:block;text-align:center;text-decoration:none">Download for Android (.apk)</a>
+  <a class="b" href="https://github.com/Breaux-cpu/exopace.net/releases/download/sentinel-v2.21.1/EXOpace-Sentinel-v2.21.1-release.apk" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Download for Android (.apk)</a>
   <div class="muted" style="margin-top:9px;font-size:12px">Android 8.0+ &middot; 64-bit ARM &middot;
    no account, no ads, no tracking. Open the downloaded file, allow install from this source,
    grant location and <i>Nearby devices</i>, then tap Start.</div>
@@ -1027,8 +1027,6 @@ function loadSentinel(){
    ['jessy scanner',d.running?'<span class="ok">running</span>':'<span class="warn">stopped</span>'],
    ['devices heard',d.total||0],['flagged now',flagged]]);
  }).catch(()=>{st.innerHTML='<div class="muted">jessy unreachable — the app runs on the phone on its own.</div>';});
- fetch('/sentinel/sentinel.apk',{method:'HEAD'}).then(r=>{
-  if(!r.ok&&el('sentdlnote'))el('sentdlnote').textContent='Heads up: the APK has not been uploaded to the site yet.';}).catch(()=>{});
 }
 
 function loadCaps(){api('/api/capabilities').then(c=>{el('caps').innerHTML=rows(c.map(x=>
