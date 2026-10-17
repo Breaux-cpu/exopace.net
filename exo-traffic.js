@@ -162,6 +162,7 @@
       seen.add(id);
       const alt = Math.max(Number(row.alt) || 0, 400);
       const call = (row.call && String(row.call).trim()) || id;
+      const meta = airMeta(row);
       const prev = airTrack.get(id);
       let heading = Number(row.heading);
       const moved = prev && (prev.lon !== row.lon || prev.lat !== row.lat);
@@ -183,10 +184,12 @@
           sample: now + span,
           received: now,
           heading: headingOf(heading),
+          ...meta,
         });
       } else if (prev) {
         prev.call = call;
         prev.alt = alt;
+        Object.assign(prev, meta);
         if (Number.isFinite(heading) && heading !== 0) prev.heading = headingOf(heading);
         prev.received = prev.received || now;
       } else {
@@ -203,6 +206,7 @@
           sample: now,
           received: now,
           heading: headingOf(heading),
+          ...meta,
         });
       }
     }
@@ -904,6 +908,144 @@
     return "";
   }
 
+  const AIR_KIND = {
+    2: "Light",
+    3: "Small",
+    4: "Large",
+    5: "High vortex",
+    6: "Heavy",
+    7: "High performance",
+    8: "Rotorcraft",
+    9: "Glider",
+    10: "Lighter than air",
+    11: "Skydiver",
+    12: "Ultralight",
+    14: "Drone",
+    15: "Space",
+    16: "Surface",
+    17: "Obstacle",
+  };
+  const airNotes = new Map();
+  let craftId = "";
+
+  function airMeta(row) {
+    const climb = row.vrate == null || row.vrate === "" ? null : Number(row.vrate);
+    return {
+      country: row.country ? String(row.country) : "",
+      speed: Number(row.speed) || 0,
+      vrate: climb != null && Number.isFinite(climb) ? climb : null,
+      squawk: row.squawk ? String(row.squawk) : "",
+      ground: row.ground === true ? true : row.ground === false ? false : null,
+      geo: Number(row.geo) || 0,
+      category: Number(row.category) || 0,
+      baro: Math.max(Number(row.alt) || 0, 0),
+    };
+  }
+
+  function feet(meters) {
+    return Math.round(Math.max(Number(meters) || 0, 0) * 3.28084).toLocaleString("en-US") + " ft";
+  }
+
+  function knots(mps) {
+    return Math.round((Number(mps) || 0) * 1.943844).toLocaleString("en-US") + " kt";
+  }
+
+  function climbText(vrate) {
+    const fpm = Math.round((Number(vrate) || 0) * 196.8504);
+    if (Math.abs(fpm) < 50) return "Level";
+    const n = Math.abs(fpm).toLocaleString("en-US");
+    return fpm > 0 ? "Climbing " + n + " ft/min" : "Descending " + n + " ft/min";
+  }
+
+  function craftLine(card, key, label, value) {
+    const grid = card.querySelector(".exo-kv");
+    let span = grid.querySelector('[data-k="' + key + '"]');
+    if (!span) {
+      const name = document.createElement("b");
+      name.textContent = label;
+      span = document.createElement("span");
+      span.dataset.k = key;
+      grid.append(name, span);
+    }
+    const show = value != null && value !== "";
+    span.hidden = !show;
+    span.previousElementSibling.hidden = !show;
+    if (show && span.textContent !== value) span.textContent = value;
+  }
+
+  function loadCraft(id) {
+    if (airNotes.has(id)) return;
+    airNotes.set(id, null);
+    fetch("https://api.adsbdb.com/v0/aircraft/" + encodeURIComponent(id))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        const craft = body && body.response && body.response.aircraft;
+        airNotes.set(id, craft || false);
+      })
+      .catch(() => {
+        airNotes.set(id, false);
+      });
+  }
+
+  function paintCraft(card, track) {
+    if (craftId !== track.id) {
+      craftId = track.id;
+      card.replaceChildren();
+      const photo = document.createElement("img");
+      photo.className = "exo-popup__photo";
+      photo.alt = "";
+      photo.hidden = true;
+      photo.referrerPolicy = "no-referrer";
+      const title = document.createElement("div");
+      title.className = "exo-popup__title";
+      const note = document.createElement("p");
+      note.className = "exo-popup__note";
+      const grid = document.createElement("div");
+      grid.className = "exo-kv";
+      card.append(photo, title, note, grid);
+      loadCraft(track.id);
+    }
+    const call = track.call && track.call !== track.id ? track.call : track.id.toUpperCase();
+    const title = card.querySelector(".exo-popup__title");
+    if (title.textContent !== call) title.textContent = call;
+    const at = pose(track, Date.now());
+    const baro = Number.isFinite(track.baro) ? track.baro : track.alt;
+    const altM = Math.round(baro).toLocaleString("en-US");
+    craftLine(card, "hex", "ICAO", track.id.toUpperCase());
+    craftLine(card, "alt", "ALTITUDE", feet(baro) + " · " + altM + " m");
+    if (track.geo && Math.abs(track.geo - baro) > 80) {
+      craftLine(card, "geo", "GEOMETRIC", feet(track.geo));
+    } else craftLine(card, "geo", "GEOMETRIC", "");
+    craftLine(card, "speed", "SPEED", knots(track.speed) + " · " + Math.round(track.speed || 0) + " m/s");
+    craftLine(card, "track", "TRACK", String(Math.round(track.heading || 0)).padStart(3, "0") + "°");
+    craftLine(card, "vert", "VERTICAL", track.vrate == null ? "" : climbText(track.vrate));
+    craftLine(card, "state", "STATE", track.ground == null ? "" : track.ground ? "On ground" : "Airborne");
+    craftLine(card, "where", "POSITION", at.lat.toFixed(3) + ", " + at.lon.toFixed(3));
+    craftLine(card, "place", "COUNTRY", track.country || "");
+    craftLine(card, "squawk", "SQUAWK", track.squawk || "");
+    craftLine(card, "kind", "CATEGORY", AIR_KIND[track.category] || "");
+    const known = airNotes.get(track.id);
+    const blurb = card.querySelector(".exo-popup__note");
+    const photo = card.querySelector(".exo-popup__photo");
+    if (known && typeof known === "object") {
+      const bits = [known.registration, known.manufacturer, known.type || known.icao_type, known.registered_owner].filter(Boolean);
+      const text = bits.join(" · ");
+      if (blurb.textContent !== text) blurb.textContent = text;
+      const src = known.url_photo_thumbnail || known.url_photo || "";
+      if (src && photo.getAttribute("src") !== src) {
+        photo.alt = (known.registration || call) + " aircraft";
+        photo.src = src;
+        photo.hidden = false;
+        photo.onerror = () => {
+          photo.hidden = true;
+        };
+      }
+    } else if (known === false) {
+      if (blurb.textContent) blurb.textContent = "";
+      photo.hidden = true;
+    }
+  }
+
   function fillStormCard(card, row) {
     card.replaceChildren();
     const name = document.createElement("div");
@@ -954,11 +1096,12 @@
     const card = document.getElementById("exo-craft");
     const shown = selected ? airTrack.get(selected) : null;
     if (card) {
-      if (!shown || !airOn) card.hidden = true;
-      else {
+      if (!shown || !airOn) {
+        card.hidden = true;
+        craftId = "";
+      } else {
         card.hidden = false;
-        const feet = Math.round(shown.alt * 3.28084).toLocaleString("en-US");
-        card.textContent = shown.call + " · " + feet + " ft";
+        paintCraft(card, shown);
       }
     }
     const stormCard = document.getElementById("exo-storm");
@@ -1326,12 +1469,21 @@
     card.style.left = "14px";
     card.style.bottom = "calc(188px + env(safe-area-inset-bottom))";
     card.style.zIndex = "6";
-    card.style.padding = "6px 10px";
+    card.style.padding = "10px";
     card.style.border = "1px solid rgba(126,224,255,.45)";
-    card.style.background = "rgba(3,6,11,.9)";
+    card.style.background = "rgba(3,6,11,.92)";
     card.style.color = "#e6f0ea";
-    card.style.font = "12px IBM Plex Mono, ui-monospace, monospace";
-    card.style.maxWidth = "min(220px, calc(100vw - 28px))";
+    card.style.font = "12px IBM Plex Sans, system-ui, sans-serif";
+    card.style.maxWidth = "min(360px, calc(100vw - 28px))";
+    card.style.maxHeight = "min(70vh, 540px)";
+    card.style.overflow = "auto";
+    card.style.lineHeight = "1.35";
+    if (!document.getElementById("exo-popup-style")) {
+      const look = document.createElement("style");
+      look.id = "exo-popup-style";
+      look.textContent = "#exo-craft{max-width:min(360px,calc(100vw - 28px))!important;overflow:auto}.exo-popup__photo{display:block;width:100%;height:180px;object-fit:cover;border-radius:4px;margin:0 0 8px;background:#03060b}.exo-popup__photo[hidden]{display:none}.exo-popup__title{font-family:IBM Plex Mono,ui-monospace,monospace;letter-spacing:.08em;color:#ffe08a;font-weight:600;margin-bottom:4px}.exo-popup__note{margin:0 0 8px;font-size:13px;line-height:1.4}.exo-popup__note:empty{display:none}.exo-kv{display:grid;grid-template-columns:92px 1fr;gap:3px 8px;font-family:IBM Plex Mono,ui-monospace,monospace;font-size:11px}.exo-kv b{color:#7d9088;font-weight:400;letter-spacing:.06em}.exo-kv span{color:#e6f0ea}.exo-kv [hidden]{display:none}";
+      document.head.appendChild(look);
+    }
     const stormCard = document.createElement("div");
     stormCard.id = "exo-storm";
     stormCard.hidden = true;

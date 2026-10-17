@@ -688,10 +688,17 @@ html.exo-booting a.radio-link {
   #exo-radar-live[hidden] {
     display: none !important;
   }
-  #exo-craft,
   #exo-storm {
     left: 14px !important;
     max-width: min(220px, calc(100vw - 28px));
+    bottom: calc(320px + env(safe-area-inset-bottom)) !important;
+    z-index: 15;
+  }
+  #exo-craft {
+    left: 14px !important;
+    max-width: min(360px, calc(100vw - 28px)) !important;
+    max-height: min(58vh, 520px) !important;
+    overflow: auto;
     bottom: calc(320px + env(safe-area-inset-bottom)) !important;
     z-index: 15;
   }
