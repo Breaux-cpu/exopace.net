@@ -1,7 +1,8 @@
 /* Storm and radar catalogs for Mission Control. Data only — drawing is in exo-traffic. */
 (function () {
-  var STORMS = "https://cams.exopace.net/api/weather/storms";
-  var RADAR = "https://cams.exopace.net/api/weather/radar";
+  var STORMS = "/api/weather/storms";
+  var RADAR = "/api/weather/radar";
+  var RADAR_DIRECT = "https://api.rainviewer.com/public/weather-maps.json";
   var CREDIT = "Radar © RainViewer";
   var storms = [];
   var radar = { host: "", frames: [], past: [], attribution: CREDIT, tileUrl: "" };
@@ -56,9 +57,15 @@
     return host + path + "/256/{z}/{x}/{y}/2/1_1.png";
   }
 
+  function frameList(data) {
+    if (data && Array.isArray(data.frames)) return data.frames;
+    if (data && data.radar && Array.isArray(data.radar.past)) return data.radar.past;
+    return [];
+  }
+
   function pastFrames(data) {
     var host = rainHost(data);
-    var frames = data && Array.isArray(data.frames) ? data.frames : [];
+    var frames = frameList(data);
     var out = [];
     if (!host) return out;
     for (var i = 0; i < frames.length; i++) {
@@ -71,14 +78,14 @@
   }
 
   function loadRadar() {
-    return fetch(RADAR, {
-      credentials: "omit",
-      cache: "no-store",
-    }).then(function (res) {
-      if (!res.ok) {
-        throw new Error("radar " + res.status);
-      }
-      return res.json();
+    function pull(url) {
+      return fetch(url, { credentials: "omit", cache: "no-store" }).then(function (res) {
+        if (!res.ok) throw new Error("radar " + res.status);
+        return res.json();
+      });
+    }
+    return pull(RADAR).catch(function () {
+      return pull(RADAR_DIRECT);
     }).then(function (data) {
       var past = pastFrames(data);
       radar = {

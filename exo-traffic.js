@@ -1,9 +1,9 @@
 /* Aircraft, ships, radar, storms, cameras, and Locate me on the Mission Control globe. */
 (function () {
-  const AIR = "https://cams.exopace.net/api/traffic/air";
-  const SEA = "https://cams.exopace.net/api/traffic/sea";
-  const STORM_URL = "https://cams.exopace.net/api/weather/storms";
-  const CAMS = "https://cams.exopace.net/api/cameras.geojson";
+  const AIR = "/api/traffic/air";
+  const SEA = "/api/traffic/sea";
+  const STORM_URL = "/api/weather/storms";
+  const CAMS = "/api/cameras.geojson";
   const RADAR_CREDIT = "Radar © RainViewer";
   const RADAR_SUFFIX = "/256/{z}/{x}/{y}/2/1_1.png";
   const LEGEND = "Planes are aircraft, dots are satellites, amber points are ships.";
@@ -1074,18 +1074,6 @@
       line.textContent = times;
       card.append(line);
     }
-    const link = document.createElement("a");
-    const stormName = row.name ? String(row.name).trim() : "";
-    link.href = stormName
-      ? "https://cams.exopace.net/map?storm=" + encodeURIComponent(stormName)
-      : "https://cams.exopace.net/map";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = "Open on Cams";
-    link.style.color = "#7ee0ff";
-    link.style.display = "inline-block";
-    link.style.marginTop = "4px";
-    card.append(link);
   }
 
   function step() {
@@ -1191,7 +1179,7 @@
   function openCamera(id) {
     const raw = id.slice(4);
     if (!raw) return;
-    window.open("https://cams.exopace.net/map?camera=" + encodeURIComponent(raw), "_blank", "noopener,noreferrer");
+    return;
   }
 
   function hook(viewer) {
@@ -1414,14 +1402,6 @@
       stepRadar(ev.key === "ArrowLeft" ? -1 : 1);
     });
     clock.append(prev, play, next, time, live);
-    const cameras = document.createElement("a");
-    cameras.className = "btn";
-    cameras.href = "https://cams.exopace.net/map";
-    cameras.target = "_blank";
-    cameras.rel = "noopener noreferrer";
-    cameras.textContent = "Cameras";
-    cameras.style.marginLeft = "6px";
-    cameras.style.textDecoration = "none";
     row.append(
       button("AIRCRAFT", () => {
         airOn = !airOn;
@@ -1451,7 +1431,6 @@
         refreshCameras(true);
         return camsOn;
       }, false),
-      cameras,
     );
     const legend = document.createElement("p");
     legend.id = "exo-legend";
