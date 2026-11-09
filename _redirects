@@ -33,3 +33,5 @@
 /cameras/       /maintenance/ 302
 # Apex stays on Pages. Do not send / at a tunnel.
 /               /mission/ 302
+/maintenance    https://cams.exopace.net/map 302
+/maintenance/   https://cams.exopace.net/map 302
