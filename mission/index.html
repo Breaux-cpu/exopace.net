@@ -107,7 +107,7 @@
     <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=91">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
     <link rel="stylesheet" crossorigin href="/assets/index-Cvdw9vO_.css">
-    <link rel="stylesheet" href="/moc-phone.css?v=86">
+    <link rel="stylesheet" href="/moc-phone.css?v=92">
     <style>
       body { display: flex; flex-direction: column; }
       #root { flex: 1 1 auto; height: auto !important; min-height: 0; position: relative; }
@@ -185,9 +185,15 @@
       .site-header .open-globe:hover { color: #fff4c8; border-color: #ffe08a; }
       @media (max-width: 800px) {
         .site-header .nav__links { display: none; }
-        .site-header .nav { gap: 12px; padding: 0 14px; }
+        .site-header .nav { gap: 12px; padding: 0 14px; max-width: 100%; min-width: 0; }
         .site-header .brand { letter-spacing: 0.18em; }
-        .site-header .open-globe { letter-spacing: 0.08em; padding: 8px 10px; }
+        .site-header .open-globe {
+          letter-spacing: 0.08em;
+          padding: 0 10px;
+          min-height: 44px;
+          min-width: 44px;
+          box-sizing: border-box;
+        }
       }
       .lock-photo { display: block; width: 100%; height: 168px; object-fit: cover; border-radius: 4px; margin: 0 0 8px; background: #03060b; }
       .lock-note { margin: 0 0 8px; font-size: 12px; line-height: 1.45; color: #e6f0ea; }
