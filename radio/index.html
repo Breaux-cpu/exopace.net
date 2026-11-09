@@ -85,7 +85,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    Applies only at max-width: 900px. Above 900px the desktop rules are untouched.
    Load IBM Plex Mono with media="(max-width: 900px)" so desktop does not download it:
    <link rel="stylesheet" media="(max-width: 900px)" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-   dj / jessy stay local device sources (camSrc / wifi src). */
+   The Memphis sensor is retired. This page does not call it. */
 
 @media (max-width: 900px) {
   :root {
@@ -200,7 +200,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   nav { flex-wrap: wrap; overflow: visible; }
 }
 </style></head><body>
-<header><h1>EXOpace Radio</h1><div class="sub" id="sub">connecting…</div>
+<header><h1>EXOpace Radio</h1><div class="sub" id="sub">RETIRED · Memphis sensor is gone</div>
 <nav>
  <button data-t="listen" class="on">Listen</button>
  <button data-t="band">Band</button>
@@ -576,7 +576,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    and a confidence tier: weak, probable or strong.</div>
  </div>
  <div class="card"><h2>Your host</h2>
-  <div id="sentstat" class="muted">checking jessy&hellip;</div>
+  <div id="sentstat" class="muted">RETIRED · Memphis sensor is gone</div>
   <div class="muted" style="margin-top:8px;font-size:12px">Optional live peek at the Bluetooth
    observer on your own SDR host. The phone app does not need it.</div>
  </div>
@@ -592,8 +592,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </section>
 </main><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
-const BASE="https://dj.tail0e44f5.ts.net";
-const api=(p,o={})=>fetch(BASE+p+(p.includes('?')?'&':'?')+'t='+T,o).then(r=>r.json());
+const RETIRED="RETIRED · Memphis sensor is gone";
+const api=()=>Promise.resolve({error:RETIRED,ok:false});
 const el=id=>document.getElementById(id);
 const rows=a=>a.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')||'<div class="muted">nothing yet</div>';
 const mhz=f=>(f/1e6).toFixed(4)+' MHz';
@@ -621,7 +621,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.datas
  if(want)setTimeout(()=>showTab(want),150);})();
 
 let liveWanted=false,reconnectT=null;
-function attach(){const a=el('au');a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}
+function attach(){toast(RETIRED);}
 function listen(f){const q=f||el('freq').value;if(f){el('freq').value=f;
  const mo=String(f).match(/^[0-9.]+/);if(mo)el('freq').value=mo[0]+'M';}
  liveWanted=true;el('np').textContent='tuning '+q+' …';syncPlayBtn();
@@ -697,7 +697,7 @@ function loadJob(){
   if(j.modes_msgs!=null)el('jobstate').textContent+=` · ${j.modes_msgs} Mode-S msgs`;
   if(j.job && (j.job.kind==='p25'||j.job.kind==='ysf')){
    const a=el('jobau');
-   if(a && (!a.src || a.paused)){a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}}
+   if(a){toast(RETIRED);}}
   el('acl').innerHTML=(j.aircraft&&j.aircraft.length)?rows(j.aircraft.map(a=>[
    `${a.flight||a.hex}<br><span class="muted">${a.hex} · ${a.lat?a.lat.toFixed(3)+','+a.lon.toFixed(3):'no position'}</span>`,
    `${a.alt!=null?a.alt+' ft':'—'}<br><span class="muted">${a.speed!=null?Math.round(a.speed)+' kt':''} ${a.rssi!=null?a.rssi+' dB':''}</span>`]))
@@ -715,6 +715,7 @@ function smSet(lvl){
 }
 
 function loadStatus(){api('/api/status').then(s=>{
+ if(!s||s.error){el('sub').textContent=RETIRED;return;}
  el('sub').innerHTML=`${s.host} · agent <span class="${s.agent=='active'?'ok':'bad'}">${s.agent}</span>`
   +` · p25 <span class="${s.p25?'ok':'bad'}">${s.p25?'on':'off'}</span>`
   +` · ${s.counts.sweeps} sweeps · ${s.counts.events} events`;
@@ -749,7 +750,7 @@ function loadStatus(){api('/api/status').then(s=>{
   el('band').innerHTML=bands.map(t=>
    `<option value="${t.name}"${t.enabled?'':' style="color:#66809a"'}>${t.name}${t.enabled?'':' — not monitored'}</option>`).join('');
   if(cur)el('band').value=cur;}
-}).catch(()=>el('sub').textContent='offline');}
+}).catch(()=>el('sub').textContent=RETIRED);}
 
 function scannerHTML(sc){
  return rows([['status',sc.running?'<span class="ok">scanning</span>':'<span class="bad">stopped</span>'],
@@ -761,7 +762,7 @@ function scannerHTML(sc){
 (function checkScanAudio(){
  if(el('scan').classList.contains('on'))api('/api/status').then(s=>{
   if(s.stream&&s.stream.listeners===0&&el('scanao').paused){
-   const a=el('scanao');a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}});
+   toast(RETIRED);}});
  setTimeout(checkScanAudio,4000);})();
 
 function scanPreset(k){api('/api/scanner/start?preset='+k,{method:'POST'}).then(r=>{
@@ -775,7 +776,7 @@ function scanStop(){api('/api/scanner/stop',{method:'POST'}).then(()=>{el('scans
  const a=el('scanao');a.pause();a.removeAttribute('src');a.load();});}
 function loadScanner(){api('/api/status').then(s=>{
  if(s.scanner){el('scanstate').innerHTML=scannerHTML(s.scanner);const a=el('scanao');
-  if(s.stream&&(!a.src||a.paused)&&liveWanted!==true){a.src=BASE+'/stream?t='+T+'&_='+Date.now();a.play().catch(()=>{});}}
+  if(s.stream&&liveWanted!==true){toast(RETIRED);}}
  else el('scanstate').innerHTML=rows([['status','<span class="bad">stopped</span>'],['now','—']]);
  clearTimeout(scanTimer);if(el('scan').classList.contains('on'))scanTimer=setTimeout(loadScanner,2500);});}
 let scanTimer=null;
@@ -968,11 +969,11 @@ function loadClips(){api('/api/clips').then(c=>{
   ? `<div class="row" style="display:block">
   <div style="display:flex;justify-content:space-between"><span class="k f">${x.mhz}</span>
   <span class="v muted">${x.when} · ${x.kb} KB</span></div>
-  <img src="${BASE}/satimg/${encodeURIComponent(x.name)}?t=${T}" alt="" style="width:100%;margin-top:8px;border-radius:8px"></div>`
+  <div class="muted" style="margin-top:8px">${RETIRED}</div></div>`
   : `<div class="row" style="display:block">
   <div style="display:flex;justify-content:space-between"><span class="k f">${x.mhz}</span>
   <span class="v muted">${x.when} · ${x.kb} KB</span></div>
-  <audio controls preload="none" src="${BASE}/clips/${x.name}?t=${T}"></audio>
+  <div class="muted" style="margin-top:6px">${RETIRED}</div>
   ${x.kind==='sq'
     ?'<div class="muted" style="margin-top:6px"><span class="pill">squelch clip</span> not transcribed</div>'
     :x.text===null?'<div class="muted" style="margin-top:6px">transcribing…</div>'
@@ -980,7 +981,9 @@ function loadClips(){api('/api/clips').then(c=>{
     :'<div class="muted" style="margin-top:6px">no speech</div>'}</div>`).join('')
   :'<div class="muted">no recordings yet</div>';});}
 
-function loadBm(){api('/api/bookmarks').then(p=>{el('bm').innerHTML=p.map(x=>
+function loadBm(){api('/api/bookmarks').then(p=>{
+ if(!Array.isArray(p)){el('bm').innerHTML='<div class="muted">'+RETIRED+'</div>';return;}
+ el('bm').innerHTML=p.map(x=>
  `<button onclick="listen('${x.f}')">${x.label}<small>${x.f} · ${x.note||''}</small></button>`).join('');});}
 function addBm(){const n=el('bmname').value.trim();if(!n)return;
  api('/api/bookmarks',{method:'POST',body:JSON.stringify({label:n,f:el('freq').value,note:'saved'})})
@@ -1034,7 +1037,7 @@ function camUnlock(){const v=el('camcode').value.trim();if(!v)return;camTok=v;lo
 function camSrc(s){if(camSource===s)return;camStopView();camSource=s;
  el('camsrc-dj').classList.toggle('on',s==='dj');el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
 function camView(on){const i=el('camimg');
- if(on){i.src=BASE+'/camera/stream?src='+camSource+'&cam='+camTok+'&t='+T+'&_='+Date.now();i.style.display='block';el('camoff').style.display='none';}
+ if(on){toast(RETIRED);}
  else{i.removeAttribute('src');i.style.display='none';el('camoff').style.display='block';}}
 function camStopView(){if(el('camimg')&&el('camimg').src)camView(false);clearTimeout(camTimer);}
 function loadCam(){
@@ -1054,7 +1057,7 @@ function camStart(){api('/api/camera/start?src='+camSource+'&cam='+camTok,{metho
  if(d.error){el('camstate').innerHTML='<div class="muted">'+d.error+'</div>';return;}
  camView(true);loadCam();});}
 function camStop(){camView(false);api('/api/camera/stop?src='+camSource+'&cam='+camTok,{method:'POST'}).then(()=>loadCam());}
-function camSnap(){window.open(BASE+'/api/camera/snap?src='+camSource+'&cam='+camTok+'&t='+T+'&_='+Date.now(),'_blank');}
+function camSnap(){toast(RETIRED);}
 
 let voiceTg='all',voiceOff=0;
 function voiceMore(){voiceOff+=100;loadVoice(undefined,true);}
@@ -1075,7 +1078,7 @@ function loadVoice(tg,append){
     <div style="display:flex;justify-content:space-between">
      <span class="k">${esc(c.tg)}</span>
      <span class="v muted">${c.when}${c.secs!=null?' · '+c.secs+'s':''} · radio ${c.src}</span></div>
-    ${c.audio?`<audio controls preload="none" src="${BASE}/p25wav/${encodeURIComponent(c.name)}?t=${T}"></audio>`
+    ${c.audio?`<div class="muted" style="margin-top:4px">${RETIRED}</div>`
      :'<div class="muted" style="margin-top:4px">audio expired — transcript kept</div>'}
     ${c.text===null?'<div class="muted" style="margin-top:6px">transcribing…</div>'
      :c.text?`<div style="margin-top:6px">${esc(c.text)}
@@ -1148,10 +1151,12 @@ function loadSentinel(){
   st.innerHTML=rows([
    ['jessy scanner',d.running?'<span class="ok">running</span>':'<span class="warn">stopped</span>'],
    ['devices heard',d.total||0],['flagged now',flagged]]);
- }).catch(()=>{st.innerHTML='<div class="muted">jessy unreachable — the app runs on the phone on its own.</div>';});
+ }).catch(()=>{st.innerHTML='<div class="muted">'+RETIRED+'</div>';});
 }
 
-function loadCaps(){api('/api/capabilities').then(c=>{el('caps').innerHTML=rows(c.map(x=>
+function loadCaps(){api('/api/capabilities').then(c=>{
+ if(!Array.isArray(c)){el('caps').innerHTML='<div class="muted">'+RETIRED+'</div>';return;}
+ el('caps').innerHTML=rows(c.map(x=>
  [x.does,x.present?'<span class="ok">'+x.tool+'</span>':'<span class="bad">missing</span>']));});}
 function loadUsage(){api('/api/usage').then(d=>{
  el('usage').innerHTML=rows([

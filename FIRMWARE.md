@@ -99,13 +99,14 @@ Physical combo (document on the faceplate): **PWR + bottom-left touch 1.2 s** â†
 
 ---
 
-## Flash (dj has the USB)
+## Flash
+
+The Memphis machine is retired. Do not copy firmware there.
 
 ```
 export PLATFORMIO_CORE_DIR=/mnt/gsdata/platformio-core
 export PATH=/home/arduino/.local/share/pio-venv/bin:$PATH
 cd /home/arduino/nodelink && pio run -e heltec_v4
-# copy firmware.bin to dj; esptool write-flash 0x10000
 ```
 
 Starter in this folder (`exopace_v4/`) is the Phase-3 overlay (BLE UART + new types + OSK sketch). Merge into `nodelink` â€” do not run a second firmware family on the same board.

@@ -1,14 +1,9 @@
 # EXOpace SDR sensor surface
 
-The Memphis ground sensor (**dj**, Tailnet `100.64.185.111`) is the operator-owned
-RTL-SDR receiver that feeds EXOpace's RF/telemetry picture. One dongle, many
-decoders. No demo signal, no synthetic tracks — RF contents are real reception
-or explicit **NO RF SAMPLES**.
+The Memphis ground sensor is retired. The public radio page and the Android radio
+tab do not call it. One USB tuner still has one owner. There is no live reader.
 
-**Phone / tablet control:** the reader is a web app (Tailnet only): `http://dj:8110`
-(`sdr-web`) — tap-to-listen, live waterfall, scanner presets, squelch capture,
-widescan, and live position maps. The web token is operator-held, never in this
-repo.
+The decoder list below is what that machine ran. It is not a live feed.
 
 ## Decoder matrix (verified)
 
