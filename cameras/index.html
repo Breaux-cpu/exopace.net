@@ -74,6 +74,13 @@
       return "";
     }
 
+    function mediaKind(url) {
+      const path = new URL(url).pathname.toLowerCase();
+      if (/\.(m3u8|mpd|mp4|webm|mov)$/.test(path) || path.includes(".stream")) return "stream";
+      if (/\.(jpe?g|png|gif|webp|bmp|avif)$/.test(path)) return "image";
+      return "link";
+    }
+
     async function load() {
       const b = map.getBounds();
       const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].map((n) => n.toFixed(4)).join(",");
@@ -97,13 +104,22 @@
           const name = props.name ? String(props.name) : "Camera";
           const image = safeHttp(props.image || "");
           const stream = safeHttp(props.stream || "");
-          let html = "<strong>" + name.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])) + "</strong>";
-          if (image) html += '<img alt="" src="' + image.replace(/"/g, "%22") + '" />';
-          if (stream) html += '<div><a href="' + stream.replace(/"/g, "%22") + '" target="_blank" rel="noopener">STREAM</a></div>';
+          let picture = "";
+          let watch = stream;
+          if (image) {
+            const kind = mediaKind(image);
+            if (kind === "image") picture = image;
+            else if (!watch) watch = image;
+          }
+          const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "%22" }[c]));
+          let html = "<strong>" + esc(name) + "</strong>";
+          if (picture) html += '<img alt="" src="' + esc(picture) + '" />';
+          if (watch) html += '<div><a href="' + esc(watch) + '" target="_blank" rel="noopener">STREAM</a></div>';
           marker.bindPopup(html);
           marker.addTo(layer);
         }
-        countEl.textContent = features.length + " IN VIEW";
+        const clipped = features.length >= 800;
+        countEl.textContent = features.length + " IN VIEW" + (clipped ? " — ZOOM FOR MORE" : "");
       } catch (err) {
         if (mine !== seq) return;
         countEl.textContent = "FEED UNREACHABLE";
