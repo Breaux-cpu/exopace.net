@@ -29,9 +29,6 @@
 /ops            /404.html 404
 /login          /404.html 404
 /app            /404.html 404
-/cameras        /maintenance/ 302
-/cameras/       /maintenance/ 302
+/cameras        /cameras/ 301
 # Apex stays on Pages. Do not send / at a tunnel.
 /               /mission/ 302
-/maintenance    https://cams.exopace.net/map 302
-/maintenance/   https://cams.exopace.net/map 302
