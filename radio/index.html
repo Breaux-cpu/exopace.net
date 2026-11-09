@@ -5,6 +5,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>EXOpace Radio</title>
 <link rel="stylesheet" href="assets/leaflet.css">
+<link rel="stylesheet" media="(max-width: 900px)" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{--bg:#070a0f;--bg2:#0b111a;--card:#0d141d;--card2:#111a26;--line:#1e2a3a;
  --text:#e6edf6;--muted:#8597ad;--accent:#38bdf8;--accent2:#22d3ee;--ok:#34d399;
@@ -78,6 +79,122 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 @media (max-width:640px){
   #decode .grid{grid-template-columns:1fr !important}
   #decode{padding-bottom:calc(48px + env(safe-area-inset-bottom))}
+}
+
+/* Phone layout for https://exopace.net/radio/
+   Applies only at max-width: 900px. Above 900px the desktop rules are untouched.
+   Load IBM Plex Mono with media="(max-width: 900px)" so desktop does not download it:
+   <link rel="stylesheet" media="(max-width: 900px)" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+   dj / jessy stay local device sources (camSrc / wifi src). */
+
+@media (max-width: 900px) {
+  :root {
+    --bg: #03060b;
+    --bg2: #03060b;
+    --card: #07111a;
+    --card2: #0a1622;
+    --line: #163246;
+    --text: #e7f6ff;
+    --muted: #8eabbd;
+    --accent: #7ee0ff;
+    --accent2: #7ee0ff;
+    --warn: #ffe08a;
+  }
+  html { background: #03060b; }
+  body {
+    background: #03060b;
+    color: var(--text);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    overflow-wrap: break-word;
+  }
+  header { background: #03060b; }
+  h1::before { background: #7ee0ff; box-shadow: 0 0 12px #7ee0ff66; }
+  nav {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  nav button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    max-width: 100%;
+  }
+  nav button.on {
+    background: transparent;
+    border-color: #7ee0ff;
+    color: #7ee0ff;
+    box-shadow: none;
+  }
+  main, section, .card, .row, .grid, .grid3, .presets, pre, table {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .grid > *, .grid3 > *, .presets > * { min-width: 0; max-width: 100%; }
+  /* 3- and 4-column strips (survey, map keys, BLE filter) do not fit a 390px mono row */
+  .grid3,
+  [style*="repeat(4"],
+  [style*="1fr 1fr 1fr 1fr"],
+  [style*="1fr 1fr 1fr;"],
+  [style*="1fr 1fr 1fr,"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  button, a.b, input, select, .leaflet-bar a {
+    min-height: 44px;
+    max-width: 100%;
+  }
+  button, .presets button { white-space: normal; }
+  input, select { min-width: 0; }
+  #freq, #bmname { min-width: 0; flex: 1 1 auto; width: auto; max-width: 100%; }
+  /* threshold field is 76x36 inline; keep it tappable */
+  #sqsq { min-height: 44px; min-width: 44px; }
+  .row { flex-wrap: wrap; min-width: 0; }
+  .v { white-space: normal; overflow-wrap: anywhere; min-width: 0; }
+  button.b, a.b {
+    background: transparent;
+    color: #7ee0ff;
+    border: 1px solid #7ee0ff;
+    box-shadow: none;
+  }
+  button.b.alt, a.b.alt {
+    color: #ffe08a;
+    border-color: #ffe08a;
+    background: transparent;
+  }
+  button.b.stop {
+    color: #ffd0c8;
+    border-color: #f87171;
+    background: transparent;
+  }
+  .presets button.on, button.b.on {
+    border-color: #7ee0ff;
+    color: #7ee0ff;
+  }
+  input:focus, select:focus { border-color: #7ee0ff; }
+  .leaflet-bar a,
+  .leaflet-touch .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+  }
+  #weeklog, #joblines, pre { overflow-x: auto; max-width: 100%; }
+  canvas, img, audio, video { max-width: 100%; }
+}
+
+/* Portrait: the two desktop-stretched controls (bookmark field ~1774px, Listen ~927px at 1920)
+   become full-width rows so neither track can exceed the phone. */
+@media (max-width: 520px) {
+  #listen div[style*="display:flex;gap:8px"],
+  #listen div[style*="display:flex;gap:7px"],
+  #listen div[style*="justify-content:space-between"] {
+    flex-wrap: wrap;
+  }
+  #freq, #bmname { flex: 1 1 100%; }
+  #listen div[style*="display:flex;gap:8px"] > button.b,
+  #listen div[style*="display:flex;gap:7px"] > button.b {
+    flex: 1 1 100%;
+    width: 100% !important;
+  }
+  #listen .grid { grid-template-columns: 1fr !important; }
+  #notifb { float: none !important; display: block; width: 100% !important; margin-top: 8px; }
 }
 </style></head><body>
 <header><h1>EXOpace Radio</h1><div class="sub" id="sub">connecting…</div>
