@@ -71,12 +71,11 @@
 /mesh/textures/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Pages keeps max-age=14400 on static files even when this file says
-# no-cache. A custom header here proves the file deployed. Long max-age
-# on /cesium/* still sticks. Bust edited files with a new ?v= in HTML.
+# Measured 2026-11-09: Cache-Control shorter than the Pages default does
+# not stick on static files. /cesium/* immutable does. /sw.js stayed
+# max-age=14400. Bust an edited file with a new ?v= on the HTML that loads it.
 /sw.js
   Cache-Control: no-cache
-  X-Exopace-Build: 2
 /mesh/sw.js
   Cache-Control: no-cache
 /env.js
