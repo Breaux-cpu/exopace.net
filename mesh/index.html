@@ -198,7 +198,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
   font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:700;
   padding:10px 12px;cursor:pointer;width:auto;min-height:44px;flex:0 0 auto}
 .conn.up{color:var(--ok);border-color:var(--ok)}
-#sheet{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end}
+#sheet{display:none;position:fixed;inset:0;background:#0008;z-index:40;align-items:flex-end}
 #sheet.show{display:flex}
 .sheet{width:100%;background:var(--panel);border-top:1px solid var(--line);
   padding:16px 14px calc(16px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}
@@ -265,11 +265,11 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
       <button class="btn" id="btnClearChat">CLEAR</button>
       <button class="btn" id="btnTz">TIME UTC</button>
     </div>
-    <input id="chatSearch" class="wayName" placeholder="Search by name or sender" style="margin-bottom:8px">
+    <input id="chatSearch" class="wayName" placeholder="Search by name or sender" aria-label="Search by name or sender" style="margin-bottom:8px">
     <div id="chatLog"></div>
     <div id="composer">
-      <select id="chatTo"><option value="*">ALL</option></select>
-      <input id="chatText" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
+      <select id="chatTo" aria-label="Send to"><option value="*">ALL</option></select>
+      <input id="chatText" aria-label="Message" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
       <button class="btn send" id="btnSendLoc" style="width:auto;flex:0 0 auto" title="Send my position">LOC</button>
       <button class="btn primary send" id="chatSend" hidden>TX</button>
     </div>
@@ -307,7 +307,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <button class="btn" id="btnMaps" hidden>OPEN IN MAPS</button>
       </div>
       <div class="row" style="margin-top:8px">
-        <select id="wayKind" hidden><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
+        <select id="wayKind" hidden aria-label="Waypoint kind"><option value="meet">meet</option><option value="hazard">hazard</option><option value="cache">cache</option><option value="home">home</option></select>
         <button class="btn" id="btnWay" hidden>DROP WAYPOINT</button>
       </div>
       <div class="sub" id="mapsHint" hidden>Maps opens when your phone has internet — the mesh itself needs none.</div>
@@ -346,7 +346,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     </div>
     <h2>Event log</h2>
     <div class="card">
-      <select id="evFilter" class="wayName" style="margin-bottom:8px">
+      <select id="evFilter" aria-label="Event filter" class="wayName" style="margin-bottom:8px">
         <option value="ALL">ALL</option>
         <option value="LINK">LINK</option>
         <option value="CHAT">CHAT</option>
@@ -408,25 +408,25 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     <h2>Node setup</h2>
     <div class="card">
       <div id="cfgForm" hidden>
-      <div class="field"><label>Node name (callsign)</label><input id="cfgName" maxlength="12"></div>
-      <div class="field"><label>Frequency (MHz)</label>
+      <div class="field"><label for="cfgName">Node name (callsign)</label><input id="cfgName" maxlength="12"></div>
+      <div class="field"><label for="cfgFreq">Frequency (MHz)</label>
         <select id="cfgFreq"><option>915.0</option><option>906.875</option><option>868.0</option><option>433.0</option></select></div>
-      <div class="field"><label>Spreading factor (7 = fast · 12 = far)</label>
+      <div class="field"><label for="cfgSf">Spreading factor (7 = fast · 12 = far)</label>
         <select id="cfgSf"><option>7</option><option>8</option><option selected>9</option><option>10</option><option>11</option><option>12</option></select></div>
-      <div class="field"><label>TX power (dBm)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
-      <div class="field"><label>Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
-      <div class="field"><label>Channel key (AES-256)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
+      <div class="field"><label for="cfgTx">TX power (dBm)</label><input id="cfgTx" type="number" min="2" max="22" value="17"></div>
+      <div class="field"><label for="cfgPass">Wi-Fi AP password (min 8)</label><input id="cfgPass" maxlength="32"></div>
+      <div class="field"><label for="cfgKey">Channel key (AES-256)</label><input id="cfgKey" maxlength="32" placeholder="shared secret, same on every node"></div>
       <button class="btn" id="cfgRefresh" style="margin-bottom:12px">REFRESH FROM RADIO</button>
       </div>
       <div class="sub" id="passHint" hidden>Set the node AP password on the radio before field use.</div>
       <div id="cfgHw" hidden>
-        <div class="field"><label>GPS report interval (sec)</label><input id="cfgGpsInt" type="number" min="5" max="300" value="30"></div>
+        <div class="field"><label for="cfgGpsInt">GPS report interval (sec)</label><input id="cfgGpsInt" type="number" min="5" max="300" value="30"></div>
         <button class="btn" id="cfgClearKey" style="margin-bottom:12px">CLEAR CHANNEL KEY</button>
         <div class="grid2">
-          <div class="field"><label>GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
-          <div class="field"><label>GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
+          <div class="field"><label for="cfgGpsRx">GPS RX pin</label><input id="cfgGpsRx" type="number"></div>
+          <div class="field"><label for="cfgGpsTx">GPS TX pin</label><input id="cfgGpsTx" type="number"></div>
         </div>
-        <div class="field"><label>GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
+        <div class="field"><label for="cfgGpsPwr">GPS power pin (-1 = none)</label><input id="cfgGpsPwr" type="number"></div>
         <button class="btn primary" id="cfgSave">SAVE &amp; REBOOT RADIO</button>
         <div class="row" style="margin-top:8px">
           <button class="btn" id="btnCfgExport">EXPORT CONFIG</button>
@@ -438,7 +438,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     </div>
     <h2>Field</h2>
     <div class="card">
-      <div class="field"><label>Arrival radius</label>
+      <div class="field"><label for="arriveR">Arrival radius</label>
         <select id="arriveR" class="wayName">
           <option value="50">50 m</option>
           <option value="100">100 m</option>
