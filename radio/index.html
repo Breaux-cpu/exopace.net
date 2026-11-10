@@ -200,7 +200,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   nav { flex-wrap: wrap; overflow: visible; }
 }
 </style></head><body>
-<header><h1>EXOpace Radio</h1><div class="sub" id="sub">RETIRED · Memphis sensor is gone</div>
+<header><h1>EXOpace Radio</h1><div class="sub" id="sub">No radio receiver on this site.</div>
 <nav>
  <button data-t="listen" class="on">Listen</button>
  <button data-t="band">Band</button>
@@ -472,8 +472,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    disrupted. Picks up drone Remote ID beacons, NAN, and known camera SSIDs.</div>
   <div id="wifistate" style="margin-top:9px"></div>
   <div class="grid" style="margin-top:9px">
-   <button class="b alt" onclick="loadWifi(undefined,'jessy')">jessy</button>
-   <button class="b alt" onclick="loadWifi(undefined,'dj')">dj</button></div>
+   <button class="b alt" onclick="loadWifi(undefined,'jessy')">jessy</button></div>
  </div>
  <div class="card"><h2>Filter</h2>
   <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px">
@@ -493,8 +492,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
      <button class="b" onclick="camUnlock()">Unlock</button></div>
    </div>
    <div id="camctl">
-   <div class="grid" style="grid-template-columns:1fr 1fr">
-    <button class="b alt" id="camsrc-dj" onclick="camSrc('dj')">dj</button>
+   <div class="grid">
     <button class="b alt" id="camsrc-jessy" onclick="camSrc('jessy')">jessy</button></div>
    <div id="camstate" style="margin-top:9px"></div>
    <img id="camimg" style="width:100%;border-radius:11px;margin-top:9px;display:none;
@@ -576,7 +574,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    and a confidence tier: weak, probable or strong.</div>
  </div>
  <div class="card"><h2>Your host</h2>
-  <div id="sentstat" class="muted">RETIRED · Memphis sensor is gone</div>
+  <div id="sentstat" class="muted">The phone app scans on its own.</div>
   <div class="muted" style="margin-top:8px;font-size:12px">Optional live peek at the Bluetooth
    observer on your own SDR host. The phone app does not need it.</div>
  </div>
@@ -592,7 +590,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </section>
 </main><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
-const RETIRED="RETIRED · Memphis sensor is gone";
+const RETIRED="No radio receiver on this site.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
 const el=id=>document.getElementById(id);
 const rows=a=>a.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')||'<div class="muted">nothing yet</div>';
@@ -1002,7 +1000,7 @@ function loadWifi(f,src){
  api('/api/wifi?src='+wifiSrc+'&f='+wifiFilter).then(d=>{
   const sm=d.summary||{};
   el('wifistate').innerHTML=rows([
-   ['vantage point',(d.host||wifiSrc)+(wifiSrc==='dj'?' (over USB link)':'')],
+   ['vantage point',(d.host||wifiSrc)],
    ['scanner',d.running?'<span class="ok">fresh</span>':'<span class="bad">stale</span>'],
    ['access points',d.total||0],
    ['drone Remote ID',sm['drone-remoteid']||0],
@@ -1035,7 +1033,7 @@ let camTimer=null,camSource='jessy',camTok=localStorage.getItem('sdrctok')||'';
 function camLocked(){return !camTok;}
 function camUnlock(){const v=el('camcode').value.trim();if(!v)return;camTok=v;localStorage.setItem('sdrctok',v);loadCam();}
 function camSrc(s){if(camSource===s)return;camStopView();camSource=s;
- el('camsrc-dj').classList.toggle('on',s==='dj');el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
+ el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
 function camView(on){const i=el('camimg');
  if(on){toast(RETIRED);}
  else{i.removeAttribute('src');i.style.display='none';el('camoff').style.display='block';}}
