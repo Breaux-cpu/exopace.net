@@ -66,7 +66,7 @@ sensor; the uploader is off unless explicitly configured.
 ## Sub-sensors on the same box
 
 - `sdr-ble` — Bluetooth observer (Remote ID drones, surveillance gear, trackers)
-- `sdr-wifi-scan` / `sdr-wifi-pull` — Wi-Fi AP census over iw + jessy vantage
+- `sdr-wifi-scan` / `sdr-wifi-pull` — Wi-Fi AP census over iw
 - `sdr-tempest` — accidental video-emission detector (`auto` one-shot verdict +
   coarse raster; `probe` single-frequency). Phone **TEMPEST → AUTO SCAN** runs
   `POST /api/tempest/auto`; rasters + `manifest.json` land in

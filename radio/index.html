@@ -471,8 +471,6 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="muted">A normal scan from the managed interface — nothing transmitted, nothing
    disrupted. Picks up drone Remote ID beacons, NAN, and known camera SSIDs.</div>
   <div id="wifistate" style="margin-top:9px"></div>
-  <div class="grid" style="margin-top:9px">
-   <button class="b alt" onclick="loadWifi(undefined,'jessy')">jessy</button></div>
  </div>
  <div class="card"><h2>Filter</h2>
   <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px">
@@ -492,8 +490,6 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
      <button class="b" onclick="camUnlock()">Unlock</button></div>
    </div>
    <div id="camctl">
-   <div class="grid">
-    <button class="b alt" id="camsrc-jessy" onclick="camSrc('jessy')">jessy</button></div>
    <div id="camstate" style="margin-top:9px"></div>
    <img id="camimg" style="width:100%;border-radius:11px;margin-top:9px;display:none;
     background:#0a0f16" alt="camera">
@@ -993,7 +989,7 @@ function iq(){el('iqout').textContent='recording…';
    loadReplays();});}
 
 let bleFilter='all',bleTimer=null;
-let wifiFilter='all',wifiSrc='jessy',wifiTimer=null;
+let wifiFilter='all',wifiSrc='',wifiTimer=null;
 function loadWifi(f,src){
  if(f!==undefined)wifiFilter=f;
  if(src!==undefined)wifiSrc=src;
@@ -1029,11 +1025,10 @@ function loadWifi(f,src){
  if(el('wifi').classList.contains('on'))wifiTimer=setTimeout(()=>loadWifi(),30000);
 }
 
-let camTimer=null,camSource='jessy',camTok=localStorage.getItem('sdrctok')||'';
+let camTimer=null,camSource='',camTok=localStorage.getItem('sdrctok')||'';
 function camLocked(){return !camTok;}
 function camUnlock(){const v=el('camcode').value.trim();if(!v)return;camTok=v;localStorage.setItem('sdrctok',v);loadCam();}
-function camSrc(s){if(camSource===s)return;camStopView();camSource=s;
- el('camsrc-jessy').classList.toggle('on',s==='jessy');loadCam();}
+function camSrc(s){if(camSource===s)return;camStopView();camSource=s;loadCam();}
 function camView(on){const i=el('camimg');
  if(on){toast(RETIRED);}
  else{i.removeAttribute('src');i.style.display='none';el('camoff').style.display='block';}}
@@ -1147,7 +1142,7 @@ function loadSentinel(){
   const sm=d.summary||{};
   const flagged=(sm['drone-remoteid']||0)+(sm['surveillance']||0)+(sm['tracker']||0);
   st.innerHTML=rows([
-   ['jessy scanner',d.running?'<span class="ok">running</span>':'<span class="warn">stopped</span>'],
+   ['scanner',d.running?'<span class="ok">running</span>':'<span class="warn">stopped</span>'],
    ['devices heard',d.total||0],['flagged now',flagged]]);
  }).catch(()=>{st.innerHTML='<div class="muted">'+RETIRED+'</div>';});
 }

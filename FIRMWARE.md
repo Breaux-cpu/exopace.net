@@ -2,7 +2,7 @@
 
 Hardware: **Heltec WiFi LoRa 32 V4 Expansion Kit** — ESP32-S3R2 + SX1262, ST7789 240×320 touch TFT, GNSS, battery, ~28 dBm-class PA.
 
-Canonical tree today: `jessy:/home/arduino/nodelink` (v2.1 on the board).  
+The named build machine is gone.  
 This folder is the Phase-3 contract + starter. **Custom EXOpace JSON is canonical. Not Meshtastic.**
 
 Phone Demo never depends on this firmware.
