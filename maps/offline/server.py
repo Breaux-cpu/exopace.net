@@ -77,6 +77,39 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        if path == "/api/geocode":
+            from urllib.parse import parse_qs, quote
+            query = self.path.split("?", 1)[1] if "?" in self.path else ""
+            text = parse_qs(query).get("q", [""])[0].strip()
+            if len(text) < 2 or len(text) > 80:
+                body = b"[]"
+            else:
+                req = urllib.request.Request(
+                    "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=" + quote(text),
+                    headers={"User-Agent": "exopace.net/maps (https://exopace.net/maps/)", "Accept": "application/json"},
+                )
+                try:
+                    with urllib.request.urlopen(req, timeout=8) as res:
+                        rows = json.loads(res.read().decode())
+                except Exception:
+                    rows = []
+                out = []
+                for row in rows[:5] if isinstance(rows, list) else []:
+                    try:
+                        lat = float(row.get("lat"))
+                        lon = float(row.get("lon"))
+                    except (TypeError, ValueError):
+                        continue
+                    if abs(lat) > 90 or abs(lon) > 180:
+                        continue
+                    out.append({"lat": lat, "lon": lon, "label": str(row.get("display_name") or "")[:140]})
+                body = json.dumps(out).encode()
+            self.send_response(200)
+            self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         parts = path.strip("/").split("/")
         if len(parts) == 5 and parts[0] == "api" and parts[1] == "terrain":
             try:

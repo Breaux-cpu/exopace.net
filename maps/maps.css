@@ -19,6 +19,22 @@ button, a { font: inherit; }
 .fm-readout strong { display: block; color: #7ee0ff; font-size: 13px; letter-spacing: 0.04em; }
 .fm-readout span { display: block; color: #9fb0b4; font-size: 11px; letter-spacing: 0.04em; }
 .fm-top .fm-actions { margin-left: auto; display: flex; gap: 8px; flex: none; }
+.fm-go { position: relative; display: flex; gap: 6px; flex: 1 1 220px; min-width: 0; }
+.fm-go input {
+  flex: 1; min-width: 0; min-height: 44px; padding: 0 10px;
+  background: transparent; color: #d7e7ea; border: 1px solid #1c2a33;
+}
+.fm-go button, #fm-suggest button {
+  min-height: 44px; padding: 0 12px; background: transparent; color: #ffe08a;
+  border: 1px solid rgba(255, 224, 138, 0.4); cursor: pointer;
+}
+#fm-suggest {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 6;
+  margin: 0; padding: 0; list-style: none; background: #070c12; border: 1px solid #1c2a33;
+  max-height: 40vh; overflow: auto;
+}
+#fm-suggest button { width: 100%; text-align: left; border: 0; border-bottom: 1px solid #1c2a33; color: #d7e7ea; }
+.fm-north { flex: 1 1 100%; margin: 0; color: #9fb0b4; font-size: 11px; letter-spacing: 0.04em; }
 .fm-body { flex: 1; min-height: 0; display: flex; }
 .fm-dock {
   width: 320px; flex: none; overflow: auto; background: #070c12;

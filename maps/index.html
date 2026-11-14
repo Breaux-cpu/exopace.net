@@ -9,7 +9,7 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
-  <link rel="stylesheet" href="maps.css?v=1" />
+  <link rel="stylesheet" href="maps.css?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -21,10 +21,16 @@
       <strong id="fm-mgrs">—</strong>
       <span id="fm-scale">SHEET</span>
     </div>
+    <form class="fm-go" id="fm-go">
+      <input id="fm-q" type="search" placeholder="Town, ZIP, MGRS, or lat, lon" autocomplete="off" enterkeyhint="go" aria-label="Find a place" />
+      <button type="submit">GO</button>
+      <ul id="fm-suggest" hidden></ul>
+    </form>
     <div class="fm-actions">
       <button type="button" id="fm-locate">LOCATE</button>
       <button type="button" id="fm-fit">SCALE</button>
     </div>
+    <p class="fm-north" id="fm-north">GN —  ·  MAG — CHART</p>
   </header>
   <div class="fm-body">
     <aside class="fm-dock">
@@ -45,6 +51,9 @@
       <div class="fm-row" style="margin-top:8px">
         <button type="button" class="fm-btn" id="fm-fill">FILL VIEW</button>
         <button type="button" class="fm-btn" id="fm-clear">CLEAR</button>
+        <button type="button" class="fm-btn" id="fm-pages">ZOOM TO PAGES</button>
+        <button type="button" class="fm-btn" id="fm-undo">UNDO</button>
+        <button type="button" class="fm-btn" id="fm-redo">REDO</button>
         <span class="fm-note" id="fm-count" style="align-self:center">0 PAGES</span>
       </div>
       <h2>BASE</h2>
@@ -75,6 +84,13 @@
         <button type="button" data-value="color" aria-pressed="true">COLOR</button>
         <button type="button" data-value="bw">BLACK</button>
       </div>
+      <h2>SECOND GRID</h2>
+      <div class="fm-seg" data-key="secondary">
+        <button type="button" data-value="off" aria-pressed="true">OFF</button>
+        <button type="button" data-value="utm">UTM</button>
+        <button type="button" data-value="latlon">LAT/LONG</button>
+      </div>
+      <p class="fm-note">UTM uses the same meter lines as the MGRS grid. Lat/long is a separate graticule.</p>
       <h2>UNITS</h2>
       <div class="fm-seg" data-key="units">
         <button type="button" data-value="metric" aria-pressed="true">METRIC</button>
@@ -96,6 +112,18 @@
       </div>
       <div class="fm-seg" data-key="layer-roads" style="margin-top:6px">
         <button type="button" data-value="true" aria-pressed="true">ROADS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-trails" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">TRAILS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-air" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">AIRFIELDS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-land" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">LAND USE</button>
         <button type="button" data-value="false">HIDE</button>
       </div>
       <div class="fm-seg" data-key="layer-rail" style="margin-top:6px">
@@ -121,9 +149,10 @@
         <a class="fm-btn" href="legend.html">LEGEND</a>
       </div>
       <h2>ATAK</h2>
-      <p>SEND TO ATAK builds a KMZ of the pages on the map. On this phone, pick ATAK on the share sheet. The XML links are online basemaps. Import them, or copy them to atak/imagery/mobile/mapsources/ and restart ATAK. Finish ATAK’s callsign screen yourself.</p>
+      <p>SEND TO ATAK builds a KMZ of the pages on the map. On this phone, pick ATAK on the share sheet. GARMIN KMZ is a Custom Map: copy it to Garmin/CustomMaps. Each image is at most 1024 px. It has not been loaded on a Garmin yet. The XML links are online basemaps. Import them, or copy them to atak/imagery/mobile/mapsources/ and restart ATAK. Finish ATAK’s callsign screen yourself.</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-atak">SEND TO ATAK</button>
+        <button type="button" class="fm-btn" id="fm-garmin">GARMIN KMZ</button>
         <a class="fm-btn" href="atak/usgs-imagery-topo.xml" download>USGS XML</a>
         <a class="fm-btn" href="atak/world-imagery.xml" download>IMAGERY XML</a>
         <a class="fm-btn" href="atak/world-hillshade.xml" download>HILL XML</a>
@@ -142,9 +171,11 @@
   <script src="mgrs.js?v=1"></script>
   <script src="sheets.js?v=1"></script>
   <script src="terrain.js?v=1"></script>
-  <script src="style.js?v=1"></script>
+  <script src="style.js?v=2"></script>
   <script src="print.js?v=1"></script>
-  <script src="atak.js?v=1"></script>
-  <script src="app.js?v=2"></script>
+  <script src="atak.js?v=2"></script>
+  <script src="search.js?v=1"></script>
+  <script src="garmin.js?v=1"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

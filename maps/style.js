@@ -43,6 +43,7 @@
           maxzoom: 15,
         },
         grid: { type: "geojson", data: empty() },
+        graticule: { type: "geojson", data: empty() },
         sheets: { type: "geojson", data: empty() },
       },
       layers: [
@@ -89,6 +90,14 @@
           id: "building", type: "fill", source: "openmaptiles", "source-layer": "building", minzoom: 13,
           paint: { "fill-color": "#ddd4c6", "fill-outline-color": "#8a8174" },
         },
+        {
+          id: "land-use", type: "fill", source: "openmaptiles", "source-layer": "landuse", minzoom: 8,
+          filter: ["match", ["get", "class"], ["park", "cemetery", "military", "quarry"], true, false],
+          paint: {
+            "fill-color": ["match", ["get", "class"], "park", "#b7c9a2", "cemetery", "#cfc6b8", "military", "#d2c4b0", "quarry", "#c8bba8", "#d5e0c2"],
+            "fill-opacity": 0.45,
+          },
+        },
         { id: "contours", type: "raster", source: "contours", paint: { "raster-opacity": 0.95 } },
         {
           id: "sheets-fill", type: "fill", source: "sheets",
@@ -107,6 +116,10 @@
         {
           id: "grid-line", type: "line", source: "grid",
           paint: { "line-color": "#1f2933", "line-opacity": 0.55, "line-width": ["case", ["==", ["get", "major"], 1], 1.1, 0.6] },
+        },
+        {
+          id: "graticule-line", type: "line", source: "graticule",
+          paint: { "line-color": "#1d4e89", "line-opacity": 0.45, "line-width": 0.8 },
         },
         label("place-major", "place", ["city", "town"], 4, 15),
         label("place-minor", "place", ["village", "hamlet", "suburb"], 10, 12),
@@ -180,7 +193,7 @@
     };
   }
 
-  var PAPER = ["land-wood", "land-grass", "land-wetland", "water", "waterway", "road-motorway-case", "road-major-case", "road-minor-case", "road-motorway", "road-major", "road-minor", "road-path", "rail", "rail-hatch", "runway", "building", "place-major", "place-minor", "road-label", "water-label", "peak-label"];
+  var PAPER = ["land-wood", "land-grass", "land-wetland", "water", "waterway", "road-motorway-case", "road-major-case", "road-minor-case", "road-motorway", "road-major", "road-minor", "road-path", "rail", "rail-hatch", "runway", "building", "land-use", "place-major", "place-minor", "road-label", "water-label", "peak-label"];
 
   function show(map, id, on) {
     if (!map.getLayer(id)) return;
@@ -193,9 +206,12 @@
       var on = paper;
       if (id === "land-wood" || id === "land-grass" || id === "land-wetland") on = paper && state.layers.woods;
       if (id === "water" || id === "waterway" || id === "water-label") on = paper && state.layers.water;
-      if (id.indexOf("road-") === 0) on = paper && state.layers.roads;
+      if (id.indexOf("road-") === 0 && id !== "road-path") on = paper && state.layers.roads;
+      if (id === "road-path") on = paper && state.layers.trails !== false;
       if (id === "rail" || id === "rail-hatch") on = paper && state.layers.rail;
+      if (id === "runway") on = paper && state.layers.air !== false;
       if (id === "building") on = paper && state.layers.buildings;
+      if (id === "land-use") on = paper && state.layers.land !== false;
       if (id === "peak-label") on = paper && state.layers.peaks;
       if (id === "place-major") on = true;
       if (id === "place-minor" || id === "road-label") on = paper && state.labels === "full" && state.layers.roads;
@@ -211,7 +227,8 @@
       map.setPaintProperty("hill-esri", "raster-opacity", state.hill === "sharp" ? 0.72 : 0.38);
     }
     show(map, "contours", state.contours !== "off");
-    show(map, "grid-line", state.layers.grid);
+    show(map, "grid-line", !!(state.layers.grid || state.secondary === "utm"));
+    show(map, "graticule-line", state.secondary === "latlon");
     var canvas = map.getCanvas();
     canvas.style.filter = state.ink === "bw" ? "grayscale(1) contrast(1.12)" : "";
   }

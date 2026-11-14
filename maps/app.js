@@ -10,10 +10,18 @@
     contours: "full",
     base: "paper",
     offline: false,
-    layers: { woods: true, water: true, roads: true, rail: true, buildings: true, peaks: true, grid: true },
+    secondary: "off",
+    layers: {
+      woods: true, water: true, roads: true, trails: true, rail: true,
+      air: true, buildings: true, land: true, peaks: true, grid: true,
+    },
     sheets: [],
     active: null,
   };
+  var past = [];
+  var future = [];
+  var magCache = {};
+  var magTimer = null;
 
   var map;
   var drag = null;
@@ -41,6 +49,76 @@
     $("fm-scale").textContent = "SCREEN 1:" + screenScale().toLocaleString("en-US")
       + "  ·  SHEET 1:" + Number(state.scale).toLocaleString("en-US");
     $("fm-count").textContent = state.sheets.length + " PAGE" + (state.sheets.length === 1 ? "" : "S");
+    var north = $("fm-north");
+    if (north) north.textContent = northText(c);
+    var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);
+    if (magCache[key] === undefined) {
+      clearTimeout(magTimer);
+      magTimer = setTimeout(fetchMag, 700);
+    }
+  }
+
+  function northText(c) {
+    try {
+      var g = EXO.mgrs.convergence(c.lat, c.lng);
+      var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);
+      var mag = Object.prototype.hasOwnProperty.call(magCache, key) ? magCache[key] : undefined;
+      var magText = mag === undefined ? "MAG …" : mag == null ? "MAG — CHART" : "MN " + Math.abs(mag).toFixed(1) + "° " + (mag >= 0 ? "E" : "W");
+      return "GN " + Math.abs(g).toFixed(1) + "° " + (g >= 0 ? "E" : "W") + "  ·  " + magText;
+    } catch (err) {
+      return "GN —  ·  MAG — CHART";
+    }
+  }
+
+  async function fetchMag() {
+    if (!map) return;
+    var c = map.getCenter();
+    var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);
+    if (magCache[key] === undefined) magCache[key] = await EXO.print.magDecl(c.lat, c.lng);
+    var north = $("fm-north");
+    if (north) north.textContent = northText(map.getCenter());
+  }
+
+  function snap() {
+    return {
+      scale: state.scale,
+      orient: state.orient,
+      active: state.active,
+      sheets: state.sheets.map(function (s) {
+        return [s.zone, s.hemi, s.e0, s.n0, s.scale, s.orient];
+      }),
+    };
+  }
+
+  function restore(item) {
+    state.scale = item.scale;
+    state.orient = item.orient;
+    state.sheets = item.sheets.map(function (b) {
+      return EXO.sheets.make(b[0], b[1], b[2], b[3], b[4], b[5]);
+    });
+    state.active = item.active;
+    paintChips();
+    syncSheets();
+  }
+
+  function remember() {
+    past.push(snap());
+    if (past.length > 40) past.shift();
+    future = [];
+  }
+
+  function undo() {
+    if (!past.length) return;
+    future.push(snap());
+    restore(past.pop());
+    setStatus("UNDO");
+  }
+
+  function redo() {
+    if (!future.length) return;
+    past.push(snap());
+    restore(future.pop());
+    setStatus("REDO");
   }
 
   function sheetFC() {
@@ -63,11 +141,12 @@
     writeHash();
   }
 
-  function addSheet(lat, lon) {
+  function addSheet(lat, lon, quiet) {
     if (state.sheets.length >= 24) {
       setStatus("24 PAGE LIMIT");
       return;
     }
+    if (!quiet) remember();
     var sheet;
     try { sheet = EXO.sheets.at(lat, lon, state.scale, state.orient); }
     catch (err) { setStatus("OUTSIDE THE SHEET GRID"); return; }
@@ -81,6 +160,7 @@
   }
 
   function removeSheet(id) {
+    remember();
     state.sheets = state.sheets.filter(function (s) { return s.id !== id; });
     if (state.active === id) state.active = state.sheets.length ? state.sheets[state.sheets.length - 1].id : null;
     syncSheets();
@@ -165,6 +245,46 @@
     src.setData({ type: "FeatureCollection", features: features });
   }
 
+  function graticuleStep(zoom) {
+    if (zoom < 4) return 10;
+    if (zoom < 6) return 5;
+    if (zoom < 8) return 1;
+    if (zoom < 10) return 0.5;
+    if (zoom < 12) return 0.1;
+    return 0.05;
+  }
+
+  function syncGraticule() {
+    var src = map.getSource("graticule");
+    if (!src) return;
+    if (state.secondary !== "latlon") {
+      src.setData(EXO.mapStyle.empty());
+      return;
+    }
+    var b = map.getBounds();
+    var step = graticuleStep(map.getZoom());
+    var west = Math.max(-180, Math.floor(b.getWest() / step) * step);
+    var east = Math.min(180, Math.ceil(b.getEast() / step) * step);
+    var south = Math.max(-80, Math.floor(b.getSouth() / step) * step);
+    var north = Math.min(84, Math.ceil(b.getNorth() / step) * step);
+    var features = [];
+    for (var lon = west; lon <= east && features.length < 400; lon += step) {
+      features.push({
+        type: "Feature",
+        properties: {},
+        geometry: { type: "LineString", coordinates: [[lon, south], [lon, north]] },
+      });
+    }
+    for (var lat = south; lat <= north && features.length < 800; lat += step) {
+      features.push({
+        type: "Feature",
+        properties: {},
+        geometry: { type: "LineString", coordinates: [[west, lat], [east, lat]] },
+      });
+    }
+    src.setData({ type: "FeatureCollection", features: features });
+  }
+
   function writeHash() {
     if (!map) return;
     var c = map.getCenter();
@@ -237,6 +357,7 @@
   }
 
   function fillBounds(b) {
+    remember();
     var ground = EXO.sheets.size(state.scale, state.orient);
     var mid = (b.getSouth() + b.getNorth()) / 2;
     var dLat = ground.hM / 111320 * 0.85;
@@ -249,7 +370,7 @@
           syncSheets();
           return;
         }
-        addSheet(lat, lon);
+        addSheet(lat, lon, true);
       }
     }
     setStatus("PAGES FILLED");
@@ -390,6 +511,111 @@
     }
   }
 
+  async function fitJpeg(canvas) {
+    var max = 1024;
+    var scale = Math.min(1, max / canvas.width, max / canvas.height);
+    if (scale === 1) return jpegOf(canvas);
+    var copy = document.createElement("canvas");
+    copy.width = Math.max(1, Math.round(canvas.width * scale));
+    copy.height = Math.max(1, Math.round(canvas.height * scale));
+    copy.getContext("2d").drawImage(canvas, 0, 0, copy.width, copy.height);
+    return jpegOf(copy);
+  }
+
+  async function sendGarmin() {
+    try {
+      var pack = await renderSheets(true);
+      if (pack.sheets.length > 100) {
+        setStatus("GARMIN LIMIT IS 100 IMAGES");
+        return;
+      }
+      var jpegs = [];
+      for (var i = 0; i < pack.canvases.length; i++) jpegs.push(await fitJpeg(pack.canvases[i]));
+      var bytes = EXO.garmin.kmz(pack.sheets, jpegs);
+      saveBytes(bytes, "exopace-garmin.kmz", "application/vnd.google-earth.kmz");
+      setStatus("GARMIN KMZ — COPY TO Garmin/CustomMaps");
+    } catch (err) {
+      setStatus("GARMIN EXPORT FAILED");
+    }
+  }
+
+  function flyTo(hit) {
+    map.flyTo({ center: [hit.lon, hit.lat], zoom: hit.zoom || 12 });
+    setStatus(hit.label || "FOUND");
+  }
+
+  function hideSuggest() {
+    var list = $("fm-suggest");
+    if (!list) return;
+    list.hidden = true;
+    list.innerHTML = "";
+  }
+
+  function showSuggest(rows) {
+    var list = $("fm-suggest");
+    list.innerHTML = "";
+    if (!rows.length) { list.hidden = true; return; }
+    rows.forEach(function (row) {
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = row.label;
+      btn.onclick = function () {
+        hideSuggest();
+        $("fm-q").value = row.label;
+        flyTo({ lon: row.lon, lat: row.lat, zoom: 13, label: row.label });
+      };
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+    list.hidden = false;
+  }
+
+  var suggestTimer = null;
+  function queueSuggest() {
+    clearTimeout(suggestTimer);
+    var q = $("fm-q").value.trim();
+    if (EXO.search.parse(q) || q.length < 3) { hideSuggest(); return; }
+    suggestTimer = setTimeout(async function () {
+      try {
+        var res = await fetch("/api/geocode?q=" + encodeURIComponent(q));
+        if (!res.ok) return;
+        var rows = await res.json();
+        if ($("fm-q").value.trim() === q) showSuggest(rows);
+      } catch (err) {}
+    }, 350);
+  }
+
+  async function goSearch(ev) {
+    ev.preventDefault();
+    var q = $("fm-q").value.trim();
+    var hit = null;
+    try { hit = EXO.search.parse(q); } catch (err) { setStatus("BAD MGRS"); return; }
+    if (hit) { hideSuggest(); flyTo(hit); return; }
+    setStatus("SEARCHING");
+    try {
+      var res = await fetch("/api/geocode?q=" + encodeURIComponent(q));
+      var rows = res.ok ? await res.json() : [];
+      if (!rows.length) { setStatus("NO MATCH"); hideSuggest(); return; }
+      hideSuggest();
+      flyTo({ lon: rows[0].lon, lat: rows[0].lat, zoom: 13, label: rows[0].label });
+    } catch (err) {
+      setStatus("SEARCH FAILED");
+    }
+  }
+
+  function zoomToPages() {
+    if (!state.sheets.length) { setStatus("NO PAGES"); return; }
+    var bounds = new maplibregl.LngLatBounds();
+    state.sheets.forEach(function (s) {
+      bounds.extend([s.sw.lon, s.sw.lat]);
+      bounds.extend([s.ne.lon, s.ne.lat]);
+      bounds.extend([s.se.lon, s.se.lat]);
+      bounds.extend([s.nw.lon, s.nw.lat]);
+    });
+    map.fitBounds(bounds, { padding: 36, duration: 400 });
+  }
+
   async function saveToCopy() {
     if (!state.offline) {
       setStatus("SHEET SAVE RUNS ON THE VQ COPY");
@@ -435,6 +661,7 @@
         if (key.indexOf("layer-") === 0) {
           state.layers[key.slice(6)] = value === "true";
         } else if (key === "scale") {
+          remember();
           state.scale = Number(value);
           state.sheets = [];
           state.active = null;
@@ -445,7 +672,10 @@
           state[key] = value;
         }
         applyStyle();
-        if (key === "contours" || key === "hill") syncGrid();
+        if (key === "contours" || key === "hill" || key === "secondary" || key.indexOf("layer-") === 0) {
+          syncGrid();
+          syncGraticule();
+        }
       });
     });
     $("fm-locate").onclick = function () {
@@ -456,8 +686,12 @@
       }, function () { setStatus("NO GPS FIX"); }, { enableHighAccuracy: true, timeout: 8000 });
     };
     $("fm-fit").onclick = zoomToScale;
+    $("fm-pages").onclick = zoomToPages;
+    $("fm-undo").onclick = undo;
+    $("fm-redo").onclick = redo;
     $("fm-fill").onclick = fillView;
     $("fm-clear").onclick = function () {
+      remember();
       state.sheets = [];
       state.active = null;
       syncSheets();
@@ -465,9 +699,26 @@
     };
     $("fm-pdf").onclick = downloadPdf;
     $("fm-atak").onclick = sendAtak;
+    $("fm-garmin").onclick = sendGarmin;
     $("fm-save").onclick = saveToCopy;
+    $("fm-go").addEventListener("submit", goSearch);
+    $("fm-q").addEventListener("input", queueSuggest);
+    $("fm-q").addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") hideSuggest();
+    });
     document.addEventListener("keydown", function (ev) {
       if (ev.target.closest("input, select, textarea")) return;
+      if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") {
+        ev.preventDefault();
+        if (ev.shiftKey) redo();
+        else undo();
+        return;
+      }
+      if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "y") {
+        ev.preventDefault();
+        redo();
+        return;
+      }
       var sheet = activeSheet();
       if (!sheet) return;
       var de = 0;
@@ -478,6 +729,7 @@
       else if (ev.key === "ArrowUp") dn = 1000;
       else return;
       ev.preventDefault();
+      remember();
       var next = EXO.sheets.nudge(sheet, de, dn);
       next = EXO.sheets.snapEdges(next, state.sheets);
       replaceActive(next);
@@ -489,10 +741,11 @@
       applyStyle();
       syncSheets();
       syncGrid();
+      syncGraticule();
       readout();
     });
     map.on("move", readout);
-    map.on("moveend", function () { syncGrid(); writeHash(); });
+    map.on("moveend", function () { syncGrid(); syncGraticule(); writeHash(); });
     map.on("click", function (ev) {
       if (moved) { moved = false; return; }
       var id = hitSheet(ev.point);
@@ -522,6 +775,7 @@
       var de = Math.round((u.easting - drag.e) / 1000) * 1000;
       var dn = Math.round((u.northing - drag.n) / 1000) * 1000;
       if (!de && !dn) return;
+      if (!moved) remember();
       moved = true;
       var next = EXO.sheets.nudge(drag.sheet, de, dn);
       next = EXO.sheets.snapEdges(next, state.sheets);

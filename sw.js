@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v80";
+const CACHE = "exopace-moc-v81";
 // Icons + manifest only. Never pin in-place HUD (index.html / env / overlay) —
 // a stale SW precache is how guests first-painted ?v=11 after ?v=13 published.
 const ASSETS = [
@@ -33,7 +33,7 @@ function skip(url) {
   if (p === "/mesh" || p.startsWith("/mesh/")) return true;
   if (p === "/radio" || p.startsWith("/radio/")) return true;
   if (p === "/maps" || p.startsWith("/maps/")) return true;
-  if (p.startsWith("/api/terrain/")) return true;
+  if (p.startsWith("/api/terrain/") || p.startsWith("/api/geocode")) return true;
   if (p.startsWith("/cesium/")) return true;
   if (p.startsWith("/protocol/")) return true;
   if (p.startsWith("/scripts/")) return true;

@@ -15,6 +15,8 @@ FILES=(
   maps/style.js
   maps/print.js
   maps/atak.js
+  maps/search.js
+  maps/garmin.js
   maps/app.js
   maps/sw.js
   maps/manifest.webmanifest
