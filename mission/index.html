@@ -184,8 +184,9 @@
       }
       .site-header .open-globe:hover { color: #fff4c8; border-color: #ffe08a; }
       @media (max-width: 800px) {
+        .site-header { height: auto; }
         .site-header .nav__links { display: none; }
-        .site-header .nav { gap: 12px; padding: 0 14px; max-width: 100%; min-width: 0; }
+        .site-header .nav { gap: 12px; padding: 0 14px; max-width: 100%; min-width: 0; height: auto; min-height: 66px; flex-wrap: wrap; }
         .site-header .brand { letter-spacing: 0.18em; min-height: 44px; }
         .site-header .open-globe {
           letter-spacing: 0.08em;
@@ -230,6 +231,7 @@
           <a href="https://exopace.net/mission/" aria-current="page">Mission Control</a>
         </nav>
         <div class="nav__actions">
+          <a class="open-globe" href="/maps/">Maps</a>
           <span class="open-globe" aria-current="page">Mission Control</span>
         </div>
       </div>

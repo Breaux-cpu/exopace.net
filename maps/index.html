@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#03060b" />
+  <meta name="description" content="EXOpace field maps. MGRS sheets, contours, and letter-size prints for land navigation and ATAK." />
+  <title>EXOpace — Field Maps</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
+  <link rel="stylesheet" href="maps.css?v=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="fm-top">
+    <a class="fm-brand" href="/mission/">EXOPACE</a>
+    <div class="fm-readout">
+      <strong id="fm-mgrs">—</strong>
+      <span id="fm-scale">SHEET</span>
+    </div>
+    <div class="fm-actions">
+      <button type="button" id="fm-locate">LOCATE</button>
+      <button type="button" id="fm-fit">SCALE</button>
+    </div>
+  </header>
+  <div class="fm-body">
+    <aside class="fm-dock">
+      <p class="fm-status" id="fm-status">LOADING</p>
+      <p>Click a page. Click it again to drop it. Shift-drag fills an area. Drag a page; it steps 1 km and snaps to its neighbours. Arrow keys nudge the selected page.</p>
+      <h2>SCALE</h2>
+      <div class="fm-seg" data-key="scale">
+        <button type="button" data-value="25000">1:25k</button>
+        <button type="button" data-value="50000" aria-pressed="true">1:50k</button>
+        <button type="button" data-value="100000">1:100k</button>
+        <button type="button" data-value="250000">1:250k</button>
+      </div>
+      <h2>PAGE</h2>
+      <div class="fm-seg" data-key="orient">
+        <button type="button" data-value="portrait" aria-pressed="true">PORTRAIT</button>
+        <button type="button" data-value="landscape">LANDSCAPE</button>
+      </div>
+      <div class="fm-row" style="margin-top:8px">
+        <button type="button" class="fm-btn" id="fm-fill">FILL VIEW</button>
+        <button type="button" class="fm-btn" id="fm-clear">CLEAR</button>
+        <span class="fm-note" id="fm-count" style="align-self:center">0 PAGES</span>
+      </div>
+      <h2>BASE</h2>
+      <div class="fm-seg" data-key="base">
+        <button type="button" data-value="paper" aria-pressed="true">PAPER</button>
+        <button type="button" data-value="imagery">IMAGERY</button>
+        <button type="button" data-value="usgs">USGS</button>
+      </div>
+      <h2>HILLSHADE</h2>
+      <div class="fm-seg" data-key="hill">
+        <button type="button" data-value="off">OFF</button>
+        <button type="button" data-value="soft" aria-pressed="true">SOFT</button>
+        <button type="button" data-value="sharp">SHARP</button>
+      </div>
+      <h2>CONTOURS</h2>
+      <div class="fm-seg" data-key="contours">
+        <button type="button" data-value="off">OFF</button>
+        <button type="button" data-value="sparse">SPARSE</button>
+        <button type="button" data-value="full" aria-pressed="true">FULL</button>
+      </div>
+      <h2>LABELS</h2>
+      <div class="fm-seg" data-key="labels">
+        <button type="button" data-value="sparse" aria-pressed="true">SPARSE</button>
+        <button type="button" data-value="full">FULL</button>
+      </div>
+      <h2>INK</h2>
+      <div class="fm-seg" data-key="ink">
+        <button type="button" data-value="color" aria-pressed="true">COLOR</button>
+        <button type="button" data-value="bw">BLACK</button>
+      </div>
+      <h2>UNITS</h2>
+      <div class="fm-seg" data-key="units">
+        <button type="button" data-value="metric" aria-pressed="true">METRIC</button>
+        <button type="button" data-value="imperial">IMPERIAL</button>
+      </div>
+      <h2>VIEW</h2>
+      <div class="fm-seg" data-key="pitch">
+        <button type="button" data-value="2d" aria-pressed="true">2D</button>
+        <button type="button" data-value="3d">3D</button>
+      </div>
+      <h2>LAYERS</h2>
+      <div class="fm-seg" data-key="layer-woods">
+        <button type="button" data-value="true" aria-pressed="true">WOODS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-water" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">WATER</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-roads" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">ROADS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-rail" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">RAIL</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-buildings" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">BUILDINGS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-peaks" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">PEAKS</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-grid" style="margin-top:6px">
+        <button type="button" data-value="true" aria-pressed="true">MGRS GRID</button>
+        <button type="button" data-value="false">HIDE</button>
+      </div>
+      <h2>PRINT</h2>
+      <p>US Letter. Print at actual size. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar.</p>
+      <div class="fm-row">
+        <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
+        <a class="fm-btn" href="legend.html">LEGEND</a>
+      </div>
+      <h2>ATAK</h2>
+      <p>SEND TO ATAK builds a KMZ of the pages on the map. On this phone, pick ATAK on the share sheet. The XML links are online basemaps. Import them, or copy them to atak/imagery/mobile/mapsources/ and restart ATAK. Finish ATAK’s callsign screen yourself.</p>
+      <div class="fm-row">
+        <button type="button" class="fm-btn" id="fm-atak">SEND TO ATAK</button>
+        <a class="fm-btn" href="atak/usgs-imagery-topo.xml" download>USGS XML</a>
+        <a class="fm-btn" href="atak/world-imagery.xml" download>IMAGERY XML</a>
+        <a class="fm-btn" href="atak/world-hillshade.xml" download>HILL XML</a>
+      </div>
+      <h2>OFFLINE COPY</h2>
+      <p>The public site stays on Cloudflare. vq can download a private copy with <span style="color:#ffe08a">maps/offline/pull.sh</span>. That copy is not the live site. World elevation is stored only as far as free disk allows. Military-scale detail is saved per page.</p>
+      <div class="fm-row">
+        <button type="button" class="fm-btn" id="fm-save">SAVE SHEETS TO COPY</button>
+        <a class="fm-btn" href="offline/pull.sh" download>PULL SCRIPT</a>
+      </div>
+      <p class="fm-note">Roads and names are OpenStreetMap via OpenFreeMap. Relief is AWS Terrain Tiles. USGS and Esri layers keep their own credits in the corner.</p>
+    </aside>
+    <div class="fm-stage"><div id="fm-map"></div></div>
+  </div>
+  <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
+  <script src="mgrs.js?v=1"></script>
+  <script src="sheets.js?v=1"></script>
+  <script src="terrain.js?v=1"></script>
+  <script src="style.js?v=1"></script>
+  <script src="print.js?v=1"></script>
+  <script src="atak.js?v=1"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>

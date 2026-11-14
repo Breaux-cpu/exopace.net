@@ -1,0 +1,28 @@
+EXOpace field maps on ATAK-CIV
+
+ATAK was not installed on this phone when this folder was written.
+These files are map sources. They are not a TAK server and they do not join a team.
+
+Install the official app
+1. Play Store: ATAK-CIV, package com.atakmap.app.civ. That build is older than the current release.
+2. Current build: https://tak.gov/products — ATAK-CIV. Sign in, then download the file whose name ends in civ-release.apk and install it.
+Do not install ATAK from an unofficial APK site.
+
+First open
+Accept the agreement and set a callsign. This setup cannot tap those screens. Allow location and storage when ATAK asks.
+
+Basemaps
+usgs-imagery-topo.xml    EXOpace USGS Imagery Topo
+world-imagery.xml         EXOpace World Imagery
+world-hillshade.xml       EXOpace Hillshade
+
+The same three files are copied to:
+Internal storage/atak/imagery/mobile/mapsources/
+
+If the first launch rebuilds that folder, copy the three XML files there again and restart ATAK.
+Open the map list and pick an EXOpace name. If a name is missing, use Import Manager, choose Local SD, and open this Download folder.
+
+Sheets
+On the field-map page, drop letter pages, then tap SEND TO ATAK.
+Pick ATAK on the share sheet. Or open exopace-field-map.kmz from Downloads with ATAK.
+Import Manager lists it as a ground overlay. It is a picture of those pages, not a live slippy map.

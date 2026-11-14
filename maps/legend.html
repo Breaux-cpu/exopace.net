@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EXOpace — Field map legend</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <style>
+    body { margin: 0; background: #f4efe4; color: #14202a; font: 13px/1.45 "IBM Plex Mono", ui-monospace, monospace; }
+    main { width: 210mm; margin: 0 auto; padding: 12mm; }
+    h1 { font-size: 16px; letter-spacing: 0.14em; margin: 0 0 8px; }
+    h2 { font-size: 12px; letter-spacing: 0.12em; margin: 16px 0 6px; }
+    a { color: #0f4c5c; }
+    table { border-collapse: collapse; width: 100%; }
+    td { border-bottom: 1px solid #d9d0bc; padding: 6px 4px; vertical-align: top; }
+    .sw { display: inline-block; width: 28px; height: 8px; margin-right: 8px; vertical-align: middle; }
+    @media print { a { color: inherit; text-decoration: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>EXOPACE FIELD MAP</h1>
+    <p>Read a grid square from the southwest corner. The two large digits on a line are the 10 km and 1 km figures. A 1:50,000 sheet is 8 km by 10 km on portrait letter paper. Print at actual size. The 100 mm bar must measure 100 mm.</p>
+    <h2>SYMBOLS</h2>
+    <table>
+      <tr><td><i class="sw" style="background:#8a5a32"></i>Contour. Index lines are darker.</td></tr>
+      <tr><td><i class="sw" style="background:#b7d0e2"></i>Water</td></tr>
+      <tr><td><i class="sw" style="background:#b7c7a4"></i>Woods, from OpenStreetMap land cover</td></tr>
+      <tr><td><i class="sw" style="background:#d2563a"></i>Motorway</td></tr>
+      <tr><td><i class="sw" style="background:#e6d7a8;border:1px solid #8a7044"></i>Primary and secondary roads</td></tr>
+      <tr><td><i class="sw" style="background:#3a3a3a"></i>Rail</td></tr>
+      <tr><td><i class="sw" style="background:#1f2933"></i>MGRS / UTM grid</td></tr>
+    </table>
+    <h2>GRID</h2>
+    <p>Example: 15S YU 688 934 is a 100 m square. 15S is the zone and latitude band. YU is the 100 km square. 688 is easting to 100 m. 934 is northing to 100 m. Read right, then up.</p>
+    <h2>COLLAR</h2>
+    <p>Grid convergence is grid-to-true, east positive. Magnetic declination is the World Magnetic Model when the chart can reach NOAA. If that line says to use a current chart, do that. Do not invent a declination.</p>
+    <p><a href="./">Back to the map</a></p>
+  </main>
+</body>
+</html>

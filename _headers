@@ -122,3 +122,13 @@
   Cache-Control: no-cache
 /tle/weather.txt
   Cache-Control: no-cache
+/maps/index.html
+  Cache-Control: no-cache
+/maps/app.js
+  Cache-Control: no-cache
+/maps/sw.js
+  Cache-Control: no-cache
+/maps/maps.css
+  Cache-Control: no-cache
+/maps/vendor/*
+  Cache-Control: public, max-age=31536000, immutable

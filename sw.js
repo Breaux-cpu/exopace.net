@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v79";
+const CACHE = "exopace-moc-v80";
 // Icons + manifest only. Never pin in-place HUD (index.html / env / overlay) —
 // a stale SW precache is how guests first-painted ?v=11 after ?v=13 published.
 const ASSETS = [
@@ -32,6 +32,8 @@ function skip(url) {
   // Mesh radio and SDR app have their own scopes. Never steal them.
   if (p === "/mesh" || p.startsWith("/mesh/")) return true;
   if (p === "/radio" || p.startsWith("/radio/")) return true;
+  if (p === "/maps" || p.startsWith("/maps/")) return true;
+  if (p.startsWith("/api/terrain/")) return true;
   if (p.startsWith("/cesium/")) return true;
   if (p.startsWith("/protocol/")) return true;
   if (p.startsWith("/scripts/")) return true;
@@ -59,7 +61,7 @@ self.addEventListener("install", (e) => {
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE && !k.startsWith("exopace-maps")).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

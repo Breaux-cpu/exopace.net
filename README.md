@@ -6,6 +6,7 @@ One brand. Two surfaces. One protocol.
 |---------|-----|------|
 | **MOC** | https://exopace.net | Planetary / orbital mission control (Cesium) |
 | **Radio** | https://exopace.net/radio/ | Installable field radio PWA |
+| **Field maps** | https://exopace.net/maps/ | MGRS letter sheets, print, and ATAK KMZ |
 | **SDR** | `SDR.md` | Memphis RF sensor surface: decoder matrix + live view |
 | **Firmware** | `FIRMWARE.md` | Heltec V4 contract |
 
