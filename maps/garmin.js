@@ -5,6 +5,11 @@
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  function spansDateLine(sheet) {
+    var lons = [sheet.sw.lon, sheet.se.lon, sheet.ne.lon, sheet.nw.lon];
+    return Math.max.apply(null, lons) - Math.min.apply(null, lons) > 180;
+  }
+
   function box(sheet) {
     var lats = [sheet.sw.lat, sheet.se.lat, sheet.ne.lat, sheet.nw.lat];
     var lons = [sheet.sw.lon, sheet.se.lon, sheet.ne.lon, sheet.nw.lon];
@@ -24,6 +29,7 @@
     ];
     var files = [];
     sheets.forEach(function (sheet, i) {
+      if (spansDateLine(sheet)) return;
       var b = box(sheet);
       var turn = root.EXO.mgrs.convergence(sheet.mid.lat, sheet.mid.lon, sheet.zone);
       var href = "files/tile-" + i + ".jpg";
@@ -44,6 +50,6 @@
   }
 
   root.EXO = root.EXO || {};
-  root.EXO.garmin = { kmz: kmz, box: box };
+  root.EXO.garmin = { kmz: kmz, box: box, spansDateLine: spansDateLine };
   if (typeof module === "object" && module.exports) module.exports = root.EXO.garmin;
 })(typeof globalThis !== "undefined" ? globalThis : this);

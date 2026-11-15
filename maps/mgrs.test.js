@@ -70,4 +70,38 @@ assert.strictEqual(moved.n0, sheet.n0 - 1000);
 const land = sheets.size(50000, "landscape");
 assert.strictEqual(land.wKm, 10);
 assert.strictEqual(land.hKm, 8);
+
+const fine = sheets.paper(24000, "portrait");
+assert.strictEqual(fine.neatWmm, 160);
+assert.strictEqual(fine.neatHmm, 200);
+const s15 = sheets.size(15000, "portrait");
+const s24 = sheets.size(24000, "portrait");
+const s48 = sheets.size(48000, "portrait");
+assert.strictEqual(s15.wM, 2400);
+assert.strictEqual(s15.hM, 3000);
+assert.strictEqual(s24.wM, 3840);
+assert.strictEqual(s24.hM, 4800);
+assert.strictEqual(s48.wM, 7680);
+assert.strictEqual(s48.hM, 9600);
+assert.deepStrictEqual(sheets.scales, [15000, 24000, 25000, 48000, 50000, 100000, 250000]);
+assert.strictEqual(sheets.viewFromHash(""), null);
+assert.strictEqual(sheets.viewFromHash("#scale=50000"), null);
+assert.strictEqual(sheets.viewFromHash("#z=4"), null);
+const gulf = sheets.viewFromHash("#lat=0&lon=0");
+assert.deepStrictEqual(gulf.center, [0, 0]);
+assert.strictEqual(gulf.zoom, 12);
+const memphis = sheets.viewFromHash("#lat=35.15&lon=-90.05");
+assert.deepStrictEqual(memphis.center, [-90.05, 35.15]);
+assert.strictEqual(memphis.zoom, 12);
+const zoomed = sheets.viewFromHash("#lat=35.15&lon=-90.05&z=11.5");
+assert.strictEqual(zoomed.zoom, 11.5);
+assert.strictEqual(sheets.viewFromHash("#lat=95&lon=0"), null);
+assert.strictEqual(sheets.viewFromHash("#lat=&lon="), null);
+
+const garmin = require("./garmin.js");
+assert.strictEqual(garmin.spansDateLine({
+  sw: { lon: 179 }, se: { lon: -179 }, ne: { lon: -179 }, nw: { lon: 179 },
+}), true);
+assert.strictEqual(garmin.spansDateLine(sheet), false);
+
 console.log("mgrs ok", origin, vegas, sheet.name);

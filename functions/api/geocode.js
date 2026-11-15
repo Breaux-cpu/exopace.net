@@ -1,8 +1,16 @@
 export async function onRequest(context) {
+  const headers = { "content-type": "application/json; charset=utf-8" };
+  if (context.request.method !== "GET") {
+    return new Response("[]", { status: 405, headers: { allow: "GET", "content-type": headers["content-type"] } });
+  }
+  const origin = context.request.headers.get("origin");
+  if (origin && origin !== "https://exopace.net" && origin !== "https://www.exopace.net") {
+    return new Response("[]", { status: 403, headers: headers });
+  }
   const q = new URL(context.request.url).searchParams.get("q");
   const text = String(q || "").trim();
   if (text.length < 2 || text.length > 80) {
-    return new Response("[]", { headers: { "content-type": "application/json; charset=utf-8" } });
+    return new Response("[]", { headers: headers });
   }
   const upstream = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=" + encodeURIComponent(text);
   const res = await fetch(upstream, {
@@ -12,7 +20,7 @@ export async function onRequest(context) {
     },
   });
   if (!res.ok) {
-    return new Response("[]", { status: 200, headers: { "content-type": "application/json; charset=utf-8" } });
+    return new Response("[]", { status: 200, headers: headers });
   }
   const rows = await res.json();
   const out = (Array.isArray(rows) ? rows : []).slice(0, 5).map(function (row) {
@@ -26,7 +34,7 @@ export async function onRequest(context) {
   });
   return new Response(JSON.stringify(out), {
     headers: {
-      "content-type": "application/json; charset=utf-8",
+      "content-type": headers["content-type"],
       "cache-control": "public, max-age=300",
     },
   });

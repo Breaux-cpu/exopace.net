@@ -304,26 +304,24 @@
 
   function readHash() {
     var q = new URLSearchParams(location.hash.replace(/^#/, ""));
-    if (q.get("scale")) state.scale = Number(q.get("scale")) || state.scale;
+    var scale = Number(q.get("scale"));
+    if (EXO.sheets.scales.indexOf(scale) >= 0) state.scale = scale;
     if (q.get("orient") === "landscape" || q.get("orient") === "portrait") state.orient = q.get("orient");
     var raw = q.get("sheets");
     if (raw) {
       state.sheets = raw.split(",").map(function (part) {
         var b = part.split(":");
         if (b.length < 4) return null;
+        var sheetScale = Number(b[4]);
+        if (EXO.sheets.scales.indexOf(sheetScale) < 0) sheetScale = state.scale;
+        var orient = b[5] === "landscape" || b[5] === "portrait" ? b[5] : state.orient;
         try {
-          return EXO.sheets.make(Number(b[0]), b[1], Number(b[2]), Number(b[3]), Number(b[4] || state.scale), b[5] || state.orient);
+          return EXO.sheets.make(Number(b[0]), b[1], Number(b[2]), Number(b[3]), sheetScale, orient);
         } catch (err) { return null; }
       }).filter(Boolean);
       if (state.sheets.length) state.active = state.sheets[state.sheets.length - 1].id;
     }
-    var lat = Number(q.get("lat"));
-    var lon = Number(q.get("lon"));
-    var z = Number(q.get("z"));
-    if (Number.isFinite(lat) && Number.isFinite(lon)) {
-      return { center: [lon, lat], zoom: Number.isFinite(z) ? z : 12 };
-    }
-    return null;
+    return EXO.sheets.viewFromHash(location.hash);
   }
 
   function paintChips() {
@@ -533,7 +531,10 @@
       for (var i = 0; i < pack.canvases.length; i++) jpegs.push(await fitJpeg(pack.canvases[i]));
       var bytes = EXO.garmin.kmz(pack.sheets, jpegs);
       saveBytes(bytes, "exopace-garmin.kmz", "application/vnd.google-earth.kmz");
-      setStatus("GARMIN KMZ — COPY TO Garmin/CustomMaps");
+      var skipped = pack.sheets.filter(EXO.garmin.spansDateLine).length;
+      setStatus(skipped
+        ? "GARMIN KMZ — COPY TO Garmin/CustomMaps — " + skipped + " DATE-LINE PAGE LEFT OUT"
+        : "GARMIN KMZ — COPY TO Garmin/CustomMaps");
     } catch (err) {
       setStatus("GARMIN EXPORT FAILED");
     }

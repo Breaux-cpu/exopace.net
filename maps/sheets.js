@@ -1,24 +1,40 @@
-/* Letter sheets. The neatline is 160 mm by 200 mm, so a 1:25,000
-   portrait sheet is exactly 4 km by 5 km. */
+/* Letter sheets. The neatline is always 160 mm by 200 mm.
+   A 1:25,000 portrait sheet is 4 km by 5 km. 1:24,000 is the same
+   paper, 3.84 km by 4.8 km, and is not a USGS quadrangle. */
 (function (root) {
-  var SIZES = {
-    25000: [4, 5],
-    50000: [8, 10],
-    100000: [16, 20],
-    250000: [40, 50],
-  };
+  var SCALES = [15000, 24000, 25000, 48000, 50000, 100000, 250000];
+  var NEAT_W_MM = 160;
+  var NEAT_H_MM = 200;
 
   function size(scale, orient) {
-    var pair = SIZES[scale];
-    if (!pair) throw new Error("unknown scale");
-    var w = pair[0];
-    var h = pair[1];
+    if (SCALES.indexOf(scale) < 0) throw new Error("unknown scale");
+    var wM = NEAT_W_MM * scale / 1000;
+    var hM = NEAT_H_MM * scale / 1000;
     if (orient === "landscape") {
-      var swap = w;
-      w = h;
-      h = swap;
+      var swap = wM;
+      wM = hM;
+      hM = swap;
     }
-    return { wKm: w, hKm: h, wM: w * 1000, hM: h * 1000 };
+    return { wKm: wM / 1000, hKm: hM / 1000, wM: wM, hM: hM };
+  }
+
+  /* Missing lat/lon must stay missing. Number(null) is 0, which is a real place. */
+  function viewFromHash(hash) {
+    var q = new URLSearchParams(String(hash || "").replace(/^#/, ""));
+    if (!q.has("lat") || !q.has("lon")) return null;
+    var latText = q.get("lat");
+    var lonText = q.get("lon");
+    if (!latText || !lonText) return null;
+    var lat = Number(latText);
+    var lon = Number(lonText);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    var zoom = 12;
+    if (q.has("z") && q.get("z")) {
+      var z = Number(q.get("z"));
+      if (Number.isFinite(z)) zoom = Math.min(22, Math.max(0, z));
+    }
+    return { center: [lon, lat], zoom: zoom };
   }
 
   /* 120 dpi print. 160 mm is 756 px. Ground meters per pixel follows the scale. */
@@ -129,7 +145,8 @@
     ring: ring,
     bbox: bbox,
     snapEdges: snapEdges,
-    scales: [25000, 50000, 100000, 250000],
+    scales: SCALES,
+    viewFromHash: viewFromHash,
   };
   if (typeof module === "object" && module.exports) module.exports = root.EXO.sheets;
 })(typeof globalThis !== "undefined" ? globalThis : this);

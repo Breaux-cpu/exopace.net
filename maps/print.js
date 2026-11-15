@@ -115,9 +115,13 @@
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 1800);
     try {
+      var now = new Date();
       var url = "https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination?lat1="
         + encodeURIComponent(lat.toFixed(4)) + "&lon1=" + encodeURIComponent(lon.toFixed(4))
-        + "&model=WMM&startYear=2026&startMonth=11&startDay=14&resultFormat=json";
+        + "&model=WMM&startYear=" + now.getUTCFullYear()
+        + "&startMonth=" + (now.getUTCMonth() + 1)
+        + "&startDay=" + now.getUTCDate()
+        + "&resultFormat=json";
       var res = await fetch(url, { signal: ctrl.signal });
       if (!res.ok) return null;
       var data = await res.json();
@@ -166,7 +170,7 @@
         var cnv = document.createElement("canvas");
         cnv.width = grid.w;
         cnv.height = grid.h;
-        var interval = sheet.scale >= 250000 ? 100 : sheet.scale >= 100000 ? 40 : sheet.scale >= 50000 ? 20 : 10;
+        var interval = sheet.scale >= 250000 ? 100 : sheet.scale >= 100000 ? 40 : sheet.scale >= 48000 ? 20 : 10;
         if (opts.contours === "sparse") interval *= 2;
         root.EXO.terrain.drawContours(cnv.getContext("2d"), grid.elev, grid.w, grid.h, interval);
         ctx.drawImage(cnv, ox, oy);

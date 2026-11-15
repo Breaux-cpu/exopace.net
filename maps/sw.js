@@ -1,4 +1,4 @@
-const CACHE = "exopace-maps-v2";
+const CACHE = "exopace-maps-v3";
 const SHELL = [
   "/maps/",
   "/maps/index.html",
@@ -6,14 +6,14 @@ const SHELL = [
   "/maps/legend.html",
   "/maps/host.json",
   "/maps/mgrs.js?v=1",
-  "/maps/sheets.js?v=1",
+  "/maps/sheets.js?v=2",
   "/maps/terrain.js?v=1",
   "/maps/style.js?v=2",
-  "/maps/print.js?v=1",
+  "/maps/print.js?v=2",
   "/maps/atak.js?v=2",
   "/maps/search.js?v=1",
-  "/maps/garmin.js?v=1",
-  "/maps/app.js?v=3",
+  "/maps/garmin.js?v=2",
+  "/maps/app.js?v=4",
   "/maps/vendor/maplibre-gl.js?v=1",
   "/maps/vendor/maplibre-gl.css?v=1",
   "/maps/manifest.webmanifest",
@@ -40,7 +40,7 @@ self.addEventListener("fetch", (event) => {
   if (!url.pathname.startsWith("/maps/") && url.pathname !== "/icon.svg") return;
   event.respondWith(
     fetch(req).then((res) => {
-      if (res.ok && (url.pathname.startsWith("/maps/") || url.pathname.startsWith("/api/terrain/"))) {
+      if (res.ok && url.pathname.startsWith("/maps/")) {
         const copy = res.clone();
         caches.open(CACHE).then((cache) => cache.put(req, copy));
       }
