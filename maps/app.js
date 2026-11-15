@@ -25,6 +25,17 @@
 
   var map;
   var startView = { center: [-98.5, 39.5], zoom: 4 };
+  var camLog = [];
+  function camNote(label) {
+    if (camLog.length > 12) return;
+    var extra = "";
+    if (map && map.getCenter) {
+      var c = map.getCenter();
+      extra = " " + c.lat.toFixed(3) + "," + c.lng.toFixed(3) + " z" + map.getZoom().toFixed(2);
+    }
+    camLog.push(label + extra);
+    document.documentElement.setAttribute("data-cam", camLog.join(" | "));
+  }
   var drag = null;
   var box = null;
   var moved = false;
@@ -741,8 +752,10 @@
   function wireMap() {
     var hashReady = false;
     map.on("load", function () {
+      camNote("before");
       map.resize();
       map.jumpTo({ center: startView.center, zoom: startView.zoom });
+      camNote("after");
       hashReady = true;
       applyStyle();
       syncSheets();
@@ -755,7 +768,10 @@
     map.on("moveend", function () {
       syncGrid();
       syncGraticule();
-      if (hashReady) writeHash();
+      if (hashReady) {
+        camNote("moveend");
+        writeHash();
+      }
     });
     map.on("click", function (ev) {
       if (moved) { moved = false; return; }
@@ -859,7 +875,9 @@
     registerProtocols();
     EXO.hill = state.hill;
     EXO.contours = state.contours;
+    camNote("boot " + location.hash + " -> " + (readHash() ? "hash" : "default"));
     startView = readHash() || { center: [-98.5, 39.5], zoom: 4 };
+    camNote("view " + startView.center.join(",") + " z" + startView.zoom);
     map = new maplibregl.Map({
       container: "fm-map",
       style: EXO.mapStyle.build(),
