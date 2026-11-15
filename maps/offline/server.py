@@ -74,10 +74,10 @@ def overlay_body(query):
         return b'{"error":"kind","features":[]}'
     bbox = f"({s},{w},{n},{e})"
     if kind == "ham":
-        statement = f'[out:json][timeout:14];node["communication:amateur_radio"]{bbox};out body 200;'
+        statement = f'[out:json][timeout:8];node["communication:amateur_radio"]{bbox};out body 200;'
     else:
         statement = (
-            "[out:json][timeout:14];("
+            "[out:json][timeout:8];("
             f'way["natural"="wood"]["leaf_type"]{bbox};'
             f'way["landuse"="forest"]["leaf_type"]{bbox};'
             f'way["natural"="wood"]["leaf_cycle"]{bbox};'
@@ -86,14 +86,14 @@ def overlay_body(query):
         )
     payload = urlencode({"data": statement}).encode()
     elements = None
-    for host in ("https://overpass-api.de/api/interpreter", "https://overpass.osm.ch/api/interpreter"):
+    for host in ("https://overpass.openstreetmap.fr/api/interpreter", "https://overpass.osm.ch/api/interpreter"):
         try:
             req = urllib.request.Request(
                 host,
                 data=payload,
                 headers={"User-Agent": "exopace.net/maps (https://exopace.net/maps/)", "Accept": "application/json"},
             )
-            with urllib.request.urlopen(req, timeout=14) as res:
+            with urllib.request.urlopen(req, timeout=8) as res:
                 elements = json.loads(res.read().decode()).get("elements") or []
             break
         except Exception:

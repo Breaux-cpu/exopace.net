@@ -138,9 +138,9 @@ async function flood(box) {
 function osmQuery(kind, box) {
   const b = "(" + box.s + "," + box.w + "," + box.n + "," + box.e + ")";
   if (kind === "ham") {
-    return "[out:json][timeout:14];node[\"communication:amateur_radio\"]" + b + ";out body 200;";
+    return "[out:json][timeout:8];node[\"communication:amateur_radio\"]" + b + ";out body 200;";
   }
-  return "[out:json][timeout:14];("
+  return "[out:json][timeout:8];("
     + "way[\"natural\"=\"wood\"][\"leaf_type\"]" + b + ";"
     + "way[\"landuse\"=\"forest\"][\"leaf_type\"]" + b + ";"
     + "way[\"natural\"=\"wood\"][\"leaf_cycle\"]" + b + ";"
@@ -191,7 +191,7 @@ function osmFeatures(kind, elements) {
 async function osm(kind, box) {
   const body = osmQuery(kind, box);
   const hosts = [
-    "https://overpass-api.de/api/interpreter",
+    "https://overpass.openstreetmap.fr/api/interpreter",
     "https://overpass.osm.ch/api/interpreter",
   ];
   for (const host of hosts) {

@@ -24,6 +24,10 @@
   var future = [];
   var magCache = {};
   var magTimer = null;
+  var quadNames = Object.create(null);
+  var quadPending = Object.create(null);
+  var quadQueue = [];
+  var quadBusy = 0;
 
   var map;
   var startView = { center: [-98.5, 39.5], zoom: 4 };
@@ -54,9 +58,12 @@
       : EXO.sheets.seriesTitle(state.series);
     $("fm-scale").textContent = "SCREEN 1:" + screenScale().toLocaleString("en-US") + "  ·  " + sheetText;
     var quads = state.sheets.filter(function (s) { return s.kind === "quad"; }).length;
-    $("fm-count").textContent = quads && quads === state.sheets.length
+    var countText = quads && quads === state.sheets.length
       ? quads + " QUAD" + (quads === 1 ? "" : "S")
       : state.sheets.length + " PAGE" + (state.sheets.length === 1 ? "" : "S");
+    var activeNow = activeSheet();
+    if (activeNow && activeNow.mapName) countText += " · " + activeNow.mapName;
+    $("fm-count").textContent = countText;
     var north = $("fm-north");
     if (north) north.textContent = northText(c);
     var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);
@@ -136,7 +143,7 @@
       features: state.sheets.map(function (s) {
         return {
           type: "Feature",
-          properties: { id: s.id, active: s.id === state.active ? 1 : 0, name: s.name },
+          properties: { id: s.id, active: s.id === state.active ? 1 : 0, name: s.kind === "quad" ? (s.mapName || s.name) : "" },
           geometry: { type: "Polygon", coordinates: [EXO.sheets.ring(s)] },
         };
       }),
@@ -144,10 +151,108 @@
   }
 
   function syncSheets() {
+    state.sheets.forEach(rememberQuadName);
     var src = map.getSource("sheets");
     if (src) src.setData(sheetFC());
     readout();
     writeHash();
+    state.sheets.forEach(enqueueQuadName);
+  }
+
+  function rememberQuadName(sheet) {
+    if (!sheet || sheet.kind !== "quad") return;
+    var cached = quadNames[sheet.id];
+    if (cached) sheet.mapName = cached;
+  }
+
+  function enqueueQuadName(sheet) {
+    if (!sheet || sheet.kind !== "quad") return;
+    if (!EXO.sheets.quadIndexLayer(sheet.series)) return;
+    if (sheet.mapName || Object.prototype.hasOwnProperty.call(quadNames, sheet.id) || quadPending[sheet.id]) return;
+    quadPending[sheet.id] = {
+      id: sheet.id,
+      series: sheet.series,
+      south: sheet.south,
+      west: sheet.west,
+      north: sheet.north,
+      east: sheet.east,
+    };
+    quadQueue.push(sheet.id);
+    pumpQuadNames();
+  }
+
+  function startQuadJob(id, job) {
+    quadBusy += 1;
+    fetchQuadName(job).then(function (name) {
+      finishQuadName(id, name, false);
+    }, function () {
+      finishQuadName(id, "", true);
+    });
+  }
+
+  function pumpQuadNames() {
+    while (quadBusy < 3 && quadQueue.length) {
+      var id = quadQueue.shift();
+      var job = quadPending[id];
+      if (!job) continue;
+      startQuadJob(id, job);
+    }
+  }
+
+  function finishQuadName(id, name, failed) {
+    delete quadPending[id];
+    quadBusy -= 1;
+    if (!failed && !Object.prototype.hasOwnProperty.call(quadNames, id)) {
+      quadNames[id] = name || "";
+      if (name) {
+        state.sheets.forEach(function (sheet) {
+          if (sheet.id === id) sheet.mapName = name;
+        });
+        if (map) syncSheets();
+      }
+    }
+    pumpQuadNames();
+  }
+
+  function cleanQuadName(value) {
+    var text = String(value || "").replace(/[\u0000-\u001f]/g, "").trim();
+    if (!text || text.toLowerCase() === "null") return "";
+    return text.slice(0, 64);
+  }
+
+  async function fetchQuadName(job) {
+    var lat = (job.south + job.north) / 2;
+    var lon = (job.west + job.east) / 2;
+    var layer = EXO.sheets.quadIndexLayer(job.series);
+    if (!layer) return "";
+    var url = "https://carto.nationalmap.gov/arcgis/rest/services/map_indices/MapServer/"
+      + layer + "/query?geometry=" + encodeURIComponent(lon.toFixed(5) + "," + lat.toFixed(5))
+      + "&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects"
+      + "&outFields=CELL_NAME&returnGeometry=true&outSR=4326&geometryPrecision=4&f=json&resultRecordCount=1";
+    var res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error("quad name");
+    var data = await res.json();
+    var feat = data.features && data.features[0];
+    var ring = feat && feat.geometry && feat.geometry.rings && feat.geometry.rings[0];
+    if (!ring || !ring.length) return "";
+    var west = Infinity;
+    var south = Infinity;
+    var east = -Infinity;
+    var north = -Infinity;
+    ring.forEach(function (point) {
+      if (!point || point.length < 2) return;
+      var x = Number(point[0]);
+      var y = Number(point[1]);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      west = Math.min(west, x);
+      east = Math.max(east, x);
+      south = Math.min(south, y);
+      north = Math.max(north, y);
+    });
+    var probe = { kind: "quad", west: job.west, south: job.south, east: job.east, north: job.north };
+    if (!EXO.sheets.quadExtentFits(probe, west, south, east, north)) return "";
+    var attrs = feat.attributes || {};
+    return cleanQuadName(attrs.CELL_NAME || attrs.cell_name);
   }
 
   function addSheet(lat, lon, quiet) {

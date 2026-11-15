@@ -169,6 +169,17 @@
           },
         },
         {
+          id: "sheets-label", type: "symbol", source: "sheets", minzoom: 8,
+          filter: ["all", ["==", ["get", "active"], 1], ["!=", ["get", "name"], ""]],
+          layout: {
+            "text-field": ["get", "name"],
+            "text-font": ["Noto Sans Regular"],
+            "text-size": 13,
+            "text-max-width": 14,
+          },
+          paint: { "text-color": "#14202a", "text-halo-color": "#f4efe4", "text-halo-width": 1.4 },
+        },
+        {
           id: "grid-line", type: "line", source: "grid",
           paint: { "line-color": "#1f2933", "line-opacity": 0.55, "line-width": ["case", ["==", ["get", "major"], 1], 1.1, 0.6] },
         },
