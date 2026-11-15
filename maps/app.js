@@ -24,6 +24,7 @@
   var magTimer = null;
 
   var map;
+  var startView = { center: [-98.5, 39.5], zoom: 4 };
   var drag = null;
   var box = null;
   var moved = false;
@@ -738,15 +739,24 @@
   }
 
   function wireMap() {
+    var hashReady = false;
     map.on("load", function () {
+      map.resize();
+      map.jumpTo({ center: startView.center, zoom: startView.zoom });
+      hashReady = true;
       applyStyle();
       syncSheets();
       syncGrid();
       syncGraticule();
       readout();
+      writeHash();
     });
     map.on("move", readout);
-    map.on("moveend", function () { syncGrid(); syncGraticule(); writeHash(); });
+    map.on("moveend", function () {
+      syncGrid();
+      syncGraticule();
+      if (hashReady) writeHash();
+    });
     map.on("click", function (ev) {
       if (moved) { moved = false; return; }
       var id = hitSheet(ev.point);
@@ -849,12 +859,12 @@
     registerProtocols();
     EXO.hill = state.hill;
     EXO.contours = state.contours;
-    var start = readHash() || { center: [-98.5, 39.5], zoom: 4 };
+    startView = readHash() || { center: [-98.5, 39.5], zoom: 4 };
     map = new maplibregl.Map({
       container: "fm-map",
       style: EXO.mapStyle.build(),
-      center: start.center,
-      zoom: start.zoom,
+      center: startView.center,
+      zoom: startView.zoom,
       hash: false,
       attributionControl: true,
       maxPitch: 70,
