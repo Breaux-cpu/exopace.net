@@ -195,10 +195,11 @@
     ctx.font = "12px ui-monospace, monospace";
     var lines = [
       sheet.name + "  ·  ZONE " + sheet.zone + sheet.hemi + "  ·  1:" + sheet.scale.toLocaleString("en-US"),
-      "WGS84  ·  GRID " + (conv >= 0 ? "+" : "") + conv.toFixed(2) + "° TO TRUE",
-      mag == null ? "MAG — SET FROM A CURRENT CHART" : "MAG DECLINATION " + (mag >= 0 ? "+" : "") + mag.toFixed(1) + "° (WMM)",
-      "OSM © CONTRIBUTORS  ·  AWS TERRAIN TILES  ·  PRINT ACTUAL SIZE",
     ];
+    if (sheet.quadName) lines.push((sheet.tileLabel || "TILE") + " OF " + sheet.quadName);
+    lines.push("WGS84  ·  GRID " + (conv >= 0 ? "+" : "") + conv.toFixed(2) + "° TO TRUE");
+    lines.push(mag == null ? "MAG — SET FROM A CURRENT CHART" : "MAG DECLINATION " + (mag >= 0 ? "+" : "") + mag.toFixed(1) + "° (WMM)");
+    lines.push("OSM © CONTRIBUTORS  ·  AWS TERRAIN TILES  ·  PRINT ACTUAL SIZE");
     for (var i = 0; i < lines.length; i++) ctx.fillText(lines[i], mm(8), textY + 16 + i * 15);
 
     var kmPx = mm(1000 / sheet.scale * 1000);

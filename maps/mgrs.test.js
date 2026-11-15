@@ -104,4 +104,31 @@ assert.strictEqual(garmin.spansDateLine({
 }), true);
 assert.strictEqual(garmin.spansDateLine(sheet), false);
 
-console.log("mgrs ok", origin, vegas, sheet.name);
+const memphisQuad = sheets.quadAt(35.1495, -90.049, "usgs75");
+assert.strictEqual(memphisQuad.kind, "quad");
+assert.ok(Math.abs(memphisQuad.south - 35.125) < 1e-6, memphisQuad.south);
+assert.ok(Math.abs(memphisQuad.west - -90.125) < 1e-6, memphisQuad.west);
+assert.ok(Math.abs(memphisQuad.north - 35.25) < 1e-6, memphisQuad.north);
+assert.ok(Math.abs(memphisQuad.east - -90) < 1e-6, memphisQuad.east);
+assert.strictEqual(memphisQuad.scale, 24000);
+const memphisTiles = sheets.letterTiles(memphisQuad);
+assert.ok(memphisTiles.length >= 6 && memphisTiles.length <= 16, "tiles " + memphisTiles.length);
+assert.strictEqual(memphisTiles[0].wM, 3840);
+assert.strictEqual(memphisTiles[0].hM, 4800);
+assert.strictEqual(memphisTiles[0].quadName, memphisQuad.name);
+const nudgedQuad = sheets.nudge(memphisQuad, 0, 1000);
+assert.ok(Math.abs(nudgedQuad.south - 35.25) < 1e-6);
+assert.strictEqual(sheets.decodeSheet(sheets.encodeSheet(memphisQuad)).id, memphisQuad.id);
+assert.strictEqual(sheets.decodeSheet(sheets.encodeSheet(sheet)).id, sheet.id);
+assert.strictEqual(sheets.quadAt(61.218, -149.9, "usgs75").scale, 25000);
+assert.strictEqual(sheets.quadAt(18.465, -66.105, "usgs75").scale, 20000);
+assert.strictEqual(sheets.quadAt(35.15, -90.05, "usgs15").scale, 62500);
+const block = sheets.quadAt(35.15, -90.05, "usgs100");
+assert.ok(Math.abs(block.south - 35) < 1e-6);
+assert.ok(Math.abs(block.west - -91) < 1e-6);
+assert.ok(Math.abs(block.north - 35.5) < 1e-6);
+assert.ok(Math.abs(block.east - -90) < 1e-6);
+assert.throws(() => sheets.quadAt(89, 0, "usgs75"), /polar/);
+assert.throws(() => sheets.quadFromArc("usgs75", 10, 0), /grid/);
+
+console.log("mgrs ok", origin, vegas, sheet.name, memphisQuad.name, memphisTiles.length);

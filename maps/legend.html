@@ -20,7 +20,7 @@
 <body>
   <main>
     <h1>EXOPACE FIELD MAP</h1>
-    <p>Read a grid square from the southwest corner. The two large digits on a line are the 10 km and 1 km figures. A 1:50,000 sheet is 8 km by 10 km on portrait letter paper. 1:15,000, 1:24,000, and 1:48,000 use that same 160 mm by 200 mm neatline. They are not USGS quadrangles. Print at actual size. The 100 mm bar must measure 100 mm.</p>
+    <p>Read a grid square from the southwest corner. The two large digits on a line are the 10 km and 1 km figures. A 1:50,000 letter sheet is 8 km by 10 km on portrait letter paper. 1:15,000, 1:24,000, and 1:48,000 use that same 160 mm by 200 mm neatline. They are not USGS quadrangles. A USGS 7.5′ sheet is 7.5 minutes of latitude by 7.5 minutes of longitude. Alaska 7.5′ sheets use 1:25,000. Puerto Rico 7.5′ sheets use 1:20,000. The other USGS series are 15′ at 1:62,500, 30×60′ at 1:100,000, and 1×2° at 1:250,000. Those print as true-scale letter tiles of the quadrangle. Print at actual size. The 100 mm bar must measure 100 mm.</p>
     <h2>SYMBOLS</h2>
     <table>
       <tr><td><i class="sw" style="background:#8a5a32"></i>Contour. Index lines are darker.</td></tr>
@@ -30,11 +30,18 @@
       <tr><td><i class="sw" style="background:#e6d7a8;border:1px solid #8a7044"></i>Primary and secondary roads</td></tr>
       <tr><td><i class="sw" style="background:#3a3a3a"></i>Rail</td></tr>
       <tr><td><i class="sw" style="background:#1f2933"></i>MGRS / UTM grid</td></tr>
+      <tr><td><i class="sw" style="background:#c45c26"></i>OSM power line or substation, from OpenInfraMap</td></tr>
+      <tr><td><i class="sw" style="background:#6b3fa0"></i>OSM petroleum pipeline, from OpenInfraMap</td></tr>
+      <tr><td><i class="sw" style="background:#2f6f8f"></i>FEMA flood hazard zone. Zone X is lighter. United States only.</td></tr>
+      <tr><td><i class="sw" style="background:#8ea84e"></i>OSM broadleaved wood. Needleleaved is darker. Deciduous, where only the cycle is tagged, is tan.</td></tr>
+      <tr><td><i class="sw" style="background:#ffe08a"></i>OSM amateur radio. Not a complete repeater list.</td></tr>
     </table>
     <h2>GRID</h2>
     <p>Example: 15S YU 688 934 is a 100 m square. 15S is the zone and latitude band. YU is the 100 km square. 688 is easting to 100 m. 934 is northing to 100 m. Read right, then up.</p>
     <h2>COLLAR</h2>
     <p>Grid convergence is grid-to-true, east positive. Magnetic declination is the World Magnetic Model when the chart can reach NOAA. If that line says to use a current chart, do that. Do not invent a declination.</p>
+    <h2>EXTRA LAYERS</h2>
+    <p>3DEP is the USGS shaded-relief service. It is elevation, including lidar where USGS used lidar, and it is not a point cloud. Flood zones come from the FEMA National Flood Hazard Layer. Power lines and pipelines come from OpenInfraMap’s OpenStreetMap tiles. Leaf type and amateur radio are only the features OpenStreetMap has tagged in the current view. If a layer says unavailable, nothing is drawn.</p>
     <p><a href="./">Back to the map</a></p>
   </main>
 </body>

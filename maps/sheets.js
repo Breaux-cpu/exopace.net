@@ -1,13 +1,23 @@
-/* Letter sheets. The neatline is always 160 mm by 200 mm.
-   A 1:25,000 portrait sheet is 4 km by 5 km. 1:24,000 is the same
-   paper, 3.84 km by 4.8 km, and is not a USGS quadrangle. */
+/* Letter sheets use a 160 mm by 200 mm neatline.
+   A 1:25,000 portrait sheet is 4 km by 5 km. 1:24,000 on that paper
+   is 3.84 km by 4.8 km and is not a USGS quadrangle.
+   USGS sheets are latitude/longitude quadrangles. Their printed size
+   follows the ground distance at the series scale, then tiles onto letter. */
 (function (root) {
   var SCALES = [15000, 24000, 25000, 48000, 50000, 100000, 250000];
+  var QUAD_SCALES = [20000, 24000, 25000, 62500, 100000, 250000];
   var NEAT_W_MM = 160;
   var NEAT_H_MM = 200;
+  var SERIES = {
+    letter: { title: "LETTER" },
+    usgs75: { dLat: 7.5 / 60, dLon: 7.5 / 60, scale: 24000, title: "USGS 7.5′" },
+    usgs15: { dLat: 15 / 60, dLon: 15 / 60, scale: 62500, title: "USGS 15′" },
+    usgs100: { dLat: 0.5, dLon: 1, scale: 100000, title: "USGS 30×60′" },
+    usgs250: { dLat: 1, dLon: 2, scale: 250000, title: "USGS 1×2°" },
+  };
 
   function size(scale, orient) {
-    if (SCALES.indexOf(scale) < 0) throw new Error("unknown scale");
+    if (SCALES.indexOf(scale) < 0 && QUAD_SCALES.indexOf(scale) < 0) throw new Error("unknown scale");
     var wM = NEAT_W_MM * scale / 1000;
     var hM = NEAT_H_MM * scale / 1000;
     if (orient === "landscape") {
@@ -95,6 +105,16 @@
   }
 
   function nudge(sheet, de, dn) {
+    if (sheet.kind === "quad") {
+      var spec = SERIES[sheet.series];
+      var south = sheet.south;
+      var west = sheet.west;
+      if (dn > 0) south += spec.dLat;
+      if (dn < 0) south -= spec.dLat;
+      if (de > 0) west += spec.dLon;
+      if (de < 0) west -= spec.dLon;
+      return quadMake(sheet.series, south, west);
+    }
     return make(sheet.zone, sheet.hemi, sheet.e0 + de, sheet.n0 + dn, sheet.scale, sheet.orient);
   }
 
@@ -119,8 +139,197 @@
     ];
   }
 
+  function floorStep(value, step) {
+    var arc = Math.round(step * 3600);
+    var ticks = Math.round(value * 3600);
+    return Math.floor(ticks / arc) * arc / 3600;
+  }
+
+  function inAlaska(lat, lon) {
+    if (lat < 51 || lat > 72) return false;
+    if (lon <= -129 && lon >= -180) return true;
+    if (lon >= 170 && lon <= 180) return true;
+    return false;
+  }
+
+  function inPuertoRico(lat, lon) {
+    return lat >= 17.8 && lat <= 18.6 && lon >= -67.5 && lon <= -65.2;
+  }
+
+  function meridionalMeters(south, north) {
+    var mid = (south + north) / 2 * Math.PI / 180;
+    var perDeg = 111132.92 - 559.82 * Math.cos(2 * mid) + 1.175 * Math.cos(4 * mid);
+    return perDeg * (north - south);
+  }
+
+  function parallelMeters(west, east, lat) {
+    var phi = lat * Math.PI / 180;
+    var perDeg = 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi);
+    return Math.abs(perDeg * (east - west));
+  }
+
+  function degText(deg, pos, neg) {
+    var hemi = deg < 0 ? neg : pos;
+    var abs = Math.abs(deg);
+    var degrees = Math.floor(abs + 1e-8);
+    var minutes = (abs - degrees) * 60;
+    var shown = Math.abs(minutes - Math.round(minutes)) < 0.02 ? String(Math.round(minutes)) : minutes.toFixed(1);
+    return degrees + "°" + shown + "′" + hemi;
+  }
+
+  function seriesSpec(series) {
+    return SERIES[series] || null;
+  }
+
+  function seriesScale(series) {
+    var spec = SERIES[series];
+    return spec && spec.scale ? spec.scale : 50000;
+  }
+
+  function seriesTitle(series) {
+    var spec = SERIES[series];
+    if (!spec || series === "letter") return "LETTER";
+    return spec.title + "  1:" + spec.scale.toLocaleString("en-US");
+  }
+
+  function seriesNote(series) {
+    if (series === "usgs75") {
+      return "A 7.5′ quadrangle is 7.5 minutes of latitude by 7.5 minutes of longitude. The conterminous United States and Hawaii use 1:24,000. Alaska uses 1:25,000. Puerto Rico uses 1:20,000. The PDF splits that quadrangle into US Letter pages at true scale.";
+    }
+    if (series === "usgs15") {
+      return "A 15′ quadrangle is 15 minutes on a side, at 1:62,500. USGS ended this series. The sheet is that latitude and longitude cell. The PDF splits it into US Letter pages at true scale.";
+    }
+    if (series === "usgs100") {
+      return "A 30×60′ quadrangle is 30 minutes of latitude by 60 minutes of longitude, at 1:100,000. The PDF splits that cell into US Letter pages at true scale.";
+    }
+    if (series === "usgs250") {
+      return "A 1×2° quadrangle is 1 degree of latitude by 2 degrees of longitude, at 1:250,000. The PDF splits that cell into US Letter pages at true scale.";
+    }
+    return "Each letter scale uses the same 160 mm by 200 mm neatline. 1:24k is 3.84 km by 4.8 km. It is not a USGS quadrangle.";
+  }
+
+  function quadScale(series, lat, lon) {
+    if (series === "usgs75" && inAlaska(lat, lon)) return 25000;
+    if (series === "usgs75" && inPuertoRico(lat, lon)) return 20000;
+    return seriesScale(series);
+  }
+
+  function quadMake(series, south, west) {
+    var spec = SERIES[series];
+    if (!spec || !spec.dLat) throw new Error("unknown series");
+    south = Math.round(south * 3600) / 3600;
+    west = Math.round(west * 3600) / 3600;
+    var north = Math.round((south + spec.dLat) * 3600) / 3600;
+    var east = Math.round((west + spec.dLon) * 3600) / 3600;
+    if (south < -80 || north > 84) throw new Error("polar UPS is not on these sheets");
+    if (east > 180 || west < -180) throw new Error("outside the sheet grid");
+    var midLat = (south + north) / 2;
+    var midLon = (west + east) / 2;
+    var scale = quadScale(series, midLat, midLon);
+    var sw = { lat: south, lon: west };
+    var se = { lat: south, lon: east };
+    var ne = { lat: north, lon: east };
+    var nw = { lat: north, lon: west };
+    var mid = { lat: midLat, lon: midLon };
+    var u = root.EXO.mgrs.utm(midLat, midLon);
+    var usw = root.EXO.mgrs.utm(south, west, u.zone);
+    var hM = meridionalMeters(south, north);
+    var wM = parallelMeters(west, east, midLat);
+    return {
+      id: "Q:" + series + ":" + Math.round(south * 3600) + ":" + Math.round(west * 3600),
+      kind: "quad",
+      series: series,
+      zone: u.zone,
+      hemi: u.hemi,
+      e0: usw.easting,
+      n0: usw.northing,
+      scale: scale,
+      orient: "portrait",
+      wM: wM,
+      hM: hM,
+      south: south,
+      west: west,
+      north: north,
+      east: east,
+      name: spec.title + " " + degText(south, "N", "S") + " " + degText(Math.abs(west) < 1e-8 ? 0 : west, "E", "W"),
+      sw: sw,
+      se: se,
+      ne: ne,
+      nw: nw,
+      mid: mid,
+    };
+  }
+
+  function quadAt(lat, lon, series) {
+    var spec = SERIES[series];
+    if (!spec || !spec.dLat) throw new Error("unknown series");
+    return quadMake(series, floorStep(lat, spec.dLat), floorStep(lon, spec.dLon));
+  }
+
+  function quadFromArc(series, southArc, westArc) {
+    if (!SERIES[series] || !SERIES[series].dLat) throw new Error("unknown series");
+    if (!Number.isFinite(southArc) || !Number.isFinite(westArc)) throw new Error("bad quad");
+    var spec = SERIES[series];
+    var stepLat = Math.round(spec.dLat * 3600);
+    var stepLon = Math.round(spec.dLon * 3600);
+    if (southArc % stepLat !== 0 || westArc % stepLon !== 0) throw new Error("off the quadrangle grid");
+    return quadMake(series, southArc / 3600, westArc / 3600);
+  }
+
+  /* UTM letter tiles that cover a quadrangle at its true scale. */
+  function letterTiles(quad) {
+    if (!quad || quad.kind !== "quad") return [quad];
+    var ground = size(quad.scale, "portrait");
+    var sw = root.EXO.mgrs.utm(quad.sw.lat, quad.sw.lon);
+    var corners = [quad.sw, quad.se, quad.ne, quad.nw];
+    var eastings = [];
+    var northings = [];
+    corners.forEach(function (ll) {
+      var u = root.EXO.mgrs.utm(ll.lat, ll.lon, sw.zone);
+      eastings.push(u.easting);
+      northings.push(u.northing);
+    });
+    var e0 = Math.floor(Math.min.apply(null, eastings) / ground.wM) * ground.wM;
+    var n0 = Math.floor(Math.min.apply(null, northings) / ground.hM) * ground.hM;
+    var eEnd = Math.max.apply(null, eastings);
+    var nEnd = Math.max.apply(null, northings);
+    var tiles = [];
+    var guard = 0;
+    for (var n = n0; n < nEnd - 0.5 && guard < 48; n += ground.hM) {
+      for (var e = e0; e < eEnd - 0.5 && guard < 48; e += ground.wM) {
+        guard += 1;
+        var tile = make(sw.zone, sw.hemi, e, n, quad.scale, "portrait");
+        var box = bbox(tile);
+        if (box[2] < quad.west || box[0] > quad.east || box[3] < quad.south || box[1] > quad.north) continue;
+        tile.quadName = quad.name;
+        tile.quadId = quad.id;
+        tile.tileLabel = "R" + (Math.round((n - n0) / ground.hM) + 1) + "C" + (Math.round((e - e0) / ground.wM) + 1);
+        tiles.push(tile);
+      }
+    }
+    return tiles;
+  }
+
+  function encodeSheet(sheet) {
+    if (sheet.kind === "quad") {
+      return ["Q", sheet.series, Math.round(sheet.south * 3600), Math.round(sheet.west * 3600)].join(":");
+    }
+    return [sheet.zone, sheet.hemi, sheet.e0, sheet.n0, sheet.scale, sheet.orient].join(":");
+  }
+
+  function decodeSheet(part, fallbackScale, fallbackOrient) {
+    var b = String(part || "").split(":");
+    if (b[0] === "Q") return quadFromArc(b[1], Number(b[2]), Number(b[3]));
+    if (b.length < 6) throw new Error("bad sheet");
+    var sheetScale = Number(b[4]);
+    if (SCALES.indexOf(sheetScale) < 0) sheetScale = fallbackScale;
+    var orient = b[5] === "landscape" || b[5] === "portrait" ? b[5] : fallbackOrient;
+    return make(Number(b[0]), b[1], Number(b[2]), Number(b[3]), sheetScale, orient);
+  }
+
   /* Snap a moved southwest corner onto a neighbour edge when it is within 250 m. */
   function snapEdges(sheet, others) {
+    if (sheet.kind === "quad") return sheet;
     var e0 = sheet.e0;
     var n0 = sheet.n0;
     for (var i = 0; i < others.length; i++) {
@@ -147,6 +356,15 @@
     snapEdges: snapEdges,
     scales: SCALES,
     viewFromHash: viewFromHash,
+    seriesSpec: seriesSpec,
+    seriesScale: seriesScale,
+    seriesTitle: seriesTitle,
+    seriesNote: seriesNote,
+    quadAt: quadAt,
+    quadFromArc: quadFromArc,
+    letterTiles: letterTiles,
+    encodeSheet: encodeSheet,
+    decodeSheet: decodeSheet,
   };
   if (typeof module === "object" && module.exports) module.exports = root.EXO.sheets;
 })(typeof globalThis !== "undefined" ? globalThis : this);

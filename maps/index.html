@@ -35,7 +35,16 @@
   <div class="fm-body">
     <aside class="fm-dock">
       <p class="fm-status" id="fm-status">LOADING</p>
-      <p>Click a page. Click it again to drop it. Shift-drag fills an area. Drag a page; it steps 1 km and snaps to its neighbours. Arrow keys nudge the selected page.</p>
+      <p>Click a page. Click it again to drop it. Shift-drag fills an area. A letter page steps 1 km. A USGS quadrangle steps to the next cell. Arrow keys nudge the selected page.</p>
+      <h2>SHEET</h2>
+      <div class="fm-seg" data-key="series">
+        <button type="button" data-value="letter" aria-pressed="true">LETTER</button>
+        <button type="button" data-value="usgs75">7.5′</button>
+        <button type="button" data-value="usgs15">15′</button>
+        <button type="button" data-value="usgs100">30×60′</button>
+        <button type="button" data-value="usgs250">1×2°</button>
+      </div>
+      <p class="fm-note" id="fm-series-note">Each letter scale uses the same 160 mm by 200 mm neatline. 1:24k is 3.84 km by 4.8 km. It is not a USGS quadrangle.</p>
       <h2>SCALE</h2>
       <div class="fm-seg" data-key="scale">
         <button type="button" data-value="15000">1:15k</button>
@@ -46,7 +55,7 @@
         <button type="button" data-value="100000">1:100k</button>
         <button type="button" data-value="250000">1:250k</button>
       </div>
-      <p class="fm-note">Each scale uses the same 160 mm by 200 mm neatline. 1:24k is 3.84 km by 4.8 km. It is not a USGS quadrangle.</p>
+      <p class="fm-note">Letter scales stay on the 160 mm by 200 mm neatline. Choosing a USGS series replaces that sheet with the real quadrangle.</p>
       <h2>PAGE</h2>
       <div class="fm-seg" data-key="orient">
         <button type="button" data-value="portrait" aria-pressed="true">PORTRAIT</button>
@@ -142,20 +151,46 @@
         <button type="button" data-value="true" aria-pressed="true">PEAKS</button>
         <button type="button" data-value="false">HIDE</button>
       </div>
+      <div class="fm-seg" data-key="layer-power" style="margin-top:6px">
+        <button type="button" data-value="true">POWER</button>
+        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-pipeline" style="margin-top:6px">
+        <button type="button" data-value="true">PIPELINES</button>
+        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-flood" style="margin-top:6px">
+        <button type="button" data-value="true">FLOOD</button>
+        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-dep" style="margin-top:6px">
+        <button type="button" data-value="true">3DEP</button>
+        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-ham" style="margin-top:6px">
+        <button type="button" data-value="true">HAM</button>
+        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+      </div>
+      <div class="fm-seg" data-key="layer-leaf" style="margin-top:6px">
+        <button type="button" data-value="true">LEAF TYPE</button>
+        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+      </div>
+      <p class="fm-note">Power lines and pipelines are OpenStreetMap via OpenInfraMap. Flood zones are FEMA NFHL, United States only. 3DEP is USGS shaded relief, not a lidar point cloud. Ham and leaf type are OpenStreetMap tags for this view. Untagged woods stay in WOODS. A missing ham point is not a statement that no repeater exists.</p>
       <div class="fm-seg" data-key="layer-grid" style="margin-top:6px">
         <button type="button" data-value="true" aria-pressed="true">MGRS GRID</button>
         <button type="button" data-value="false">HIDE</button>
       </div>
       <h2>PRINT</h2>
-      <p>US Letter. Print at actual size. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar.</p>
+      <p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar.</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
         <a class="fm-btn" href="legend.html">LEGEND</a>
       </div>
       <h2>ATAK</h2>
-      <p>SEND TO ATAK builds a KMZ of the pages on the map. On this phone, pick ATAK on the share sheet. GARMIN KMZ is a Custom Map: copy it to Garmin/CustomMaps. Each image is at most 1024 px. It has not been loaded on a Garmin yet. The XML links are online basemaps. Import them, or copy them to atak/imagery/mobile/mapsources/ and restart ATAK. Finish ATAK’s callsign screen yourself.</p>
+      <p>SEND TO ATAK builds a KMZ of the pages. ATAK MBTILES packs imagery for the selected sheets into one raster file. Copy it into ATAK or use Import. It is not a world download. Esri, Maxar, Earthstar Geographics. ATAK-CIV is not installed on this phone, so this page cannot finish the import. GARMIN KMZ is a Custom Map for Garmin/CustomMaps. Each image is at most 1024 px. No Garmin drive is connected here, so it has not been loaded on a Garmin. The XML links are online basemaps. Finish ATAK’s callsign screen yourself.</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-atak">SEND TO ATAK</button>
+        <button type="button" class="fm-btn" id="fm-mbtiles">ATAK MBTILES</button>
         <button type="button" class="fm-btn" id="fm-garmin">GARMIN KMZ</button>
         <a class="fm-btn" href="atak/usgs-imagery-topo.xml" download>USGS XML</a>
         <a class="fm-btn" href="atak/world-imagery.xml" download>IMAGERY XML</a>
@@ -173,13 +208,15 @@
   </div>
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
   <script src="mgrs.js?v=1"></script>
-  <script src="sheets.js?v=2"></script>
+  <script src="sheets.js?v=3"></script>
   <script src="terrain.js?v=1"></script>
-  <script src="style.js?v=2"></script>
-  <script src="print.js?v=2"></script>
+  <script src="style.js?v=3"></script>
+  <script src="print.js?v=3"></script>
   <script src="atak.js?v=2"></script>
   <script src="search.js?v=1"></script>
   <script src="garmin.js?v=2"></script>
-  <script src="app.js?v=8"></script>
+  <script src="overlays.js?v=1"></script>
+  <script src="mbtiles.js?v=1"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

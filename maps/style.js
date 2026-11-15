@@ -36,6 +36,22 @@
           tileSize: 256,
           maxzoom: 15,
         },
+        dep: {
+          type: "raster",
+          tiles: ["https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}"],
+          tileSize: 256,
+          maxzoom: 16,
+          attribution: "USGS 3DEP shaded relief",
+        },
+        infra: {
+          type: "vector",
+          tiles: ["https://openinframap.org/tiles/{z}/{x}/{y}.pbf"],
+          maxzoom: 17,
+          attribution: "OpenStreetMap contributors, OpenInfraMap",
+        },
+        flood: { type: "geojson", data: empty() },
+        ham: { type: "geojson", data: empty() },
+        leaf: { type: "geojson", data: empty() },
         contours: {
           type: "raster",
           tiles: ["contour://{z}/{x}/{y}"],
@@ -52,10 +68,34 @@
         { id: "usgs", type: "raster", source: "usgs", layout: { visibility: "none" } },
         { id: "hill-esri", type: "raster", source: "hill-esri", paint: { "raster-opacity": 0.45 } },
         { id: "hill-local", type: "raster", source: "hill-local", layout: { visibility: "none" }, paint: { "raster-opacity": 0.9 } },
+        { id: "dep", type: "raster", source: "dep", layout: { visibility: "none" }, paint: { "raster-opacity": 0.55 } },
         wood("land-wood", "wood", "#b7c7a4", 0.55),
+        {
+          id: "leaf-fill", type: "fill", source: "leaf", layout: { visibility: "none" },
+          paint: {
+            "fill-color": ["case",
+              ["==", ["get", "leaf"], "needleleaved"], "#1d4a36",
+              ["==", ["get", "leaf"], "broadleaved"], "#8ea84e",
+              ["==", ["get", "leaf"], "mixed"], "#3e6b48",
+              ["==", ["get", "cycle"], "evergreen"], "#1d4a36",
+              ["==", ["get", "cycle"], "deciduous"], "#c4b15a",
+              ["==", ["get", "cycle"], "mixed"], "#3e6b48",
+              "#8d8d8d"],
+            "fill-opacity": 0.55,
+          },
+        },
         wood("land-grass", "grass", "#d5e0c2", 0.45),
         wood("land-wetland", "wetland", "#c5d5c8", 0.5),
         { id: "water", type: "fill", source: "openmaptiles", "source-layer": "water", paint: { "fill-color": "#b7d0e2" } },
+        {
+          id: "flood-fill", type: "fill", source: "flood", layout: { visibility: "none" },
+          paint: {
+            "fill-color": ["match", ["get", "zone"],
+              "AE", "#2f6f8f", "A", "#2f6f8f", "AH", "#3d87a8", "AO", "#3d87a8",
+              "VE", "#1d4e6e", "V", "#1d4e6e", "X", "#9eb4c4", "#6f93a8"],
+            "fill-opacity": 0.38,
+          },
+        },
         {
           id: "waterway", type: "line", source: "openmaptiles", "source-layer": "waterway",
           paint: { "line-color": "#6aa4c4", "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 16, 3] },
@@ -75,6 +115,21 @@
           id: "rail", type: "line", source: "openmaptiles", "source-layer": "transportation", minzoom: 9,
           filter: ["==", ["get", "class"], "rail"],
           paint: { "line-color": "#3a3a3a", "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.5, 16, 1.4] },
+        },
+        {
+          id: "power-line", type: "line", source: "infra", "source-layer": "power_line", minzoom: 4,
+          layout: { visibility: "none", "line-join": "round", "line-cap": "round" },
+          paint: { "line-color": "#c45c26", "line-width": ["interpolate", ["linear"], ["zoom"], 4, 0.6, 14, 2.2] },
+        },
+        {
+          id: "power-sub", type: "fill", source: "infra", "source-layer": "power_substation", minzoom: 8,
+          layout: { visibility: "none" },
+          paint: { "fill-color": "#c45c26", "fill-opacity": 0.35 },
+        },
+        {
+          id: "pipeline", type: "line", source: "infra", "source-layer": "petroleum_pipeline", minzoom: 6,
+          layout: { visibility: "none", "line-join": "round", "line-cap": "round" },
+          paint: { "line-color": "#6b3fa0", "line-width": 1.3, "line-dasharray": [1.4, 0.8] },
         },
         {
           id: "rail-hatch", type: "line", source: "openmaptiles", "source-layer": "transportation", minzoom: 12,
@@ -151,6 +206,21 @@
             "text-size": 11,
           },
           paint: { "text-color": "#3f2a1c", "text-halo-color": "#f4efe4", "text-halo-width": 1 },
+        },
+        {
+          id: "ham-point", type: "circle", source: "ham", layout: { visibility: "none" },
+          paint: { "circle-radius": 5, "circle-color": "#ffe08a", "circle-stroke-width": 1, "circle-stroke-color": "#14202a" },
+        },
+        {
+          id: "ham-label", type: "symbol", source: "ham", layout: {
+            visibility: "none",
+            "text-field": ["get", "label"],
+            "text-font": ["Noto Sans Regular"],
+            "text-size": 11,
+            "text-offset": [0, 0.9],
+            "text-anchor": "top",
+          },
+          paint: { "text-color": "#1c1914", "text-halo-color": "#ffe08a", "text-halo-width": 1 },
         },
       ],
     };
@@ -229,6 +299,14 @@
     show(map, "contours", state.contours !== "off");
     show(map, "grid-line", !!(state.layers.grid || state.secondary === "utm"));
     show(map, "graticule-line", state.secondary === "latlon");
+    show(map, "dep", !!state.layers.dep);
+    show(map, "power-line", !!state.layers.power);
+    show(map, "power-sub", !!state.layers.power);
+    show(map, "pipeline", !!state.layers.pipeline);
+    show(map, "flood-fill", !!state.layers.flood);
+    show(map, "leaf-fill", !!state.layers.leaf);
+    show(map, "ham-point", !!state.layers.ham);
+    show(map, "ham-label", !!state.layers.ham);
     var canvas = map.getCanvas();
     canvas.style.filter = state.ink === "bw" ? "grayscale(1) contrast(1.12)" : "";
   }

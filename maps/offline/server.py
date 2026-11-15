@@ -23,7 +23,108 @@ TYPES = {
     ".xml": "application/xml",
     ".txt": "text/plain; charset=utf-8",
     ".sh": "text/plain; charset=utf-8",
+    ".wasm": "application/wasm",
 }
+
+
+def overlay_body(query):
+    from urllib.parse import parse_qs, quote, urlencode
+    q = parse_qs(query)
+    kind = q.get("kind", [""])[0]
+    try:
+        s, w, n, e = (float(q.get(k, ["x"])[0]) for k in ("s", "w", "n", "e"))
+    except ValueError:
+        return b'{"error":"bbox","features":[]}'
+    if not (s < n and w < e and s >= -90 and n <= 90 and w >= -180 and e <= 180):
+        return b'{"error":"bbox","features":[]}'
+    span = 0.75 if kind == "flood" else 0.45
+    if n - s > span or e - w > span:
+        return b'{"error":"zoom","features":[]}'
+    if kind == "flood":
+        geometry = f"{w},{s},{e},{n}"
+        url = (
+            "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query"
+            "?where=1%3D1&geometry=" + quote(geometry)
+            + "&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects"
+            + "&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=true&outSR=4326&f=geojson"
+            + "&resultRecordCount=300&geometryPrecision=5"
+        )
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=12) as res:
+                data = json.loads(res.read().decode())
+        except Exception:
+            return b'{"error":"unavailable","features":[]}'
+        if data.get("exceededTransferLimit"):
+            return b'{"error":"zoom","features":[]}'
+        features = []
+        for row in (data.get("features") or [])[:300]:
+            props = row.get("properties") or {}
+            zone = str(props.get("FLD_ZONE") or "")
+            geom = row.get("geometry")
+            if not zone or not geom:
+                continue
+            features.append({
+                "type": "Feature",
+                "properties": {"zone": zone[:12], "subtype": str(props.get("ZONE_SUBTY") or "")[:40], "source": "FEMA NFHL"},
+                "geometry": geom,
+            })
+        return json.dumps({"features": features, "source": "FEMA NFHL"}).encode()
+    if kind not in ("ham", "leaf"):
+        return b'{"error":"kind","features":[]}'
+    bbox = f"({s},{w},{n},{e})"
+    if kind == "ham":
+        statement = f'[out:json][timeout:14];node["communication:amateur_radio"]{bbox};out body 200;'
+    else:
+        statement = (
+            "[out:json][timeout:14];("
+            f'way["natural"="wood"]["leaf_type"]{bbox};'
+            f'way["landuse"="forest"]["leaf_type"]{bbox};'
+            f'way["natural"="wood"]["leaf_cycle"]{bbox};'
+            f'way["landuse"="forest"]["leaf_cycle"]{bbox};'
+            ");out geom 200;"
+        )
+    payload = urlencode({"data": statement}).encode()
+    elements = None
+    for host in ("https://overpass-api.de/api/interpreter", "https://overpass.osm.ch/api/interpreter"):
+        try:
+            req = urllib.request.Request(
+                host,
+                data=payload,
+                headers={"User-Agent": "exopace.net/maps (https://exopace.net/maps/)", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=14) as res:
+                elements = json.loads(res.read().decode()).get("elements") or []
+            break
+        except Exception:
+            elements = None
+    if elements is None:
+        return b'{"error":"unavailable","features":[]}'
+    features = []
+    for el in elements[:200]:
+        tags = el.get("tags") or {}
+        if kind == "ham" and el.get("type") == "node":
+            raw = str(tags.get("communication:amateur_radio") or "")
+            call = raw if raw and raw not in ("yes", "no") else str(tags.get("callsign") or "")
+            features.append({
+                "type": "Feature",
+                "properties": {"label": (call or "OSM amateur radio")[:32], "source": "OpenStreetMap"},
+                "geometry": {"type": "Point", "coordinates": [el.get("lon"), el.get("lat")]},
+            })
+            continue
+        ring = [[p.get("lon"), p.get("lat")] for p in (el.get("geometry") or [])]
+        leaf = str(tags.get("leaf_type") or "")
+        cycle = str(tags.get("leaf_cycle") or "")
+        if len(ring) < 4 or not (leaf or cycle):
+            continue
+        if abs(ring[0][0] - ring[-1][0]) > 1e-5 or abs(ring[0][1] - ring[-1][1]) > 1e-5:
+            continue
+        features.append({
+            "type": "Feature",
+            "properties": {"leaf": leaf[:24], "cycle": cycle[:24], "source": "OpenStreetMap"},
+            "geometry": {"type": "Polygon", "coordinates": [ring]},
+        })
+    return json.dumps({"features": features, "truncated": len(elements) >= 200, "source": "OpenStreetMap"}).encode()
 
 
 def safe(url_path):
@@ -104,6 +205,14 @@ class Handler(BaseHTTPRequestHandler):
                         continue
                     out.append({"lat": lat, "lon": lon, "label": str(row.get("display_name") or "")[:140]})
                 body = json.dumps(out).encode()
+            self.send_response(200)
+            self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if path == "/api/overlay":
+            body = overlay_body(self.path.split("?", 1)[1] if "?" in self.path else "")
             self.send_response(200)
             self.send_header("content-type", "application/json")
             self.send_header("content-length", str(len(body)))

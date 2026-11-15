@@ -1,6 +1,7 @@
 (function () {
   var EXO = globalThis.EXO;
   var state = {
+    series: "letter",
     scale: 50000,
     orient: "portrait",
     units: "metric",
@@ -14,6 +15,7 @@
     layers: {
       woods: true, water: true, roads: true, trails: true, rail: true,
       air: true, buildings: true, land: true, peaks: true, grid: true,
+      power: false, pipeline: false, flood: false, dep: false, ham: false, leaf: false,
     },
     sheets: [],
     active: null,
@@ -47,9 +49,14 @@
     var mgrs = "—";
     try { mgrs = EXO.mgrs.format(c.lng, c.lat); } catch (err) { mgrs = "POLAR"; }
     $("fm-mgrs").textContent = mgrs;
-    $("fm-scale").textContent = "SCREEN 1:" + screenScale().toLocaleString("en-US")
-      + "  ·  SHEET 1:" + Number(state.scale).toLocaleString("en-US");
-    $("fm-count").textContent = state.sheets.length + " PAGE" + (state.sheets.length === 1 ? "" : "S");
+    var sheetText = state.series === "letter"
+      ? "SHEET 1:" + Number(state.scale).toLocaleString("en-US")
+      : EXO.sheets.seriesTitle(state.series);
+    $("fm-scale").textContent = "SCREEN 1:" + screenScale().toLocaleString("en-US") + "  ·  " + sheetText;
+    var quads = state.sheets.filter(function (s) { return s.kind === "quad"; }).length;
+    $("fm-count").textContent = quads && quads === state.sheets.length
+      ? quads + " QUAD" + (quads === 1 ? "" : "S")
+      : state.sheets.length + " PAGE" + (state.sheets.length === 1 ? "" : "S");
     var north = $("fm-north");
     if (north) north.textContent = northText(c);
     var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);
@@ -82,20 +89,21 @@
 
   function snap() {
     return {
+      series: state.series,
       scale: state.scale,
       orient: state.orient,
       active: state.active,
-      sheets: state.sheets.map(function (s) {
-        return [s.zone, s.hemi, s.e0, s.n0, s.scale, s.orient];
-      }),
+      sheets: state.sheets.map(function (s) { return EXO.sheets.encodeSheet(s); }),
     };
   }
 
   function restore(item) {
+    state.series = item.series || "letter";
     state.scale = item.scale;
     state.orient = item.orient;
     state.sheets = item.sheets.map(function (b) {
-      return EXO.sheets.make(b[0], b[1], b[2], b[3], b[4], b[5]);
+      if (Array.isArray(b)) return EXO.sheets.make(b[0], b[1], b[2], b[3], b[4], b[5]);
+      return EXO.sheets.decodeSheet(b, state.scale, state.orient);
     });
     state.active = item.active;
     paintChips();
@@ -149,7 +157,11 @@
     }
     if (!quiet) remember();
     var sheet;
-    try { sheet = EXO.sheets.at(lat, lon, state.scale, state.orient); }
+    try {
+      sheet = state.series === "letter"
+        ? EXO.sheets.at(lat, lon, state.scale, state.orient)
+        : EXO.sheets.quadAt(lat, lon, state.series);
+    }
     catch (err) { setStatus("OUTSIDE THE SHEET GRID"); return; }
     if (state.sheets.some(function (s) { return s.id === sheet.id; })) {
       state.active = sheet.id;
@@ -293,32 +305,28 @@
     q.set("lat", c.lat.toFixed(5));
     q.set("lon", c.lng.toFixed(5));
     q.set("z", map.getZoom().toFixed(2));
+    q.set("series", state.series);
     q.set("scale", String(state.scale));
     q.set("orient", state.orient);
     if (state.sheets.length) {
-      q.set("sheets", state.sheets.map(function (s) {
-        return [s.zone, s.hemi, s.e0, s.n0, s.scale, s.orient].join(":");
-      }).join(","));
+      q.set("sheets", state.sheets.map(function (s) { return EXO.sheets.encodeSheet(s); }).join(","));
     }
     history.replaceState(null, "", "#" + q.toString());
   }
 
   function readHash() {
     var q = new URLSearchParams(location.hash.replace(/^#/, ""));
+    var series = q.get("series");
+    if (series && EXO.sheets.seriesSpec(series)) state.series = series;
     var scale = Number(q.get("scale"));
-    if (EXO.sheets.scales.indexOf(scale) >= 0) state.scale = scale;
+    if (state.series === "letter" && EXO.sheets.scales.indexOf(scale) >= 0) state.scale = scale;
+    if (state.series !== "letter") state.scale = EXO.sheets.seriesScale(state.series);
     if (q.get("orient") === "landscape" || q.get("orient") === "portrait") state.orient = q.get("orient");
     var raw = q.get("sheets");
     if (raw) {
       state.sheets = raw.split(",").map(function (part) {
-        var b = part.split(":");
-        if (b.length < 4) return null;
-        var sheetScale = Number(b[4]);
-        if (EXO.sheets.scales.indexOf(sheetScale) < 0) sheetScale = state.scale;
-        var orient = b[5] === "landscape" || b[5] === "portrait" ? b[5] : state.orient;
-        try {
-          return EXO.sheets.make(Number(b[0]), b[1], Number(b[2]), Number(b[3]), sheetScale, orient);
-        } catch (err) { return null; }
+        try { return EXO.sheets.decodeSheet(part, state.scale, state.orient); }
+        catch (err) { return null; }
       }).filter(Boolean);
       if (state.sheets.length) state.active = state.sheets[state.sheets.length - 1].id;
     }
@@ -329,6 +337,9 @@
     document.querySelectorAll("[data-key]").forEach(function (group) {
       var key = group.getAttribute("data-key");
       var value = key.indexOf("layer-") === 0 ? String(state.layers[key.slice(6)]) : String(state[key]);
+      if (key === "scale" && state.series !== "letter") value = "";
+      var note = $("fm-series-note");
+      if (note) note.textContent = EXO.sheets.seriesNote(state.series);
       group.querySelectorAll("button").forEach(function (btn) {
         btn.setAttribute("aria-pressed", btn.getAttribute("data-value") === value ? "true" : "false");
       });
@@ -357,6 +368,34 @@
 
   function fillBounds(b) {
     remember();
+    if (state.series !== "letter") {
+      var spec = EXO.sheets.seriesSpec(state.series);
+      var lat = b.getSouth();
+      var guard = 0;
+      while (lat < b.getNorth() && guard < 80) {
+        var lon = b.getWest();
+        var nextLat = null;
+        var inner = 0;
+        while (lon < b.getEast() && inner < 30 && guard < 80) {
+          inner += 1;
+          guard += 1;
+          if (state.sheets.length >= 24) {
+            setStatus("24 PAGE LIMIT");
+            syncSheets();
+            return;
+          }
+          var quad;
+          try { quad = EXO.sheets.quadAt(lat, lon, state.series); }
+          catch (err) { break; }
+          addSheet(quad.mid.lat, quad.mid.lon, true);
+          if (nextLat == null) nextLat = quad.north;
+          lon = quad.east + 1e-8;
+        }
+        lat = nextLat == null ? lat + spec.dLat : nextLat + 1e-8;
+      }
+      setStatus("QUADS FILLED");
+      return;
+    }
     var ground = EXO.sheets.size(state.scale, state.orient);
     var mid = (b.getSouth() + b.getNorth()) / 2;
     var dLat = ground.hM / 111320 * 0.85;
@@ -454,13 +493,35 @@
     }
   }
 
-  async function renderSheets(withStyle) {
+  function pagesForExport() {
     var sheets = state.sheets.slice();
     if (!sheets.length) {
       var c = map.getCenter();
-      sheets = [EXO.sheets.at(c.lat, c.lng, state.scale, state.orient)];
+      try {
+        sheets = [state.series === "letter"
+          ? EXO.sheets.at(c.lat, c.lng, state.scale, state.orient)
+          : EXO.sheets.quadAt(c.lat, c.lng, state.series)];
+      } catch (err) {
+        setStatus("OUTSIDE THE SHEET GRID");
+        return null;
+      }
       setStatus("NO PAGE PICKED — SHEET UNDER THE CENTER");
     }
+    var pages = [];
+    for (var i = 0; i < sheets.length; i++) {
+      var part = sheets[i].kind === "quad" ? EXO.sheets.letterTiles(sheets[i]) : [sheets[i]];
+      if (!part.length || pages.length + part.length > 36) {
+        setStatus("36 PAGE LIMIT — PRINT ONE QUADRANGLE AT A TIME");
+        return null;
+      }
+      pages = pages.concat(part);
+    }
+    return pages;
+  }
+
+  async function renderSheets(withStyle) {
+    var sheets = pagesForExport();
+    if (!sheets) return null;
     var canvases = [];
     for (var i = 0; i < sheets.length; i++) {
       setStatus("SHEET " + (i + 1) + " / " + sheets.length);
@@ -481,6 +542,7 @@
   async function downloadPdf() {
     try {
       var pack = await renderSheets(true);
+      if (!pack) return;
       var pages = [];
       for (var i = 0; i < pack.canvases.length; i++) {
         pages.push({
@@ -498,6 +560,7 @@
   async function sendAtak() {
     try {
       var pack = await renderSheets(true);
+      if (!pack) return;
       var jpegs = [];
       for (var i = 0; i < pack.canvases.length; i++) jpegs.push(await jpegOf(pack.canvases[i]));
       var bytes = await EXO.atak.kmz(pack.sheets, jpegs);
@@ -524,6 +587,7 @@
   async function sendGarmin() {
     try {
       var pack = await renderSheets(true);
+      if (!pack) return;
       if (pack.sheets.length > 100) {
         setStatus("GARMIN LIMIT IS 100 IMAGES");
         return;
@@ -538,6 +602,24 @@
         : "GARMIN KMZ — COPY TO Garmin/CustomMaps");
     } catch (err) {
       setStatus("GARMIN EXPORT FAILED");
+    }
+  }
+
+  async function sendMbtiles() {
+    var sheets = state.sheets.slice();
+    if (!sheets.length) {
+      setStatus("PICK A PAGE FIRST");
+      return;
+    }
+    try {
+      var pack = await EXO.mbtiles.build(sheets, setStatus);
+      var how = await shareOrSave(pack.bytes, "exopace-atak.mbtiles", "application/octet-stream");
+      var note = "MBTILES z" + pack.zoom + " — " + pack.count + " TILES";
+      if (pack.missing) note += " — " + pack.missing + " MISSING";
+      note += how === "shared" ? " — PICK ATAK" : " — IMPORT THE FILE IN ATAK";
+      setStatus(note);
+    } catch (err) {
+      setStatus("MBTILES FAILED");
     }
   }
 
@@ -662,8 +744,16 @@
         var value = btn.getAttribute("data-value");
         if (key.indexOf("layer-") === 0) {
           state.layers[key.slice(6)] = value === "true";
+        } else if (key === "series") {
+          remember();
+          state.series = value;
+          if (value !== "letter") state.scale = EXO.sheets.seriesScale(value);
+          state.sheets = [];
+          state.active = null;
+          syncSheets();
         } else if (key === "scale") {
           remember();
+          state.series = "letter";
           state.scale = Number(value);
           state.sheets = [];
           state.active = null;
@@ -678,6 +768,7 @@
           syncGrid();
           syncGraticule();
         }
+        if (EXO.overlays && (key.indexOf("layer-") === 0)) EXO.overlays.sync(map, state, setStatus);
       });
     });
     $("fm-locate").onclick = function () {
@@ -701,6 +792,7 @@
     };
     $("fm-pdf").onclick = downloadPdf;
     $("fm-atak").onclick = sendAtak;
+    $("fm-mbtiles").onclick = sendMbtiles;
     $("fm-garmin").onclick = sendGarmin;
     $("fm-save").onclick = saveToCopy;
     $("fm-go").addEventListener("submit", goSearch);
@@ -750,14 +842,23 @@
       syncGraticule();
       readout();
       writeHash();
+      if (EXO.overlays) EXO.overlays.sync(map, state, setStatus);
     });
     map.on("move", readout);
     map.on("moveend", function () {
       syncGrid();
       syncGraticule();
       if (hashReady) writeHash();
+      if (hashReady && EXO.overlays) EXO.overlays.sync(map, state, setStatus);
     });
     map.on("click", function (ev) {
+      if (map.getLayer("ham-point")) {
+        var ham = map.queryRenderedFeatures(ev.point, { layers: ["ham-point"] });
+        if (ham.length && ham[0].properties && ham[0].properties.label) {
+          setStatus(String(ham[0].properties.label));
+          return;
+        }
+      }
       if (moved) { moved = false; return; }
       var id = hitSheet(ev.point);
       if (id && id === state.active) removeSheet(id);
@@ -782,6 +883,17 @@
     map.on("mousemove", function (ev) {
       if (box) box.b = ev.lngLat;
       if (!drag) return;
+      if (drag.sheet.kind === "quad") {
+        var quad;
+        try { quad = EXO.sheets.quadAt(ev.lngLat.lat, ev.lngLat.lng, drag.sheet.series); }
+        catch (err) { return; }
+        if (quad.id === drag.sheet.id) return;
+        if (!moved) remember();
+        moved = true;
+        replaceActive(quad);
+        drag.sheet = quad;
+        return;
+      }
       var u = EXO.mgrs.utm(ev.lngLat.lat, ev.lngLat.lng, drag.sheet.zone);
       var de = Math.round((u.easting - drag.e) / 1000) * 1000;
       var dn = Math.round((u.northing - drag.n) / 1000) * 1000;

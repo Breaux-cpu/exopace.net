@@ -33,7 +33,7 @@ function skip(url) {
   if (p === "/mesh" || p.startsWith("/mesh/")) return true;
   if (p === "/radio" || p.startsWith("/radio/")) return true;
   if (p === "/maps" || p.startsWith("/maps/")) return true;
-  if (p.startsWith("/api/terrain/") || p.startsWith("/api/geocode")) return true;
+  if (p.startsWith("/api/terrain/") || p.startsWith("/api/geocode") || p.startsWith("/api/overlay")) return true;
   if (p.startsWith("/cesium/")) return true;
   if (p.startsWith("/protocol/")) return true;
   if (p.startsWith("/scripts/")) return true;
