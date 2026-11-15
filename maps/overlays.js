@@ -11,7 +11,11 @@
     return bounds.getNorth() - bounds.getSouth() > limit || bounds.getEast() - bounds.getWest() > limit;
   }
 
-  async function load(kind, bounds) {
+  function publicSite() {
+    return location.hostname === "exopace.net" || location.hostname === "www.exopace.net";
+  }
+
+  async function loadProxy(kind, bounds) {
     var q = "kind=" + encodeURIComponent(kind)
       + "&s=" + bounds.getSouth().toFixed(5)
       + "&w=" + bounds.getWest().toFixed(5)
@@ -20,6 +24,35 @@
     var res = await fetch("/api/overlay?" + q);
     var data = await res.json();
     return { ok: res.ok, data: data };
+  }
+
+  async function loadFlood(bounds) {
+    if (!publicSite()) return loadProxy("flood", bounds);
+    var geometry = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(",");
+    var url = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?where=1%3D1&geometry="
+      + encodeURIComponent(geometry)
+      + "&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects"
+      + "&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=true&outSR=4326&f=geojson"
+      + "&resultRecordCount=300&geometryPrecision=5";
+    var res = await fetch(url);
+    if (!res.ok) return { ok: false, data: { error: "unavailable" } };
+    var raw = await res.json();
+    if (raw.exceededTransferLimit) return { ok: true, data: { error: "zoom", features: [] } };
+    var features = [];
+    (raw.features || []).slice(0, 300).forEach(function (row) {
+      var zone = row.properties && row.properties.FLD_ZONE;
+      if (!zone || !row.geometry) return;
+      features.push({
+        type: "Feature",
+        properties: {
+          zone: String(zone).slice(0, 12),
+          subtype: String((row.properties && row.properties.ZONE_SUBTY) || "").slice(0, 40),
+          source: "FEMA NFHL",
+        },
+        geometry: row.geometry,
+      });
+    });
+    return { ok: true, data: { features: features, source: "FEMA NFHL", truncated: (raw.features || []).length > 300 } };
   }
 
   function put(map, source, data) {
@@ -42,7 +75,7 @@
         continue;
       }
       try {
-        var result = await load(task[0], bounds);
+        var result = task[0] === "flood" ? await loadFlood(bounds) : await loadProxy(task[0], bounds);
         if (token !== job) return;
         var data = result.data || {};
         if (!result.ok || data.error === "unavailable" || data.error === "origin") {

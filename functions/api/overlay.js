@@ -204,6 +204,7 @@ async function osm(kind, box) {
           accept: "application/json",
         },
         body: "data=" + encodeURIComponent(body),
+        signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) continue;
       const data = await res.json();
