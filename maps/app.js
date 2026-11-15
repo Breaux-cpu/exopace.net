@@ -27,7 +27,7 @@
   var startView = { center: [-98.5, 39.5], zoom: 4 };
   var camLog = [];
   function camNote(label) {
-    if (camLog.length > 12) return;
+    if (camLog.length > 24) return;
     var extra = "";
     if (map && map.getCenter) {
       var c = map.getCenter();
@@ -769,7 +769,10 @@
       syncGrid();
       syncGraticule();
       if (hashReady) {
-        camNote("moveend");
+        var here = map.getCenter();
+        if (Math.abs(here.lat - startView.center[1]) > 0.2 || Math.abs(map.getZoom() - startView.zoom) > 0.2) {
+          camNote("drift");
+        }
         writeHash();
       }
     });
@@ -886,6 +889,18 @@
       hash: false,
       attributionControl: true,
       maxPitch: 70,
+    });
+    ["jumpTo", "easeTo", "flyTo", "setCenter", "setZoom", "fitBounds", "panTo", "zoomTo"].forEach(function (name) {
+      var orig = map[name];
+      if (typeof orig !== "function") return;
+      map[name] = function (opt) {
+        var where = "";
+        if (opt && opt.center) {
+          where = Array.isArray(opt.center) ? opt.center.join(",") : (opt.center.lat + "," + opt.center.lng);
+        }
+        camNote("api " + name + " " + where + " z" + (opt && opt.zoom));
+        return orig.apply(this, arguments);
+      };
     });
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
