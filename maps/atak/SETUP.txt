@@ -25,4 +25,5 @@ Open the map list and pick an EXOpace name. If a name is missing, use Import Man
 Sheets
 On the field-map page, drop letter pages, then tap SEND TO ATAK.
 Pick ATAK on the share sheet. Or open exopace-field-map.kmz from Downloads with ATAK.
-Import Manager lists it as a ground overlay. It is a picture of those pages, not a live slippy map.
+Import Manager lists the pages as a ground overlay. It is a picture of those pages, not a live slippy map.
+If a route was measured, the same KMZ contains that route as a line and a numbered point for each click. ROUTE GPX is the separate track file.

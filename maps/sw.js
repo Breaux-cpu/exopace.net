@@ -1,4 +1,4 @@
-const CACHE = "exopace-maps-v13";
+const CACHE = "exopace-maps-v14";
 const SHELL = [
   "/maps/",
   "/maps/index.html",
@@ -11,12 +11,12 @@ const SHELL = [
   "/maps/terrain.js?v=2",
   "/maps/style.js?v=5",
   "/maps/print.js?v=4",
-  "/maps/atak.js?v=2",
+  "/maps/atak.js?v=3",
   "/maps/search.js?v=1",
   "/maps/garmin.js?v=2",
   "/maps/overlays.js?v=2",
   "/maps/mbtiles.js?v=1",
-  "/maps/app.js?v=13",
+  "/maps/app.js?v=14",
   "/maps/vendor/maplibre-gl.js?v=1",
   "/maps/vendor/maplibre-gl.css?v=1",
   "/maps/manifest.webmanifest",

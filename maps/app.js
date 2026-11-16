@@ -866,10 +866,14 @@
       if (!pack) return;
       var jpegs = [];
       for (var i = 0; i < pack.canvases.length; i++) jpegs.push(await jpegOf(pack.canvases[i]));
-      var bytes = await EXO.atak.kmz(pack.sheets, jpegs);
+      var route = measurePoints.length >= 2 ? measurePoints.map(function (point) {
+        return { lat: point.lat, lon: point.lon };
+      }) : null;
+      var bytes = await EXO.atak.kmz(pack.sheets, jpegs, route);
       var how = await shareOrSave(bytes, "exopace-field-map.kmz", "application/vnd.google-earth.kmz");
-      if (how === "shared") setStatus(routeNote(pack, "SHARE SHEET — PICK ATAK"));
-      else if (how === "saved") setStatus(routeNote(pack, "KMZ SAVED — OPEN IT IN ATAK"));
+      var note = route ? " — ROUTE LINE IN THE FILE" : "";
+      if (how === "shared") setStatus(routeNote(pack, "SHARE SHEET — PICK ATAK") + note);
+      else if (how === "saved") setStatus(routeNote(pack, "KMZ SAVED — OPEN IT IN ATAK") + note);
       else setStatus("SHARE CANCELLED");
     } catch (err) {
       setStatus("ATAK EXPORT FAILED");
