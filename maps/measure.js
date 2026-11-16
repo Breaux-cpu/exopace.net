@@ -1,4 +1,4 @@
-/* Two-point leg. Distance is the WGS84 geodesic. Azimuths are clockwise from north at the start. */
+/* Route legs. Distance is the WGS84 geodesic. Azimuths are clockwise from north at the start of the latest leg. */
 (function (root) {
   var A = 6378137;
   var F = 1 / 298.257223563;
@@ -205,6 +205,126 @@
     return out;
   }
 
+  function zoneNear(lon, zone) {
+    if (!Number.isFinite(lon) || !Number.isFinite(zone) || zone < 1 || zone > 60) return false;
+    var cm = (zone - 1) * 6 - 180 + 3;
+    var d = lon - cm;
+    while (d > 180) d -= 360;
+    while (d < -180) d += 360;
+    return Math.abs(d) <= 4;
+  }
+
+  /* Liang-Barsky. A segment on the boundary stays. A miss returns null. */
+  function clipSegment(ax, ay, bx, by, box) {
+    var dx = bx - ax;
+    var dy = by - ay;
+    var u1 = 0;
+    var u2 = 1;
+    var p = [-dx, dx, -dy, dy];
+    var q = [ax - box.minX, box.maxX - ax, ay - box.minY, box.maxY - ay];
+    for (var i = 0; i < 4; i++) {
+      if (Math.abs(p[i]) < 1e-12) {
+        if (q[i] < -1e-9) return null;
+      } else {
+        var t = q[i] / p[i];
+        if (p[i] < 0) {
+          if (t > u2) return null;
+          if (t > u1) u1 = t;
+        } else {
+          if (t < u1) return null;
+          if (t < u2) u2 = t;
+        }
+      }
+    }
+    if (u2 < u1) return null;
+    return {
+      a: { x: ax + u1 * dx, y: ay + u1 * dy },
+      b: { x: ax + u2 * dx, y: ay + u2 * dy },
+      fromStart: u1 <= 1e-9,
+    };
+  }
+
+  function clipPolyline(points, box) {
+    var runs = [];
+    var current = null;
+    for (var i = 0; i + 1 < points.length; i++) {
+      var a = points[i];
+      var b = points[i + 1];
+      if (!a || !b || !Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(b.x) || !Number.isFinite(b.y)) {
+        current = null;
+        continue;
+      }
+      var hit = clipSegment(a.x, a.y, b.x, b.y, box);
+      if (!hit) {
+        current = null;
+        continue;
+      }
+      if (!current || !hit.fromStart) {
+        current = [hit.a];
+        runs.push(current);
+      }
+      current.push(hit.b);
+    }
+    return runs;
+  }
+
+  /* Project the display arc into one UTM zone, then clip to the sheet rectangle.
+     Samples more than 4 degrees from that zone are dropped so a long leg cannot
+     chord across a page it does not cross. */
+  function sheetRoute(points, zone, box, utmFn) {
+    var empty = { runs: [], marks: [] };
+    if (!points || points.length < 2 || !box || typeof utmFn !== "function") return empty;
+    if (!Number.isFinite(box.minX) || !Number.isFinite(box.minY) || !Number.isFinite(box.maxX) || !Number.isFinite(box.maxY)) return empty;
+    var line = routeLine(points);
+    var projected = [];
+    for (var i = 0; i < line.length; i++) {
+      var lon = line[i][0];
+      var lat = line[i][1];
+      while (lon > 180) lon -= 360;
+      while (lon < -180) lon += 360;
+      if (!zoneNear(lon, zone) || lat < -80 || lat > 84) {
+        projected.push(null);
+        continue;
+      }
+      var u;
+      try { u = utmFn(lat, lon, zone); }
+      catch (err) { projected.push(null); continue; }
+      if (!u || !Number.isFinite(u.easting) || !Number.isFinite(u.northing)) {
+        projected.push(null);
+        continue;
+      }
+      projected.push({ x: u.easting, y: u.northing });
+    }
+    var runs = [];
+    var chunk = [];
+    function flush() {
+      if (chunk.length >= 2) {
+        clipPolyline(chunk, box).forEach(function (run) { runs.push(run); });
+      }
+      chunk = [];
+    }
+    for (var j = 0; j < projected.length; j++) {
+      if (!projected[j]) flush();
+      else chunk.push(projected[j]);
+    }
+    flush();
+    var marks = [];
+    for (var k = 0; k < points.length; k++) {
+      var p = points[k];
+      if (!p || !Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
+      if (!zoneNear(p.lon, zone) || p.lat < -80 || p.lat > 84) continue;
+      var placed;
+      try { placed = utmFn(p.lat, p.lon, zone); }
+      catch (err) { continue; }
+      if (!placed || !Number.isFinite(placed.easting) || !Number.isFinite(placed.northing)) continue;
+      /* 5 cm covers the UTM inverse/forward remainder on a neatline corner. */
+      var edge = 0.05;
+      if (placed.easting < box.minX - edge || placed.easting > box.maxX + edge || placed.northing < box.minY - edge || placed.northing > box.maxY + edge) continue;
+      marks.push({ x: placed.easting, y: placed.northing, n: k + 1 });
+    }
+    return { runs: runs, marks: marks };
+  }
+
   function routeLine(points) {
     if (!points || points.length < 2) return [];
     var raw = [];
@@ -239,6 +359,8 @@
     gpx: gpx,
     lineCoords: lineCoords,
     routeLine: routeLine,
+    clipPolyline: clipPolyline,
+    sheetRoute: sheetRoute,
   };
   if (typeof module === "object" && module.exports) module.exports = root.EXO.measure;
 })(typeof globalThis !== "undefined" ? globalThis : this);

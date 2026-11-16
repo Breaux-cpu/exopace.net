@@ -35,13 +35,14 @@
       <tr><td><i class="sw" style="background:#2f6f8f"></i>FEMA flood hazard zone. Zone X is lighter. United States only.</td></tr>
       <tr><td><i class="sw" style="background:#8ea84e"></i>OSM broadleaved wood. Needleleaved is darker. Deciduous, where only the cycle is tagged, is tan.</td></tr>
       <tr><td><i class="sw" style="background:#ffe08a"></i>OSM amateur radio. Not a complete repeater list.</td></tr>
+      <tr><td><i class="sw" style="background:#9a3412"></i>Measured route on a printed page. Numbered points are the clicks that fall inside that page.</td></tr>
     </table>
     <h2>MEASURE</h2>
-    <p>Each click adds a point. The latest leg is the WGS84 geodesic. True azimuth is clockwise from true north at the start of that leg. Grid azimuth subtracts grid convergence there, east positive, in that UTM zone. Magnetic azimuth subtracts the World Magnetic Model declination when NOAA returns it. If that line says to use a chart, do that. The total is the sum of the legs. Slope uses the geodesic as the horizontal run and the terrain-tile elevations as the rise. ROUTE GPX is a track. Import that file in ATAK or another GPS app.</p>
+    <p>Each click adds a point. The latest leg is the WGS84 geodesic. True azimuth is clockwise from true north at the start of that leg. Grid azimuth subtracts grid convergence there, east positive, in that UTM zone. Magnetic azimuth subtracts the World Magnetic Model declination when NOAA returns it. If that line says to use a chart, do that. The total is the sum of the legs. Slope uses the geodesic as the horizontal run and the terrain-tile elevations as the rise. ROUTE GPX is a track. Import that file in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that same route on each page it crosses.</p>
     <h2>GRID</h2>
     <p>Example: 15S YU 688 934 is a 100 m square. 15S is the zone and latitude band. YU is the 100 km square. 688 is easting to 100 m. 934 is northing to 100 m. Read right, then up.</p>
     <h2>COLLAR</h2>
-    <p>Grid convergence is grid-to-true, east positive. Magnetic declination is the World Magnetic Model when the chart can reach NOAA. If that line says to use a current chart, do that. Do not invent a declination.</p>
+    <p>Grid convergence is grid-to-true, east positive. Magnetic declination is the World Magnetic Model when the chart can reach NOAA. If that line says to use a current chart, do that. Do not invent a declination. When the route crosses the neatline, the collar says ROUTE MARKED ON THIS PAGE. That line is the clicked route drawn in the sheet’s UTM zone. It is not a surveyed traverse.</p>
     <h2>EXTRA LAYERS</h2>
     <p>3DEP is the USGS shaded-relief service. It is elevation, including lidar where USGS used lidar, and it is not a point cloud. Flood zones come from the FEMA National Flood Hazard Layer. Power lines and pipelines come from OpenInfraMap’s OpenStreetMap tiles. Leaf type and amateur radio are only the features OpenStreetMap has tagged in the current view. If a layer says unavailable, nothing is drawn. A 7.5′, 15′, or 30×60′ sheet uses the USGS National Map cell name when that polygon has the same edges. A 1×2° sheet keeps the corner label, because that degree index is 1° by 1°.</p>
     <p><a href="./">Back to the map</a></p>

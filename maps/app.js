@@ -829,9 +829,17 @@
         units: state.units,
         contours: state.contours,
         hill: state.hill,
+        route: measurePoints.length >= 2 ? measurePoints.map(function (p) {
+          return { lat: p.lat, lon: p.lon };
+        }) : null,
       }));
     }
     return { sheets: sheets, canvases: canvases };
+  }
+
+  function routeNote(pack, base) {
+    var marked = pack && pack.canvases && pack.canvases.some(function (canvas) { return canvas.exoRoute; });
+    return marked ? base + " — ROUTE ON THE PAGE" : base;
   }
 
   async function downloadPdf() {
@@ -846,7 +854,7 @@
         });
       }
       saveBytes(EXO.print.pdf(pages), "exopace-field-map.pdf", "application/pdf");
-      setStatus("PDF READY — PRINT AT ACTUAL SIZE");
+      setStatus(routeNote(pack, "PDF READY — PRINT AT ACTUAL SIZE"));
     } catch (err) {
       setStatus("PDF FAILED");
     }
@@ -860,8 +868,8 @@
       for (var i = 0; i < pack.canvases.length; i++) jpegs.push(await jpegOf(pack.canvases[i]));
       var bytes = await EXO.atak.kmz(pack.sheets, jpegs);
       var how = await shareOrSave(bytes, "exopace-field-map.kmz", "application/vnd.google-earth.kmz");
-      if (how === "shared") setStatus("SHARE SHEET — PICK ATAK");
-      else if (how === "saved") setStatus("KMZ SAVED — OPEN IT IN ATAK");
+      if (how === "shared") setStatus(routeNote(pack, "SHARE SHEET — PICK ATAK"));
+      else if (how === "saved") setStatus(routeNote(pack, "KMZ SAVED — OPEN IT IN ATAK"));
       else setStatus("SHARE CANCELLED");
     } catch (err) {
       setStatus("ATAK EXPORT FAILED");
@@ -892,9 +900,9 @@
       var bytes = EXO.garmin.kmz(pack.sheets, jpegs);
       saveBytes(bytes, "exopace-garmin.kmz", "application/vnd.google-earth.kmz");
       var skipped = pack.sheets.filter(EXO.garmin.spansDateLine).length;
-      setStatus(skipped
+      setStatus(routeNote(pack, skipped
         ? "GARMIN KMZ — COPY TO Garmin/CustomMaps — " + skipped + " DATE-LINE PAGE LEFT OUT"
-        : "GARMIN KMZ — COPY TO Garmin/CustomMaps");
+        : "GARMIN KMZ — COPY TO Garmin/CustomMaps"));
     } catch (err) {
       setStatus("GARMIN EXPORT FAILED");
     }

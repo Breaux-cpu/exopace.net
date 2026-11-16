@@ -86,4 +86,69 @@ for (var step = 1; step < route.length; step++) {
   assert.ok(Math.abs(route[step][0] - route[step - 1][0]) < 2, route[step][0]);
 }
 
+const box = { minX: 0, minY: 0, maxX: 10, maxY: 10 };
+const inside = measure.clipPolyline([{ x: 1, y: 1 }, { x: 2, y: 3 }, { x: 4, y: 4 }], box);
+assert.strictEqual(inside.length, 1);
+assert.strictEqual(inside[0].length, 3);
+const cut = measure.clipPolyline([{ x: -5, y: 5 }, { x: 5, y: 5 }, { x: 15, y: 5 }], box);
+assert.strictEqual(cut.length, 1);
+assert.ok(Math.abs(cut[0][0].x) < 1e-6, cut[0][0].x);
+assert.ok(Math.abs(cut[0][cut[0].length - 1].x - 10) < 1e-6);
+const outside = measure.clipPolyline([{ x: -5, y: -5 }, { x: -1, y: -1 }], box);
+assert.strictEqual(outside.length, 0);
+const gap = measure.clipPolyline([{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 20, y: 1 }, { x: 22, y: 1 }, { x: 5, y: 5 }], box);
+assert.strictEqual(gap.length, 2);
+
+const sheets = require("./sheets.js");
+require("./print.js");
+const sheet = sheets.at(35.15, -90.05, 50000, "portrait");
+const sheetBox = {
+  minX: sheet.e0,
+  minY: sheet.n0,
+  maxX: sheet.e0 + sheet.wM,
+  maxY: sheet.n0 + sheet.hM,
+};
+const onSheet = measure.sheetRoute([
+  { lat: sheet.mid.lat, lon: sheet.mid.lon },
+  { lat: sheet.ne.lat, lon: sheet.ne.lon },
+], sheet.zone, sheetBox, mgrs.utm);
+assert.strictEqual(onSheet.runs.length, 1);
+assert.strictEqual(onSheet.marks.length, 2);
+assert.strictEqual(onSheet.marks[0].n, 1);
+assert.strictEqual(onSheet.marks[1].n, 2);
+
+const southPt = mgrs.utmInverse(sheet.zone, sheet.hemi, sheet.e0 + sheet.wM / 2, sheet.n0 - 500);
+const northEdge = mgrs.utmInverse(sheet.zone, sheet.hemi, sheet.e0 + sheet.wM / 2, sheet.n0 + sheet.hM + 500);
+const crossing = measure.sheetRoute([
+  { lat: southPt.lat, lon: southPt.lon },
+  { lat: northEdge.lat, lon: northEdge.lon },
+], sheet.zone, sheetBox, mgrs.utm);
+assert.strictEqual(crossing.runs.length, 1);
+assert.strictEqual(crossing.marks.length, 0);
+const ys = crossing.runs[0].map(function (p) { return p.y; });
+assert.ok(Math.abs(Math.min.apply(null, ys) - sheetBox.minY) < 1);
+assert.ok(Math.abs(Math.max.apply(null, ys) - sheetBox.maxY) < 1);
+
+const missed = measure.sheetRoute([
+  { lat: 21.3, lon: -157.8 },
+  { lat: 21.4, lon: -157.7 },
+], sheet.zone, sheetBox, mgrs.utm);
+assert.strictEqual(missed.runs.length, 0);
+assert.strictEqual(missed.marks.length, 0);
+
+const pix = globalThis.EXO.print.routePixels(sheet, [
+  { lat: sheet.mid.lat, lon: sheet.mid.lon },
+  { lat: sheet.sw.lat, lon: sheet.sw.lon },
+], 10, 20, 756, 945);
+assert.strictEqual(pix.marked, true);
+assert.strictEqual(pix.marks.length, 2);
+pix.runs.forEach(function (run) {
+  run.forEach(function (p) {
+    assert.ok(p.x >= 10 - 0.05 && p.x <= 766.05, p.x);
+    assert.ok(p.y >= 20 - 0.05 && p.y <= 965.05, p.y);
+  });
+});
+const blank = globalThis.EXO.print.routePixels(sheet, [{ lat: 21.3, lon: -157.8 }, { lat: 21.4, lon: -157.7 }], 10, 20, 756, 945);
+assert.strictEqual(blank.marked, false);
+
 console.log("measure ok", east.distanceM.toFixed(3), north.distanceM.toFixed(3), leg.gridAz.toFixed(3), grade.degrees.toFixed(3));

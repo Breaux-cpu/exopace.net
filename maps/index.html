@@ -41,7 +41,7 @@
         <button type="button" data-value="off" aria-pressed="true">OFF</button>
         <button type="button" data-value="on">ON</button>
       </div>
-      <p class="fm-note">Each click adds a point, up to 24. The latest leg is a WGS84 geodesic. Azimuth is clockwise from north at the start of that leg. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Slope uses those elevations as the rise. ROUTE GPX is a track to import in ATAK or another GPS app.</p>
+      <p class="fm-note">Each click adds a point, up to 24. The latest leg is a WGS84 geodesic. Azimuth is clockwise from north at the start of that leg. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Slope uses those elevations as the rise. ROUTE GPX is a track to import in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that route on each page it crosses.</p>
       <p class="fm-note" id="fm-leg">MEASURE OFF</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-route-clear">CLEAR ROUTE</button>
@@ -192,7 +192,7 @@
         <button type="button" data-value="false">HIDE</button>
       </div>
       <h2>PRINT</h2>
-      <p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar.</p>
+      <p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar. A measured route is drawn in the neatline of each page it crosses, and the collar says so.</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
         <a class="fm-btn" href="legend.html">LEGEND</a>
@@ -219,16 +219,16 @@
   </div>
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
   <script src="mgrs.js?v=1"></script>
-  <script src="measure.js?v=2"></script>
+  <script src="measure.js?v=3"></script>
   <script src="sheets.js?v=4"></script>
   <script src="terrain.js?v=2"></script>
   <script src="style.js?v=5"></script>
-  <script src="print.js?v=3"></script>
+  <script src="print.js?v=4"></script>
   <script src="atak.js?v=2"></script>
   <script src="search.js?v=1"></script>
   <script src="garmin.js?v=2"></script>
   <script src="overlays.js?v=2"></script>
   <script src="mbtiles.js?v=1"></script>
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

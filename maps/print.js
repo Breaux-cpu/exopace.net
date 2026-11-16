@@ -102,6 +102,68 @@
     ctx.restore();
   }
 
+  function routePixels(sheet, route, ox, oy, w, h) {
+    var empty = { marked: false, runs: [], marks: [] };
+    if (!route || route.length < 2 || !root.EXO.measure || !root.EXO.measure.sheetRoute || !root.EXO.mgrs) return empty;
+    if (!sheet || !Number.isFinite(sheet.e0) || !Number.isFinite(sheet.n0) || !Number.isFinite(sheet.wM) || !Number.isFinite(sheet.hM) || sheet.wM <= 0 || sheet.hM <= 0) return empty;
+    var box = {
+      minX: sheet.e0,
+      minY: sheet.n0,
+      maxX: sheet.e0 + sheet.wM,
+      maxY: sheet.n0 + sheet.hM,
+    };
+    var hit = root.EXO.measure.sheetRoute(route, sheet.zone, box, function (lat, lon, zone) {
+      return root.EXO.mgrs.utm(lat, lon, zone);
+    });
+    function px(p) {
+      return {
+        x: ox + (p.x - sheet.e0) / sheet.wM * w,
+        y: oy + (1 - (p.y - sheet.n0) / sheet.hM) * h,
+      };
+    }
+    var runs = hit.runs.map(function (run) { return run.map(px); });
+    var marks = hit.marks.map(function (p) {
+      var q = px(p);
+      q.n = p.n;
+      return q;
+    });
+    return { marked: runs.length > 0 || marks.length > 0, runs: runs, marks: marks };
+  }
+
+  function drawRoute(ctx, sheet, route, ox, oy, w, h) {
+    var hit = routePixels(sheet, route, ox, oy, w, h);
+    if (!hit.marked) return false;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ox, oy, w, h);
+    ctx.clip();
+    ctx.strokeStyle = "#9a3412";
+    ctx.fillStyle = "#9a3412";
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    hit.runs.forEach(function (run) {
+      if (run.length < 2) return;
+      ctx.beginPath();
+      run.forEach(function (p, idx) {
+        if (idx === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+    });
+    ctx.font = "bold 13px ui-monospace, monospace";
+    hit.marks.forEach(function (p) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f4efe4";
+      ctx.fillText(String(p.n), p.x + 7, p.y - 6);
+      ctx.fillStyle = "#9a3412";
+    });
+    ctx.restore();
+    return true;
+  }
+
   function drawBar(ctx, x, y, px, label) {
     ctx.fillStyle = "#14202a";
     ctx.fillRect(x, y, px, 6);
@@ -185,6 +247,8 @@
     ctx.strokeStyle = "#14202a";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(ox + 0.5, oy + 0.5, paper.neatWpx - 1, paper.neatHpx - 1);
+    var routeMarked = drawRoute(ctx, sheet, opts.route, ox, oy, paper.neatWpx, paper.neatHpx);
+    canvas.exoRoute = routeMarked;
 
     var conv = root.EXO.mgrs.convergence(sheet.mid.lat, sheet.mid.lon, sheet.zone);
     var mag = await magDecl(sheet.mid.lat, sheet.mid.lon);
@@ -199,6 +263,7 @@
     if (sheet.quadName) lines.push((sheet.tileLabel || "TILE") + " OF " + sheet.quadName);
     lines.push("WGS84  ·  GRID " + (conv >= 0 ? "+" : "") + conv.toFixed(2) + "° TO TRUE");
     lines.push(mag == null ? "MAG — SET FROM A CURRENT CHART" : "MAG DECLINATION " + (mag >= 0 ? "+" : "") + mag.toFixed(1) + "° (WMM)");
+    if (routeMarked) lines.push("ROUTE MARKED ON THIS PAGE");
     lines.push("OSM © CONTRIBUTORS  ·  AWS TERRAIN TILES  ·  PRINT ACTUAL SIZE");
     for (var i = 0; i < lines.length; i++) ctx.fillText(lines[i], mm(8), textY + 16 + i * 15);
 
@@ -289,5 +354,5 @@
   }
 
   root.EXO = root.EXO || {};
-  root.EXO.print = { page: page, pdf: pdf, zoomFor: zoomFor };
+  root.EXO.print = { page: page, pdf: pdf, zoomFor: zoomFor, routePixels: routePixels };
 })(typeof globalThis !== "undefined" ? globalThis : this);
