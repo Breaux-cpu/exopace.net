@@ -325,6 +325,32 @@
     return { runs: runs, marks: marks };
   }
 
+  /* Five decimal degrees is about one meter. The link stores that, not the raw click. */
+  function encodeRoute(points) {
+    return (points || []).filter(function (point) {
+      return point && Number.isFinite(point.lat) && Number.isFinite(point.lon)
+        && point.lat >= -80 && point.lat <= 84 && Math.abs(point.lon) <= 180;
+    }).slice(0, 24).map(function (point) {
+      return point.lat.toFixed(5) + "," + point.lon.toFixed(5);
+    }).join(";");
+  }
+
+  function decodeRoute(text) {
+    var out = [];
+    if (!text) return out;
+    String(text).split(";").forEach(function (part) {
+      if (out.length >= 24 || !part) return;
+      var bits = part.split(",");
+      if (bits.length !== 2) return;
+      var lat = Number(bits[0]);
+      var lon = Number(bits[1]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+      if (lat < -80 || lat > 84 || Math.abs(lon) > 180) return;
+      out.push({ lat: lat, lon: lon });
+    });
+    return out;
+  }
+
   function routeLine(points) {
     if (!points || points.length < 2) return [];
     var raw = [];
@@ -359,6 +385,8 @@
     gpx: gpx,
     lineCoords: lineCoords,
     routeLine: routeLine,
+    encodeRoute: encodeRoute,
+    decodeRoute: decodeRoute,
     clipPolyline: clipPolyline,
     sheetRoute: sheetRoute,
   };

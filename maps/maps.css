@@ -56,7 +56,7 @@ button, a { font: inherit; }
 .fm-seg button[aria-pressed="true"] { color: #7ee0ff; border-color: rgba(126, 224, 255, 0.8); }
 .fm-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .fm-status { color: #ffe08a; font-size: 12px; letter-spacing: 0.08em; min-height: 18px; }
-#fm-leg { white-space: pre-line; color: #ffe08a; min-height: 18px; }
+#fm-leg { white-space: pre-line; color: #ffe08a; min-height: 18px; max-height: 28vh; overflow: auto; }
 .maplibregl-ctrl-attrib { font-size: 10px; background: rgba(3, 6, 11, 0.8); }
 .maplibregl-ctrl-attrib a { color: #7ee0ff; }
 .fm-print-map {

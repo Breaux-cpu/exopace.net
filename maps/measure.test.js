@@ -151,4 +151,24 @@ pix.runs.forEach(function (run) {
 const blank = globalThis.EXO.print.routePixels(sheet, [{ lat: 21.3, lon: -157.8 }, { lat: 21.4, lon: -157.7 }], 10, 20, 756, 945);
 assert.strictEqual(blank.marked, false);
 
+const encoded = measure.encodeRoute([
+  { lat: 35.15, lon: -90.05 },
+  { lat: 35.16, lon: -90.04 },
+  { lat: 99, lon: 0 },
+  { lat: 10, lon: 200 },
+]);
+assert.strictEqual(encoded, "35.15000,-90.05000;35.16000,-90.04000");
+const round = measure.decodeRoute(encoded);
+assert.strictEqual(round.length, 2);
+assert.ok(Math.abs(round[0].lat - 35.15) < 1e-9);
+assert.ok(Math.abs(round[1].lon - (-90.04)) < 1e-9);
+const params = new URLSearchParams();
+params.set("route", encoded);
+assert.deepStrictEqual(measure.decodeRoute(new URLSearchParams(params.toString()).get("route")), round);
+assert.strictEqual(measure.decodeRoute("85,0;bad;10,20,30").length, 0);
+const many = [];
+for (var n = 0; n < 30; n++) many.push({ lat: 10 + n / 100, lon: -90 });
+assert.strictEqual(measure.decodeRoute(measure.encodeRoute(many)).length, 24);
+assert.strictEqual(measure.encodeRoute([]), "");
+
 console.log("measure ok", east.distanceM.toFixed(3), north.distanceM.toFixed(3), leg.gridAz.toFixed(3), grade.degrees.toFixed(3));

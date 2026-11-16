@@ -30,7 +30,6 @@
   var quadQueue = [];
   var quadBusy = 0;
   var measurePoints = [];
-  var measureMag = null;
   var measureToken = 0;
 
   var map;
@@ -304,7 +303,7 @@
       var from = measurePoints[i - 1];
       var to = measurePoints[i];
       var conv = EXO.mgrs.convergence(from.lat, from.lon);
-      var decl = i === measurePoints.length - 1 ? measureMag : null;
+      var decl = from.declKnown ? from.decl : null;
       legs.push(EXO.measure.solve(from.lat, from.lon, to.lat, to.lon, conv, decl));
     }
     return legs;
@@ -327,43 +326,54 @@
     }
     var a = measurePoints[measurePoints.length - 2];
     var b = measurePoints[measurePoints.length - 1];
-    var conv;
-    var zone;
     var legs;
     try {
-      conv = EXO.mgrs.convergence(a.lat, a.lon);
-      zone = EXO.mgrs.zoneFor(a.lat, a.lon);
       legs = measureLegs();
     } catch (err) {
       el.textContent = "OUTSIDE THE MEASURE GRID";
       return;
     }
     var result = legs[legs.length - 1];
-    if (!result) {
+    if (!result && measurePoints.length === 2) {
       el.textContent = "NO GEODETIC SOLUTION";
       return;
     }
-    if (result.distanceM === 0 && measurePoints.length === 2) {
+    if (result && result.distanceM === 0 && measurePoints.length === 2) {
       el.textContent = "SAME POINT";
       return;
     }
     var lines = [];
-    var legDistance = EXO.measure.formatDistance(result.distanceM, state.units);
-    lines.push(measurePoints.length > 2 ? "LEG " + (measurePoints.length - 1) + "  ·  " + legDistance : legDistance);
-    if (measurePoints.length > 2) {
+    for (var i = 0; i < legs.length; i++) {
+      var leg = legs[i];
+      var from = measurePoints[i];
+      var head = legs.length > 1 ? "LEG " + (i + 1) + "  ·  " : "";
+      if (!leg) {
+        lines.push(head + "NO GEODETIC SOLUTION");
+        continue;
+      }
+      if (leg.distanceM === 0) {
+        lines.push(head + "SAME POINT");
+        continue;
+      }
+      var zone;
+      try { zone = EXO.mgrs.zoneFor(from.lat, from.lon); }
+      catch (err) { zone = ""; }
+      lines.push(head + EXO.measure.formatDistance(leg.distanceM, state.units));
+      if (leg.trueAz != null) {
+        lines.push("TRUE " + EXO.measure.azText(leg.trueAz) + "  ·  GRID " + EXO.measure.azText(leg.gridAz) + (zone === "" ? "" : " Z" + zone));
+        lines.push(leg.magAz == null ? "MAG — CHART" : "MAG " + EXO.measure.azText(leg.magAz));
+        lines.push("BACK " + EXO.measure.azText(leg.backTrue));
+      }
+    }
+    if (legs.length > 1) {
       var total = EXO.measure.totalDistance(legs);
       if (total != null) lines.push("TOTAL " + EXO.measure.formatDistance(total, state.units));
-    }
-    if (result.trueAz != null) {
-      lines.push("TRUE " + EXO.measure.azText(result.trueAz) + "  ·  GRID " + EXO.measure.azText(result.gridAz) + " Z" + zone);
-      lines.push(result.magAz == null ? "MAG — CHART" : "MAG " + EXO.measure.azText(result.magAz));
-      lines.push("BACK " + EXO.measure.azText(result.backTrue));
     }
     var startGrid = mgrsText(a);
     var endGrid = mgrsText(b);
     if (startGrid) lines.push("START " + startGrid);
     if (endGrid) lines.push("END " + endGrid);
-    if (Number.isFinite(a.elev) && Number.isFinite(b.elev)) {
+    if (result && Number.isFinite(a.elev) && Number.isFinite(b.elev)) {
       lines.push(elevText(a.elev, b.elev));
       var grade = EXO.measure.slope(result.distanceM, b.elev - a.elev);
       if (grade) {
@@ -377,23 +387,38 @@
 
   function loadMeasureExtra() {
     var token = ++measureToken;
-    var pending = measurePoints.map(function (point) {
-      if (point.elevKnown) return Promise.resolve(point.elev);
-      return EXO.terrain.sample(point.lat, point.lon);
-    });
-    var origin = measurePoints[measurePoints.length - 2];
-    pending.push(EXO.print.magDecl(origin.lat, origin.lon));
-    Promise.all(pending).then(function (row) {
-      if (token !== measureToken || measurePoints.length < 2) return;
-      for (var i = 0; i < measurePoints.length; i++) {
-        measurePoints[i].elev = row[i];
-        measurePoints[i].elevKnown = true;
+    var jobs = [];
+    measurePoints.forEach(function (point, index) {
+      if (!point.elevKnown) {
+        jobs.push(EXO.terrain.sample(point.lat, point.lon).then(function (elev) {
+          return { index: index, elev: elev };
+        }, function () {
+          return { index: index, elev: null };
+        }));
       }
-      measureMag = row[row.length - 1];
-      paintMeasure();
-    }, function () {
+      if (index < measurePoints.length - 1 && !point.declKnown) {
+        jobs.push(EXO.print.magDecl(point.lat, point.lon).then(function (decl) {
+          return { index: index, decl: decl };
+        }, function () {
+          return { index: index, decl: null };
+        }));
+      }
+    });
+    if (!jobs.length) return;
+    Promise.all(jobs).then(function (rows) {
       if (token !== measureToken) return;
-      measureMag = null;
+      rows.forEach(function (row) {
+        var point = measurePoints[row.index];
+        if (!point) return;
+        if (Object.prototype.hasOwnProperty.call(row, "elev")) {
+          point.elev = row.elev;
+          point.elevKnown = true;
+        }
+        if (Object.prototype.hasOwnProperty.call(row, "decl")) {
+          point.decl = row.decl;
+          point.declKnown = true;
+        }
+      });
       paintMeasure();
     });
   }
@@ -402,6 +427,7 @@
     var src = map && map.getSource("measure");
     if (src) src.setData(measureFC());
     paintMeasure();
+    if (map) writeHash();
     if (state.measure === "on" && measurePoints.length >= 2) loadMeasureExtra();
   }
 
@@ -414,15 +440,13 @@
       setStatus("24 POINT LIMIT");
       return;
     }
-    measurePoints.push({ lat: lat, lon: lon, elev: null, elevKnown: false });
-    measureMag = null;
+    measurePoints.push({ lat: lat, lon: lon, elev: null, elevKnown: false, decl: null, declKnown: false });
     measureToken += 1;
     syncMeasure();
   }
 
   function clearRoute() {
     measurePoints = [];
-    measureMag = null;
     measureToken += 1;
     syncMeasure();
     setStatus(state.measure === "on" ? "ROUTE CLEARED" : "MEASURE OFF");
@@ -606,6 +630,8 @@
     if (state.sheets.length) {
       q.set("sheets", state.sheets.map(function (s) { return EXO.sheets.encodeSheet(s); }).join(","));
     }
+    var route = EXO.measure.encodeRoute(measurePoints);
+    if (route) q.set("route", route);
     history.replaceState(null, "", "#" + q.toString());
   }
 
@@ -624,6 +650,13 @@
         catch (err) { return null; }
       }).filter(Boolean);
       if (state.sheets.length) state.active = state.sheets[state.sheets.length - 1].id;
+    }
+    var decoded = EXO.measure.decodeRoute(q.get("route"));
+    if (decoded.length) {
+      measurePoints = decoded.map(function (point) {
+        return { lat: point.lat, lon: point.lon, elev: null, elevKnown: false, decl: null, declKnown: false };
+      });
+      state.measure = "on";
     }
     return EXO.sheets.viewFromHash(location.hash);
   }
@@ -1073,7 +1106,6 @@
         if (key === "measure") {
           if (state.measure !== "on") {
             measurePoints = [];
-            measureMag = null;
             measureToken += 1;
           }
           if (map && map.getCanvas()) map.getCanvas().style.cursor = state.measure === "on" ? "crosshair" : "";
@@ -1159,7 +1191,7 @@
       syncGrid();
       syncGraticule();
       readout();
-      writeHash();
+      if (map.getCanvas()) map.getCanvas().style.cursor = state.measure === "on" ? "crosshair" : "";
       syncMeasure();
       if (EXO.overlays) EXO.overlays.sync(map, state, setStatus);
     });

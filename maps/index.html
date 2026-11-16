@@ -9,7 +9,7 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
-  <link rel="stylesheet" href="maps.css?v=3" />
+  <link rel="stylesheet" href="maps.css?v=4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -41,7 +41,7 @@
         <button type="button" data-value="off" aria-pressed="true">OFF</button>
         <button type="button" data-value="on">ON</button>
       </div>
-      <p class="fm-note">Each click adds a point, up to 24. The latest leg is a WGS84 geodesic. Azimuth is clockwise from north at the start of that leg. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Slope uses those elevations as the rise. ROUTE GPX is a track to import in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that route on each page it crosses.</p>
+      <p class="fm-note">Each click adds a point, up to 24. The latest leg is a WGS84 geodesic. Azimuth is clockwise from north at the start of that leg. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Slope uses those elevations as the rise. ROUTE GPX is a track to import in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that route on each page it crosses. Every leg shows its own true, grid, and back azimuth. Magnetic azimuth stays with that leg after NOAA answers for its start. The link keeps the route to about one meter.</p>
       <p class="fm-note" id="fm-leg">MEASURE OFF</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-route-clear">CLEAR ROUTE</button>
@@ -219,7 +219,7 @@
   </div>
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
   <script src="mgrs.js?v=1"></script>
-  <script src="measure.js?v=3"></script>
+  <script src="measure.js?v=4"></script>
   <script src="sheets.js?v=4"></script>
   <script src="terrain.js?v=2"></script>
   <script src="style.js?v=5"></script>
@@ -229,6 +229,6 @@
   <script src="garmin.js?v=2"></script>
   <script src="overlays.js?v=2"></script>
   <script src="mbtiles.js?v=1"></script>
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>
