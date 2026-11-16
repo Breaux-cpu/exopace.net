@@ -201,6 +201,23 @@
     });
   }
 
+  async function sample(lat, lon) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    if (lat > 85 || lat < -85 || lon > 180 || lon < -180) return null;
+    var z = 14;
+    var n = Math.pow(2, z);
+    var xf = (lon + 180) / 360 * n;
+    var s = Math.sin(lat * Math.PI / 180);
+    var yf = (1 - Math.log((1 + s) / (1 - s)) / (2 * Math.PI)) / 2 * n;
+    var rec = await load(z, Math.floor(xf), Math.floor(yf));
+    if (!rec) return null;
+    var ix = Math.min(rec.w - 1, Math.max(0, Math.floor((xf - Math.floor(xf)) * rec.w)));
+    var iy = Math.min(rec.h - 1, Math.max(0, Math.floor((yf - Math.floor(yf)) * rec.h)));
+    var elev = rec.elev[iy * rec.w + ix];
+    if (!Number.isFinite(elev) || elev < -500 || elev > 9000) return null;
+    return elev;
+  }
+
   function tilesForBbox(z, west, south, east, north) {
     var n = Math.pow(2, z);
     function xOf(lon) { return (lon + 180) / 360 * n; }
@@ -226,6 +243,7 @@
     contourPng: contourPng,
     shadeGrid: shadeGrid,
     drawContours: drawContours,
+    sample: sample,
     tilesForBbox: tilesForBbox,
     cellSize: cellSize,
     intervalFor: intervalFor,

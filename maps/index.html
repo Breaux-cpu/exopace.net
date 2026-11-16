@@ -9,7 +9,7 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
-  <link rel="stylesheet" href="maps.css?v=2" />
+  <link rel="stylesheet" href="maps.css?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -36,6 +36,13 @@
     <aside class="fm-dock">
       <p class="fm-status" id="fm-status">LOADING</p>
       <p>Click a page. Click it again to drop it. Shift-drag fills an area. A letter page steps 1 km. A USGS quadrangle steps to the next cell. Arrow keys nudge the selected page.</p>
+      <h2>MEASURE</h2>
+      <div class="fm-seg" data-key="measure">
+        <button type="button" data-value="off" aria-pressed="true">OFF</button>
+        <button type="button" data-value="on">ON</button>
+      </div>
+      <p class="fm-note">Click a start and an end. A third click starts again. Distance is the WGS84 geodesic. Azimuth is clockwise from north at the start. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Elevation is the terrain tile under each point.</p>
+      <p class="fm-note" id="fm-leg">MEASURE OFF</p>
       <h2>SHEET</h2>
       <div class="fm-seg" data-key="series">
         <button type="button" data-value="letter" aria-pressed="true">LETTER</button>
@@ -208,15 +215,16 @@
   </div>
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
   <script src="mgrs.js?v=1"></script>
+  <script src="measure.js?v=1"></script>
   <script src="sheets.js?v=4"></script>
-  <script src="terrain.js?v=1"></script>
-  <script src="style.js?v=4"></script>
+  <script src="terrain.js?v=2"></script>
+  <script src="style.js?v=5"></script>
   <script src="print.js?v=3"></script>
   <script src="atak.js?v=2"></script>
   <script src="search.js?v=1"></script>
   <script src="garmin.js?v=2"></script>
   <script src="overlays.js?v=2"></script>
   <script src="mbtiles.js?v=1"></script>
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

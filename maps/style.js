@@ -61,6 +61,7 @@
         grid: { type: "geojson", data: empty() },
         graticule: { type: "geojson", data: empty() },
         sheets: { type: "geojson", data: empty() },
+        measure: { type: "geojson", data: empty() },
       },
       layers: [
         { id: "background", type: "background", paint: { "background-color": "#e6dcc6" } },
@@ -178,6 +179,20 @@
             "text-max-width": 14,
           },
           paint: { "text-color": "#14202a", "text-halo-color": "#f4efe4", "text-halo-width": 1.4 },
+        },
+        {
+          id: "measure-line", type: "line", source: "measure",
+          paint: { "line-color": "#9a3412", "line-width": 2.5 },
+        },
+        {
+          id: "measure-point", type: "circle", source: "measure",
+          filter: ["==", ["geometry-type"], "Point"],
+          paint: {
+            "circle-radius": 5,
+            "circle-color": "#ffe08a",
+            "circle-stroke-color": "#14202a",
+            "circle-stroke-width": 1.5,
+          },
         },
         {
           id: "grid-line", type: "line", source: "grid",

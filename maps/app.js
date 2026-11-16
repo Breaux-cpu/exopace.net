@@ -12,6 +12,7 @@
     base: "paper",
     offline: false,
     secondary: "off",
+    measure: "off",
     layers: {
       woods: true, water: true, roads: true, trails: true, rail: true,
       air: true, buildings: true, land: true, peaks: true, grid: true,
@@ -28,6 +29,10 @@
   var quadPending = Object.create(null);
   var quadQueue = [];
   var quadBusy = 0;
+  var measurePoints = [];
+  var measureElev = null;
+  var measureMag = null;
+  var measureToken = 0;
 
   var map;
   var startView = { center: [-98.5, 39.5], zoom: 4 };
@@ -253,6 +258,127 @@
     if (!EXO.sheets.quadExtentFits(probe, west, south, east, north)) return "";
     var attrs = feat.attributes || {};
     return cleanQuadName(attrs.CELL_NAME || attrs.cell_name);
+  }
+
+  function measureFC() {
+    var features = [];
+    if (measurePoints.length === 2) {
+      var line = EXO.measure.lineCoords(measurePoints[0], measurePoints[1]);
+      if (line.length >= 2) {
+        features.push({
+          type: "Feature",
+          properties: {},
+          geometry: { type: "LineString", coordinates: line },
+        });
+      }
+    }
+    measurePoints.forEach(function (point) {
+      features.push({
+        type: "Feature",
+        properties: {},
+        geometry: { type: "Point", coordinates: [point.lon, point.lat] },
+      });
+    });
+    return { type: "FeatureCollection", features: features };
+  }
+
+  function elevText(fromElev, toElev) {
+    var imperial = state.units === "imperial";
+    var scale = imperial ? 3.280839895 : 1;
+    var unit = imperial ? "FT" : "M";
+    var from = Math.round(fromElev * scale);
+    var to = Math.round(toElev * scale);
+    var delta = to - from;
+    return "ELEV " + from.toLocaleString("en-US") + " " + unit
+      + " TO " + to.toLocaleString("en-US") + " " + unit
+      + "  ·  Δ " + (delta > 0 ? "+" : "") + delta.toLocaleString("en-US") + " " + unit;
+  }
+
+  function paintMeasure() {
+    var el = $("fm-leg");
+    if (!el) return;
+    if (state.measure !== "on") {
+      el.textContent = "MEASURE OFF";
+      return;
+    }
+    if (measurePoints.length === 0) {
+      el.textContent = "CLICK THE START";
+      return;
+    }
+    if (measurePoints.length === 1) {
+      el.textContent = "CLICK THE END";
+      return;
+    }
+    var a = measurePoints[0];
+    var b = measurePoints[1];
+    var conv;
+    var zone;
+    try {
+      conv = EXO.mgrs.convergence(a.lat, a.lon);
+      zone = EXO.mgrs.zoneFor(a.lat, a.lon);
+    } catch (err) {
+      el.textContent = "OUTSIDE THE MEASURE GRID";
+      return;
+    }
+    var result = EXO.measure.solve(a.lat, a.lon, b.lat, b.lon, conv, measureMag);
+    if (!result) {
+      el.textContent = "NO GEODETIC SOLUTION";
+      return;
+    }
+    if (result.distanceM === 0) {
+      el.textContent = "SAME POINT";
+      return;
+    }
+    var lines = [
+      EXO.measure.formatDistance(result.distanceM, state.units),
+      "TRUE " + EXO.measure.azText(result.trueAz) + "  ·  GRID " + EXO.measure.azText(result.gridAz) + " Z" + zone,
+      result.magAz == null ? "MAG — CHART" : "MAG " + EXO.measure.azText(result.magAz),
+      "BACK " + EXO.measure.azText(result.backTrue),
+    ];
+    if (measureElev && Number.isFinite(measureElev.a) && Number.isFinite(measureElev.b)) {
+      lines.push(elevText(measureElev.a, measureElev.b));
+    }
+    el.textContent = lines.join("\n");
+  }
+
+  function loadMeasureExtra() {
+    var token = ++measureToken;
+    var a = measurePoints[0];
+    var b = measurePoints[1];
+    Promise.all([
+      EXO.terrain.sample(a.lat, a.lon),
+      EXO.terrain.sample(b.lat, b.lon),
+      EXO.print.magDecl(a.lat, a.lon),
+    ]).then(function (row) {
+      if (token !== measureToken || measurePoints.length !== 2) return;
+      measureElev = { a: row[0], b: row[1] };
+      measureMag = row[2];
+      paintMeasure();
+    }, function () {
+      if (token !== measureToken) return;
+      measureMag = null;
+      paintMeasure();
+    });
+  }
+
+  function syncMeasure() {
+    var src = map && map.getSource("measure");
+    if (src) src.setData(measureFC());
+    paintMeasure();
+    if (state.measure === "on" && measurePoints.length === 2) loadMeasureExtra();
+  }
+
+  function placeMeasure(lat, lon) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -80 || lat > 84) {
+      setStatus("OUTSIDE THE MEASURE GRID");
+      return;
+    }
+    if (measurePoints.length >= 2) measurePoints = [];
+    measurePoints.push({ lat: lat, lon: lon });
+    measureElev = null;
+    measureMag = null;
+    measureToken += 1;
+    syncMeasure();
   }
 
   function addSheet(lat, lon, quiet) {
@@ -868,7 +994,17 @@
         } else {
           state[key] = value;
         }
+        if (key === "measure") {
+          if (state.measure !== "on") {
+            measurePoints = [];
+            measureElev = null;
+            measureMag = null;
+            measureToken += 1;
+          }
+          if (map && map.getCanvas()) map.getCanvas().style.cursor = state.measure === "on" ? "crosshair" : "";
+        }
         applyStyle();
+        if (key === "measure" || key === "units") syncMeasure();
         if (key === "contours" || key === "hill" || key === "secondary" || key.indexOf("layer-") === 0) {
           syncGrid();
           syncGraticule();
@@ -947,6 +1083,7 @@
       syncGraticule();
       readout();
       writeHash();
+      syncMeasure();
       if (EXO.overlays) EXO.overlays.sync(map, state, setStatus);
     });
     map.on("move", readout);
@@ -957,6 +1094,11 @@
       if (hashReady && EXO.overlays) EXO.overlays.sync(map, state, setStatus);
     });
     map.on("click", function (ev) {
+      if (state.measure === "on") {
+        if (moved) { moved = false; return; }
+        placeMeasure(ev.lngLat.lat, ev.lngLat.lng);
+        return;
+      }
       if (map.getLayer("ham-point")) {
         var ham = map.queryRenderedFeatures(ev.point, { layers: ["ham-point"] });
         if (ham.length && ham[0].properties && ham[0].properties.label) {
@@ -971,6 +1113,7 @@
       else addSheet(ev.lngLat.lat, ev.lngLat.lng);
     });
     map.on("mousedown", function (ev) {
+      if (state.measure === "on") return;
       if (ev.originalEvent.shiftKey) {
         map.dragPan.disable();
         box = { a: ev.lngLat, b: ev.lngLat };
