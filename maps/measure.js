@@ -112,6 +112,47 @@
     return text + "°";
   }
 
+  function totalDistance(legs) {
+    var total = 0;
+    for (var i = 0; i < legs.length; i++) {
+      if (!legs[i] || !Number.isFinite(legs[i].distanceM)) return null;
+      total += legs[i].distanceM;
+    }
+    return total;
+  }
+
+  /* Horizontal run is the geodesic. Rise is the elevation difference. */
+  function slope(distanceM, deltaElevM) {
+    if (!Number.isFinite(distanceM) || distanceM <= 0 || !Number.isFinite(deltaElevM)) return null;
+    var grade = deltaElevM / distanceM;
+    return {
+      degrees: Math.atan(grade) * 180 / Math.PI,
+      percent: grade * 100,
+      pathM: Math.sqrt(distanceM * distanceM + deltaElevM * deltaElevM),
+    };
+  }
+
+  function xmlText(text) {
+    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function gpx(points) {
+    var rows = [];
+    (points || []).forEach(function (point) {
+      if (!point || !Number.isFinite(point.lat) || !Number.isFinite(point.lon)) return;
+      if (Math.abs(point.lat) > 90 || Math.abs(point.lon) > 180) return;
+      var line = '<trkpt lat="' + point.lat.toFixed(6) + '" lon="' + point.lon.toFixed(6) + '">';
+      if (Number.isFinite(point.elev)) line += "<ele>" + point.elev.toFixed(1) + "</ele>";
+      if (point.name) line += "<name>" + xmlText(point.name) + "</name>";
+      rows.push(line + "</trkpt>");
+    });
+    return '<?xml version="1.0" encoding="UTF-8"?>\n'
+      + '<gpx version="1.1" creator="EXOpace" xmlns="http://www.topografix.com/GPX/1/1">\n'
+      + "<trk><name>EXOpace route</name><trkseg>\n"
+      + rows.join("\n")
+      + "\n</trkseg></trk>\n</gpx>\n";
+  }
+
   function formatDistance(meters, units) {
     if (!Number.isFinite(meters) || meters < 0) return "";
     if (units === "imperial") {
@@ -164,6 +205,27 @@
     return out;
   }
 
+  function routeLine(points) {
+    if (!points || points.length < 2) return [];
+    var raw = [];
+    for (var i = 0; i < points.length - 1; i++) {
+      var part = lineCoords(points[i], points[i + 1]);
+      if (!part.length) continue;
+      if (!raw.length) raw = part;
+      else raw = raw.concat(part.slice(1));
+    }
+    if (!raw.length) return [];
+    var out = [[raw[0][0], raw[0][1]]];
+    for (var j = 1; j < raw.length; j++) {
+      var lon = raw[j][0];
+      var prev = out[j - 1][0];
+      while (lon - prev > 180) lon -= 360;
+      while (prev - lon > 180) lon += 360;
+      out.push([lon, raw[j][1]]);
+    }
+    return out;
+  }
+
   root.EXO = root.EXO || {};
   root.EXO.measure = {
     vincenty: vincenty,
@@ -172,7 +234,11 @@
     magneticAzimuth: magneticAzimuth,
     azText: azText,
     formatDistance: formatDistance,
+    totalDistance: totalDistance,
+    slope: slope,
+    gpx: gpx,
     lineCoords: lineCoords,
+    routeLine: routeLine,
   };
   if (typeof module === "object" && module.exports) module.exports = root.EXO.measure;
 })(typeof globalThis !== "undefined" ? globalThis : this);

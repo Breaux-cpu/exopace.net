@@ -30,7 +30,6 @@
   var quadQueue = [];
   var quadBusy = 0;
   var measurePoints = [];
-  var measureElev = null;
   var measureMag = null;
   var measureToken = 0;
 
@@ -262,8 +261,8 @@
 
   function measureFC() {
     var features = [];
-    if (measurePoints.length === 2) {
-      var line = EXO.measure.lineCoords(measurePoints[0], measurePoints[1]);
+    if (measurePoints.length >= 2) {
+      var line = EXO.measure.routeLine(measurePoints);
       if (line.length >= 2) {
         features.push({
           type: "Feature",
@@ -294,6 +293,23 @@
       + "  ·  Δ " + (delta > 0 ? "+" : "") + delta.toLocaleString("en-US") + " " + unit;
   }
 
+  function mgrsText(point) {
+    try { return EXO.mgrs.format(point.lon, point.lat); }
+    catch (err) { return ""; }
+  }
+
+  function measureLegs() {
+    var legs = [];
+    for (var i = 1; i < measurePoints.length; i++) {
+      var from = measurePoints[i - 1];
+      var to = measurePoints[i];
+      var conv = EXO.mgrs.convergence(from.lat, from.lon);
+      var decl = i === measurePoints.length - 1 ? measureMag : null;
+      legs.push(EXO.measure.solve(from.lat, from.lon, to.lat, to.lon, conv, decl));
+    }
+    return legs;
+  }
+
   function paintMeasure() {
     var el = $("fm-leg");
     if (!el) return;
@@ -306,53 +322,74 @@
       return;
     }
     if (measurePoints.length === 1) {
-      el.textContent = "CLICK THE END";
+      el.textContent = "CLICK THE NEXT POINT";
       return;
     }
-    var a = measurePoints[0];
-    var b = measurePoints[1];
+    var a = measurePoints[measurePoints.length - 2];
+    var b = measurePoints[measurePoints.length - 1];
     var conv;
     var zone;
+    var legs;
     try {
       conv = EXO.mgrs.convergence(a.lat, a.lon);
       zone = EXO.mgrs.zoneFor(a.lat, a.lon);
+      legs = measureLegs();
     } catch (err) {
       el.textContent = "OUTSIDE THE MEASURE GRID";
       return;
     }
-    var result = EXO.measure.solve(a.lat, a.lon, b.lat, b.lon, conv, measureMag);
+    var result = legs[legs.length - 1];
     if (!result) {
       el.textContent = "NO GEODETIC SOLUTION";
       return;
     }
-    if (result.distanceM === 0) {
+    if (result.distanceM === 0 && measurePoints.length === 2) {
       el.textContent = "SAME POINT";
       return;
     }
-    var lines = [
-      EXO.measure.formatDistance(result.distanceM, state.units),
-      "TRUE " + EXO.measure.azText(result.trueAz) + "  ·  GRID " + EXO.measure.azText(result.gridAz) + " Z" + zone,
-      result.magAz == null ? "MAG — CHART" : "MAG " + EXO.measure.azText(result.magAz),
-      "BACK " + EXO.measure.azText(result.backTrue),
-    ];
-    if (measureElev && Number.isFinite(measureElev.a) && Number.isFinite(measureElev.b)) {
-      lines.push(elevText(measureElev.a, measureElev.b));
+    var lines = [];
+    var legDistance = EXO.measure.formatDistance(result.distanceM, state.units);
+    lines.push(measurePoints.length > 2 ? "LEG " + (measurePoints.length - 1) + "  ·  " + legDistance : legDistance);
+    if (measurePoints.length > 2) {
+      var total = EXO.measure.totalDistance(legs);
+      if (total != null) lines.push("TOTAL " + EXO.measure.formatDistance(total, state.units));
+    }
+    if (result.trueAz != null) {
+      lines.push("TRUE " + EXO.measure.azText(result.trueAz) + "  ·  GRID " + EXO.measure.azText(result.gridAz) + " Z" + zone);
+      lines.push(result.magAz == null ? "MAG — CHART" : "MAG " + EXO.measure.azText(result.magAz));
+      lines.push("BACK " + EXO.measure.azText(result.backTrue));
+    }
+    var startGrid = mgrsText(a);
+    var endGrid = mgrsText(b);
+    if (startGrid) lines.push("START " + startGrid);
+    if (endGrid) lines.push("END " + endGrid);
+    if (Number.isFinite(a.elev) && Number.isFinite(b.elev)) {
+      lines.push(elevText(a.elev, b.elev));
+      var grade = EXO.measure.slope(result.distanceM, b.elev - a.elev);
+      if (grade) {
+        lines.push("SLOPE " + (grade.degrees > 0 ? "+" : "") + grade.degrees.toFixed(1) + "°  ·  "
+          + (grade.percent > 0 ? "+" : "") + grade.percent.toFixed(1) + "%  ·  PATH "
+          + EXO.measure.formatDistance(grade.pathM, state.units));
+      }
     }
     el.textContent = lines.join("\n");
   }
 
   function loadMeasureExtra() {
     var token = ++measureToken;
-    var a = measurePoints[0];
-    var b = measurePoints[1];
-    Promise.all([
-      EXO.terrain.sample(a.lat, a.lon),
-      EXO.terrain.sample(b.lat, b.lon),
-      EXO.print.magDecl(a.lat, a.lon),
-    ]).then(function (row) {
-      if (token !== measureToken || measurePoints.length !== 2) return;
-      measureElev = { a: row[0], b: row[1] };
-      measureMag = row[2];
+    var pending = measurePoints.map(function (point) {
+      if (point.elevKnown) return Promise.resolve(point.elev);
+      return EXO.terrain.sample(point.lat, point.lon);
+    });
+    var origin = measurePoints[measurePoints.length - 2];
+    pending.push(EXO.print.magDecl(origin.lat, origin.lon));
+    Promise.all(pending).then(function (row) {
+      if (token !== measureToken || measurePoints.length < 2) return;
+      for (var i = 0; i < measurePoints.length; i++) {
+        measurePoints[i].elev = row[i];
+        measurePoints[i].elevKnown = true;
+      }
+      measureMag = row[row.length - 1];
       paintMeasure();
     }, function () {
       if (token !== measureToken) return;
@@ -365,7 +402,7 @@
     var src = map && map.getSource("measure");
     if (src) src.setData(measureFC());
     paintMeasure();
-    if (state.measure === "on" && measurePoints.length === 2) loadMeasureExtra();
+    if (state.measure === "on" && measurePoints.length >= 2) loadMeasureExtra();
   }
 
   function placeMeasure(lat, lon) {
@@ -373,12 +410,39 @@
       setStatus("OUTSIDE THE MEASURE GRID");
       return;
     }
-    if (measurePoints.length >= 2) measurePoints = [];
-    measurePoints.push({ lat: lat, lon: lon });
-    measureElev = null;
+    if (measurePoints.length >= 24) {
+      setStatus("24 POINT LIMIT");
+      return;
+    }
+    measurePoints.push({ lat: lat, lon: lon, elev: null, elevKnown: false });
     measureMag = null;
     measureToken += 1;
     syncMeasure();
+  }
+
+  function clearRoute() {
+    measurePoints = [];
+    measureMag = null;
+    measureToken += 1;
+    syncMeasure();
+    setStatus(state.measure === "on" ? "ROUTE CLEARED" : "MEASURE OFF");
+  }
+
+  function downloadGpx() {
+    if (measurePoints.length < 2) {
+      setStatus("CLICK TWO POINTS");
+      return;
+    }
+    var body = EXO.measure.gpx(measurePoints.map(function (point) {
+      return {
+        lat: point.lat,
+        lon: point.lon,
+        elev: point.elevKnown ? point.elev : null,
+        name: mgrsText(point),
+      };
+    }));
+    saveBytes(new TextEncoder().encode(body), "exopace-route.gpx", "application/gpx+xml");
+    setStatus("ROUTE GPX");
   }
 
   function addSheet(lat, lon, quiet) {
@@ -997,7 +1061,6 @@
         if (key === "measure") {
           if (state.measure !== "on") {
             measurePoints = [];
-            measureElev = null;
             measureMag = null;
             measureToken += 1;
           }
@@ -1036,6 +1099,8 @@
     $("fm-mbtiles").onclick = sendMbtiles;
     $("fm-garmin").onclick = sendGarmin;
     $("fm-save").onclick = saveToCopy;
+    $("fm-route-clear").onclick = clearRoute;
+    $("fm-gpx").onclick = downloadGpx;
     $("fm-go").addEventListener("submit", goSearch);
     $("fm-q").addEventListener("input", queueSuggest);
     $("fm-q").addEventListener("keydown", function (ev) {

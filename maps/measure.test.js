@@ -53,4 +53,37 @@ for (var i = 1; i < arc.length; i++) {
   assert.ok(Math.abs(arc[i][0] - arc[i - 1][0]) < 1, arc[i][0]);
 }
 
-console.log("measure ok", east.distanceM.toFixed(3), north.distanceM.toFixed(3), leg.gridAz.toFixed(3));
+const grade = measure.slope(1000, 100);
+assert.ok(Math.abs(grade.percent - 10) < 1e-9, grade.percent);
+assert.ok(Math.abs(grade.degrees - Math.atan(0.1) * 180 / Math.PI) < 1e-9);
+assert.ok(Math.abs(grade.pathM - Math.sqrt(1000 * 1000 + 100 * 100)) < 1e-6);
+assert.strictEqual(measure.slope(0, 10), null);
+
+const legs = [
+  measure.solve(0, 0, 0, 1, 0, null),
+  measure.solve(0, 1, 0, 2, 0, null),
+];
+assert.ok(Math.abs(measure.totalDistance(legs) - equatorDeg * 2) < 0.05);
+assert.strictEqual(measure.totalDistance([null]), null);
+
+const track = measure.gpx([
+  { lat: 35.15, lon: -90.05, elev: 80, name: "A & B" },
+  { lat: 35.16, lon: -90.04, elev: null, name: "" },
+  { lat: 99, lon: 0 },
+]);
+assert.ok(track.indexOf('lat="35.150000"') > 0);
+assert.ok(track.indexOf("<ele>80.0</ele>") > 0);
+assert.ok(track.indexOf("A &amp; B") > 0);
+assert.ok(track.indexOf("lat=\"99") < 0);
+
+const route = measure.routeLine([
+  { lat: 0, lon: 179.5 },
+  { lat: 0, lon: -179.5 },
+  { lat: 0.1, lon: -179.4 },
+]);
+assert.ok(route.length > 17, route.length);
+for (var step = 1; step < route.length; step++) {
+  assert.ok(Math.abs(route[step][0] - route[step - 1][0]) < 2, route[step][0]);
+}
+
+console.log("measure ok", east.distanceM.toFixed(3), north.distanceM.toFixed(3), leg.gridAz.toFixed(3), grade.degrees.toFixed(3));
