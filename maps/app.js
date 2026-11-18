@@ -1088,9 +1088,18 @@
     out.appendChild(p);
   }
 
+  function clearScanLayer() {
+    if (!map) return;
+    try {
+      if (map.getLayer("usgs-scan")) map.removeLayer("usgs-scan");
+      if (map.getSource("usgs-scan")) map.removeSource("usgs-scan");
+    } catch (err) {}
+  }
+
   function resetTopo(message) {
     topoToken += 1;
     topoFor = "";
+    clearScanLayer();
     paintTopoMessage(message || "Pick a USGS quadrangle, then find its scan.");
   }
 
@@ -1121,6 +1130,21 @@
       a.textContent = item.year + " SCAN";
       links.appendChild(a);
     });
+    var show = document.createElement("button");
+    show.type = "button";
+    show.className = "fm-btn";
+    show.textContent = "SHOW " + rows[0].year + " ON MAP";
+    show.onclick = function () { showScan(rows[0]); };
+    links.appendChild(show);
+    var hide = document.createElement("button");
+    hide.type = "button";
+    hide.className = "fm-btn";
+    hide.textContent = "HIDE SCAN";
+    hide.onclick = function () {
+      clearScanLayer();
+      setStatus("SCAN HIDDEN");
+    };
+    links.appendChild(hide);
     out.appendChild(links);
     if (rows[0].preview) {
       var img = document.createElement("img");
@@ -1131,7 +1155,7 @@
     }
     var note = document.createElement("p");
     note.className = "fm-note";
-    note.textContent = "Each link is the USGS GeoPDF of that paper map, collar included. This page still prints the quadrangle as letter tiles.";
+    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW ON MAP places the newest scan from that file's GeoTIFF registration. The collar hangs outside the quadrangle. The letter-tile PDF is unchanged.";
     out.appendChild(note);
   }
 
@@ -1190,6 +1214,95 @@
     }
     paintTopo(sheet, rows);
     setStatus(truncated ? "USGS SCAN " + rows[0].year + " · CATALOGUE TRUNCATED" : "USGS SCAN " + rows[0].year);
+  }
+
+  async function jpegTile(bytes) {
+    var copy = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    return createImageBitmap(new Blob([copy], { type: "image/jpeg" }));
+  }
+
+  async function showScan(row) {
+    var sheet = activeSheet();
+    if (!sheet || sheet.kind !== "quad" || !row || !map || !EXO.topo) {
+      setStatus("NOT A USGS QUADRANGLE");
+      return;
+    }
+    var tif = EXO.topo.geotiffUrl(row.pdf);
+    if (!tif) {
+      setStatus("NO GEOTIFF FOR THIS SCAN");
+      return;
+    }
+    var token = topoToken;
+    var sheetId = sheet.id;
+    topoFor = sheetId;
+    setStatus("READING SCAN REGISTRATION");
+    try {
+      var head = await fetch(tif, { headers: { Range: "bytes=0-65535" } });
+      if (token !== topoToken || activeSheetId() !== sheetId) return;
+      if (!head.ok && head.status !== 206) throw new Error("header");
+      var headerBytes = new Uint8Array(await head.arrayBuffer());
+      if (headerBytes.length > 2000000) throw new Error("header");
+      var reg = EXO.topo.registration(headerBytes);
+      if (!reg) {
+        setStatus("SCAN NOT PLACED");
+        return;
+      }
+      if (!EXO.topo.covers(sheet, reg.corners)) {
+        setStatus("SCAN DOES NOT COVER THIS CELL");
+        return;
+      }
+      var start = reg.overview.tiles[0].offset;
+      var end = start;
+      reg.overview.tiles.forEach(function (tile) {
+        if (tile.offset < start) start = tile.offset;
+        var tileEnd = tile.offset + tile.length;
+        if (tileEnd > end) end = tileEnd;
+      });
+      if (end - start > 1500000 || end <= start) throw new Error("span");
+      setStatus("LOADING SCAN");
+      var body = await fetch(tif, { headers: { Range: "bytes=" + start + "-" + (end - 1) } });
+      if (token !== topoToken || activeSheetId() !== sheetId) return;
+      if (!body.ok && body.status !== 206) throw new Error("tiles");
+      var buf = new Uint8Array(await body.arrayBuffer());
+      if (buf.length !== end - start) throw new Error("short");
+      var canvas = document.createElement("canvas");
+      canvas.width = reg.overview.width;
+      canvas.height = reg.overview.height;
+      var ctx = canvas.getContext("2d");
+      var cols = Math.ceil(reg.overview.width / reg.overview.tileWidth);
+      for (var i = 0; i < reg.overview.tiles.length; i++) {
+        var tile = reg.overview.tiles[i];
+        var slice = buf.subarray(tile.offset - start, tile.offset - start + tile.length);
+        if (slice[0] !== 255 || slice[1] !== 216) throw new Error("jpeg");
+        var bitmap = await jpegTile(slice);
+        ctx.drawImage(bitmap, (i % cols) * reg.overview.tileWidth, Math.floor(i / cols) * reg.overview.tileHeight);
+        if (bitmap.close) bitmap.close();
+      }
+      if (token !== topoToken || activeSheetId() !== sheetId) return;
+      clearScanLayer();
+      var before = map.getLayer("sheets-fill") ? "sheets-fill" : undefined;
+      map.addSource("usgs-scan", {
+        type: "image",
+        url: canvas.toDataURL("image/jpeg", 0.82),
+        coordinates: reg.corners,
+      });
+      map.addLayer({
+        id: "usgs-scan",
+        type: "raster",
+        source: "usgs-scan",
+        paint: { "raster-opacity": 0.92 },
+      }, before);
+      setStatus("SCAN ON MAP · " + row.year);
+    } catch (err) {
+      if (token !== topoToken) return;
+      clearScanLayer();
+      setStatus("SCAN IMAGE UNREAD");
+    }
+  }
+
+  function activeSheetId() {
+    var sheet = activeSheet();
+    return sheet ? sheet.id : "";
   }
 
   function bind() {

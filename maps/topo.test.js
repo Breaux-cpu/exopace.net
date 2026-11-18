@@ -85,4 +85,142 @@ assert.strictEqual(topo.editions(quad, []).length, 0);
 const fifteen = sheets.quadAt(35.15, -90.05, "usgs15");
 assert.strictEqual(topo.editions(fifteen, items).length, 0);
 
-console.log("topo ok " + rows[0].year + " " + rows.length);
+const pdf = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/PDF/TN/24000/TN_Northwest%20Memphis_148630_1997_24000_geo.pdf";
+assert.strictEqual(
+  topo.geotiffUrl(pdf),
+  "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/TN/TN_Northwest%20Memphis_148630_1997_24000_geo.tif",
+);
+assert.strictEqual(topo.geotiffUrl("https://example.com/nope.pdf"), "");
+assert.strictEqual(topo.geotiffUrl("http://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/PDF/TN/24000/x_geo.pdf"), "");
+
+const memphisProj = {
+  a: 6378137,
+  f: 1 / 298.257223563,
+  lon0: -90.0625,
+  lat0: 35.125,
+  easting: 0,
+  northing: 0,
+  k0: 1,
+};
+const origin = topo.inverseTm(0, 0, memphisProj);
+assert.ok(Math.abs(origin[0] + 90.0625) < 1e-8, origin[0]);
+assert.ok(Math.abs(origin[1] - 35.125) < 1e-8, origin[1]);
+
+function putU16(bytes, offset, value) {
+  bytes[offset] = value & 255;
+  bytes[offset + 1] = (value >> 8) & 255;
+}
+function putU32(bytes, offset, value) {
+  bytes[offset] = value & 255;
+  bytes[offset + 1] = (value >> 8) & 255;
+  bytes[offset + 2] = (value >> 16) & 255;
+  bytes[offset + 3] = (value >>> 24) & 255;
+}
+function putF64(bytes, offset, value) {
+  new DataView(bytes.buffer).setFloat64(offset, value, true);
+}
+function putIfd(bytes, offset, tags, next) {
+  putU16(bytes, offset, tags.length);
+  tags.forEach(function (tag, index) {
+    const at = offset + 2 + index * 12;
+    putU16(bytes, at, tag[0]);
+    putU16(bytes, at + 2, tag[1]);
+    putU32(bytes, at + 4, tag[2]);
+    putU32(bytes, at + 8, tag[3]);
+  });
+  putU32(bytes, offset + 2 + tags.length * 12, next);
+}
+
+const header = new Uint8Array(2048);
+header[0] = 73;
+header[1] = 73;
+header[2] = 42;
+putU32(header, 4, 8);
+const scaleAt = 700;
+const tieAt = 740;
+const doublesAt = 800;
+const keysAt = 900;
+const tileAt = 1200;
+[2.032, 2.032, 0].forEach((value, index) => putF64(header, scaleAt + index * 8, value));
+[0, 0, 0, -6564.351726960475, 14783.349829774485, 0].forEach((value, index) => putF64(header, tieAt + index * 8, value));
+[35.125, -90.0625, 1, 0, 0, 298.2572235604902, 6378137].forEach((value, index) => putF64(header, doublesAt + index * 8, value));
+const keys = [
+  [1024, 0, 1, 1],
+  [1025, 0, 1, 1],
+  [2048, 0, 1, 4326],
+  [2054, 0, 1, 9102],
+  [2057, 34736, 1, 6],
+  [2059, 34736, 1, 5],
+  [3072, 0, 1, 32767],
+  [3075, 0, 1, 1],
+  [3076, 0, 1, 9001],
+  [3080, 34736, 1, 1],
+  [3081, 34736, 1, 0],
+  [3082, 34736, 1, 3],
+  [3083, 34736, 1, 4],
+  [3092, 34736, 1, 2],
+];
+putU16(header, keysAt, 1);
+putU16(header, keysAt + 2, 1);
+putU16(header, keysAt + 4, 0);
+putU16(header, keysAt + 6, keys.length);
+keys.forEach((key, index) => {
+  const at = keysAt + 8 + index * 8;
+  putU16(header, at, key[0]);
+  putU16(header, at + 2, key[1]);
+  putU16(header, at + 4, key[2]);
+  putU16(header, at + 6, key[3]);
+});
+for (let i = 0; i < 20; i++) {
+  putU32(header, tileAt + i * 4, 1800);
+  putU32(header, tileAt + 80 + i * 4, 8);
+}
+
+const second = 400;
+putIfd(header, 8, [
+  [256, 3, 1, 6617],
+  [257, 3, 1, 8242],
+  [259, 3, 1, 7],
+  [322, 3, 1, 512],
+  [323, 3, 1, 512],
+  [324, 4, 221, 8],
+  [325, 4, 221, 8],
+  [33550, 12, 3, scaleAt],
+  [33922, 12, 6, tieAt],
+  [34735, 3, 4 + keys.length * 4, keysAt],
+  [34736, 12, 7, doublesAt],
+], second);
+putIfd(header, second, [
+  [256, 3, 1, 414],
+  [257, 3, 1, 516],
+  [259, 3, 1, 7],
+  [322, 3, 1, 128],
+  [323, 3, 1, 128],
+  [324, 4, 20, tileAt],
+  [325, 4, 20, tileAt + 80],
+], 0);
+
+const reg = topo.registration(header);
+assert.ok(reg, "registration");
+assert.strictEqual(reg.overview.width, 414);
+assert.strictEqual(reg.overview.height, 516);
+assert.strictEqual(reg.overview.tiles.length, 20);
+const expected = [
+  [-90.13464, 35.25823],
+  [-89.98688, 35.25823],
+  [-89.98702, 35.10727],
+  [-90.13450, 35.10727],
+];
+reg.corners.forEach((point, index) => {
+  assert.ok(Math.abs(point[0] - expected[index][0]) < 0.00008, point[0]);
+  assert.ok(Math.abs(point[1] - expected[index][1]) < 0.00008, point[1]);
+});
+assert.strictEqual(topo.covers(quad, reg.corners), true);
+const shifted = Object.assign({}, quad, {
+  west: quad.west + 2,
+  east: quad.east + 2,
+});
+assert.strictEqual(topo.covers(shifted, reg.corners), false);
+assert.strictEqual(topo.registration(new Uint8Array(32)), null);
+
+console.log("topo ok " + rows[0].year + " " + rows.length + " " + reg.corners[0][0].toFixed(5));
