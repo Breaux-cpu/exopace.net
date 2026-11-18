@@ -193,17 +193,18 @@
   }
 
   function seriesNote(series) {
+    var scan = " FIND USGS SCAN opens the USGS GeoPDF of that paper map, collar included. It does not replace these letter tiles.";
     if (series === "usgs75") {
-      return "A 7.5′ quadrangle is 7.5 minutes of latitude by 7.5 minutes of longitude. The conterminous United States and Hawaii use 1:24,000. Alaska uses 1:25,000. Puerto Rico uses 1:20,000. The sheet uses the National Map name when that cell has the same edges. The PDF splits that quadrangle into US Letter pages at true scale.";
+      return "A 7.5′ quadrangle is 7.5 minutes of latitude by 7.5 minutes of longitude. The conterminous United States and Hawaii use 1:24,000. Alaska uses 1:25,000. Puerto Rico uses 1:20,000. The sheet uses the National Map name when that cell has the same edges. The PDF splits that quadrangle into US Letter pages at true scale." + scan;
     }
     if (series === "usgs15") {
-      return "A 15′ quadrangle is 15 minutes on a side, at 1:62,500. USGS ended this series. The sheet uses the National Map name when that cell has the same edges. The PDF splits it into US Letter pages at true scale.";
+      return "A 15′ quadrangle is 15 minutes on a side, at 1:62,500. USGS ended this series. The sheet uses the National Map name when that cell has the same edges. The PDF splits it into US Letter pages at true scale." + scan;
     }
     if (series === "usgs100") {
-      return "A 30×60′ quadrangle is 30 minutes of latitude by 60 minutes of longitude, at 1:100,000. The sheet uses the National Map name when that cell has the same edges. The PDF splits that cell into US Letter pages at true scale.";
+      return "A 30×60′ quadrangle is 30 minutes of latitude by 60 minutes of longitude, at 1:100,000. The sheet uses the National Map name when that cell has the same edges. The PDF splits that cell into US Letter pages at true scale." + scan;
     }
     if (series === "usgs250") {
-      return "A 1×2° quadrangle is 1 degree of latitude by 2 degrees of longitude, at 1:250,000. The National Map degree index is 1° by 1°, so this sheet keeps the corner label. The PDF splits that cell into US Letter pages at true scale.";
+      return "A 1×2° quadrangle is 1 degree of latitude by 2 degrees of longitude, at 1:250,000. The National Map degree index is 1° by 1°, so this sheet keeps the corner label. The PDF splits that cell into US Letter pages at true scale." + scan;
     }
     return "Each letter scale uses the same 160 mm by 200 mm neatline. 1:24k is 3.84 km by 4.8 km. It is not a USGS quadrangle.";
   }

@@ -31,6 +31,8 @@
   var quadBusy = 0;
   var measurePoints = [];
   var measureToken = 0;
+  var topoToken = 0;
+  var topoFor = "";
 
   var map;
   var startView = { center: [-98.5, 39.5], zoom: 4 };
@@ -160,6 +162,7 @@
     readout();
     writeHash();
     state.sheets.forEach(enqueueQuadName);
+    dropStaleTopo();
   }
 
   function rememberQuadName(sheet) {
@@ -1075,6 +1078,120 @@
     setStatus("SAVED " + data.saved + " TILES ON THIS COPY");
   }
 
+  function paintTopoMessage(message) {
+    var out = $("fm-topo-out");
+    if (!out) return;
+    out.replaceChildren();
+    var p = document.createElement("p");
+    p.className = "fm-note";
+    p.textContent = message;
+    out.appendChild(p);
+  }
+
+  function resetTopo(message) {
+    topoToken += 1;
+    topoFor = "";
+    paintTopoMessage(message || "Pick a USGS quadrangle, then find its scan.");
+  }
+
+  function dropStaleTopo() {
+    if (!topoFor) return;
+    var sheet = activeSheet();
+    var id = sheet ? sheet.id : "";
+    if (id !== topoFor) resetTopo("The selected page changed. Find the scan again.");
+  }
+
+  function paintTopo(sheet, rows) {
+    var out = $("fm-topo-out");
+    if (!out) return;
+    out.replaceChildren();
+    var name = rows[0].name || sheet.name;
+    var head = document.createElement("p");
+    head.className = "fm-note";
+    head.textContent = name + " · 1:" + Number(sheet.scale).toLocaleString("en-US");
+    out.appendChild(head);
+    var links = document.createElement("div");
+    links.className = "fm-row";
+    rows.forEach(function (item) {
+      var a = document.createElement("a");
+      a.className = "fm-btn";
+      a.href = item.pdf;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = item.year + " SCAN";
+      links.appendChild(a);
+    });
+    out.appendChild(links);
+    if (rows[0].preview) {
+      var img = document.createElement("img");
+      img.className = "fm-topo-scan";
+      img.alt = "Thumbnail of the " + rows[0].year + " USGS scan of " + name;
+      img.src = rows[0].preview;
+      out.appendChild(img);
+    }
+    var note = document.createElement("p");
+    note.className = "fm-note";
+    note.textContent = "Each link is the USGS GeoPDF of that paper map, collar included. This page still prints the quadrangle as letter tiles.";
+    out.appendChild(note);
+  }
+
+  async function findTopo() {
+    var sheet = activeSheet();
+    if (!sheet || sheet.kind !== "quad" || !EXO.topo) {
+      resetTopo("Pick a USGS quadrangle. A letter page is not a paper scan.");
+      setStatus("NOT A USGS QUADRANGLE");
+      return;
+    }
+    var extent = EXO.topo.queryExtent(sheet.series);
+    if (!extent) {
+      resetTopo("This sheet has no USGS scan lookup.");
+      setStatus("NO USGS SCAN");
+      return;
+    }
+    var token = ++topoToken;
+    topoFor = sheet.id;
+    setStatus("USGS CATALOGUE");
+    var bbox = [sheet.west, sheet.south, sheet.east, sheet.north].map(function (n) {
+      return Number(n).toFixed(6);
+    }).join(",");
+    var items = [];
+    var total = Infinity;
+    var truncated = false;
+    try {
+      for (var offset = 0; offset < total && offset < 200; offset += 50) {
+        var url = "https://tnmaccess.nationalmap.gov/api/v1/products?datasets="
+          + encodeURIComponent("Historical Topographic Maps")
+          + "&bbox=" + encodeURIComponent(bbox)
+          + "&q=" + encodeURIComponent(extent)
+          + "&max=50&offset=" + offset;
+        var res = await fetch(url);
+        if (!res.ok) throw new Error("catalogue");
+        var data = await res.json();
+        if (token !== topoToken) return;
+        total = Number(data.total);
+        if (!Number.isFinite(total)) total = 0;
+        var batch = data.items || [];
+        items = items.concat(batch);
+        if (!batch.length) break;
+      }
+      if (total > items.length) truncated = true;
+    } catch (err) {
+      if (token !== topoToken) return;
+      setStatus("USGS CATALOGUE UNREACHABLE");
+      paintTopoMessage("The USGS catalogue did not answer. Nothing was invented.");
+      return;
+    }
+    if (token !== topoToken) return;
+    var rows = EXO.topo.editions(sheet, items);
+    if (!rows.length) {
+      setStatus("NO USGS SCAN");
+      paintTopoMessage("No scanned sheet matched this cell.");
+      return;
+    }
+    paintTopo(sheet, rows);
+    setStatus(truncated ? "USGS SCAN " + rows[0].year + " · CATALOGUE TRUNCATED" : "USGS SCAN " + rows[0].year);
+  }
+
   function bind() {
     document.querySelectorAll("[data-key]").forEach(function (group) {
       group.addEventListener("click", function (ev) {
@@ -1145,6 +1262,7 @@
     $("fm-save").onclick = saveToCopy;
     $("fm-route-clear").onclick = clearRoute;
     $("fm-gpx").onclick = downloadGpx;
+    $("fm-topo").onclick = findTopo;
     $("fm-go").addEventListener("submit", goSearch);
     $("fm-q").addEventListener("input", queueSuggest);
     $("fm-q").addEventListener("keydown", function (ev) {
@@ -1329,15 +1447,20 @@
     EXO.hill = state.hill;
     EXO.contours = state.contours;
     startView = readHash() || { center: [-98.5, 39.5], zoom: 4 };
-    map = new maplibregl.Map({
-      container: "fm-map",
-      style: EXO.mapStyle.build(),
-      center: startView.center,
-      zoom: startView.zoom,
-      hash: false,
-      attributionControl: true,
-      maxPitch: 70,
-    });
+    try {
+      map = new maplibregl.Map({
+        container: "fm-map",
+        style: EXO.mapStyle.build(),
+        center: startView.center,
+        zoom: startView.zoom,
+        hash: false,
+        attributionControl: true,
+        maxPitch: 70,
+      });
+    } catch (err) {
+      setStatus("MAP FAILED");
+      return;
+    }
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     wireMap();
