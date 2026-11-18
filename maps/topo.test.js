@@ -131,7 +131,7 @@ function putIfd(bytes, offset, tags, next) {
   putU32(bytes, offset + 2 + tags.length * 12, next);
 }
 
-const header = new Uint8Array(2048);
+const header = new Uint8Array(4096);
 header[0] = 73;
 header[1] = 73;
 header[2] = 42;
@@ -198,13 +198,44 @@ putIfd(header, second, [
   [323, 3, 1, 128],
   [324, 4, 20, tileAt],
   [325, 4, 20, tileAt + 80],
+], 1500);
+putIfd(header, 1500, [
+  [256, 3, 1, 1655],
+  [257, 3, 1, 2061],
+  [259, 3, 1, 7],
+  [322, 3, 1, 1655],
+  [323, 3, 1, 2061],
+  [324, 4, 1, 1900],
+  [325, 4, 1, 100],
+], 1700);
+putIfd(header, 1700, [
+  [256, 3, 1, 2400],
+  [257, 3, 1, 3000],
+  [259, 3, 1, 7],
+  [322, 3, 1, 2400],
+  [323, 3, 1, 3000],
+  [324, 4, 1, 1900],
+  [325, 4, 1, 100],
+], 1900);
+for (let i = 0; i < 4; i++) {
+  putU32(header, 2100 + i * 4, 3000);
+  putU32(header, 2200 + i * 4, 400000);
+}
+putIfd(header, 1900, [
+  [256, 3, 1, 800],
+  [257, 3, 1, 800],
+  [259, 3, 1, 7],
+  [322, 3, 1, 400],
+  [323, 3, 1, 400],
+  [324, 4, 4, 2100],
+  [325, 4, 4, 2200],
 ], 0);
 
 const reg = topo.registration(header);
 assert.ok(reg, "registration");
-assert.strictEqual(reg.overview.width, 414);
-assert.strictEqual(reg.overview.height, 516);
-assert.strictEqual(reg.overview.tiles.length, 20);
+assert.strictEqual(reg.overview.width, 1655);
+assert.strictEqual(reg.overview.height, 2061);
+assert.strictEqual(reg.overview.tiles.length, 1);
 const expected = [
   [-90.13464, 35.25823],
   [-89.98688, 35.25823],
@@ -222,5 +253,25 @@ const shifted = Object.assign({}, quad, {
 });
 assert.strictEqual(topo.covers(shifted, reg.corners), false);
 assert.strictEqual(topo.registration(new Uint8Array(32)), null);
+
+const clark = {
+  a: 6378206.4,
+  f: 1 / 294.978698213898,
+  lat0: 30,
+  lon0: -96,
+  easting: 0,
+  northing: 0,
+};
+const snyder = topo.inversePoly(1776774.54, 1319657.78, clark);
+assert.ok(snyder, "snyder");
+assert.ok(Math.abs(snyder[0] + 75) < 0.0002, snyder[0]);
+assert.ok(Math.abs(snyder[1] - 40) < 0.0002, snyder[1]);
+const wgs = topo.nad27ToWgs84(-90.05, 35.2);
+assert.ok(wgs, "nad27");
+const east = (wgs[0] + 90.05) * 111320 * Math.cos(35.2 * Math.PI / 180);
+const north = (wgs[1] - 35.2) * 110540;
+const meters = Math.hypot(east, north);
+assert.ok(meters > 5 && meters < 80, meters);
+assert.strictEqual(topo.nad27ToWgs84(-150, 61), null);
 
 console.log("topo ok " + rows[0].year + " " + rows.length + " " + reg.corners[0][0].toFixed(5));

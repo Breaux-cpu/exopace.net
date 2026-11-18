@@ -1129,13 +1129,13 @@
       a.rel = "noopener noreferrer";
       a.textContent = item.year + " SCAN";
       links.appendChild(a);
+      var show = document.createElement("button");
+      show.type = "button";
+      show.className = "fm-btn";
+      show.textContent = "SHOW " + item.year;
+      show.onclick = function () { showScan(item); };
+      links.appendChild(show);
     });
-    var show = document.createElement("button");
-    show.type = "button";
-    show.className = "fm-btn";
-    show.textContent = "SHOW " + rows[0].year + " ON MAP";
-    show.onclick = function () { showScan(rows[0]); };
-    links.appendChild(show);
     var hide = document.createElement("button");
     hide.type = "button";
     hide.className = "fm-btn";
@@ -1155,7 +1155,7 @@
     }
     var note = document.createElement("p");
     note.className = "fm-note";
-    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW ON MAP places the newest scan from that file's GeoTIFF registration. The collar hangs outside the quadrangle. The letter-tile PDF is unchanged.";
+    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW places that year's scan from the GeoTIFF registration. The picture is the sharpest overview under about 1.2 MB, not the full sheet. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. The collar hangs outside the quadrangle. The letter-tile PDF is unchanged.";
     out.appendChild(note);
   }
 

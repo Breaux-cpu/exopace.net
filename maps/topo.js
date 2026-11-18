@@ -171,7 +171,7 @@
   }
 
   function readLongs(bytes, tag) {
-    if (!tag || tag.typ !== 4 || tag.count < 1 || tag.count > 80) return null;
+    if (!tag || tag.typ !== 4 || tag.count < 1 || tag.count > 400) return null;
     if (tag.count === 1) return [tag.val >>> 0];
     var pos = tag.val;
     if (pos + tag.count * 4 > bytes.length) return null;
@@ -261,6 +261,85 @@
     return [lon * 180 / Math.PI, lat * 180 / Math.PI];
   }
 
+  /* American polyconic inverse, Snyder PP 1395 equations 18-18 through 18-22.
+     Returns [lon, lat] degrees on the file ellipsoid, or null. */
+  function inversePoly(easting, northing, proj) {
+    if (!proj) return null;
+    var a = proj.a;
+    var f = proj.f;
+    if (!(a > 0) || !(f > 0)) return null;
+    var e2 = f * (2 - f);
+    var x = easting - proj.easting;
+    var y = northing - proj.northing;
+    var phi0 = proj.lat0 * Math.PI / 180;
+    var lam0 = proj.lon0 * Math.PI / 180;
+    var M0 = meridional(phi0, a, e2);
+    if (Math.abs(y + M0) < 0.001) return [(lam0 + x / a) * 180 / Math.PI, 0];
+    var A = (M0 + y) / a;
+    var B = x * x / (a * a) + A * A;
+    var phi = A;
+    var settled = false;
+    for (var i = 0; i < 20; i++) {
+      var sp = Math.sin(phi);
+      var cp = Math.cos(phi);
+      if (Math.abs(cp) < 1e-12 || Math.abs(Math.sin(2 * phi)) < 1e-12) return null;
+      var root = Math.sqrt(1 - e2 * sp * sp);
+      var C = root * Math.tan(phi);
+      var Ma = meridional(phi, a, e2) / a;
+      var Mp = (1 - e2) / (root * root * root);
+      var num = A * (C * Ma + 1) - Ma - (Ma * Ma + B) * C / 2;
+      var den = e2 * Math.sin(2 * phi) * (Ma * Ma + B - 2 * A * Ma) / (4 * C)
+        + (A - Ma) * (C * Mp - 2 / Math.sin(2 * phi)) - Mp;
+      if (!Number.isFinite(num) || !Number.isFinite(den) || den === 0) return null;
+      var next = phi - num / den;
+      if (Math.abs(next - phi) < 1e-12) {
+        phi = next;
+        settled = true;
+        break;
+      }
+      phi = next;
+    }
+    if (!settled || Math.abs(phi) > Math.PI / 2 || Math.abs(Math.sin(phi)) < 1e-12) return null;
+    var C2 = Math.sqrt(1 - e2 * Math.sin(phi) * Math.sin(phi)) * Math.tan(phi);
+    var arg = x * C2 / a;
+    if (arg > 1 || arg < -1) return null;
+    return [(Math.asin(arg) / Math.sin(phi) + lam0) * 180 / Math.PI, phi * 180 / Math.PI];
+  }
+
+  function geocentric(latDeg, lonDeg, a, e2) {
+    var lat = latDeg * Math.PI / 180;
+    var lon = lonDeg * Math.PI / 180;
+    var s = Math.sin(lat);
+    var c = Math.cos(lat);
+    var n = a / Math.sqrt(1 - e2 * s * s);
+    return [n * c * Math.cos(lon), n * c * Math.sin(lon), n * (1 - e2) * s];
+  }
+
+  function geodetic(x, y, z, a, e2) {
+    var lon = Math.atan2(y, x);
+    var p = Math.hypot(x, y);
+    var lat = Math.atan2(z, p * (1 - e2));
+    for (var i = 0; i < 8; i++) {
+      var s = Math.sin(lat);
+      var n = a / Math.sqrt(1 - e2 * s * s);
+      lat = Math.atan2(z + e2 * n * s, p);
+    }
+    return [lon * 180 / Math.PI, lat * 180 / Math.PI];
+  }
+
+  /* NAD27 to WGS84 for CONUS onshore, EPSG:1173. Outside that box, null. */
+  function nad27ToWgs84(lon, lat) {
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
+    if (lat < 24.41 || lat > 49.38 || lon < -124.79 || lon > -66.91) return null;
+    var f = 1 / 294.978698213898;
+    var e2 = f * (2 - f);
+    var xyz = geocentric(lat, lon, 6378206.4, e2);
+    var fw = 1 / 298.257223563;
+    var shifted = geodetic(xyz[0] - 8, xyz[1] + 160, xyz[2] + 176, 6378137, fw * (2 - fw));
+    if (Math.abs(shifted[0]) > 180 || Math.abs(shifted[1]) > 84) return null;
+    return shifted;
+  }
+
   function imageOf(bytes, ifd) {
     var width = shortValue(ifd.tags[256]);
     var height = shortValue(ifd.tags[257]);
@@ -280,7 +359,8 @@
       total += lengths[i];
       tiles.push({ offset: offsets[i], length: lengths[i] });
     }
-    if (total > 1500000) return null;
+    /* Keep the phone off the multi-megabyte full sheet. */
+    if (total > 1200000) return null;
     return {
       width: width,
       height: height,
@@ -299,11 +379,11 @@
     if (!scale || scale.length < 2 || !tie || tie.length < 6 || !keys) return null;
     if (keyNumber(keys, 1024, doubles) !== 1) return null;
     if (keyNumber(keys, 1025, doubles) !== 1) return null;
-    if (keyNumber(keys, 2048, doubles) !== 4326) return null;
     if (keyNumber(keys, 2054, doubles) !== 9102) return null;
     if (keyNumber(keys, 3072, doubles) !== 32767) return null;
-    if (keyNumber(keys, 3075, doubles) !== 1) return null;
     if (keyNumber(keys, 3076, doubles) !== 9001) return null;
+    var geo = keyNumber(keys, 2048, doubles);
+    var method = keyNumber(keys, 3075, doubles);
     var lon0 = keyNumber(keys, 3080, doubles);
     var lat0 = keyNumber(keys, 3081, doubles);
     var falseE = keyNumber(keys, 3082, doubles);
@@ -311,13 +391,28 @@
     var k0 = keyNumber(keys, 3092, doubles);
     var semi = keyNumber(keys, 2057, doubles);
     var inv = keyNumber(keys, 2059, doubles);
-    if (![lon0, lat0, falseE, falseN, k0, semi, inv].every(Number.isFinite)) return null;
-    if (Math.abs(semi - 6378137) > 1) return null;
-    if (Math.abs(inv - 298.257223563) > 0.001) return null;
+    if (![lon0, lat0, falseE, falseN, k0, semi, inv, geo, method].every(Number.isFinite)) return null;
     if (k0 < 0.99 || k0 > 1.01) return null;
     if (!(scale[0] > 0) || !(scale[1] > 0)) return null;
     if (tie[0] !== 0 || tie[1] !== 0) return null;
+    var kind = "";
+    var datum = "";
+    if (method === 1 && geo === 4326) {
+      if (Math.abs(semi - 6378137) > 1) return null;
+      if (Math.abs(inv - 298.257223563) > 0.001) return null;
+      kind = "tm";
+      datum = "wgs84";
+    } else if (method === 22 && geo === 4267) {
+      if (Math.abs(semi - 6378206.4) > 1) return null;
+      if (Math.abs(inv - 294.978698214) > 0.001) return null;
+      kind = "poly";
+      datum = "nad27";
+    } else {
+      return null;
+    }
     return {
+      kind: kind,
+      datum: datum,
       a: semi,
       f: 1 / inv,
       lon0: lon0,
@@ -347,14 +442,17 @@
     ];
     var corners = [];
     for (var i = 0; i < 4; i++) {
-      var point = inverseTm(east[i], north[i], proj);
+      var point = proj.kind === "poly"
+        ? inversePoly(east[i], north[i], proj)
+        : inverseTm(east[i], north[i], proj);
+      if (proj.datum === "nad27") point = point && nad27ToWgs84(point[0], point[1]);
       if (!point || Math.abs(point[0]) > 180 || Math.abs(point[1]) > 84) return null;
       corners.push(point);
     }
     return corners;
   }
 
-  /* Header bytes only. Picks a JPEG overview near 480 px, never the full sheet. */
+  /* Header bytes only. Picks the largest JPEG overview no wider than 1800 px. */
   function registration(bytes) {
     if (!bytes || bytes.length < 16 || bytes[0] !== 73 || bytes[1] !== 73 || bytes[2] !== 42 || bytes[3] !== 0) return null;
     var images = [];
@@ -382,8 +480,8 @@
     var overview = null;
     images.forEach(function (image) {
       if (image.compression !== 7) return;
-      if (image.width < 300 || image.width > 700) return;
-      if (!overview || Math.abs(image.width - 480) < Math.abs(overview.width - 480)) overview = image;
+      if (image.width < 300 || image.width > 1800) return;
+      if (!overview || image.width > overview.width) overview = image;
     });
     if (!overview) return null;
     return { corners: corners, overview: overview };
@@ -415,6 +513,8 @@
     editions: editions,
     geotiffUrl: geotiffUrl,
     inverseTm: inverseTm,
+    inversePoly: inversePoly,
+    nad27ToWgs84: nad27ToWgs84,
     registration: registration,
     covers: covers,
   };
