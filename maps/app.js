@@ -865,6 +865,7 @@
         units: state.units,
         contours: state.contours,
         hill: state.hill,
+        scan: scanForSheet(sheets[i]),
         route: measurePoints.length >= 2 ? measurePoints.map(function (p) {
           return { lat: p.lat, lon: p.lon };
         }) : null,
@@ -875,7 +876,11 @@
 
   function routeNote(pack, base) {
     var marked = pack && pack.canvases && pack.canvases.some(function (canvas) { return canvas.exoRoute; });
-    return marked ? base + " — ROUTE ON THE PAGE" : base;
+    var scan = pack && pack.canvases && pack.canvases.some(function (canvas) { return canvas.exoScan; });
+    if (scan && marked) return base + " — USGS SCAN AND ROUTE ON THE PAGE";
+    if (scan) return base + " — USGS SCAN ON THE PAGE";
+    if (marked) return base + " — ROUTE ON THE PAGE";
+    return base;
   }
 
   async function downloadPdf() {
@@ -1088,7 +1093,16 @@
     out.appendChild(p);
   }
 
+  var scanFrame = null;
+
+  function scanForSheet(sheet) {
+    if (!scanFrame || !sheet) return null;
+    if (sheet.id === scanFrame.sheetId || sheet.quadId === scanFrame.sheetId) return scanFrame;
+    return null;
+  }
+
   function clearScanLayer() {
+    scanFrame = null;
     if (!map) return;
     try {
       if (map.getLayer("usgs-scan")) map.removeLayer("usgs-scan");
@@ -1155,7 +1169,7 @@
     }
     var note = document.createElement("p");
     note.className = "fm-note";
-    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW places that year's scan from the GeoTIFF registration. The picture is the sharpest overview under about 1.2 MB, not the full sheet. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. The collar hangs outside the quadrangle. The letter-tile PDF is unchanged.";
+    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW crops that year's scan to this quadrangle. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of these letter pages. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.";
     out.appendChild(note);
   }
 
@@ -1279,12 +1293,27 @@
         if (bitmap.close) bitmap.close();
       }
       if (token !== topoToken || activeSheetId() !== sheetId) return;
+      var frame = EXO.topo.windowOf(reg.corners, canvas.width, canvas.height, [
+        [sheet.west, sheet.north],
+        [sheet.east, sheet.north],
+        [sheet.east, sheet.south],
+        [sheet.west, sheet.south],
+      ]);
+      if (!frame || !EXO.topo.covers(sheet, frame.coordinates)) {
+        setStatus("SCAN NOT PLACED");
+        return;
+      }
+      var crop = document.createElement("canvas");
+      crop.width = frame.w;
+      crop.height = frame.h;
+      crop.getContext("2d").drawImage(canvas, frame.x, frame.y, frame.w, frame.h, 0, 0, frame.w, frame.h);
       clearScanLayer();
+      scanFrame = { canvas: canvas, corners: reg.corners, year: row.year, sheetId: sheetId };
       var before = map.getLayer("sheets-fill") ? "sheets-fill" : undefined;
       map.addSource("usgs-scan", {
         type: "image",
-        url: canvas.toDataURL("image/jpeg", 0.82),
-        coordinates: reg.corners,
+        url: crop.toDataURL("image/jpeg", 0.82),
+        coordinates: frame.coordinates,
       });
       map.addLayer({
         id: "usgs-scan",

@@ -274,4 +274,22 @@ const meters = Math.hypot(east, north);
 assert.ok(meters > 5 && meters < 80, meters);
 assert.strictEqual(topo.nad27ToWgs84(-150, 61), null);
 
-console.log("topo ok " + rows[0].year + " " + rows.length + " " + reg.corners[0][0].toFixed(5));
+const topLeft = topo.locate(reg.corners, 6617, 8242, reg.corners[0][0], reg.corners[0][1]);
+const bottomRight = topo.locate(reg.corners, 6617, 8242, reg.corners[2][0], reg.corners[2][1]);
+assert.ok(topLeft && Math.abs(topLeft[0]) < 1 && Math.abs(topLeft[1]) < 1, topLeft);
+assert.ok(bottomRight && Math.abs(bottomRight[0] - 6617) < 1 && Math.abs(bottomRight[1] - 8242) < 1, bottomRight);
+const ring = [
+  [quad.west, quad.north],
+  [quad.east, quad.north],
+  [quad.east, quad.south],
+  [quad.west, quad.south],
+];
+const win = topo.windowOf(reg.corners, 1655, 2061, ring);
+assert.ok(win, "window");
+assert.ok(win.x > 0 && win.y > 0, win.x + "," + win.y);
+assert.ok(win.w < 1655 && win.h < 2061, win.w + "x" + win.h);
+assert.ok(win.w > 1200 && win.h > 1500, win.w + "x" + win.h);
+assert.strictEqual(topo.covers(quad, win.coordinates), true);
+assert.strictEqual(topo.windowOf(reg.corners, 1655, 2061, ring.map((point) => [point[0] + 2, point[1]])), null);
+
+console.log("topo ok " + rows[0].year + " " + rows.length + " " + reg.corners[0][0].toFixed(5) + " " + win.w + "x" + win.h);

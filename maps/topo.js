@@ -487,6 +487,83 @@
     return { corners: corners, overview: overview };
   }
 
+  function bilinearAt(corners, u, v) {
+    var w00 = (1 - u) * (1 - v);
+    var w10 = u * (1 - v);
+    var w11 = u * v;
+    var w01 = (1 - u) * v;
+    return [
+      w00 * corners[0][0] + w10 * corners[1][0] + w11 * corners[2][0] + w01 * corners[3][0],
+      w00 * corners[0][1] + w10 * corners[1][1] + w11 * corners[2][1] + w01 * corners[3][1],
+    ];
+  }
+
+  /* Pixel of a lon/lat on the scan. The corners are top-left, top-right, bottom-right, bottom-left. */
+  function locate(corners, width, height, lon, lat) {
+    if (!corners || corners.length !== 4 || !(width > 0) || !(height > 0)) return null;
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
+    var west = corners[0][0];
+    var east = corners[1][0];
+    var north = corners[0][1];
+    var south = corners[3][1];
+    var u = east === west ? 0.5 : (lon - west) / (east - west);
+    var v = north === south ? 0.5 : (north - lat) / (north - south);
+    for (var i = 0; i < 8; i++) {
+      var p = bilinearAt(corners, u, v);
+      var step = 1e-4;
+      var pu = bilinearAt(corners, u + step, v);
+      var pv = bilinearAt(corners, u, v + step);
+      var ju0 = (pu[0] - p[0]) / step;
+      var ju1 = (pu[1] - p[1]) / step;
+      var jv0 = (pv[0] - p[0]) / step;
+      var jv1 = (pv[1] - p[1]) / step;
+      var det = ju0 * jv1 - ju1 * jv0;
+      if (Math.abs(det) < 1e-14) return null;
+      var ex = lon - p[0];
+      var ey = lat - p[1];
+      var su = (ex * jv1 - ey * jv0) / det;
+      var sv = (ju0 * ey - ju1 * ex) / det;
+      u += su;
+      v += sv;
+      if (Math.abs(su) < 1e-10 && Math.abs(sv) < 1e-10) break;
+    }
+    if (!Number.isFinite(u) || !Number.isFinite(v)) return null;
+    if (u < -0.25 || u > 1.25 || v < -0.25 || v > 1.25) return null;
+    var check = bilinearAt(corners, u, v);
+    if (Math.abs(check[0] - lon) > 0.0002 || Math.abs(check[1] - lat) > 0.0002) return null;
+    return [u * width, v * height];
+  }
+
+  /* Axis-aligned crop of a four-corner ring, plus the ground corners of that crop. */
+  function windowOf(corners, width, height, ring) {
+    if (!ring || ring.length !== 4) return null;
+    var pts = [];
+    for (var i = 0; i < 4; i++) {
+      var hit = locate(corners, width, height, ring[i][0], ring[i][1]);
+      if (!hit) return null;
+      pts.push(hit);
+    }
+    var xs = pts.map(function (p) { return p[0]; });
+    var ys = pts.map(function (p) { return p[1]; });
+    var x0 = Math.max(0, Math.floor(Math.min.apply(null, xs)));
+    var y0 = Math.max(0, Math.floor(Math.min.apply(null, ys)));
+    var x1 = Math.min(width, Math.ceil(Math.max.apply(null, xs)));
+    var y1 = Math.min(height, Math.ceil(Math.max.apply(null, ys)));
+    if (x1 - x0 < 8 || y1 - y0 < 8) return null;
+    return {
+      x: x0,
+      y: y0,
+      w: x1 - x0,
+      h: y1 - y0,
+      coordinates: [
+        bilinearAt(corners, x0 / width, y0 / height),
+        bilinearAt(corners, x1 / width, y0 / height),
+        bilinearAt(corners, x1 / width, y1 / height),
+        bilinearAt(corners, x0 / width, y1 / height),
+      ],
+    };
+  }
+
   function covers(sheet, corners) {
     if (!sheet || sheet.kind !== "quad" || !corners || corners.length !== 4) return false;
     var lons = corners.map(function (point) { return point[0]; });
@@ -517,6 +594,8 @@
     nad27ToWgs84: nad27ToWgs84,
     registration: registration,
     covers: covers,
+    locate: locate,
+    windowOf: windowOf,
   };
   if (typeof module === "object" && module.exports) module.exports = root.EXO.topo;
 })(typeof globalThis !== "undefined" ? globalThis : this);

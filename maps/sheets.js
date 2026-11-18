@@ -193,7 +193,7 @@
   }
 
   function seriesNote(series) {
-    var scan = " FIND USGS SCAN opens the USGS GeoPDF of that paper map, collar included. SHOW places that year's scan from the GeoTIFF registration, using the sharpest overview under about 1.2 MB. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. The collar sits outside the cell. Neither replaces these letter tiles.";
+    var scan = " FIND USGS SCAN opens the USGS GeoPDF of that paper map, collar included. SHOW crops that year's scan to this cell, using the sharpest overview under about 1.2 MB. Print draws it in the neatline. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. Neither replaces these letter tiles.";
     if (series === "usgs75") {
       return "A 7.5′ quadrangle is 7.5 minutes of latitude by 7.5 minutes of longitude. The conterminous United States and Hawaii use 1:24,000. Alaska uses 1:25,000. Puerto Rico uses 1:20,000. The sheet uses the National Map name when that cell has the same edges. The PDF splits that quadrangle into US Letter pages at true scale." + scan;
     }

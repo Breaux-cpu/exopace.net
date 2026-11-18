@@ -164,6 +164,43 @@
     return true;
   }
 
+  function drawScan(ctx, sheet, scan, ox, oy, w, h) {
+    if (!scan || !scan.canvas || !scan.corners || !root.EXO.topo || !root.EXO.topo.locate) return false;
+    if (!sheet || !sheet.nw || !sheet.ne || !sheet.se || !sheet.sw) return false;
+    var ring = [sheet.nw, sheet.ne, sheet.se, sheet.sw];
+    var pts = [];
+    for (var i = 0; i < ring.length; i++) {
+      var hit = root.EXO.topo.locate(scan.corners, scan.canvas.width, scan.canvas.height, ring[i].lon, ring[i].lat);
+      if (!hit) return false;
+      pts.push(hit);
+    }
+    var xs = pts.map(function (p) { return p[0]; });
+    var ys = pts.map(function (p) { return p[1]; });
+    var x0 = Math.min.apply(null, xs);
+    var y0 = Math.min.apply(null, ys);
+    var x1 = Math.max.apply(null, xs);
+    var y1 = Math.max.apply(null, ys);
+    if (!(x1 > x0) || !(y1 > y0)) return false;
+    var sx = Math.max(0, x0);
+    var sy = Math.max(0, y0);
+    var ex = Math.min(scan.canvas.width, x1);
+    var ey = Math.min(scan.canvas.height, y1);
+    var sw = ex - sx;
+    var sh = ey - sy;
+    if (sw < 2 || sh < 2) return false;
+    var destX = ox + (sx - x0) / (x1 - x0) * w;
+    var destY = oy + (sy - y0) / (y1 - y0) * h;
+    var destW = sw / (x1 - x0) * w;
+    var destH = sh / (y1 - y0) * h;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ox, oy, w, h);
+    ctx.clip();
+    ctx.drawImage(scan.canvas, sx, sy, sw, sh, destX, destY, destW, destH);
+    ctx.restore();
+    return true;
+  }
+
   function drawBar(ctx, x, y, px, label) {
     ctx.fillStyle = "#14202a";
     ctx.fillRect(x, y, px, 6);
@@ -243,6 +280,8 @@
       ctx.fillText("TERRAIN TILE MISSING", ox + 12, oy + 24);
     }
 
+    var scanMarked = drawScan(ctx, sheet, opts.scan, ox, oy, paper.neatWpx, paper.neatHpx);
+    canvas.exoScan = scanMarked;
     if (opts.layers !== false) drawGrid(ctx, sheet, ox, oy, paper.neatWpx, paper.neatHpx);
     ctx.strokeStyle = "#14202a";
     ctx.lineWidth = 1.5;
@@ -263,6 +302,7 @@
     if (sheet.quadName) lines.push((sheet.tileLabel || "TILE") + " OF " + sheet.quadName);
     lines.push("WGS84  ·  GRID " + (conv >= 0 ? "+" : "") + conv.toFixed(2) + "° TO TRUE");
     lines.push(mag == null ? "MAG — SET FROM A CURRENT CHART" : "MAG DECLINATION " + (mag >= 0 ? "+" : "") + mag.toFixed(1) + "° (WMM)");
+    if (scanMarked && opts.scan && opts.scan.year) lines.push("USGS SCAN " + opts.scan.year + " IN THE NEATLINE");
     if (routeMarked) lines.push("ROUTE MARKED ON THIS PAGE");
     lines.push("OSM © CONTRIBUTORS  ·  AWS TERRAIN TILES  ·  PRINT ACTUAL SIZE");
     for (var i = 0; i < lines.length; i++) ctx.fillText(lines[i], mm(8), textY + 16 + i * 15);
