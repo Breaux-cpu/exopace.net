@@ -635,6 +635,8 @@
     }
     var route = EXO.measure.encodeRoute(measurePoints);
     if (route) q.set("route", route);
+    var scan = EXO.topo.scanText(scanFrame && scanFrame.year ? scanFrame.year : scanYear);
+    if (scan) q.set("scan", scan);
     history.replaceState(null, "", "#" + q.toString());
   }
 
@@ -654,6 +656,7 @@
       }).filter(Boolean);
       if (state.sheets.length) state.active = state.sheets[state.sheets.length - 1].id;
     }
+    scanYear = EXO.topo.scanYearOf(q.get("scan"));
     var decoded = EXO.measure.decodeRoute(q.get("route"));
     if (decoded.length) {
       measurePoints = decoded.map(function (point) {
@@ -1094,6 +1097,14 @@
   }
 
   var scanFrame = null;
+  var scanYear = 0;
+
+  function forgetScanYear(year) {
+    if (!scanYear) return;
+    if (year && scanYear !== year) return;
+    scanYear = 0;
+    writeHash();
+  }
 
   function scanForSheet(sheet) {
     if (!scanFrame || !sheet) return null;
@@ -1113,7 +1124,9 @@
   function resetTopo(message) {
     topoToken += 1;
     topoFor = "";
+    scanYear = 0;
     clearScanLayer();
+    if (map) writeHash();
     paintTopoMessage(message || "Pick a USGS quadrangle, then find its scan.");
   }
 
@@ -1155,7 +1168,9 @@
     hide.className = "fm-btn";
     hide.textContent = "HIDE SCAN";
     hide.onclick = function () {
+      scanYear = 0;
       clearScanLayer();
+      writeHash();
       setStatus("SCAN HIDDEN");
     };
     links.appendChild(hide);
@@ -1169,11 +1184,12 @@
     }
     var note = document.createElement("p");
     note.className = "fm-note";
-    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW crops that year's scan to this quadrangle. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of these letter pages. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.";
+    note.textContent = "Each year opens the USGS GeoPDF, collar included. SHOW crops that year's scan to this quadrangle. The link keeps that year. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of these letter pages. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.";
     out.appendChild(note);
   }
 
-  async function findTopo() {
+  async function findTopo(preferYear) {
+    var wantYear = EXO.topo.scanYearOf(preferYear);
     var sheet = activeSheet();
     if (!sheet || sheet.kind !== "quad" || !EXO.topo) {
       resetTopo("Pick a USGS quadrangle. A letter page is not a paper scan.");
@@ -1222,11 +1238,28 @@
     if (token !== topoToken) return;
     var rows = EXO.topo.editions(sheet, items);
     if (!rows.length) {
-      setStatus("NO USGS SCAN");
+      if (wantYear) {
+        scanYear = 0;
+        writeHash();
+        setStatus("NO USGS SCAN FOR " + wantYear);
+      } else {
+        setStatus("NO USGS SCAN");
+      }
       paintTopoMessage("No scanned sheet matched this cell.");
       return;
     }
     paintTopo(sheet, rows);
+    if (wantYear) {
+      var chosen = EXO.topo.editionForYear(rows, wantYear);
+      if (!chosen) {
+        scanYear = 0;
+        writeHash();
+        setStatus("NO USGS SCAN FOR " + wantYear);
+        return;
+      }
+      await showScan(chosen);
+      return;
+    }
     setStatus(truncated ? "USGS SCAN " + rows[0].year + " · CATALOGUE TRUNCATED" : "USGS SCAN " + rows[0].year);
   }
 
@@ -1243,6 +1276,7 @@
     }
     var tif = EXO.topo.geotiffUrl(row.pdf);
     if (!tif) {
+      forgetScanYear(row.year);
       setStatus("NO GEOTIFF FOR THIS SCAN");
       return;
     }
@@ -1258,10 +1292,12 @@
       if (headerBytes.length > 2000000) throw new Error("header");
       var reg = EXO.topo.registration(headerBytes);
       if (!reg) {
+        forgetScanYear(row.year);
         setStatus("SCAN NOT PLACED");
         return;
       }
       if (!EXO.topo.covers(sheet, reg.corners)) {
+        forgetScanYear(row.year);
         setStatus("SCAN DOES NOT COVER THIS CELL");
         return;
       }
@@ -1300,6 +1336,7 @@
         [sheet.west, sheet.south],
       ]);
       if (!frame || !EXO.topo.covers(sheet, frame.coordinates)) {
+        forgetScanYear(row.year);
         setStatus("SCAN NOT PLACED");
         return;
       }
@@ -1309,6 +1346,8 @@
       crop.getContext("2d").drawImage(canvas, frame.x, frame.y, frame.w, frame.h, 0, 0, frame.w, frame.h);
       clearScanLayer();
       scanFrame = { canvas: canvas, corners: reg.corners, year: row.year, sheetId: sheetId };
+      scanYear = row.year;
+      writeHash();
       var before = map.getLayer("sheets-fill") ? "sheets-fill" : undefined;
       map.addSource("usgs-scan", {
         type: "image",
@@ -1404,7 +1443,7 @@
     $("fm-save").onclick = saveToCopy;
     $("fm-route-clear").onclick = clearRoute;
     $("fm-gpx").onclick = downloadGpx;
-    $("fm-topo").onclick = findTopo;
+    $("fm-topo").onclick = function () { findTopo(); };
     $("fm-go").addEventListener("submit", goSearch);
     $("fm-q").addEventListener("input", queueSuggest);
     $("fm-q").addEventListener("keydown", function (ev) {
@@ -1454,6 +1493,7 @@
       if (map.getCanvas()) map.getCanvas().style.cursor = state.measure === "on" ? "crosshair" : "";
       syncMeasure();
       if (EXO.overlays) EXO.overlays.sync(map, state, setStatus);
+      if (scanYear) findTopo(scanYear);
     });
     map.on("move", readout);
     map.on("moveend", function () {

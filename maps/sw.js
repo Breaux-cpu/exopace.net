@@ -1,4 +1,4 @@
-const CACHE = "exopace-maps-v19";
+const CACHE = "exopace-maps-v20";
 const SHELL = [
   "/maps/",
   "/maps/index.html",
@@ -7,7 +7,7 @@ const SHELL = [
   "/maps/host.json",
   "/maps/mgrs.js?v=1",
   "/maps/measure.js?v=4",
-  "/maps/sheets.js?v=8",
+  "/maps/sheets.js?v=9",
   "/maps/terrain.js?v=2",
   "/maps/style.js?v=5",
   "/maps/print.js?v=5",
@@ -16,8 +16,8 @@ const SHELL = [
   "/maps/garmin.js?v=2",
   "/maps/overlays.js?v=2",
   "/maps/mbtiles.js?v=1",
-  "/maps/topo.js?v=4",
-  "/maps/app.js?v=19",
+  "/maps/topo.js?v=5",
+  "/maps/app.js?v=20",
   "/maps/vendor/maplibre-gl.js?v=1",
   "/maps/vendor/maplibre-gl.css?v=1",
   "/maps/manifest.webmanifest",

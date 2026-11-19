@@ -81,6 +81,19 @@ assert.strictEqual(rows[1].pdf, "https://prd-tnm.s3.amazonaws.com/a-1965-later.p
 assert.strictEqual(rows[1].preview, "");
 assert.strictEqual(topo.editions({ kind: "letter" }, items).length, 0);
 assert.strictEqual(topo.editions(quad, []).length, 0);
+assert.strictEqual(topo.editionForYear(rows, 1965).pdf, rows[1].pdf);
+assert.strictEqual(topo.editionForYear(rows, "1997").year, 1997);
+assert.strictEqual(topo.editionForYear(rows, 1953), null);
+assert.strictEqual(topo.scanText(1997), "1997");
+assert.strictEqual(topo.scanText(1799), "");
+assert.strictEqual(topo.scanText(1997.5), "");
+assert.strictEqual(topo.scanYearOf("1965"), 1965);
+assert.strictEqual(topo.scanYearOf("65"), 0);
+assert.strictEqual(topo.scanYearOf("1965 "), 0);
+assert.strictEqual(topo.scanYearOf("2100"), 0);
+const scanParams = new URLSearchParams();
+scanParams.set("scan", topo.scanText(1965));
+assert.strictEqual(topo.scanYearOf(scanParams.get("scan")), 1965);
 
 const fifteen = sheets.quadAt(35.15, -90.05, "usgs15");
 assert.strictEqual(topo.editions(fifteen, items).length, 0);

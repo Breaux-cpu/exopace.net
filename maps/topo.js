@@ -90,6 +90,29 @@
     });
   }
 
+  /* The link stores one four-digit year. Anything else is dropped. */
+  function scanYearOf(text) {
+    if (!/^\d{4}$/.test(String(text == null ? "" : text))) return 0;
+    var year = Number(text);
+    if (year < 1800 || year > 2099) return 0;
+    return year;
+  }
+
+  function scanText(year) {
+    var text = String(year == null ? "" : year);
+    return scanYearOf(text) ? text : "";
+  }
+
+  function editionForYear(rows, year) {
+    var want = typeof year === "number" ? (scanYearOf(String(year)) || 0) : scanYearOf(year);
+    if (!want) return null;
+    var found = null;
+    (rows || []).forEach(function (row) {
+      if (row && row.year === want) found = row;
+    });
+    return found;
+  }
+
   /* PDF .../HistoricalTopo/PDF/{state}/{scale}/{name}_geo.pdf
      TIFF .../HistoricalTopo/GeoTIFF/{state}/{name}_geo.tif */
   function geotiffUrl(pdf) {
@@ -588,6 +611,9 @@
   root.EXO.topo = {
     queryExtent: queryExtent,
     editions: editions,
+    scanYearOf: scanYearOf,
+    scanText: scanText,
+    editionForYear: editionForYear,
     geotiffUrl: geotiffUrl,
     inverseTm: inverseTm,
     inversePoly: inversePoly,
