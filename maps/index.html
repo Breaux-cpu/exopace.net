@@ -80,6 +80,7 @@
         <button type="button" class="fm-btn" id="fm-redo">REDO</button>
         <span class="fm-note" id="fm-count" style="align-self:center">0 PAGES</span>
       </div>
+      <p class="fm-note" id="fm-adjoins" hidden></p>
       <h2>BASE</h2>
       <div class="fm-seg" data-key="base">
         <button type="button" data-value="paper" aria-pressed="true">PAPER</button>
@@ -192,13 +193,13 @@
         <button type="button" data-value="false">HIDE</button>
       </div>
       <h2>USGS SCAN</h2>
-      <p>FIND USGS SCAN asks the USGS catalogue for the scanned paper map of the selected quadrangle. Each year opens their GeoPDF, collar included. SHOW crops that year's scan to the quadrangle. The link keeps that year, and opening the link places it again. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of the letter pages. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.</p>
+      <p>FIND USGS SCAN asks the USGS catalogue for the scanned paper map of the selected quadrangle. Each year opens their GeoPDF, collar included. SHOW crops that year's scan to the quadrangle. The link keeps that year, and opening the link places it again. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of the letter pages. The collar names the next cell on each side by that cell's corner. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-topo">FIND USGS SCAN</button>
       </div>
       <div id="fm-topo-out" class="fm-note">Pick a USGS quadrangle, then find its scan.</div>
       <h2>PRINT</h2>
-      <p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar. A measured route is drawn in the neatline of each page it crosses, and the collar says so.</p>
+      <p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar. A measured route is drawn in the neatline of each page it crosses, and the collar says so. On a quadrangle, the collar also names the next cell north, east, south, and west by that cell's corner. A cell past the sheet grid is omitted.</p>
       <div class="fm-row">
         <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
         <a class="fm-btn" href="legend.html">LEGEND</a>
@@ -226,16 +227,16 @@
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
   <script src="mgrs.js?v=1"></script>
   <script src="measure.js?v=4"></script>
-  <script src="sheets.js?v=9"></script>
+  <script src="sheets.js?v=10"></script>
   <script src="terrain.js?v=2"></script>
   <script src="style.js?v=5"></script>
-  <script src="print.js?v=5"></script>
+  <script src="print.js?v=6"></script>
   <script src="atak.js?v=3"></script>
   <script src="search.js?v=1"></script>
   <script src="garmin.js?v=2"></script>
   <script src="overlays.js?v=2"></script>
   <script src="mbtiles.js?v=1"></script>
   <script src="topo.js?v=5"></script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>

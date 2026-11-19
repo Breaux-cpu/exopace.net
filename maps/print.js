@@ -300,6 +300,11 @@
       sheet.name + "  ·  ZONE " + sheet.zone + sheet.hemi + "  ·  1:" + sheet.scale.toLocaleString("en-US"),
     ];
     if (sheet.quadName) lines.push((sheet.tileLabel || "TILE") + " OF " + sheet.quadName);
+    if (sheet.adjoinLines) {
+      sheet.adjoinLines.forEach(function (line) {
+        if (line) lines.push(line);
+      });
+    }
     lines.push("WGS84  ·  GRID " + (conv >= 0 ? "+" : "") + conv.toFixed(2) + "° TO TRUE");
     lines.push(mag == null ? "MAG — SET FROM A CURRENT CHART" : "MAG DECLINATION " + (mag >= 0 ? "+" : "") + mag.toFixed(1) + "° (WMM)");
     if (scanMarked && opts.scan && opts.scan.year) lines.push("USGS SCAN " + opts.scan.year + " IN THE NEATLINE");

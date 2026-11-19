@@ -69,6 +69,12 @@
     var activeNow = activeSheet();
     if (activeNow && activeNow.mapName) countText += " · " + activeNow.mapName;
     $("fm-count").textContent = countText;
+    var adj = $("fm-adjoins");
+    if (adj) {
+      var beside = activeNow && activeNow.kind === "quad" ? EXO.sheets.adjoinLines(activeNow) : [];
+      adj.hidden = !beside.length;
+      adj.textContent = beside.length ? "ADJOINS  " + beside.join("  ·  ") : "";
+    }
     var north = $("fm-north");
     if (north) north.textContent = northText(c);
     var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);

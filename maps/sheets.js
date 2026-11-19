@@ -193,7 +193,7 @@
   }
 
   function seriesNote(series) {
-    var scan = " FIND USGS SCAN opens the USGS GeoPDF of that paper map, collar included. SHOW crops that year's scan to this cell, using the sharpest overview under about 1.2 MB. The link keeps that year. Print draws it in the neatline. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. Neither replaces these letter tiles.";
+    var scan = " FIND USGS SCAN opens the USGS GeoPDF of that paper map, collar included. SHOW crops that year's scan to this cell, using the sharpest overview under about 1.2 MB. The link keeps that year. Print draws it in the neatline. The collar names the next cell on each side by that cell's corner. A cell past the sheet grid is omitted. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. Neither replaces these letter tiles.";
     if (series === "usgs75") {
       return "A 7.5′ quadrangle is 7.5 minutes of latitude by 7.5 minutes of longitude. The conterminous United States and Hawaii use 1:24,000. Alaska uses 1:25,000. Puerto Rico uses 1:20,000. The sheet uses the National Map name when that cell has the same edges. The PDF splits that quadrangle into US Letter pages at true scale." + scan;
     }
@@ -261,6 +261,57 @@
     };
   }
 
+  function cornerText(south, west) {
+    var lon = Math.abs(west) < 1e-8 ? 0 : west;
+    return degText(south, "N", "S") + " " + degText(lon, "E", "W");
+  }
+
+  /* The eight cells that share an edge or a corner. A cell past the grid is omitted. */
+  function adjoins(sheet) {
+    if (!sheet || sheet.kind !== "quad") return [];
+    var spec = SERIES[sheet.series];
+    if (!spec || !spec.dLat) return [];
+    var slots = [
+      ["N", 1, 0],
+      ["NE", 1, 1],
+      ["E", 0, 1],
+      ["SE", -1, 1],
+      ["S", -1, 0],
+      ["SW", -1, -1],
+      ["W", 0, -1],
+      ["NW", 1, -1],
+    ];
+    var out = [];
+    slots.forEach(function (slot) {
+      try {
+        var next = quadMake(sheet.series, sheet.south + slot[1] * spec.dLat, sheet.west + slot[2] * spec.dLon);
+        out.push({
+          side: slot[0],
+          id: next.id,
+          name: next.name,
+          corner: cornerText(next.south, next.west),
+          south: next.south,
+          west: next.west,
+          north: next.north,
+          east: next.east,
+        });
+      } catch (err) {}
+    });
+    return out;
+  }
+
+  function adjoinLines(sheet) {
+    var by = {};
+    adjoins(sheet).forEach(function (cell) { by[cell.side] = cell.corner; });
+    function pair(a, b) {
+      var parts = [];
+      if (by[a]) parts.push(a + " " + by[a]);
+      if (by[b]) parts.push(b + " " + by[b]);
+      return parts.join("  ·  ");
+    }
+    return [pair("N", "S"), pair("E", "W")].filter(Boolean);
+  }
+
   function quadAt(lat, lon, series) {
     var spec = SERIES[series];
     if (!spec || !spec.dLat) throw new Error("unknown series");
@@ -321,6 +372,7 @@
         if (box[2] < quad.west || box[0] > quad.east || box[3] < quad.south || box[1] > quad.north) continue;
         tile.quadName = quad.mapName ? quad.mapName + " · " + quad.name : quad.name;
         tile.quadId = quad.id;
+        tile.adjoinLines = adjoinLines(quad);
         tile.tileLabel = "R" + (Math.round((n - n0) / ground.hM) + 1) + "C" + (Math.round((e - e0) / ground.wM) + 1);
         tiles.push(tile);
       }
@@ -379,6 +431,8 @@
     seriesTitle: seriesTitle,
     seriesNote: seriesNote,
     quadAt: quadAt,
+    adjoins: adjoins,
+    adjoinLines: adjoinLines,
     quadIndexLayer: quadIndexLayer,
     quadExtentFits: quadExtentFits,
     quadFromArc: quadFromArc,
