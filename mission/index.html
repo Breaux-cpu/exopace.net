@@ -287,6 +287,14 @@
           document.documentElement.classList.remove("exo-booting");
           if (root) root.removeAttribute("inert");
         }
+        // The opacity fade does not finish in every browser, so transitionend
+        // never runs and the splash keeps the globe inert. Drop it when the
+        // viewport marks the splash done.
+        function uncover() {
+          if (v.classList.contains("out")) hide();
+        }
+        new MutationObserver(uncover).observe(v, { attributes: true, attributeFilter: ["class"] });
+        uncover();
         v.addEventListener("transitionend", function (e) {
           if (e.propertyName === "opacity" && v.classList.contains("out")) hide();
         });
