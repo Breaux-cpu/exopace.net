@@ -5,16 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EXOpace — Field map legend</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=3" />
   <style>
-    body { margin: 0; background: #f4efe4; color: #14202a; font: 13px/1.45 "IBM Plex Mono", ui-monospace, monospace; }
-    main { width: 210mm; margin: 0 auto; padding: 12mm; }
-    h1 { font-size: 16px; letter-spacing: 0.14em; margin: 0 0 8px; }
-    h2 { font-size: 12px; letter-spacing: 0.12em; margin: 16px 0 6px; }
-    a { color: #0f4c5c; }
+    body {
+      margin: 0; background: var(--exo-void); color: var(--exo-text);
+      font: 13px/1.45 var(--exo-mono);
+    }
+    main {
+      width: min(210mm, 100%); margin: 0 auto; box-sizing: border-box;
+      padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+      background: rgba(3, 6, 11, 0.82); border: 1px solid var(--exo-line); border-radius: 16px;
+    }
+    h1 { font-size: 16px; letter-spacing: 0.14em; margin: 0 0 8px; color: var(--exo-amber); }
+    h2 { font-size: 12px; letter-spacing: 0.12em; margin: 16px 0 6px; color: var(--exo-cyan); }
+    a { color: var(--exo-cyan); min-height: 44px; display: inline-flex; align-items: center; }
     table { border-collapse: collapse; width: 100%; }
-    td { border-bottom: 1px solid #d9d0bc; padding: 6px 4px; vertical-align: top; }
+    td { border-bottom: 1px solid var(--exo-line); padding: 8px 4px; vertical-align: top; }
     .sw { display: inline-block; width: 28px; height: 8px; margin-right: 8px; vertical-align: middle; }
-    @media print { a { color: inherit; text-decoration: none; } }
+    @media (max-width: 700px) {
+      body { padding: 12px; }
+      main { border-radius: 12px; }
+    }
+    @media print {
+      body { background: #fff; color: #14202a; padding: 0; }
+      main { width: 210mm; border: 0; background: #fff; color: #14202a; border-radius: 0; }
+      h1, h2, a { color: #14202a; }
+      a { text-decoration: none; }
+    }
   </style>
 </head>
 <body>
