@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Unit tests
-        run: node --test scripts/exo-dem.test.mjs scripts/exo-sdr-bridge.test.mjs scripts/exo-df.test.mjs scripts/exo-playbook.test.mjs scripts/exo-room.test.mjs
+        run: node --test scripts/exo-dem.test.mjs scripts/exo-sdr-bridge.test.mjs scripts/exo-df.test.mjs scripts/exo-playbook.test.mjs scripts/exo-room.test.mjs scripts/exo-wave.test.mjs scripts/exo-spaceweather.test.mjs scripts/chaos-audit.test.mjs
       - name: Verify baseline
         run: |
           set +e

@@ -613,3 +613,29 @@ nav.exo-tabs > a[data-ws] {
   text-decoration: none;
   text-transform: uppercase;
 }
+
+.exo-wave {
+  margin: 12px;
+  padding: 12px 14px;
+  min-height: 48px;
+  color: #7ee0ff;
+  background: #04070d;
+  border: 1px solid rgba(126, 224, 255, 0.35);
+  border-radius: 12px;
+  font: 500 13px/1.4 "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.fm-dock p.exo-wave {
+  color: #7ee0ff;
+  background: #04070d;
+}
+
+.exo-wave-btn {
+  min-width: 48px;
+  min-height: 48px;
+  margin: 0 12px 12px;
+  color: #ffb84d;
+  background: #04070d;
+  border: 1px solid #ffb84d;
+  border-radius: 12px;
+}
