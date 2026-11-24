@@ -13,6 +13,7 @@
     ["Mesh", "/mesh/"],
     ["Field Maps", "/maps/"],
     ["Cameras", "/cameras/"],
+    ["Sentinel", "/sentinel/"],
     ["Cams", "https://cams.exopace.net/"]
   ];
   var root, input, list, lastFocus;

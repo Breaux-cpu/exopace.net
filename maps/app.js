@@ -1510,6 +1510,7 @@
       if (hashReady && EXO.overlays) EXO.overlays.sync(map, state, setStatus);
     });
     map.on("click", function (ev) {
+      if (globalThis.EXO && EXO.link && EXO.link.capture(ev)) return;
       if (state.measure === "on") {
         if (moved) { moved = false; return; }
         placeMeasure(ev.lngLat.lat, ev.lngLat.lng);

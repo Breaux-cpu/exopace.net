@@ -56,7 +56,8 @@ button, a { font: inherit; }
 .fm-seg button[aria-pressed="true"] { color: #7ee0ff; border-color: rgba(126, 224, 255, 0.8); }
 .fm-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .fm-status { color: #ffe08a; font-size: 12px; letter-spacing: 0.08em; min-height: 18px; }
-#fm-sky, #fm-ready { min-height: 3.4em; }
+#fm-sky, #fm-ready, #fm-link { min-height: 3.4em; }
+#fm-link-plot { display: block; width: 100%; height: 96px; margin: 0 0 8px; background: #04070d; border-radius: 8px; }
 .fm-toast {
   position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom));
   transform: translateX(-50%); z-index: 6;

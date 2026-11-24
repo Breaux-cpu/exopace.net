@@ -72,6 +72,12 @@
         <button type="button" class="fm-btn" id="fm-route-clear">CLEAR ROUTE</button>
         <button type="button" class="fm-btn" id="fm-gpx">ROUTE GPX</button>
       </div>
+      <h2>LINE OF SIGHT</h2>
+      <div class="fm-row">
+        <button type="button" class="fm-btn" id="fm-los" aria-pressed="false">LOS</button>
+      </div>
+      <p class="fm-note" id="fm-link">LOS OFF</p>
+      <canvas id="fm-link-plot" width="288" height="96" aria-label="Terrain profile"></canvas>
       <h2>SHEET</h2>
       <div class="fm-seg" data-key="series">
         <button type="button" data-value="letter" aria-pressed="true">LETTER</button>
@@ -263,6 +269,7 @@
   <script src="mbtiles.js?v=1"></script>
   <script src="topo.js?v=5"></script>
   <script src="field.js?v=1"></script>
+  <script src="link.js?v=1"></script>
   <script src="app.js?v=22"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>

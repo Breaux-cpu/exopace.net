@@ -556,6 +556,34 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <div class="card"><h2>Usage</h2><div id="usage"></div></div>
  <div class="card"><h2>Tasks</h2><div id="tasks"></div></div>
  <div class="card"><h2>Capabilities</h2><div id="caps"></div></div>
+ <div class="card" id="exo-orbit">
+  <h2>Pass and Doppler</h2>
+  <p data-orbit-status class="muted">STANDBY · NO FIX</p>
+  <div class="grid" style="margin-top:9px">
+   <input data-norad inputmode="numeric" aria-label="NORAD catalog number" value="25544">
+   <input data-mhz inputmode="decimal" aria-label="Downlink megahertz" placeholder="MHz">
+  </div>
+  <div class="grid" style="margin-top:7px">
+   <input data-lat inputmode="decimal" aria-label="Latitude" placeholder="lat">
+   <input data-lon inputmode="decimal" aria-label="Longitude" placeholder="lon">
+  </div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" type="button" data-locate style="min-height:44px">Locate</button>
+   <button class="b alt" type="button" data-predict style="min-height:44px">Passes</button>
+  </div>
+  <p data-orbit-live class="muted" style="margin-top:8px">NO FIX</p>
+  <div data-orbit-table class="muted" style="margin-top:6px"></div>
+  <canvas width="320" height="180" style="width:100%;height:160px;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
+  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Lock on mission</a>
+ </div>
+ <div class="card" id="exo-audio">
+  <h2>Waterfall</h2>
+  <p data-audio-status class="muted">NO AUDIO</p>
+  <div class="muted" style="margin-top:8px">Microphone stays in this browser. Nothing is uploaded.</div>
+  <canvas width="320" height="120" style="width:100%;height:120px;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
+  <div data-audio-log class="muted" style="margin-top:8px"></div>
+  <button class="b" type="button" data-arm style="margin-top:9px;min-height:44px">Arm mic</button>
+ </div>
 </section>
 
 <section id="replay">
@@ -583,6 +611,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="muted" style="margin-top:9px"><b>A browser cannot scan WiFi or cell.</b> The live
    detection runs on the phone's own radios, so the Android app has to be installed to use the
    features. This page explains it and gives you the download.</div>
+  <a class="b" href="/sentinel/" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Open Sentinel board</a>
  </div>
  <div class="card"><h2>What it flags</h2>
   <div class="grid" style="gap:7px">
@@ -1257,5 +1286,7 @@ function rpListen(){if(!rpData)return;const f=(rpData.freq_hz);listen(mhz(f));sh
 
 loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 </script>
+<script type="module" src="../assets/exo-orbit.js"></script>
+<script type="module" src="../assets/exo-audio.js"></script>
 <div class="toast" id="toast"></div>
 </body></html>
