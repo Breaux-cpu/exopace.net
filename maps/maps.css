@@ -84,6 +84,8 @@ button, a { font: inherit; }
   .fm-dock { order: 1; width: auto; max-height: 46vh; border-right: 0; border-top: 1px solid #1c2a33; }
   .fm-readout strong { font-size: 12px; }
   .fm-top { flex-wrap: wrap; }
+  .fm-go { flex: 1 1 100%; }
+  .fm-top .fm-actions { margin-left: 0; }
 }
 @media (max-width: 390px) {
   .fm-brand { letter-spacing: 0.08em; }
