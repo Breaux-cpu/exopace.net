@@ -38,6 +38,27 @@
       });
     });
     out.push({ label: "Lock ISS 25544", hint: "mission", run: function () { location.assign("/mission/?lock=25544"); } });
+    out.push({ label: "Follow ISS", hint: "mission", run: function () { location.assign("/mission/?lock=25544&cam=follow"); } });
+    out.push({
+      label: "Orbital passes",
+      hint: "radio",
+      run: function () {
+        if (typeof window.showTab === "function" && document.getElementById("decode")) window.showTab("decode");
+        else location.assign("/radio/#decode");
+      }
+    });
+    out.push({
+      label: "Acoustic waterfall",
+      hint: "radio",
+      run: function () {
+        if (typeof window.showTab === "function" && document.getElementById("watch")) {
+          window.showTab("watch");
+          var ears = document.getElementById("exo-audio");
+          if (ears && ears.scrollIntoView) ears.scrollIntoView({ block: "nearest" });
+        } else location.assign("/radio/#watch");
+      }
+    });
+    out.push({ label: "Link profiler", hint: "maps", run: function () { location.assign("/maps/#exo-link"); } });
     out.push({ label: "Lock Hubble 20580", hint: "mission", run: function () { location.assign("/mission/?lock=20580"); } });
     out.push({
       label: "Copy page URL",

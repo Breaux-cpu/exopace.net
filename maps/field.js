@@ -119,6 +119,8 @@
     if (elev > 6) return "DAY";
     if (elev >= 0) return "GOLDEN HOUR";
     if (elev >= -6) return "CIVIL TWILIGHT";
+    if (elev >= -12) return "NAUTICAL TWILIGHT";
+    if (elev >= -18) return "ASTRONOMICAL TWILIGHT";
     return "NIGHT";
   }
 

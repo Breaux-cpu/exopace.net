@@ -340,6 +340,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <canvas id="lwf" height="340" style="height:200px;margin-top:10px;cursor:crosshair"></canvas>
   <div class="muted" id="lwfm" style="margin-top:6px">not running — pick a range and Start.</div>
   <div id="lwfpeaks" style="margin-top:8px"></div></div>
+ <div id="exo-audio"></div>
 </section>
 
 <section id="scan">
@@ -430,6 +431,29 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
     the pass is up — or set <span class="pill">SDR_AUTOSAT=1</span> (e.g. <span class="pill">meteor,iss</span>)
     to start a pass automatically.</div>
    <div id="passes" style="margin-top:8px"><div class="muted">loading…</div></div></div>
+ <div class="card" id="exo-orbit">
+  <h2>Pass and Doppler</h2>
+  <p data-orbit-status class="muted">STANDBY · NO FIX</p>
+  <div class="grid" style="margin-top:9px">
+   <input data-norad inputmode="numeric" aria-label="NORAD catalog number" value="25544">
+   <input data-mhz inputmode="decimal" aria-label="Downlink megahertz" value="145.800">
+  </div>
+  <div class="grid" style="margin-top:7px">
+   <input data-up inputmode="decimal" aria-label="Uplink megahertz" value="144.490">
+   <input data-lat inputmode="decimal" aria-label="Latitude" value="35.3418">
+  </div>
+  <div class="grid" style="margin-top:7px">
+   <input data-lon inputmode="decimal" aria-label="Longitude" value="-89.8970">
+  </div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" type="button" data-locate style="min-height:44px">Locate</button>
+   <button class="b alt" type="button" data-predict style="min-height:44px">Passes</button>
+  </div>
+  <p data-orbit-live class="muted" style="margin-top:8px">NO FIX</p>
+  <div data-orbit-table class="muted" style="margin-top:6px"></div>
+  <canvas width="240" height="240" style="width:min(240px,100%);height:auto;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
+  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Lock on mission</a>
+ </div>
   <div class="card"><h2>Aircraft</h2><div id="acl"><div class="muted">start the ADS-B decoder</div></div></div>
  <div class="card"><h2>Live output</h2><pre id="joblines">—</pre></div>
 </section>
@@ -556,34 +580,6 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <div class="card"><h2>Usage</h2><div id="usage"></div></div>
  <div class="card"><h2>Tasks</h2><div id="tasks"></div></div>
  <div class="card"><h2>Capabilities</h2><div id="caps"></div></div>
- <div class="card" id="exo-orbit">
-  <h2>Pass and Doppler</h2>
-  <p data-orbit-status class="muted">STANDBY · NO FIX</p>
-  <div class="grid" style="margin-top:9px">
-   <input data-norad inputmode="numeric" aria-label="NORAD catalog number" value="25544">
-   <input data-mhz inputmode="decimal" aria-label="Downlink megahertz" placeholder="MHz">
-  </div>
-  <div class="grid" style="margin-top:7px">
-   <input data-lat inputmode="decimal" aria-label="Latitude" placeholder="lat">
-   <input data-lon inputmode="decimal" aria-label="Longitude" placeholder="lon">
-  </div>
-  <div class="grid" style="margin-top:9px">
-   <button class="b" type="button" data-locate style="min-height:44px">Locate</button>
-   <button class="b alt" type="button" data-predict style="min-height:44px">Passes</button>
-  </div>
-  <p data-orbit-live class="muted" style="margin-top:8px">NO FIX</p>
-  <div data-orbit-table class="muted" style="margin-top:6px"></div>
-  <canvas width="320" height="180" style="width:100%;height:160px;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
-  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Lock on mission</a>
- </div>
- <div class="card" id="exo-audio">
-  <h2>Waterfall</h2>
-  <p data-audio-status class="muted">NO AUDIO</p>
-  <div class="muted" style="margin-top:8px">Microphone stays in this browser. Nothing is uploaded.</div>
-  <canvas width="320" height="120" style="width:100%;height:120px;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
-  <div data-audio-log class="muted" style="margin-top:8px"></div>
-  <button class="b" type="button" data-arm style="margin-top:9px;min-height:44px">Arm mic</button>
- </div>
 </section>
 
 <section id="replay">
@@ -612,6 +608,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    detection runs on the phone's own radios, so the Android app has to be installed to use the
    features. This page explains it and gives you the download.</div>
   <a class="b" href="/sentinel/" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Open Sentinel board</a>
+  <div id="exo-sentinel"></div>
  </div>
  <div class="card"><h2>What it flags</h2>
   <div class="grid" style="gap:7px">
@@ -746,7 +743,9 @@ function prep(k,f){el('jobkind').value=k;el('jobfreq').value=(f/1e6)+'M';
 let passTimer=null;
 function loadPasses(){api('/api/passes?hours=24&min_el=10').then(d=>{
  const box=el('passes');if(!box)return;
- if(d.error){box.innerHTML='<div class="muted">'+esc(d.error)+'</div>';return;}
+ if(d.error){
+  if(document.getElementById('exo-orbit')) return;
+  box.innerHTML='<div class="muted">'+esc(d.error)+'</div>';return;}
  if(!d.passes||!d.passes.length){box.innerHTML='<div class="muted">no passes ≥10° in the next 24 h</div>';return;}
  const now=Date.now();
  box.innerHTML=d.passes.slice(0,14).map(p=>{
@@ -1286,6 +1285,7 @@ function rpListen(){if(!rpData)return;const f=(rpData.freq_hz);listen(mhz(f));sh
 
 loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 </script>
+<script src="../assets/exo-sentinel.js?v=1"></script>
 <script type="module" src="../assets/exo-orbit.js"></script>
 <script type="module" src="../assets/exo-audio.js"></script>
 <div class="toast" id="toast"></div>

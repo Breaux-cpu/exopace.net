@@ -1,10 +1,14 @@
+/* SGP4 is satellite.js (MIT). Doppler uses eciToEcf(velocity), then dopplerFactor. */
 import { twoline2satrec } from "./satellite/io.js";
 import { propagate, gstime } from "./satellite/propagation.js";
 import { dopplerFactor } from "./satellite/dopplerFactor.js";
 import { eciToEcf, geodeticToEcf, ecfToLookAngles } from "./satellite/transforms.js";
 
 const FILES = ["/tle/stations.txt", "/tle/weather.txt", "/tle/visual.txt"];
-const ISS_MHZ = 145.8;
+const ISS_DOWN = 145.8;
+const ISS_UP = 144.49;
+const HOME = { lat: 35.3418, lon: -89.897, heightKm: 0.09 };
+const MIN_EL = 10;
 
 function parseTle(text) {
   const lines = String(text).split(/\r?\n/);
@@ -32,7 +36,7 @@ function observe(satrec, when, obs) {
   const gd = {
     longitude: obs.lon * Math.PI / 180,
     latitude: obs.lat * Math.PI / 180,
-    height: 0.05,
+    height: Number.isFinite(obs.heightKm) ? obs.heightKm : HOME.heightKm,
   };
   const look = ecfToLookAngles(gd, ecf);
   return {
@@ -44,14 +48,15 @@ function observe(satrec, when, obs) {
 }
 
 function passes(satrec, obs, start, hours) {
-  const step = 20 * 1000;
-  const end = start + hours * 3600 * 1000;
+  const span = hours || 24;
+  const step = 30 * 1000;
+  const end = start + span * 3600 * 1000;
   const found = [];
   let open = null;
   let prev = null;
   for (let t = start; t <= end; t += step) {
     const hit = observe(satrec, new Date(t), obs);
-    const up = hit && hit.el > 0;
+    const up = hit && hit.el >= MIN_EL;
     if (up && !open) open = { aos: t, maxEl: hit.el, maxAt: t, points: [] };
     if (open && hit) {
       open.points.push(hit);
@@ -84,8 +89,10 @@ async function loadCatalog() {
   return { all, notes };
 }
 
-function drawSky(canvas, points) {
+function drawSky(canvas, points, now) {
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
+  if (!ctx) return;
   const w = canvas.width;
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
@@ -106,8 +113,7 @@ function drawSky(canvas, points) {
   if (!points || !points.length) {
     ctx.fillStyle = "#9fb0b4";
     ctx.fillText("NO ARC", 12, h - 12);
-    return;
-  }
+  } else {
   ctx.strokeStyle = "#7ee0ff";
   ctx.beginPath();
   points.forEach((p, i) => {
@@ -119,6 +125,15 @@ function drawSky(canvas, points) {
     else ctx.lineTo(x, y);
   });
   ctx.stroke();
+  }
+  if (now && Number.isFinite(now.el)) {
+    const az = (now.az - 90) * Math.PI / 180;
+    const rr = r * (1 - Math.max(0, Math.min(90, now.el)) / 90);
+    ctx.fillStyle = "#ffb84d";
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(az) * rr, cy + Math.sin(az) * rr, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function mount() {
@@ -132,9 +147,14 @@ function mount() {
   const lonIn = root.querySelector("[data-lon]");
   const noradIn = root.querySelector("[data-norad]");
   const mhzIn = root.querySelector("[data-mhz]");
-  let obs = null;
   let catalog = [];
+  let arc = [];
   let timer = 0;
+  const upIn = root.querySelector("[data-up]");
+  if (latIn && !latIn.value) latIn.value = HOME.lat.toFixed(4);
+  if (lonIn && !lonIn.value) lonIn.value = HOME.lon.toFixed(4);
+  if (mhzIn && !mhzIn.value) mhzIn.value = String(ISS_DOWN);
+  if (upIn && !upIn.value) upIn.value = String(ISS_UP);
 
   function setStatus(text) { if (status) status.textContent = text; }
 
@@ -148,8 +168,8 @@ function mount() {
   function readObs() {
     const lat = Number(latIn && latIn.value);
     const lon = Number(lonIn && lonIn.value);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-    return { lat, lon };
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { lat: HOME.lat, lon: HOME.lon, heightKm: HOME.heightKm };
+    return { lat, lon, heightKm: HOME.heightKm };
   }
 
   function selected() {
@@ -160,7 +180,7 @@ function mount() {
   function mhzFor(row) {
     const typed = Number(mhzIn && mhzIn.value);
     if (Number.isFinite(typed) && typed > 0) return typed;
-    if (row && row.norad === "25544") return ISS_MHZ;
+    if (row && row.norad === "25544") return ISS_DOWN;
     return null;
   }
 
@@ -174,11 +194,14 @@ function mount() {
     catch (err) { if (live) live.textContent = "TLE REJECTED"; return; }
     const now = observe(satrec, new Date(), here);
     if (!now) { if (live) live.textContent = "PROPAGATE FAILED"; return; }
-    const mhz = mhzFor(row);
-    const doppler = mhz ? (mhz * now.factor).toFixed(6) + " MHz" : "NO CATALOG MHZ";
+    const down = mhzFor(row);
+    const up = Number(upIn && upIn.value);
+    const rx = down ? (down * now.factor).toFixed(6) + " RX" : "RX —";
+    const tx = Number.isFinite(up) && up > 0 ? (up / now.factor).toFixed(6) + " TX" : "TX —";
     if (live) {
-      live.textContent = "EL " + now.el.toFixed(1) + "°  AZ " + now.az.toFixed(0) + "°  " + doppler;
+      live.textContent = "EL " + now.el.toFixed(1) + "°  AZ " + now.az.toFixed(0) + "°  " + rx + "  " + tx;
     }
+    drawSky(canvas, arc, now);
   }
 
   async function predict() {
@@ -190,16 +213,25 @@ function mount() {
     let satrec;
     try { satrec = twoline2satrec(row.l1, row.l2); }
     catch (err) { setStatus("TLE REJECTED"); return; }
-    const list = passes(satrec, here, Date.now(), 12);
+    const list = passes(satrec, here, Date.now(), 24);
     setStatus(row.name + " · CACHED TLE · " + list.length + " PASSES");
     if (table) {
       table.innerHTML = list.length ? list.map((pass) => {
         const aos = new Date(pass.aos).toISOString().slice(11, 16) + "Z";
         const los = pass.los ? new Date(pass.los).toISOString().slice(11, 16) + "Z" : "OPEN";
         return "<div>" + aos + " → " + los + " · MAX " + pass.maxEl.toFixed(0) + "°</div>";
-      }).join("") : "NO PASS IN 12 H";
+      }).join("") : "NO PASS ≥10° IN 24 H";
     }
-    drawSky(canvas, list[0] ? list[0].points : []);
+    arc = list[0] ? list[0].points : [];
+    drawSky(canvas, arc, null);
+    const board = document.getElementById("passes");
+    if (board) {
+      if (!list.length) board.textContent = row.name + " QUIET ABOVE 10°";
+      else {
+        const aos = new Date(list[0].aos).toISOString().slice(11, 16) + "Z";
+        board.textContent = row.name + " AOS " + aos + " max " + list[0].maxEl.toFixed(0) + "°";
+      }
+    }
     const lock = root.querySelector("[data-lock]");
     if (lock) lock.href = "/mission/?lock=" + encodeURIComponent(row.norad) + "&cam=follow";
   }
@@ -216,12 +248,16 @@ function mount() {
   root.querySelector("[data-predict]")?.addEventListener("click", predict);
   timer = window.setInterval(tick, 1000);
   window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
-  setStatus("STANDBY · NO FIX");
+  setStatus("MILLINGTON · CACHED TLE");
+  predict();
 }
+
+const api = { parseTle, observe, passes, loadCatalog, home: HOME, minEl: MIN_EL };
+if (typeof globalThis !== "undefined") globalThis.EXO_ORBIT = api;
 
 if (typeof document !== "undefined") {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
 }
 
-export { parseTle, observe, passes, loadCatalog };
+export { parseTle, observe, passes, loadCatalog, HOME, MIN_EL };

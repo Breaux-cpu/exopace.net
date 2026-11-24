@@ -104,7 +104,7 @@
       }
       #exo-toast[hidden] { display: none; }
       /* Reserve the lock photo slot so the title and facts do not jump when it arrives. */
-      .dossier { padding-top: 144px; }
+      .dossier { position: relative; padding-top: 144px; }
       .dossier img.lock-photo {
         position: absolute; top: 12px; left: 12px; right: 12px;
         width: auto; height: 120px; object-fit: cover; display: block;
@@ -598,5 +598,6 @@
     <script src="/exo-weather.js?v=90" defer></script>
     <script src="/exo-traffic.js?v=90" defer></script>
   <link rel="stylesheet" href="/assets/exo-modern.css?v=2">
+  <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

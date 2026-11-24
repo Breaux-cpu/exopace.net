@@ -108,8 +108,11 @@ async function main() {
   });
   const cdp = attach(ws);
   const errors = [];
+  let docStatus = 0;
   cdp.on((msg) => {
-    if (msg.method === "Runtime.exceptionThrown") {
+    if (msg.method === "Network.responseReceived" && msg.params && msg.params.type === "Document") {
+      docStatus = Number(msg.params.response && msg.params.response.status) || 0;
+    } else if (msg.method === "Runtime.exceptionThrown") {
       const text = msg.params.exceptionDetails?.exception?.description || msg.params.exceptionDetails?.text || "exception";
       errors.push(String(text).split("\n")[0]);
     } else if (msg.method === "Runtime.consoleAPICalled" && msg.params.type === "error") {
@@ -135,6 +138,7 @@ async function main() {
     for (const [origin, path, expect] of ROUTES) {
       if (expect === "health") continue;
       errors.length = 0;
+      docStatus = 0;
       const row = { view: name, route: origin.replace("https://", "") + path, href: "", cls: "", overflow: "", bar: "", console: "clean", ok: true, note: "" };
       rows.push(row);
       await cdp.send("Page.navigate", { url: origin + path });
@@ -168,6 +172,7 @@ async function main() {
       if (cls >= 0.05) fail(row, "cls");
       if (metrics.overflow > 1) fail(row, "overflow");
       if (metrics.bar > 60) fail(row, "bar");
+      if (docStatus >= 400 && !(path === "/404" && (docStatus === 404 || docStatus === 200))) fail(row, "status " + docStatus);
     }
   }
 

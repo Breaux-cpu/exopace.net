@@ -313,6 +313,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
         <div>
           <div class="lbl">My position <span class="fix" id="fixBadge">NO FIX</span></div>
           <div class="big" id="posLL" hidden></div>
+          <div class="sub" id="exo-sky">SKY</div>
           <div class="sub" id="posMeta" hidden><span id="posSpd"></span> · <span id="posAlt"></span></div>
           <div class="sub" id="wpCount" hidden></div>
         </div>
@@ -458,6 +459,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="sub">Military sheets, an MGRS grid, and an ATAK export.</div>
       <a class="btn" href="/maps/" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:10px">OPEN FIELD MAPS</a>
     </div>
+    <h2>Link</h2>
+    <div class="card" id="exo-link"></div>
     <h2>Field</h2>
     <div class="card">
       <div class="field"><label for="arriveR">Arrival radius</label>
@@ -563,6 +566,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     document.title = document.title.replace(/EXOpace Radio/g, "EXOpace Mesh");
 })();
 </script>
+<script src="/maps/mgrs.js?v=1"></script>
+<script src="/assets/exo-link.js?v=1"></script>
 <script src="/assets/exo-tabs.js?v=1"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
