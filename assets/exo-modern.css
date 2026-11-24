@@ -596,6 +596,11 @@ html body .exo-link button {
   min-height: 44px !important;
 }
 
+#exo-pill-copy {
+  background: #071018 !important;
+  color: #7ee0ff !important;
+}
+
 html body .exo-pill button,
 html body .exo-pill a {
   box-sizing: border-box !important;

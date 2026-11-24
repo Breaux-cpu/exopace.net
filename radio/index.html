@@ -254,7 +254,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 
 <section id="listen" class="on">
  <div class="card"><h2>Tune</h2>
-  <div style="display:flex;gap:8px"><input id="freq" value="162.475M" inputmode="decimal">
+  <div style="display:flex;gap:8px"><input id="freq" value="162.475M" inputmode="decimal" aria-label="Frequency">
    <button class="b" style="width:96px" onclick="listen()">Listen</button></div>
   <div id="np" class="muted" style="margin-top:9px">stopped</div>
   <div id="rds" style="display:none;margin-top:6px"></div>
@@ -302,7 +302,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    <input id="exo-sdr-token" type="password" placeholder="bridge token" autocomplete="off">
    <button type="button" class="b" id="exo-sdr-connect">Connect</button>
   </div>
-  <a href="/maps/#exo-df">Plot bearing on map</a>
+  <a href="/maps/#exo-df" style="display:inline-block;min-height:24px;line-height:24px">Plot bearing on map</a>
  </div>
 </section>
 

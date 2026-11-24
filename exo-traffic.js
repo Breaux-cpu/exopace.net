@@ -1379,9 +1379,9 @@
     const prev = clockButton("exo-radar-prev", "PREV");
     const play = clockButton("exo-radar-play", "PLAY");
     const next = clockButton("exo-radar-next", "NEXT");
-    prev.setAttribute("aria-label", "Previous radar frame");
-    play.setAttribute("aria-label", "Play or stop radar");
-    next.setAttribute("aria-label", "Next radar frame");
+    prev.setAttribute("aria-label", "PREV");
+    play.setAttribute("aria-label", "PLAY");
+    next.setAttribute("aria-label", "NEXT");
     const time = document.createElement("span");
     time.id = "exo-radar-time";
     time.textContent = "Radar paused";

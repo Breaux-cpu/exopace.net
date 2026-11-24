@@ -66,6 +66,9 @@
         user-select: none;
         -webkit-user-select: none;
       }
+      main#exo-main { height: 100%; margin: 0; }
+      .hud .zoom { bottom: calc(96px + env(safe-area-inset-bottom)) !important; gap: 12px !important; z-index: 8 !important; }
+      .hud .zoom > .btn { min-width: 44px !important; min-height: 44px !important; }
       #boot-void svg { width: 72px; height: 72px; margin-bottom: 18px; }
       #boot-void b { color: #ffe08a; font-weight: 600; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 14px; }
       /* Eat taps through the fade. .out used to set pointer-events:none and
@@ -184,7 +187,7 @@
       <button type="button" id="exo-pill-copy">COPY</button>
       <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
     </div>
-    <div id="root" inert></div>
+    <main id="exo-main"><div id="root" inert></div></main>
     <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
          (served from /cesium/, NOT bundled by Vite), then the app. -->
     <script>
@@ -256,7 +259,11 @@
             requestAnimationFrame(function () {
               queued = false;
               arm(document.body);
-              if (document.querySelector("a.cesium-credit-expand-link") && document.querySelector("a.cesium-credit-lightbox-close")) obs.disconnect();
+              var perf = document.querySelectorAll("select.chip");
+              for (var n = 0; n < perf.length; n++) {
+                if (!perf[n].getAttribute("aria-label")) perf[n].setAttribute("aria-label", "Performance");
+              }
+              if (document.querySelector("a.cesium-credit-expand-link") && document.querySelector("a.cesium-credit-lightbox-close") && document.querySelector("select.chip[aria-label]")) obs.disconnect();
             });
           });
           arm(document.body);
@@ -574,9 +581,9 @@
     <p id="exo-astro" class="exo-wave">NO FIX</p>
     <p id="exo-rotator-mission" class="exo-wave">NO USB DEVICE</p>
     <script src="/exo-weather.js?v=90" defer></script>
-    <script src="/exo-traffic.js?v=90" defer></script>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=8" media="print" onload="this.media='all';this.onload=null" />
-  <noscript><link rel="stylesheet" href="/assets/exo-modern.css?v=8" /></noscript>
+    <script src="/exo-traffic.js?v=91" defer></script>
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=9" media="print" onload="this.media='all';this.onload=null" />
+  <noscript><link rel="stylesheet" href="/assets/exo-modern.css?v=9" /></noscript>
   <script src="/maps/mgrs.js"></script>
   <script src="/assets/exo-bus.js"></script>
   <script src="/assets/exo-state.js"></script>
