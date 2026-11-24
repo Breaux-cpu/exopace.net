@@ -56,6 +56,15 @@ button, a { font: inherit; }
 .fm-seg button[aria-pressed="true"] { color: #7ee0ff; border-color: rgba(126, 224, 255, 0.8); }
 .fm-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .fm-status { color: #ffe08a; font-size: 12px; letter-spacing: 0.08em; min-height: 18px; }
+#fm-sky, #fm-ready { min-height: 3.4em; }
+.fm-toast {
+  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%); z-index: 6;
+  min-height: 44px; display: flex; align-items: center; padding: 0 16px;
+  border-radius: 999px; background: #ffe08a; color: #1a1404;
+  font-size: 12px; letter-spacing: 0.08em;
+}
+.fm-toast[hidden] { display: none; }
 #fm-leg { white-space: pre-line; color: #ffe08a; min-height: 18px; max-height: 28vh; overflow: auto; }
 #fm-topo-out { max-height: 36vh; overflow: auto; }
 .fm-topo-scan { display: block; max-width: 100%; height: auto; margin: 8px 0; background: #e6dcc6; }

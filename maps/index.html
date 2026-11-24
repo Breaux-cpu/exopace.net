@@ -9,7 +9,7 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
-  <link rel="stylesheet" href="maps.css?v=7" />
+  <link rel="stylesheet" href="maps.css?v=8" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
@@ -49,6 +49,17 @@
   <div class="fm-body" id="exo-main">
     <aside class="fm-dock">
       <p class="fm-status" id="fm-status">LOADING</p>
+      <h2>FIX</h2>
+      <p class="fm-note" id="fm-sky">SUN — · MOON — EST</p>
+      <p class="fm-note" id="fm-ready">TILES —</p>
+      <div class="fm-row" id="fm-copy">
+        <button type="button" class="fm-btn" data-copy="mgrs">MGRS</button>
+        <button type="button" class="fm-btn" data-copy="dd">DD</button>
+        <button type="button" class="fm-btn" data-copy="dms">DMS</button>
+        <button type="button" class="fm-btn" data-copy="plus">PLUS</button>
+        <button type="button" class="fm-btn" data-copy="geo">GEO</button>
+      </div>
+      <p class="fm-toast" id="fm-toast" role="status" hidden>COPIED</p>
       <p>Click a page. Click it again to drop it. Shift-drag fills an area. A letter page steps 1 km. A USGS quadrangle steps to the next cell. Arrow keys nudge the selected page.</p>
       <h2>MEASURE</h2>
       <div class="fm-seg" data-key="measure">
@@ -251,7 +262,8 @@
   <script src="overlays.js?v=2"></script>
   <script src="mbtiles.js?v=1"></script>
   <script src="topo.js?v=5"></script>
-  <script src="app.js?v=21"></script>
+  <script src="field.js?v=1"></script>
+  <script src="app.js?v=22"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

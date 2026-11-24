@@ -77,6 +77,7 @@
     }
     var north = $("fm-north");
     if (north) north.textContent = northText(c);
+    if (globalThis.EXO.field) EXO.field.sync(c.lat, c.lng);
     var key = c.lat.toFixed(1) + "," + c.lng.toFixed(1);
     if (magCache[key] === undefined) {
       clearTimeout(magTimer);
