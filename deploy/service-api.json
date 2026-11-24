@@ -1,0 +1,16 @@
+{
+  "service": "api",
+  "host": "https://exopace.net",
+  "runtime": "cloudflare-pages-functions",
+  "database": false,
+  "authentication": false,
+  "catalog": [
+    "tle/stations.txt",
+    "tle/visual.txt",
+    "tle/weather.txt"
+  ],
+  "routes": [
+    { "method": "GET", "path": "/v1/health" },
+    { "method": "GET", "path": "/v1/satellites/{noradId}" }
+  ]
+}
