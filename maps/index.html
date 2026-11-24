@@ -12,9 +12,23 @@
   <link rel="stylesheet" href="maps.css?v=5" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
+<link rel="stylesheet" href="/assets/exo-modern.css?v=2" />
 </head>
 <body>
+<header class="exo-bar">
+  <a class="exo-skip" href="#exo-main">Skip to content</a>
+  <a class="exo-brand" href="/mission/">EXOPACE</a>
+  <nav class="exo-sites" aria-label="EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/maps/" aria-current="page">Maps</a>
+    <a href="https://cams.exopace.net/">Cams</a>
+  </nav>
+</header>
   <header class="fm-top">
     <a class="fm-brand" href="/mission/">EXOPACE</a>
     <div class="fm-readout">
@@ -32,7 +46,7 @@
     </div>
     <p class="fm-north" id="fm-north">GN —  ·  MAG — CHART</p>
   </header>
-  <div class="fm-body">
+  <div class="fm-body" id="exo-main">
     <aside class="fm-dock">
       <p class="fm-status" id="fm-status">LOADING</p>
       <p>Click a page. Click it again to drop it. Shift-drag fills an area. A letter page steps 1 km. A USGS quadrangle steps to the next cell. Arrow keys nudge the selected page.</p>

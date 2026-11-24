@@ -453,6 +453,9 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
     });
     return { href: box.href, result };
   }
+  if (!ww || !block) {
+    assert(false, "Qf/bo/Op share-URL helpers could not be joined");
+  } else {
   const helpers = ww[0] + block[0];
   {
     const { href } = runAt("https://exopace.net/?lock=25544&cam=follow&t=live#facility", helpers + ";Qf()");
@@ -516,6 +519,7 @@ assert(read("README.md").includes("?cam=facility") && !read("README.md").include
   {
     const { result } = runAt("https://exopace.net/?cam=follow&t=60x", helpers + ";Op()");
     assert(result.cam === "follow" && result.hasCam === true && result.t === "60x" && result.id == null, "Op() still reads a lockless follow URL so onReady can refuse it");
+  }
   }
 }
 assert(read("README.md").includes("Lockless cams") && read("README.md").includes("/?cam=follow") && read("README.md").includes("drops `cam`"), "README documents lockless cam/t write and FOLLOW/SAT-CAM NO LOCK strip");

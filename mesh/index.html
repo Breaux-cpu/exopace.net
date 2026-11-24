@@ -226,8 +226,25 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
   border-radius:8px;background:var(--warn);color:#141406;font-size:10px;font-weight:700;vertical-align:middle}
 #chatBadge[hidden]{display:none!important}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
+<link rel="stylesheet" href="/assets/exo-modern.css?v=3">
 </head>
 <body>
+<header class="exo-bar">
+  <a class="exo-skip" href="#exo-main">Skip to content</a>
+  <a class="exo-brand" href="/mission/">EXOPACE</a>
+  <nav class="exo-sites" aria-label="EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/" aria-current="page">Mesh</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/maps/">Maps</a>
+    <a href="https://cams.exopace.net/">Cams</a>
+  </nav>
+</header>
 
 <header>
   <div>
@@ -251,7 +268,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
   </div>
 </div>
 
-<main>
+<main id="exo-main">
   <section class="screen active" id="scr-chat">
     <div id="chatEmpty" class="card sub">MESH QUIET. Wait for a peer.</div>
     <div class="row" id="qtx" hidden style="margin-bottom:10px;flex-wrap:wrap">
@@ -478,7 +495,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   <button class="btn" id="navStop" style="width:auto;min-width:60px">STOP</button>
 </div>
 
-<nav>
+<nav class="exo-tabs" aria-label="Mesh screens">
   <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
   <button data-s="map">MAP</button>
   <button data-s="nodes">NET</button>
@@ -546,6 +563,6 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     document.title = document.title.replace(/EXOpace Radio/g, "EXOpace Mesh");
 })();
 </script>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=1">
+<script src="/assets/exo-tabs.js?v=1"></script>
 </body>
 </html>

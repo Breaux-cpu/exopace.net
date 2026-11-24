@@ -399,5 +399,5 @@
   }
 
   root.EXO = root.EXO || {};
-  root.EXO.print = { page: page, pdf: pdf, zoomFor: zoomFor, routePixels: routePixels };
+  root.EXO.print = { page: page, pdf: pdf, zoomFor: zoomFor, routePixels: routePixels, magDecl: magDecl };
 })(typeof globalThis !== "undefined" ? globalThis : this);

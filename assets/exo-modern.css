@@ -33,3 +33,272 @@ button.b,
 .btn {
   border-radius: 12px;
 }
+
+
+/* Shared chrome. Prefixed tokens so this file cannot override the Mission bundle :root names. */
+:root {
+  --exo-void: #03060b;
+  --exo-cyan: #7ee0ff;
+  --exo-amber: #ffe08a;
+  --exo-text: #e7f4ef;
+  --exo-muted: #c5d5cf;
+  --exo-line: rgba(126, 224, 255, 0.28);
+  --exo-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --exo-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --exo-text-sm: clamp(0.8125rem, 0.78rem + 0.16vw, 0.9375rem);
+  --exo-bar-h: calc(57px + env(safe-area-inset-top));
+}
+
+.exo-skip {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.exo-skip:focus {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 80;
+  width: auto;
+  height: auto;
+  margin: 0;
+  clip: auto;
+  overflow: visible;
+  padding: 10px 12px;
+  background: var(--exo-amber);
+  color: #1a1404;
+  font-family: var(--exo-mono);
+  font-size: var(--exo-text-sm);
+  text-decoration: none;
+}
+
+.exo-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--exo-bar-h);
+  margin: 0;
+  padding: calc(6px + env(safe-area-inset-top)) 12px 6px;
+  background: rgba(3, 6, 11, 0.9);
+  border-bottom: 1px solid var(--exo-line);
+  backdrop-filter: blur(16px);
+  color: var(--exo-text);
+  font-family: var(--exo-sans);
+  font-size: var(--exo-text-sm);
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+.exo-brand {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--exo-amber);
+  font-family: var(--exo-mono);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.exo-sites {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: auto;
+  z-index: auto;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  padding: 0 0 0 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 8px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+
+.exo-sites::-webkit-scrollbar { display: none; }
+
+.exo-sites a {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: var(--exo-text-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: none;
+}
+
+.exo-sites a:hover,
+.exo-sites a[aria-current="page"] {
+  color: var(--exo-cyan);
+  border-color: rgba(126, 224, 255, 0.45);
+}
+
+.exo-sites a:focus-visible,
+.exo-brand:focus-visible {
+  outline: 2px solid var(--exo-amber);
+  outline-offset: 2px;
+}
+
+body:has(#decode) > header:not(.exo-bar) {
+  top: var(--exo-bar-h);
+  z-index: 30;
+}
+
+body:has(#decode) {
+  --bg: #03060b;
+  --bg2: #03060b;
+  --card: #07111a;
+  --card2: #0a1622;
+  --line: #163246;
+  --text: #e7f6ff;
+  --muted: #a9c0ce;
+  --accent: #7ee0ff;
+  --accent2: #7ee0ff;
+  --warn: #ffe08a;
+  color: var(--text);
+  font-family: var(--exo-sans);
+}
+
+body:has(#decode) h1::before {
+  background: var(--exo-cyan);
+  box-shadow: 0 0 12px rgba(126, 224, 255, 0.4);
+}
+
+body:has(#decode) nav button.on,
+body:has(#decode) .presets button.on,
+body:has(#decode) button.b.on {
+  background: transparent;
+  border-color: var(--exo-cyan);
+  color: var(--exo-cyan);
+  box-shadow: none;
+}
+
+body:has(#decode) button.b,
+body:has(#decode) a.b {
+  background: transparent;
+  color: var(--exo-cyan);
+  border: 1px solid var(--exo-cyan);
+  box-shadow: none;
+}
+
+body:has(#decode) button.b.alt,
+body:has(#decode) a.b.alt {
+  color: var(--exo-amber);
+  border-color: var(--exo-amber);
+  background: transparent;
+}
+
+body:has(#decode) button.b.stop {
+  color: #ffd0c8;
+  border-color: #f87171;
+  background: transparent;
+}
+
+body:has(#decode) input:focus,
+body:has(#decode) select:focus {
+  border-color: var(--exo-cyan);
+}
+
+body:has(#composer) {
+  font-family: var(--exo-sans);
+}
+
+body:has(#composer) > header:not(.exo-bar) {
+  padding-top: 10px;
+}
+
+body:has(#composer) #sosBanner {
+  top: var(--exo-bar-h);
+  z-index: 45;
+}
+
+body:has(.fm-body) > header.fm-top {
+  padding-top: 6px;
+}
+
+@media (max-width: 800px) {
+  body:has(.fm-body) .fm-stage {
+    min-height: calc(42vh - var(--exo-bar-h));
+  }
+}
+
+/* Horizontal tab strips. The page keeps its own click handler. */
+.exo-tabs {
+  flex-wrap: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 28px;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+  --exo-fade-l: 0px;
+  --exo-fade-r: 0px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--exo-fade-l), #000 calc(100% - var(--exo-fade-r)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--exo-fade-l), #000 calc(100% - var(--exo-fade-r)), transparent 100%);
+}
+.exo-tabs::-webkit-scrollbar { display: none; }
+.exo-tabs > button {
+  scroll-snap-align: center;
+  white-space: nowrap;
+}
+.exo-tabs > button:focus-visible {
+  outline: 2px solid var(--exo-amber);
+  outline-offset: -2px;
+}
+body:has(#decode) nav.exo-tabs > button {
+  flex: 0 0 auto;
+  max-width: none;
+}
+body:has(#composer) nav.exo-tabs > button {
+  flex: 1 1 0;
+  min-width: max-content;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exo-tabs { scroll-behavior: auto; }
+}

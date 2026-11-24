@@ -8,7 +8,8 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     :root { color-scheme: dark; }
@@ -38,22 +39,29 @@
     @media (max-width: 720px) {
       #count { width: 100%; margin-left: 0; }
     }
+    .cam-status { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-bottom: 1px solid rgba(126, 224, 255, 0.25); }
+    .cam-stage { flex: 1; min-height: 0; display: flex; }
   </style>
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=2" />
 </head>
 <body>
-  <header>
-    <a class="brand" href="/mission/">EXOPACE</a>
-    <nav>
-      <a href="/mission/">MISSION</a>
-      <a href="/radio/">RADIO</a>
-      <a href="/mesh/">MESH</a>
-      <a href="/cameras/" aria-current="page">CAMERAS</a>
-      <a href="/maps/">MAPS</a>
-      <button class="locate" type="button" id="locate">LOCATE</button>
-    </nav>
+<header class="exo-bar">
+  <a class="exo-skip" href="#exo-main">Skip to content</a>
+  <a class="exo-brand" href="/mission/">EXOPACE</a>
+  <nav class="exo-sites" aria-label="EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/cameras/" aria-current="page">Cameras</a>
+    <a href="/maps/">Maps</a>
+    <a href="https://cams.exopace.net/">Cams</a>
+  </nav>
+</header>
+  <div class="cam-status">
+    <button class="locate" type="button" id="locate">LOCATE</button>
     <div id="count">LOADING</div>
-  </header>
-  <div id="map"></div>
+  </div>
+  <main class="cam-stage" id="exo-main"><div id="map"></div></main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const countEl = document.getElementById("count");

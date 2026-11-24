@@ -4,7 +4,7 @@ One brand. Two surfaces. One protocol.
 
 | Surface | URL | What |
 |---------|-----|------|
-| **MOC** | https://exopace.net | Planetary / orbital mission control (Cesium) |
+| **MOC** | https://exopace.net/mission/ | Planetary / orbital mission control (Cesium). `https://exopace.net/` redirects here. |
 | **Radio** | https://exopace.net/radio/ | Installable field radio PWA |
 | **Field maps** | https://exopace.net/maps/ | MGRS letter sheets, print, and ATAK KMZ |
 | **SDR** | `SDR.md` | Memphis RF sensor surface: decoder matrix + live view |
@@ -42,13 +42,13 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 - **ULTRA** — title-card stills: full Rayleigh+Mie, clouds, bloom, milky way
 - **PERF** — mid Android / thermal: fewer stars, no clouds, no bloom
 
-`/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
+`/` redirects to `/mission/` (302). `/mission/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
 
 Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. A valid lock restore (cold-open `?lock=` or leftover `/lock/:id`) paints the same dossier NEXT AOS/LOS line as a SAT NAME lock, from the sim clock. Lockless cams (CINE, FACILITY, FLY/`free`, ⌂ MOC/`moc`) and time modes write `/?cam=…&t=…` with no lock and restore on a cold load. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped. FOLLOW / SAT-CAM still need a target: a lockless tap or `/?cam=follow` / `/?cam=satcam` toasts `NO LOCK`, drops `cam`, and keeps a valid `t`. CLEAR LOCK drops only `lock` when the painted cam is lockless-valid (e.g. `/?cam=cinematic&t=hold`); FOLLOW / SAT-CAM fall back to ⌂ MOC. An empty globe click uses that same CLEAR LOCK path so a miss-click cannot leave a lying `?lock=`. STATION next-pass rows lock like search: `?lock=<norad>&cam=follow&t=…` from ⌂ MOC (an already-latched camera stays).
 
 First paint is **FEED WAIT** until CelesTrak returns LIVE/CACHED or a real timeout. **FEED ERROR** / MODE **FAULT** only after that failure — not while ION/TLE are still in flight. Empty after timeout is allowed. Invented 0 is not.
 
-`/about` `/mission` `/ops` `/login` `/app` are **not** product routes. They 404. Shareable lock state lives on `/` query params (`?lock=…&cam=…&t=…`). Legacy `/lock/:id` URLs redirect there.
+`/about` `/ops` `/login` `/app` are **not** product routes. They 404. `/mission` redirects to `/mission/`. `/mission/` is the globe. `/lock/:id` serves that mission document with status 200; the page script writes the lock query. Shareable lock state lives on query params (`?lock=…&cam=…&t=…`).
 
 `EXOPACE_BRIDGE` is empty in this ship tree. The MOC must **not** fall back to `exopase.com` (typo) or any public host. RF stays quiet/offline until a real LAN/configured origin is set. Do not turn exopace.com into MOC.
 
@@ -65,17 +65,18 @@ No Meshtastic lock-in.
 
 ```
 python3 -m http.server 4173
-# MOC   http://127.0.0.1:4173/
+# /     redirects to /mission/
+# MOC   http://127.0.0.1:4173/mission/
 # Radio http://127.0.0.1:4173/radio/
-# lock  http://127.0.0.1:4173/?lock=25544&cam=follow&t=live
-# facility  http://127.0.0.1:4173/?cam=facility
-# lockless cine+hold  http://127.0.0.1:4173/?cam=cinematic&t=hold
-# lockless follow (refuses)  http://127.0.0.1:4173/?cam=follow&t=60x
-# lock+facility  http://127.0.0.1:4173/?lock=25544&cam=facility&t=live
-# legacy /lock/25544?… redirects to the root query form
+# lock  http://127.0.0.1:4173/mission/?lock=25544&cam=follow&t=live
+# facility  http://127.0.0.1:4173/mission/?cam=facility
+# lockless cine+hold  http://127.0.0.1:4173/mission/?cam=cinematic&t=hold
+# lockless follow (refuses)  http://127.0.0.1:4173/mission/?cam=follow&t=60x
+# lock+facility  http://127.0.0.1:4173/mission/?lock=25544&cam=facility&t=live
+# legacy /lock/25544 serves mission/index.html with status 200
 ```
 
-Deep links need the host `_redirects` (Cloudflare) or the inline `/lock/` → `/?lock=` rewrite in `index.html`. A raw `http.server` will 404 bare `/lock/*` unless that rewrite runs (open `/` first, or use the query form directly).
+Deep links need the host `_redirects` (Cloudflare). `/` 302s to `/mission/`. `/lock/*` serves `mission/index.html` at status 200. A raw `http.server` will 404 bare `/lock/*` because it does not apply `_redirects`.
 
 ## Verify
 

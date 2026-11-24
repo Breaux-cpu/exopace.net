@@ -1,11 +1,15 @@
-<!doctype html><html><head>
+<!doctype html><html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070a0f">
 <meta name="mobile-web-app-capable" content="yes">
 <title>EXOpace Radio</title>
 <link rel="stylesheet" href="assets/leaflet.css">
-<link rel="stylesheet" media="(max-width: 900px)" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
+<link rel="stylesheet" href="../assets/exo-modern.css?v=3">
 <style>
 :root{--bg:#070a0f;--bg2:#0b111a;--card:#0d141d;--card2:#111a26;--line:#1e2a3a;
  --text:#e6edf6;--muted:#8597ad;--accent:#38bdf8;--accent2:#22d3ee;--ok:#34d399;
@@ -24,7 +28,7 @@ nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none
 nav::-webkit-scrollbar{display:none}
 nav button{flex:0 0 auto;min-height:44px;background:transparent;border:1px solid transparent;color:var(--muted);
  padding:8px 13px;border-radius:999px;font-size:13px;font-weight:500;transition:.18s}
-@media (max-width:640px){nav{flex-wrap:wrap;overflow-x:auto}}
+@media (max-width:640px){nav:not(.exo-tabs):not(.exo-sites){flex-wrap:wrap;overflow-x:auto}}
 nav button.on{background:linear-gradient(180deg,#123148,#0b2b45 60%,#0a2845);
  border-color:#1c4a6e;color:#bfe6ff;box-shadow:0 1px 8px #0ea5e922}
 main{padding:14px}section{display:none;animation:fade .22s ease}section.on{display:block}
@@ -110,7 +114,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   }
   header { background: #03060b; }
   h1::before { background: #7ee0ff; box-shadow: 0 0 12px #7ee0ff66; }
-  nav {
+  nav:not(.exo-tabs):not(.exo-sites) {
     flex-wrap: wrap;
     overflow: visible;
   }
@@ -198,11 +202,23 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   #notifb { float: none !important; display: block; width: 100% !important; margin-top: 8px; }
 }
 @media (max-width: 1280px) {
-  nav { flex-wrap: wrap; overflow: visible; }
+  nav:not(.exo-tabs):not(.exo-sites) { flex-wrap: wrap; overflow: visible; }
 }
 </style></head><body>
+<header class="exo-bar">
+  <a class="exo-skip" href="#exo-main">Skip to content</a>
+  <a class="exo-brand" href="/mission/">EXOPACE</a>
+  <nav class="exo-sites" aria-label="EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/" aria-current="page">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/maps/">Maps</a>
+    <a href="https://cams.exopace.net/">Cams</a>
+  </nav>
+</header>
 <header><h1>EXOpace Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
-<nav>
+<nav class="exo-tabs" aria-label="Radio tools">
  <button data-t="listen" class="on">Listen</button>
  <button data-t="band">Band</button>
  <button data-t="watch">Live</button>
@@ -220,7 +236,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <button data-t="sentinel">Sentinel</button>
  <button data-t="weekly">Weekly</button>
  <button data-t="tools">Tools</button>
-</nav></header><main>
+</nav></header><main id="exo-main">
 
 <section id="listen" class="on">
  <div class="card"><h2>Tune</h2>
@@ -585,7 +601,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="muted" id="sentdlnote" style="margin-top:7px;font-size:12px"></div>
  </div>
 </section>
-</main><script src="assets/leaflet.min.js"></script><script>
+</main><script src="../assets/exo-tabs.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
 const RETIRED="No radio receiver on this site.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
@@ -932,6 +948,8 @@ const kinds=mapKind==='replay'?['ais','adsb','aprs','sonde']:[mapKind];
  if(el('maps').classList.contains('on'))mapTimer=setTimeout(loadMaps,12000);}
 
 function loadDev(){api('/api/census').then(d=>{
+ if(!d||d.error){const msg='<div class="muted">'+RETIRED+'</div>';
+  el('devs').innerHTML=msg;el('carriers').innerHTML=msg;el('bands').innerHTML=msg;return;}
  el('devs').innerHTML=d.devices.length?rows(d.devices.map(x=>[
   `${x.model}<br><span class="muted">id ${x.dev_id} · ${x.band}</span>`,
   `${x.count} msgs<br><span class="muted">${x.last}</span>`]))
@@ -1153,10 +1171,12 @@ function loadCaps(){api('/api/capabilities').then(c=>{
  el('caps').innerHTML=rows(c.map(x=>
  [x.does,x.present?'<span class="ok">'+x.tool+'</span>':'<span class="bad">missing</span>']));});}
 function loadUsage(){api('/api/usage').then(d=>{
+ if(!d||d.error){el('usage').innerHTML='<div class="muted">'+RETIRED+'</div>';return;}
+ const last=d.last||[];
  el('usage').innerHTML=rows([
   ['requests (rolling)',d.total],
-  ['last request',(d.last.length?d.last[d.last.length-1].p:'—')]]
-  +(d.per_ip||[]).map(x=>[x.ip,x.n+' reqs']));});}
+  ['last request',(last.length?last[last.length-1].p:'—')],
+  ...(d.per_ip||[]).map(x=>[x.ip,x.n+' reqs'])]);});}
 
 let rpData=null;
 function loadReplays(){api('/api/replays').then(list=>{
@@ -1198,5 +1218,4 @@ function rpListen(){if(!rpData)return;const f=(rpData.freq_hz);listen(mhz(f));sh
 loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 </script>
 <div class="toast" id="toast"></div>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=1">
 </body></html>

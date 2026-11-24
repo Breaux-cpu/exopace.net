@@ -11,28 +11,37 @@
     <meta property="og:title" content="EXOpace — 404" />
     <meta property="og:image" content="https://exopace.net/og.png" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
+    <link rel="stylesheet" href="/assets/exo-modern.css?v=2" />
     <style>
-      html, body {
-        margin: 0; height: 100%; background: #03060b; color: #7ee0ff;
-        font-family: "IBM Plex Mono", ui-monospace, monospace;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        letter-spacing: 0.2em; font-size: 12px; text-align: center;
+      html, body { margin: 0; min-height: 100%; background: #03060b; color: #7ee0ff; }
+      body { display: flex; flex-direction: column; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+      .miss {
+        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        letter-spacing: 0.2em; font-size: 12px; text-align: center; padding: 24px;
       }
-      b { color: #ffe08a; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 16px; }
-      a { color: #7ee0ff; text-decoration: none; letter-spacing: 0.16em; font-size: 11px;
-          border: 1px solid #1c2a33; border-radius: 4px; padding: 11px 16px; min-height: 44px;
-          display: inline-flex; align-items: center; }
-      a:hover, a:focus-visible { color: #ffe08a; border-color: #3a4d5a; }
-      nav { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+      .miss b { color: #ffe08a; letter-spacing: 0.34em; font-size: 13px; margin-bottom: 16px; }
     </style>
   </head>
   <body>
-    <b>EXOpace</b>
-    404 · NO SUCH ROUTE
-    <nav aria-label="EXOpace surfaces">
-      <a href="/">MISSION CONTROL</a>
-      <a href="/maps/">MAPS</a>
-    </nav>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=1">
-</body>
+<header class="exo-bar">
+  <a class="exo-skip" href="#exo-main">Skip to content</a>
+  <a class="exo-brand" href="/mission/">EXOPACE</a>
+  <nav class="exo-sites" aria-label="EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/maps/">Maps</a>
+    <a href="https://cams.exopace.net/">Cams</a>
+  </nav>
+</header>
+    <main class="miss" id="exo-main">
+      <b>EXOpace</b>
+      404 · NO SUCH ROUTE
+    </main>
+  </body>
 </html>
