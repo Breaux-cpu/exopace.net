@@ -316,3 +316,83 @@ body:has(#composer) nav.exo-tabs > button {
 @media (prefers-reduced-motion: reduce) {
   .exo-tabs { scroll-behavior: auto; }
 }
+
+.exo-cmd {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: calc(12vh + env(safe-area-inset-top)) 16px 24px;
+  background: rgba(3, 6, 11, 0.72);
+}
+.exo-cmd[hidden] { display: none; }
+.exo-cmd__panel {
+  width: min(560px, 100%);
+  background: rgba(7, 12, 18, 0.94);
+  border: 1px solid rgba(126, 224, 255, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px -36px #000;
+}
+.exo-cmd__q {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 0;
+  border-bottom: 1px solid rgba(126, 224, 255, 0.28);
+  background: transparent;
+  color: #e7f4ef;
+  font: 16px/1.4 "IBM Plex Sans", system-ui, sans-serif;
+  padding: 0 14px;
+}
+.exo-cmd__list { max-height: min(50vh, 420px); overflow: auto; padding: 8px; }
+.exo-cmd__item {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #e7f4ef;
+  font: 15px/1.2 "IBM Plex Sans", system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.exo-cmd__item small {
+  color: #c5d5cf;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.exo-cmd__item.is-on { background: rgba(126, 224, 255, 0.14); color: #ffe08a; }
+.exo-cmd__empty { margin: 8px 12px 12px; color: #c5d5cf; font-size: 12px; letter-spacing: 0.12em; }
+.exo-cmd__toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #ffe08a;
+  color: #1a1404;
+  font: 13px/1 "IBM Plex Mono", ui-monospace, monospace;
+}
+.exo-cmd__q:focus-visible,
+.exo-cmd__item:focus-visible { outline: 2px solid #ffe08a; outline-offset: 2px; }
+body:has(#decode) .exo-clock {
+  margin: 0 0 8px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: #ffe08a;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}

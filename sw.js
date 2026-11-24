@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v82";
+const CACHE = "exopace-moc-v83";
 // Icons + manifest only. Never pin in-place HUD (index.html / env / overlay) —
 // a stale SW precache is how guests first-painted ?v=11 after ?v=13 published.
 const ASSETS = [
@@ -11,7 +11,7 @@ const ASSETS = [
 ];
 // Shared chrome. Online always revalidates; the pathname copy is the offline fallback
 // for every ?v= the pages request.
-const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js"];
+const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js", "/assets/exo-cmd.js"];
 
 function shellAsset(url) {
   return SHELL.indexOf(url.pathname) !== -1;

@@ -1,6 +1,6 @@
-const CACHE = "exopace-mesh-v62";
+const CACHE = "exopace-mesh-v63";
 // Do not precache index.html — in-place CSS (composer / pathLbl) must not pin.
-const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js"];
+const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js", "/assets/exo-cmd.js"];
 const ASSETS = [
   "three.min.js",
   "manifest.json",
