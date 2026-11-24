@@ -1,5 +1,6 @@
-const CACHE = "exopace-mesh-v61";
+const CACHE = "exopace-mesh-v62";
 // Do not precache index.html — in-place CSS (composer / pathLbl) must not pin.
+const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js"];
 const ASSETS = [
   "three.min.js",
   "manifest.json",
@@ -13,9 +14,23 @@ const ASSETS = [
   "textures/earth-water.png",
 ];
 
+function shellAsset(url) {
+  return SHELL.indexOf(url.pathname) !== -1;
+}
+
+function precacheShell(cache) {
+  return Promise.all(SHELL.map((path) =>
+    fetch(path, { cache: "reload" }).then((r) => {
+      if (!r.ok) throw new Error(path);
+      return cache.put(path, r);
+    }),
+  ));
+}
+
 function noStore(url) {
   const p = url.pathname;
   return (
+    shellAsset(url) ||
     /(?:^|\/)(app|env|protocol|store|globe)\.js$/.test(p) ||
     p === "/mesh" ||
     p === "/mesh/" ||
@@ -25,6 +40,8 @@ function noStore(url) {
 
 function skip(url) {
   if (url.origin !== location.origin) return true;
+  // Shared chrome is outside /mesh/ but this page loads it. Cache those two only.
+  if (shellAsset(url)) return false;
   // Node AP CSVs and anything outside this PWA scope.
   if (!url.pathname.startsWith("/mesh")) return true;
   return false;
@@ -41,7 +58,7 @@ function offline() {
 }
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => Promise.all([c.addAll(ASSETS), precacheShell(c)])).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", (e) => {
   e.waitUntil(
@@ -63,13 +80,19 @@ self.addEventListener("fetch", (e) => {
         // -> undefined -> respondWith(undefined) -> the PWA failed to boot at all.
         if (r.ok && r.type === "basic") {
           const copy = r.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          const bare = shellAsset(url) ? r.clone() : null;
+          caches.open(CACHE).then((c) => {
+            const jobs = [c.put(e.request, copy)];
+            if (bare) jobs.push(c.put(url.pathname, bare));
+            return Promise.all(jobs);
+          });
         }
         return r;
       })
       .catch(() =>
         caches.match(e.request).then((m) => {
           if (m) return m;
+          if (shellAsset(url)) return caches.match(url.pathname).then((s) => s || offline());
           if (isNav(e.request)) return caches.match("./index.html").then((i) => i || offline());
           return offline();
         }),

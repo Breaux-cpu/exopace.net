@@ -1,4 +1,5 @@
-const CACHE = "exopace-maps-v21";
+const CACHE = "exopace-maps-v22";
+const SHARED = ["/assets/exo-modern.css", "/assets/exo-tabs.js"];
 const SHELL = [
   "/maps/",
   "/maps/index.html",
@@ -24,8 +25,21 @@ const SHELL = [
   "/icon.svg",
 ];
 
+function shared(url) {
+  return SHARED.indexOf(url.pathname) !== -1;
+}
+
+function precacheShared(cache) {
+  return Promise.all(SHARED.map((path) =>
+    fetch(path, { cache: "reload" }).then((r) => {
+      if (!r.ok) throw new Error(path);
+      return cache.put(path, r);
+    }),
+  ));
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then((cache) => Promise.all([cache.addAll(SHELL), precacheShared(cache)])).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
@@ -41,14 +55,23 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith("/maps/") && url.pathname !== "/icon.svg") return;
+  if (!url.pathname.startsWith("/maps/") && url.pathname !== "/icon.svg" && !shared(url)) return;
   event.respondWith(
-    fetch(req).then((res) => {
-      if (res.ok && url.pathname.startsWith("/maps/")) {
+    fetch(shared(url) ? new Request(req, { cache: "reload" }) : req).then((res) => {
+      if (res.ok && (url.pathname.startsWith("/maps/") || shared(url))) {
         const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, copy));
+        const bare = shared(url) ? res.clone() : null;
+        caches.open(CACHE).then((cache) => {
+          const jobs = [cache.put(req, copy)];
+          if (bare) jobs.push(cache.put(url.pathname, bare));
+          return Promise.all(jobs);
+        });
       }
       return res;
-    }).catch(() => caches.match(req).then((hit) => hit || caches.match("/maps/index.html"))),
+    }).catch(() => caches.match(req).then((hit) => {
+      if (hit) return hit;
+      if (shared(url)) return caches.match(url.pathname).then((s) => s || caches.match("/maps/index.html"));
+      return caches.match("/maps/index.html");
+    })),
   );
 });

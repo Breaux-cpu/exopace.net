@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v81";
+const CACHE = "exopace-moc-v82";
 // Icons + manifest only. Never pin in-place HUD (index.html / env / overlay) —
 // a stale SW precache is how guests first-painted ?v=11 after ?v=13 published.
 const ASSETS = [
@@ -9,10 +9,27 @@ const ASSETS = [
   "/icon-512.png",
   "/apple-touch-icon.png",
 ];
+// Shared chrome. Online always revalidates; the pathname copy is the offline fallback
+// for every ?v= the pages request.
+const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js"];
+
+function shellAsset(url) {
+  return SHELL.indexOf(url.pathname) !== -1;
+}
+
+function precacheShell(cache) {
+  return Promise.all(SHELL.map((path) =>
+    fetch(path, { cache: "reload" }).then((r) => {
+      if (!r.ok) throw new Error(path);
+      return cache.put(path, r);
+    }),
+  ));
+}
 
 function noStore(url) {
   const p = url.pathname;
   return (
+    shellAsset(url) ||
     p === "/" ||
     p === "/index.html" ||
     p === "/env.js" ||
@@ -55,7 +72,7 @@ function offline() {
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()),
+    caches.open(CACHE).then((c) => Promise.all([c.addAll(ASSETS), precacheShell(c)])).then(() => self.skipWaiting()),
   );
 });
 
@@ -79,13 +96,19 @@ self.addEventListener("fetch", (e) => {
         // without it an offline MOC missed /index.html and hard-failed.
         if (r.ok && r.type === "basic") {
           const copy = r.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          const bare = shellAsset(url) ? r.clone() : null;
+          caches.open(CACHE).then((c) => {
+            const jobs = [c.put(e.request, copy)];
+            if (bare) jobs.push(c.put(url.pathname, bare));
+            return Promise.all(jobs);
+          });
         }
         return r;
       })
       .catch(() =>
         caches.match(e.request).then((m) => {
           if (m) return m;
+          if (shellAsset(url)) return caches.match(url.pathname).then((s) => s || offline());
           if (isNav(e.request) || url.pathname.startsWith("/lock/")) {
             return caches.match("/index.html").then((i) => i || caches.match("/").then((j) => j || offline()));
           }
