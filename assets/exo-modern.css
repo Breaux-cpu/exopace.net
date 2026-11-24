@@ -591,12 +591,23 @@ body:has(#decode) .exo-clock {
 
 nav.exo-tabs > [hidden] { display: none !important; }
 
-html body .exo-pill button {
+html body .exo-link button {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+html body .exo-pill button,
+html body .exo-pill a {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   height: 44px !important;
   min-height: 44px !important;
   max-height: 44px !important;
+  min-width: 44px !important;
   padding: 0 10px !important;
-  line-height: 44px !important;
+  line-height: 1 !important;
 }
 
 nav.exo-tabs > a[data-ws] {
