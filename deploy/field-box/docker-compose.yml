@@ -1,0 +1,32 @@
+services:
+  web:
+    image: caddy:2
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../:/srv/site:ro
+      - pmtiles:/srv/pmtiles:ro
+    environment:
+      EXOPACE_ALLOW_DEMO: "false"
+  bridge:
+    image: python:3.12-slim
+    working_dir: /opt/bridge
+    command: python exo_sdr_bridge.py
+    volumes:
+      - ../../scripts/sdr-bridge:/opt/bridge:ro
+    environment:
+      EXOPACE_ALLOW_DEMO: "false"
+      EXOPACE_BRIDGE_HOST: "0.0.0.0"
+      EXOPACE_BRIDGE_PORT: "8765"
+    ports:
+      - "8765:8765"
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo:/data/db
+    environment:
+      EXOPACE_ALLOW_DEMO: "false"
+volumes:
+  pmtiles:
+  mongo:

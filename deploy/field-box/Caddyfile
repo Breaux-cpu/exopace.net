@@ -1,0 +1,8 @@
+exopace.local {
+	root * /srv/site
+	file_server
+	handle_path /pmtiles/* {
+		root * /srv/pmtiles
+		file_server
+	}
+}

@@ -1,0 +1,27 @@
+name: CI gate
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 */6 * * *"
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: node --test scripts/exo-dem.test.mjs scripts/exo-sdr-bridge.test.mjs scripts/exo-df.test.mjs scripts/exo-playbook.test.mjs scripts/exo-room.test.mjs
+      - name: Verify baseline
+        run: |
+          set +e
+          node scripts/verify.mjs > verify.out
+          tail -n 3 verify.out
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; const text=readFileSync('verify.out','utf8'); const match=text.match(/(\\d+) passed, (\\d+) failed/); if(!match) process.exit(1); const failed=Number(match[2]); if(failed>49) { console.error('regressions '+failed); process.exit(1); }"
