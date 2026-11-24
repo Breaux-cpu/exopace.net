@@ -242,7 +242,9 @@
     var end = samples[samples.length - 1];
     var distance = end.dM || haversine(a, b);
     var worst = Infinity;
+    var clearWorst = Infinity;
     var blocked = false;
+    var graze = false;
     var rows = samples.map(function (sample) {
       var d1 = sample.dM;
       var d2 = Math.max(0, distance - d1);
@@ -250,16 +252,21 @@
       var ground = (sample.elev == null ? 0 : sample.elev);
       var ray = (samples[0].elev || 0) + a.antM + (((samples[samples.length - 1].elev || 0) + b.antM) - ((samples[0].elev || 0) + a.antM)) * t - bulge(d1, d2);
       var f1 = fresnel(d1, d2, hz);
-      var clear = ray - f1 - ground;
-      if (clear < worst) worst = clear;
-      if (ground > ray) blocked = true;
+      var clear = ray - ground;
+      var need = 0.6 * f1;
+      if (clear - need < worst) worst = clear - need;
+      if (clear < clearWorst) clearWorst = clear;
+      if (clear < 0) blocked = true;
+      else if (clear < need) graze = true;
       return { dM: d1, ground: ground, ray: ray, f1: f1, clear: clear };
     });
     return {
       distanceM: distance,
       fspl: fspl(distance, hz),
       worstM: worst,
-      blocked: blocked || worst < 0,
+      clearM: clearWorst,
+      blocked: blocked,
+      graze: !blocked && graze,
       rows: rows,
       hz: hz,
     };
@@ -323,7 +330,9 @@
       + "&b=" + points[1].lat.toFixed(5) + "," + points[1].lon.toFixed(5) + "&n=" + n;
     return fetch(url).then(function (res) { return res.json(); }).catch(function () { return { ok: false }; }).then(function (body) {
       var samples = body && body.ok && body.samples && body.samples.length > 1 ? body.samples : null;
+      var flatNote = "";
       if (!samples) {
+        flatNote = "FLAT · ";
         var distance = haversine(points[0], points[1]);
         samples = [];
         for (var i = 0; i < n; i++) {
@@ -335,15 +344,16 @@
             dM: distance * t,
           });
         }
-        setStatus("ELEVATION UNAVAILABLE — FLAT PROFILE");
       }
       last = buildProfile(samples, band.hz);
       last.band = band;
       last.samples = samples;
       draw(last);
       var km = last.distanceM / 1000;
-      setStatus((last.blocked ? "FRESNEL BLOCKED" : "FRESNEL CLEAR")
-        + " · " + km.toFixed(2) + " km · FSPL " + last.fspl.toFixed(1) + " dB · CLEARANCE " + last.worstM.toFixed(1) + " m");
+      var verdict = last.blocked ? "BLOCKED" : last.graze ? "GRAZE" : "CLEAR";
+      var mid = fresnel(last.distanceM / 2, last.distanceM / 2, band.hz);
+      var clr = Number.isFinite(last.clearM) ? last.clearM.toFixed(1) : "—";
+      setStatus(flatNote + verdict + " · " + km.toFixed(2) + " km · FSPL " + last.fspl.toFixed(1) + " dB · F1 " + mid.toFixed(1) + " m · CLR " + clr + " m");
       paintSky();
       paintCopy();
       return last;
@@ -519,6 +529,7 @@
     var name = host.querySelector("[data-vault-name]").value.trim() || "MISSION";
     var pass = host.querySelector("[data-vault-pass]").value;
     if (!pass) { setStatus("NEED A PASSPHRASE"); return; }
+    if (!root.isSecureContext || !root.crypto || !root.crypto.subtle) { setStatus("VAULT NEEDS HTTPS"); return; }
     var payload = {
       at: new Date().toISOString(),
       points: points,
@@ -542,6 +553,7 @@
   function openSnap(row) {
     var pass = host.querySelector("[data-vault-pass]").value;
     if (!pass) { setStatus("NEED A PASSPHRASE"); return; }
+    if (!root.isSecureContext || !root.crypto || !root.crypto.subtle) { setStatus("VAULT NEEDS HTTPS"); return; }
     vaultKey(pass, unb64(row.salt)).then(function (key) {
       return crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(row.iv) }, key, unb64(row.ct));
     }).then(function (plain) {
@@ -614,12 +626,20 @@
     if (act === "profile") profile();
     else if (act === "fix") {
       var fix = readFix();
-      if (!fix) { setStatus("NO FIX"); return; }
-      points[0].lat = fix.lat;
-      points[0].lon = fix.lon;
-      writeInputs();
-      paintSky();
-      paintCopy();
+      var applyFix = function (here) {
+        points[0].lat = here.lat;
+        points[0].lon = here.lon;
+        writeInputs();
+        paintSky();
+        paintCopy();
+        setStatus("FIX SET");
+      };
+      if (fix) { applyFix(fix); return; }
+      if (!navigator.geolocation) { setStatus("NO FIX"); return; }
+      setStatus("WAITING FOR FIX");
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        applyFix({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+      }, function () { setStatus("NO FIX"); }, { enableHighAccuracy: true, timeout: 8000 });
     } else if (act === "geo") {
       download(new TextEncoder().encode(JSON.stringify(geojson())), "exopace-link.geojson", "application/geo+json");
       setStatus("GEOJSON");
@@ -652,11 +672,14 @@
   else boot();
 
   root.EXO = root.EXO || {};
-  var prior = root.EXO.link || {};
   root.EXO.link = {
     takeClick: takeClick,
-    capture: prior.capture || function () { return false; },
-    arm: prior.arm,
+    armed: function () { return armed === "A" || armed === "B"; },
+    place: function (lat, lon) { return takeClick(lat, lon); },
+    capture: function (ev) {
+      if (!ev || !ev.lngLat || (armed !== "A" && armed !== "B")) return false;
+      return takeClick(ev.lngLat.lat, ev.lngLat.lng);
+    },
     fresnel: fresnel,
     fspl: fspl,
     bulge: bulge,

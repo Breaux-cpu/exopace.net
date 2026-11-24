@@ -139,9 +139,19 @@
       URL.revokeObjectURL(url);
       worklet = new AudioWorkletNode(ctx, "exo-ears");
       source.connect(worklet);
+      var lastAfsk = 0;
       worklet.port.onmessage = function (event) {
         var msg = event.data || {};
-        if (msg.text) pushLog(msg.kind || "TONE", msg.text);
+        if (!msg.text) return;
+        if (msg.kind === "AFSK") {
+          var now = Date.now();
+          if (now - lastAfsk < 250) return;
+          lastAfsk = now;
+        }
+        pushLog(msg.kind || "TONE", msg.text);
+        if (msg.kind === "CW" || msg.kind === "DTMF") {
+          root.dispatchEvent(new CustomEvent("exo-observe", { detail: { source: "AUDIO", kind: String(msg.kind).toLowerCase(), value: msg.text } }));
+        }
       };
     }).catch(function () {
       URL.revokeObjectURL(url);

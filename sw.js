@@ -11,7 +11,7 @@ const ASSETS = [
 ];
 // Shared chrome. Online always revalidates; the pathname copy is the offline fallback
 // for every ?v= the pages request.
-const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js", "/assets/exo-cmd.js", "/assets/exo-sentinel.js", "/assets/exo-audio.js", "/assets/exo-link.js"];
+const SHELL = ["/assets/exo-modern.css", "/assets/exo-tabs.js", "/assets/exo-cmd.js", "/assets/exo-sentinel.js", "/assets/exo-audio.js", "/assets/exo-link.js", "/assets/exo-orbit.js"];
 
 function shellAsset(url) {
   return SHELL.indexOf(url.pathname) !== -1;

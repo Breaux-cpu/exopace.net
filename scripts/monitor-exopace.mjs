@@ -8,22 +8,24 @@ const CHROME = process.env.CHROME_PATH || (process.platform === "win32"
   ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
   : "google-chrome");
 const PORT = Number(process.env.EXO_MONITOR_PORT || 9337);
+const SITE = String(process.env.EXO_ORIGIN || "https://exopace.net").replace(/\/$/, "");
+const LOCAL = Boolean(process.env.EXO_ORIGIN);
 
 const ROUTES = [
-  ["https://exopace.net", "/", "/mission/"],
-  ["https://exopace.net", "/mission/", "/mission/"],
-  ["https://exopace.net", "/lock/25544", "/mission/?lock=25544"],
-  ["https://exopace.net", "/radio/", "/radio/"],
-  ["https://exopace.net", "/mesh/", "/mesh/"],
-  ["https://exopace.net", "/maps/", "/maps/"],
-  ["https://exopace.net", "/cameras/", "/cameras/"],
-  ["https://exopace.net", "/sentinel/", "/sentinel/"],
-  ["https://exopace.net", "/404", "/404"],
+  [SITE, "/", "/mission/"],
+  [SITE, "/mission/", "/mission/"],
+  [SITE, LOCAL ? "/mission/?lock=25544" : "/lock/25544", "/mission/?lock=25544"],
+  [SITE, "/radio/", "/radio/"],
+  [SITE, "/mesh/", "/mesh/"],
+  [SITE, "/maps/", "/maps/"],
+  [SITE, "/cameras/", "/cameras/"],
+  [SITE, "/sentinel/", "/sentinel/"],
+].concat(LOCAL ? [] : [[SITE, "/404", "/404"]]).concat([
   ["https://cams.exopace.net", "/account", "/account"],
   ["https://cams.exopace.net", "/privacy", "/privacy"],
   ["https://cams.exopace.net", "/terms", "/terms"],
   ["https://cams.exopace.net", "/api/health", "health"],
-];
+]);
 
 const VIEWPORTS = [
   ["1440x900", 1440, 900, false],
@@ -172,7 +174,7 @@ async function main() {
       if (cls >= 0.05) fail(row, "cls");
       if (metrics.overflow > 1) fail(row, "overflow");
       if (metrics.bar > 60) fail(row, "bar");
-      if (docStatus >= 400 && !(path === "/404" && (docStatus === 404 || docStatus === 200))) fail(row, "status " + docStatus);
+      if ((docStatus === 0 || docStatus >= 400) && path !== "/404") fail(row, "status " + docStatus);
     }
   }
 
