@@ -8,7 +8,7 @@ Track A is on `main`. The site monitor workflow is still scheduled every six hou
 | --- | --- |
 | `96ea779` | Four operator modes and the shared target bus. Pushed earlier. |
 | `cece546` | Offline PMTiles vault, Terrarium DEM sampler, Fresnel cache path, remote SDR client, bearing solver, band library, playbook, room crypto, and the after-action compiler. |
-| This report's commit | Bridge daemon, unit tests, room and cams proxies, field-box compose file, and the CI gate. |
+| `8bb8c09` | Bridge daemon, unit tests, room and cams proxies, field-box compose file, CI gate, and this report. |
 
 `node scripts/verify.mjs` is 362 passed, 49 failed. That is the existing baseline.
 
