@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="../assets/exo-modern.css?v=3">
+<link rel="stylesheet" href="../assets/exo-modern.css?v=4">
 <style>
 :root{--bg:#070a0f;--bg2:#0b111a;--card:#0d141d;--card2:#111a26;--line:#1e2a3a;
  --text:#e6edf6;--muted:#8597ad;--accent:#38bdf8;--accent2:#22d3ee;--ok:#34d399;
@@ -80,6 +80,14 @@ table{width:100%;border-collapse:collapse}
 .toast.show{transform:translateX(-50%);opacity:1}
 
 button.b{min-height:44px}
+input, select, textarea, button { min-height: 44px; }
+.leaflet-bar a, .leaflet-touch .leaflet-bar a {
+  width: 44px; height: 44px; line-height: 44px; min-width: 44px; min-height: 44px;
+}
+.leaflet-control-attribution a {
+  display: inline-flex; align-items: center; box-sizing: border-box;
+  min-width: 44px; min-height: 44px; padding: 0 6px;
+}
 button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 @media (max-width:640px){
   #decode .grid{grid-template-columns:1fr !important}

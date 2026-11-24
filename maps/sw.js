@@ -1,9 +1,9 @@
-const CACHE = "exopace-maps-v22";
+const CACHE = "exopace-maps-v23";
 const SHARED = ["/assets/exo-modern.css", "/assets/exo-tabs.js"];
 const SHELL = [
   "/maps/",
   "/maps/index.html",
-  "/maps/maps.css?v=5",
+  "/maps/maps.css?v=6",
   "/maps/legend.html",
   "/maps/host.json",
   "/maps/mgrs.js?v=1",

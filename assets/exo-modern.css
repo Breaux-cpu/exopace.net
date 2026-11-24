@@ -71,12 +71,19 @@ button.b,
   margin: 0;
   clip: auto;
   overflow: visible;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   padding: 10px 12px;
   background: var(--exo-amber);
   color: #1a1404;
   font-family: var(--exo-mono);
   font-size: var(--exo-text-sm);
   text-decoration: none;
+  outline: 2px solid #1a1404;
+  outline-offset: 2px;
 }
 
 .exo-bar {
@@ -290,6 +297,13 @@ body:has(.fm-body) > header.fm-top {
 .exo-tabs > button:focus-visible {
   outline: 2px solid var(--exo-amber);
   outline-offset: -2px;
+}
+body:has(#decode) :is(a, button, input, select, textarea, summary):focus-visible:not(.exo-skip),
+body:has(#composer) :is(a, button, input, select, textarea, summary):focus-visible:not(.exo-skip),
+body:has(.fm-body) :is(a, button, input, select, textarea, summary):focus-visible:not(.exo-skip),
+body:has(.cam-stage) :is(a, button, input, select, textarea, summary):focus-visible:not(.exo-skip) {
+  outline: 2px solid var(--exo-amber);
+  outline-offset: 2px;
 }
 body:has(#decode) nav.exo-tabs > button {
   flex: 0 0 auto;

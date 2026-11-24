@@ -59,8 +59,21 @@ button, a { font: inherit; }
 #fm-leg { white-space: pre-line; color: #ffe08a; min-height: 18px; max-height: 28vh; overflow: auto; }
 #fm-topo-out { max-height: 36vh; overflow: auto; }
 .fm-topo-scan { display: block; max-width: 100%; height: auto; margin: 8px 0; background: #e6dcc6; }
+.maplibregl-ctrl-group > button,
+.maplibregl-ctrl-attrib-button {
+  width: 44px;
+  height: 44px;
+}
 .maplibregl-ctrl-attrib { font-size: 10px; background: rgba(3, 6, 11, 0.8); }
-.maplibregl-ctrl-attrib a { color: #7ee0ff; }
+.maplibregl-ctrl-attrib a {
+  color: #7ee0ff;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 6px;
+}
 .fm-print-map {
   position: fixed; left: -12000px; top: 0; pointer-events: none;
 }
