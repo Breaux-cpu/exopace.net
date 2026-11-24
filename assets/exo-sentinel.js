@@ -263,6 +263,8 @@
       var kind = field("kind").value;
       var value = field("value").value.trim();
       if (!kindOk(kind, value)) return;
+      var bus = root.EXO && root.EXO.bus;
+      if (bus) bus.set({ kind: kind, id: value, label: field("label").value.trim() || value, norad: kind === "norad" ? value : "", freqMHz: kind === "rf" ? Number(value) : null });
       storePut("watch", { id: id(), t: Date.now(), kind: kind, value: kind === "icao" ? value.toUpperCase() : value, label: field("label").value.trim() }).then(function () {
         field("value").value = "";
         field("label").value = "";
@@ -321,6 +323,13 @@
     css();
     shell();
     host.addEventListener("click", onClick);
+    root.addEventListener("exo-target", function (event) {
+      var detail = event.detail || {};
+      var lat = field("flat");
+      var lon = field("flon");
+      if (lat && detail.lat != null) lat.value = String(detail.lat);
+      if (lon && detail.lon != null) lon.value = String(detail.lon);
+    });
     loadAll().then(paint).catch(function () { paint(); });
   }
 

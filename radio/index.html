@@ -9,14 +9,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="../assets/exo-modern.css?v=5">
+<link rel="stylesheet" href="../assets/exo-modern.css?v=6">
 <style>
-:root{--bg:#070a0f;--bg2:#0b111a;--card:#0d141d;--card2:#111a26;--line:#1e2a3a;
- --text:#e6edf6;--muted:#8597ad;--accent:#38bdf8;--accent2:#22d3ee;--ok:#34d399;
- --bad:#f87171;--warn:#fbbf24;--radius:14px}
+:root{--bg:#04070d;--bg2:#04070d;--card:rgba(10,18,30,.78);--card2:rgba(10,18,30,.78);--line:rgba(126,224,255,.16);
+ --text:#f0f6fc;--muted:#9fb0b4;--accent:#7ee0ff;--accent2:#7ee0ff;--ok:#9fd356;
+ --bad:#f87171;--warn:#ffb84d;--radius:16px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:radial-gradient(1200px 500px at 80% -10%,#101c2c 0%,var(--bg) 55%);
- color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;
+body{margin:0;color:var(--text);font:600 13px/1.45 "IBM Plex Sans",system-ui,sans-serif;
  padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 header{position:sticky;top:0;z-index:9;background:var(--bg);
  padding:12px 14px 0}
@@ -113,14 +112,13 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
     --accent2: #7ee0ff;
     --warn: #ffe08a;
   }
-  html { background: #03060b; }
+  html { background-color: #04070d; }
   body {
-    background: #03060b;
     color: var(--text);
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
     overflow-wrap: break-word;
   }
-  header { background: #03060b; }
+  header { background-color: rgba(4, 7, 13, 0.92); }
   h1::before { background: #7ee0ff; box-shadow: 0 0 12px #7ee0ff66; }
   nav:not(.exo-tabs):not(.exo-sites) {
     flex-wrap: wrap;
@@ -218,14 +216,18 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="/mission/">Mission</a>
-    <a href="/radio/" aria-current="page">Radio</a>
-    <a href="/mesh/">Mesh</a>
-    <a href="/cameras/">Cameras</a>
-    <a href="/maps/">Maps</a>
-    <a href="https://cams.exopace.net/">Cams</a>
+    <a href="https://cams.exopace.net/map">LIVE MAP</a>
+    <a href="/radio/" aria-current="page">COMMS &amp; RF</a>
+    <a href="/sentinel/">SENTINEL</a>
+    <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<nav class="exo-comms" aria-label="Comms workspaces">
+  <a href="#watch">MONITOR</a>
+  <a href="#decode">PASSES</a>
+  <a href="/mesh/">MESH</a>
+  <a href="/maps/#exo-link">VAULT</a>
+</nav>
 <header><h1>EXOpace Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
 <p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
 <nav class="exo-tabs" aria-label="Radio tools">
@@ -1285,6 +1287,7 @@ function rpListen(){if(!rpData)return;const f=(rpData.freq_hz);listen(mhz(f));sh
 
 loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 </script>
+<script src="../assets/exo-bus.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
 <script type="module" src="../assets/exo-orbit.js"></script>
 <script type="module" src="../assets/exo-audio.js"></script>

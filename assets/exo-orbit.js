@@ -185,6 +185,25 @@ function mount() {
     return null;
   }
 
+  let sharedKey = "";
+  function shareTarget(row, here) {
+    const bus = window.EXO && window.EXO.bus;
+    if (!bus || !row || !here) return;
+    const down = mhzFor(row);
+    const key = row.norad + "|" + (down || "");
+    if (key === sharedKey) return;
+    sharedKey = key;
+    bus.set({
+      kind: "satellite",
+      id: row.norad,
+      label: row.name,
+      lat: here.lat,
+      lon: here.lon,
+      norad: row.norad,
+      freqMHz: down,
+    });
+  }
+
   function tick() {
     const here = readObs();
     const row = selected();
@@ -195,6 +214,7 @@ function mount() {
     catch (err) { if (live) live.textContent = "TLE REJECTED"; return; }
     const now = observe(satrec, new Date(), here);
     if (!now) { if (live) live.textContent = "PROPAGATE FAILED"; return; }
+    shareTarget(row, here);
     const down = mhzFor(row);
     const up = Number(upIn && upIn.value);
     const rx = down ? (down * now.factor).toFixed(6) + " RX" : "RX —";

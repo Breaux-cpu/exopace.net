@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=5" />
+<link rel="stylesheet" href="/assets/exo-modern.css?v=6" />
 <link rel="stylesheet" href="/assets/exo-tokens.css" />
 </head>
 <body>
@@ -22,14 +22,18 @@
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="/mission/">Mission</a>
-    <a href="/radio/">Radio</a>
-    <a href="/mesh/">Mesh</a>
-    <a href="/cameras/">Cameras</a>
-    <a href="/maps/" aria-current="page">Maps</a>
-    <a href="https://cams.exopace.net/">Cams</a>
+    <a href="https://cams.exopace.net/map">LIVE MAP</a>
+    <a href="/radio/">COMMS &amp; RF</a>
+    <a href="/sentinel/">SENTINEL</a>
+    <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<nav class="exo-comms" aria-label="Comms workspaces">
+  <a href="/radio/#watch">MONITOR</a>
+  <a href="/radio/#decode">PASSES</a>
+  <a href="/mesh/">MESH</a>
+  <a href="/maps/#exo-link" aria-current="page">VAULT</a>
+</nav>
   <header class="fm-top">
     <a class="fm-brand" href="/mission/">EXOPACE</a>
     <div class="fm-readout">
@@ -266,6 +270,7 @@
   <script src="mbtiles.js?v=1"></script>
   <script src="topo.js?v=5"></script>
   <script src="field.js?v=1"></script>
+  <script src="/assets/exo-bus.js"></script>
   <script src="/assets/exo-link.js?v=1"></script>
   <script type="module" src="/assets/exo-decide.js"></script>
   <script src="app.js?v=22"></script>

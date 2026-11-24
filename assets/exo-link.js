@@ -230,6 +230,8 @@
     points[index].lat = lat;
     points[index].lon = lon;
     armed = armed === "A" ? "B" : "";
+    var bus = root.EXO && root.EXO.bus;
+    if (bus) bus.set({ kind: "link", id: index === 1 ? "B" : "A", label: "RF LINK", lat: lat, lon: lon });
     writeInputs();
     paintSky();
     setStatus(armed ? "NEXT CLICK SETS B" : "POINTS SET");

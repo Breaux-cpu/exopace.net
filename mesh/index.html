@@ -28,15 +28,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root{
-  --bg:#101208; --panel:#181b0f; --panel2:#1f2314; --line:#31371e;
-  --amber:#ffb454; --amber-dim:#7d6132; --text:#eae6d4; --mut:#9a976f;
-  --ok:#9fd356; --warn:#ff7043; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --bg:#04070d; --panel:rgba(10,18,30,.78); --panel2:#0a121e; --line:rgba(126,224,255,.16);
+  --amber:#ffb84d; --amber-dim:#7d6132; --text:#f0f6fc; --mut:#9fb0b4;
+  --ok:#9fd356; --warn:#ffb84d; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
   --kb:0px;
 }
-body.night{--bg:#0a0303;--panel:#160606;--panel2:#1d0808;--line:#3a1512;
-  --amber:#ff5a44;--amber-dim:#75261d;--text:#ffd6cf;--mut:#b8796f;
-  --ok:#ff7a5c;--warn:#ff3b22}
+body.night{--bg:#04070d;--panel:rgba(10,18,30,.78);--panel2:#0a121e;--line:rgba(126,224,255,.16);
+  --amber:#ffb84d;--amber-dim:#7d6132;--text:#f0f6fc;--mut:#9fb0b4;
+  --ok:#9fd356;--warn:#ffb84d}
 body.night .mapwrap,body.night nav,body.night header,body.night #navHud{background:#0d0404}
 body.night header{background:linear-gradient(#170606,#0d0404)}
 body.night #toast{color:#1a0505}
@@ -230,7 +230,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=5">
+<link rel="stylesheet" href="/assets/exo-modern.css?v=6">
 <link rel="stylesheet" href="/assets/exo-tokens.css">
 </head>
 <body>
@@ -238,14 +238,18 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="/mission/">Mission</a>
-    <a href="/radio/">Radio</a>
-    <a href="/mesh/" aria-current="page">Mesh</a>
-    <a href="/cameras/">Cameras</a>
-    <a href="/maps/">Maps</a>
-    <a href="https://cams.exopace.net/">Cams</a>
+    <a href="https://cams.exopace.net/map">LIVE MAP</a>
+    <a href="/radio/" aria-current="page">COMMS &amp; RF</a>
+    <a href="/sentinel/">SENTINEL</a>
+    <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<nav class="exo-comms" aria-label="Comms workspaces">
+  <a href="/radio/#watch">MONITOR</a>
+  <a href="/radio/#decode">PASSES</a>
+  <a href="/mesh/" aria-current="page">MESH</a>
+  <a href="/maps/#exo-link">VAULT</a>
+</nav>
 
 <header>
   <div>
@@ -567,6 +571,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 })();
 </script>
 <script src="/maps/mgrs.js?v=1"></script>
+<script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-link.js?v=1"></script>
 <script src="/assets/exo-tabs.js?v=1"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>

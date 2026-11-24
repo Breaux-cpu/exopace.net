@@ -20,6 +20,7 @@ const ROUTES = [
   [SITE, "/maps/", "/maps/"],
   [SITE, "/cameras/", "/cameras/"],
   [SITE, "/sentinel/", "/sentinel/"],
+  [SITE, "/system/", "/system/"],
 ].concat(LOCAL ? [] : [[SITE, "/404", "/404"]]).concat([
   ["https://cams.exopace.net", "/account", "/account"],
   ["https://cams.exopace.net", "/privacy", "/privacy"],

@@ -1,48 +1,40 @@
-/* Shared night surface for Mission, Radio, and Mesh. */
+/* Shared obsidian canvas. The same glow on every page. */
 html,
 body {
-  background-color: #03060b;
+  background-color: #04070d;
   background-image:
-    linear-gradient(180deg, rgba(3, 6, 11, 0.28), #03060b 46%),
-    url("/assets/exo-horizon.jpg");
-  background-size: cover, cover;
-  background-position: center top, center top;
+    radial-gradient(900px 420px at 12% -10%, rgba(126, 224, 255, 0.16), transparent 58%),
+    radial-gradient(800px 480px at 100% 0%, rgba(255, 184, 77, 0.1), transparent 55%);
   background-repeat: no-repeat;
-}
-
-body:has(#decode) {
-  background-image:
-    linear-gradient(180deg, rgba(3, 6, 11, 0.35), #070a0f 48%),
-    url("/assets/exo-radio.jpg");
-}
-
-body:has(#composer) {
-  background-image:
-    linear-gradient(180deg, rgba(16, 18, 8, 0.4), #101208 48%),
-    url("/assets/exo-mesh.jpg");
 }
 
 #boot-void {
   background:
-    linear-gradient(180deg, rgba(3, 6, 11, 0.5), rgba(3, 6, 11, 0.84)),
+    linear-gradient(180deg, rgba(4, 7, 13, 0.5), rgba(4, 7, 13, 0.84)),
     url("/assets/exo-horizon.jpg") center / cover no-repeat !important;
 }
 
 button,
 button.b,
 .btn {
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 
 /* Shared chrome. Prefixed tokens so this file cannot override the Mission bundle :root names. */
 :root {
-  --exo-void: #03060b;
+  --exo-void: #04070d;
   --exo-cyan: #7ee0ff;
-  --exo-amber: #ffe08a;
-  --exo-text: #e7f4ef;
-  --exo-muted: #c5d5cf;
-  --exo-line: rgba(126, 224, 255, 0.28);
+  --exo-amber: #ffb84d;
+  --exo-text: #f0f6fc;
+  --exo-muted: #9fb0b4;
+  --exo-line: rgba(126, 224, 255, 0.16);
+  --exo-line-btn: rgba(126, 224, 255, 0.24);
+  --exo-line-field: rgba(126, 224, 255, 0.22);
+  --exo-surface: rgba(10, 18, 30, 0.78);
+  --exo-btn: rgba(10, 18, 30, 0.72);
+  --exo-inset: #060b14;
+  --exo-glass: rgba(10, 18, 30, 0.78);
   --exo-sans: "IBM Plex Sans", system-ui, sans-serif;
   --exo-mono: "IBM Plex Mono", ui-monospace, monospace;
   --exo-text-sm: clamp(0.8125rem, 0.78rem + 0.16vw, 0.9375rem);
@@ -188,6 +180,32 @@ button.b,
   outline: 2px solid var(--exo-amber);
   outline-offset: 2px;
 }
+
+.exo-comms {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  margin: 0;
+  padding: 4px 12px;
+  background: rgba(4, 7, 13, 0.92);
+  border-bottom: 1px solid rgba(126, 224, 255, 0.25);
+}
+
+.exo-comms a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--exo-muted);
+  font-family: var(--exo-mono);
+  font-size: var(--exo-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+
+.exo-comms a[aria-current="page"] { color: var(--exo-cyan); }
 
 body:has(#decode) > header:not(.exo-bar) {
   top: var(--exo-bar-h);
@@ -398,4 +416,123 @@ body:has(#decode) .exo-clock {
   color: #ffe08a;
   font-size: 12px;
   letter-spacing: 0.04em;
+}
+
+/* One set of controls. Mission's Cesium HUD stays on its own rules
+   (body:has(#boot-void) is excluded). .exo-tabs never receives position. */
+@media screen {
+  html body {
+    background-color: #04070d !important;
+    background-image:
+      radial-gradient(900px 420px at 12% -10%, rgba(126, 224, 255, 0.16), transparent 58%),
+      radial-gradient(800px 480px at 100% 0%, rgba(255, 184, 77, 0.1), transparent 55%) !important;
+    background-repeat: no-repeat !important;
+    font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+  }
+
+  html body .exo-bar {
+    box-sizing: border-box;
+    height: calc(57px + env(safe-area-inset-top));
+    min-height: 57px;
+    max-height: calc(57px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: 0;
+    align-items: center;
+    background-color: rgba(4, 7, 13, 0.92);
+    border-bottom: 1px solid rgba(126, 224, 255, 0.16);
+  }
+
+  html body nav.exo-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    background-color: rgba(4, 7, 13, 0.92);
+    border-top: 1px solid rgba(126, 224, 255, 0.16);
+  }
+
+  html body nav.exo-tabs > button {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    box-sizing: border-box !important;
+    min-height: 44px !important;
+    border-radius: 999px !important;
+    border: 1px solid transparent !important;
+    border-bottom: 2px solid transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #9fb0b4 !important;
+    font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    box-shadow: none !important;
+    transition: color 150ms, border-color 150ms !important;
+  }
+
+  html body nav.exo-tabs > button.on,
+  html body nav.exo-tabs > button.active,
+  html body nav.exo-tabs > button[aria-selected="true"] {
+    color: #7ee0ff !important;
+    border-bottom-color: #7ee0ff !important;
+  }
+
+  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button) {
+    box-sizing: border-box !important;
+    min-height: 44px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(126, 224, 255, 0.24) !important;
+    background-color: rgba(10, 18, 30, 0.72) !important;
+    background-image: none !important;
+    color: #f0f6fc !important;
+    font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    box-shadow: none !important;
+    transition: color 150ms, border-color 150ms, background-color 150ms !important;
+  }
+
+  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):hover {
+    color: #7ee0ff !important;
+    border-color: rgba(126, 224, 255, 0.24) !important;
+  }
+
+  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):active {
+    color: #ffb84d !important;
+  }
+
+  html body:not(:has(#boot-void)) :is(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel) {
+    border-radius: 16px !important;
+    background-color: rgba(10, 18, 30, 0.78) !important;
+    background-image: none !important;
+    border: 1px solid rgba(126, 224, 255, 0.16) !important;
+    backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 0 rgba(126, 224, 255, 0.55) !important;
+  }
+
+  html body:not(:has(#boot-void)) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="color"]) {
+    box-sizing: border-box !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+    background-color: #060b14 !important;
+    background-image: none !important;
+    border: 1px solid rgba(126, 224, 255, 0.22) !important;
+    color: #f0f6fc !important;
+    font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+  }
+
+  html body:not(:has(#boot-void)) textarea {
+    height: auto !important;
+  }
+
+  html body:not(:has(#boot-void)) :is(input, select, textarea, button, a.btn):focus-visible {
+    outline: 2px solid #ffb84d !important;
+    outline-offset: 2px;
+  }
 }
