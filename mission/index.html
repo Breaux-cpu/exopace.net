@@ -66,7 +66,9 @@
         user-select: none;
         -webkit-user-select: none;
       }
-      main#exo-main { height: 100%; margin: 0; }
+      main#exo-main { position: absolute; inset: 0; margin: 0; z-index: 1; }
+      main#exo-main > #root { height: 100%; min-height: 100%; }
+      #exo-pill { position: relative; z-index: 30; }
       .hud .zoom { bottom: calc(96px + env(safe-area-inset-bottom)) !important; gap: 12px !important; z-index: 8 !important; }
       .hud .zoom > .btn { min-width: 44px !important; min-height: 44px !important; }
       #boot-void svg { width: 72px; height: 72px; margin-bottom: 18px; }
