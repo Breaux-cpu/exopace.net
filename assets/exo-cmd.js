@@ -188,7 +188,17 @@
       var rows = filtered();
       var on = current();
       var index = on ? Number(on.dataset.index) : 0;
-      if (rows[index]) rows[index].run();
+      if (rows[index]) { rows[index].run(); return; }
+      var query = input.value.trim();
+      var decide = globalThis.EXO && globalThis.EXO.decide;
+      var routes = globalThis.EXO && globalThis.EXO.routes;
+      if (!decide || !query) return;
+      decide("choice", { query: query, surface: location.pathname }).then(function (res) {
+        var row = res && res.answers && res.answers.route;
+        if (!row || res.source === "fallback" || !(row.answer_confidence >= 0.55)) return;
+        var path = routes && routes[row.choice];
+        if (path) location.assign(path);
+      });
     } else if (e.key === "Escape") {
       e.preventDefault();
       close();

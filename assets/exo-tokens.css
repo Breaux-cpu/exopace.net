@@ -1,0 +1,11 @@
+:root {
+  --exo-void: #04070d;
+  --exo-glass: rgba(10, 18, 30, 0.72);
+  --exo-cyan: #7ee0ff;
+  --exo-amber: #ffb84d;
+  --exo-text: #f0f6fc;
+  --exo-dim: #9fb0b4;
+  --exo-line: rgba(126, 224, 255, 0.18);
+  --exo-space: 8px;
+  --exo-target: 44px;
+}

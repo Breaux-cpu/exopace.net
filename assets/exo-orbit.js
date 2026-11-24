@@ -3,6 +3,7 @@ import { twoline2satrec } from "./satellite/io.js";
 import { propagate, gstime } from "./satellite/propagation.js";
 import { dopplerFactor } from "./satellite/dopplerFactor.js";
 import { eciToEcf, geodeticToEcf, ecfToLookAngles } from "./satellite/transforms.js";
+import { TOKENS } from "./exo-config.js";
 
 const FILES = ["/tle/stations.txt", "/tle/weather.txt", "/tle/visual.txt"];
 const ISS_DOWN = 145.8;
@@ -96,8 +97,8 @@ function drawSky(canvas, points, now) {
   const w = canvas.width;
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.strokeStyle = "rgba(126,224,255,0.35)";
-  ctx.fillStyle = "#04070d";
+  ctx.strokeStyle = TOKENS.hairline;
+  ctx.fillStyle = TOKENS.void;
   ctx.fillRect(0, 0, w, h);
   const cx = w / 2;
   const cy = h / 2;
@@ -107,14 +108,14 @@ function drawSky(canvas, points, now) {
     ctx.arc(cx, cy, r * ring, 0, Math.PI * 2);
     ctx.stroke();
   }
-  ctx.fillStyle = "#ffe08a";
+  ctx.fillStyle = TOKENS.amber;
   ctx.font = "11px IBM Plex Mono, monospace";
   ctx.fillText("N", cx - 4, cy - r - 6);
   if (!points || !points.length) {
-    ctx.fillStyle = "#9fb0b4";
+    ctx.fillStyle = TOKENS.dim;
     ctx.fillText("NO ARC", 12, h - 12);
   } else {
-  ctx.strokeStyle = "#7ee0ff";
+  ctx.strokeStyle = TOKENS.cyan;
   ctx.beginPath();
   points.forEach((p, i) => {
     const az = (p.az - 90) * Math.PI / 180;
