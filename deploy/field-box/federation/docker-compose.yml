@@ -1,0 +1,11 @@
+services:
+  relay:
+    image: python:3.12-slim
+    working_dir: /opt/federation
+    command: python relay.py
+    volumes:
+      - ./relay.py:/opt/federation/relay.py:ro
+    environment:
+      EXOPACE_ALLOW_DEMO: "false"
+    ports:
+      - "8780:8780"

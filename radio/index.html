@@ -1357,6 +1357,9 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <script src="../assets/exo-prop.js"></script>
 <script src="../assets/exo-pip.js"></script>
 <script src="../assets/exo-throttle.js"></script>
+<script src="../assets/exo-passive-radar.js"></script>
+<script src="../assets/exo-rotator.js"></script>
+<script src="../assets/exo-rf-guard.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
 <script type="module" src="../assets/exo-orbit.js"></script>
 <script type="module" src="../assets/exo-audio.js"></script>
@@ -1365,5 +1368,9 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <section id="exo-pip" class="exo-wave">PIP UNSUPPORTED</section>
 <button type="button" id="exo-pip-open" class="exo-wave-btn" data-title="RF waterfall">PIP</button>
 <section id="exo-throttle" class="exo-wave">NO BATTERY API</section>
+<section id="exo-radar" class="exo-wave">NO USB DEVICE</section>
+<canvas id="exo-radar-map" width="320" height="96" style="display:block;width:320px;max-width:calc(100% - 24px);height:96px;margin:0 12px 12px;background:#04070d"></canvas>
+<section id="exo-rotator" class="exo-wave">NO USB DEVICE</section>
+<section id="exo-rf" class="exo-wave">NO USB DEVICE</section>
 <div class="toast" id="toast"></div>
 </body></html>
