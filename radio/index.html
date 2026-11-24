@@ -285,7 +285,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="presets" id="bm"></div>
  </div>
  <div class="card" id="exo-sdr">
-  <h2>Remote bridge</h2>
+  <h2>Archived relay</h2>
+  <p class="muted">Optional headless relay in scripts/sdr-bridge. The direct path is CONNECT USB SDR on Live and Decode.</p>
   <p id="exo-sdr-status">BRIDGE OFFLINE · NO RF SAMPLES</p>
   <p id="exo-sdr-meter">S —</p>
   <p id="exo-rf-note">NO RF SAMPLES</p>
@@ -345,8 +346,20 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </section>
 
 <section id="watch">
+ <div class="card exo-usb">
+  <h2>USB SDR</h2>
+  <p class="exo-usb-status">NO USB DEVICE · CLICK CONNECT USB</p>
+  <p class="exo-usb-fallback muted" hidden></p>
+  <canvas class="exo-usb-wf" width="640" height="140"></canvas>
+  <div class="grid3" style="margin-top:8px">
+   <input class="exo-usb-mhz" value="162.550" inputmode="decimal" aria-label="Center frequency MHz">
+   <select class="exo-usb-mode" aria-label="Demodulator"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB</option></select>
+   <select class="exo-usb-gain" aria-label="Tuner gain"><option value="auto">Auto</option></select>
+  </div>
+  <button type="button" class="b exo-usb-connect" style="margin-top:8px">CONNECT USB SDR</button>
+ </div>
  <div class="card"><h2>Live waterfall</h2>
-  <div class="muted">Browse a whole band on the SDR and tap a signal to listen. This locks
+  <div class="muted">Direct USB is the card above. This sweep is the archived host path. Browse a whole band and tap a signal to listen. This locks
    the dongle (any listen/decode pauses), so stop it when you're done.</div>
   <div class="grid3" style="margin:10px 0 8px">
    <input id="wffrom" value="100M" inputmode="decimal">
@@ -406,6 +419,18 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </section>
 
 <section id="decode">
+ <div class="card exo-usb">
+  <h2>USB SDR</h2>
+  <p class="exo-usb-status">NO USB DEVICE · CLICK CONNECT USB</p>
+  <p class="exo-usb-fallback muted" hidden></p>
+  <canvas class="exo-usb-wf" width="640" height="140"></canvas>
+  <div class="grid3" style="margin-top:8px">
+   <input class="exo-usb-mhz" value="162.550" inputmode="decimal" aria-label="Center frequency MHz">
+   <select class="exo-usb-mode" aria-label="Demodulator"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB</option></select>
+   <select class="exo-usb-gain" aria-label="Tuner gain"><option value="auto">Auto</option></select>
+  </div>
+  <button type="button" class="b exo-usb-connect" style="margin-top:8px">CONNECT USB SDR</button>
+ </div>
  <div class="card"><h2>Decoder</h2>
   <select id="jobkind">
    <option value="adsb">Aircraft (ADS-B 1090)</option>
@@ -1326,9 +1351,19 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <script src="../assets/exo-state.js"></script>
 <script src="../assets/exo-rf-db.js"></script>
 <script src="../assets/exo-sdr-client.js"></script>
+<script src="../assets/exo-webusb-sdr.js"></script>
 <script src="../assets/exo-playbook.js"></script>
+<script src="../assets/exo-apt-decoder.js"></script>
+<script src="../assets/exo-prop.js"></script>
+<script src="../assets/exo-pip.js"></script>
+<script src="../assets/exo-throttle.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
 <script type="module" src="../assets/exo-orbit.js"></script>
 <script type="module" src="../assets/exo-audio.js"></script>
+<section id="exo-apt" class="exo-wave">NO USB DEVICE</section>
+<section id="exo-prop" class="exo-wave">OFFLINE</section>
+<section id="exo-pip" class="exo-wave">PIP UNSUPPORTED</section>
+<button type="button" id="exo-pip-open" class="exo-wave-btn" data-title="RF waterfall">PIP</button>
+<section id="exo-throttle" class="exo-wave">NO BATTERY API</section>
 <div class="toast" id="toast"></div>
 </body></html>

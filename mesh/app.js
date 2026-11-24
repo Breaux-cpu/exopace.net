@@ -6,7 +6,7 @@ const BLE_RX = P.BLE.rx;
 const BLE_TX = P.BLE.tx;
 
 const S = {
-  ws: null, bleRx: null, bleDev: null, demo: false, demoTimers: [], mode: "off",
+  ws: null, bleRx: null, bleDev: null, serialWriter: null, demo: false, demoTimers: [], mode: "off",
   myId: "", myName: "NODE", gps: null, nodes: {}, batt: [], tries: 0,
   keyDirty: false, keyClear: false, keySet: false, lastCfg: null, bleBuf: "",
   globe: null, ways: {}, rf: [], trail: [], rangeOn: false, rssiSpark: [], lastRssi: null, lastSnr: null,
@@ -217,6 +217,7 @@ async function connectBle() {
     picked = true;
     const writeCh = await attachBle(dev);
     stopDemo(); closeWifi();
+    if (window.EXO && EXO.serial && EXO.serial.close) EXO.serial.close({ silent: true });
     S.bleRx = writeCh; S.bleDev = dev; S.bleBuf = "";
     setPath("bt", true);
     syncInstallHint();
@@ -260,6 +261,10 @@ function send(o) {
     const u8 = new TextEncoder().encode(j);
     const w = S.bleRx.writeValueWithoutResponse || S.bleRx.writeValue;
     w.call(S.bleRx, u8); return true;
+  }
+  if (S.serialWriter) {
+    S.serialWriter.write(new TextEncoder().encode(j));
+    return true;
   }
   if (S.demo) { demoSend(o); return true; }
   return false;

@@ -84,8 +84,20 @@
         <button type="button" class="fm-btn" id="fm-route-clear">CLEAR ROUTE</button>
         <button type="button" class="fm-btn" id="fm-gpx">ROUTE GPX</button>
       </div>
+      <h2>NODE</h2>
+      <p class="fm-note" id="exo-usb-node-status" data-usb-node-status>NO USB DEVICE · CLICK CONNECT USB</p>
+      <p class="fm-note" id="exo-usb-node-fallback"></p>
+      <div class="fm-row">
+        <button type="button" class="fm-btn" id="exo-usb-node-connect" data-usb-node-connect>CONNECT USB NODE</button>
+        <button type="button" class="fm-btn" id="exo-usb-node-ble" data-usb-node-ble>CONNECT BLE</button>
+      </div>
+      <p class="fm-note" id="exo-usb-node-log">No node line yet.</p>
       <h2>LINE OF SIGHT</h2>
       <div id="exo-link"></div>
+      <p class="fm-note" id="exo-tracks">NO USB DEVICE</p>
+      <p class="fm-note" id="exo-mav">NO USB DEVICE</p>
+      <p class="fm-note" id="exo-sitrep">NO OBSERVATIONS</p>
+      <p class="fm-note" id="exo-qr">NO QR FRAME</p>
       <h2>SHEET</h2>
       <div class="fm-seg" data-key="series">
         <button type="button" data-value="letter" aria-pressed="true">LETTER</button>
@@ -290,6 +302,7 @@
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
   <script src="/assets/exo-link.js?v=1"></script>
+  <script src="/assets/exo-webserial.js"></script>
   <script src="/assets/exo-df.js"></script>
   <script src="/assets/exo-rf-db.js"></script>
   <script src="/assets/exo-playbook.js"></script>
@@ -297,6 +310,10 @@
   <script src="/assets/exo-aar.js"></script>
   <script type="module" src="/assets/exo-decide.js"></script>
   <script src="app.js?v=22"></script>
+  <script src="/assets/exo-adsb-ais.js"></script>
+  <script src="/assets/exo-mavlink.js"></script>
+  <script src="/assets/exo-sitrep.js"></script>
+  <script src="/assets/exo-qr-beam.js"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

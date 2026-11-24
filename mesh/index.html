@@ -519,6 +519,8 @@ MESH QUIET — peer dots appear when nodes report position.</div>
     <h3>Link</h3>
     <button class="opt" id="optWifi"><b>Wi-Fi</b><span>On the node AP, open http://192.168.4.1. This site is not the radio.</span></button>
     <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
+    <button class="opt" id="optUsb" data-usb-node-connect><b>CONNECT USB NODE</b><span id="usbHint">Chrome / Edge — Heltec V4 at 115200. Same track, way, rf, and sos lines.</span></button>
+    <p data-usb-node-status>NO USB DEVICE · CLICK CONNECT USB</p>
     <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
   </div>
 </div>
@@ -559,7 +561,10 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   });
 })();
 </script>
+<p id="exo-mesh-topo">STANDBY</p>
+<canvas id="exo-mesh-graph" width="640" height="180"></canvas>
 <script src="app.js?v=61"></script>
+<script src="/assets/exo-webserial.js"></script>
 <script>
 (function () {
   var el = document.getElementById("aboutVer");
@@ -585,6 +590,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 <script src="/assets/exo-room.js"></script>
 <script src="/assets/exo-aar.js"></script>
 <script src="/assets/exo-tabs.js?v=1"></script>
+<script src="/assets/exo-mesh-router.js"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

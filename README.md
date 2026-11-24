@@ -27,11 +27,15 @@ Live source: **https://github.com/Breaux-cpu/exopace.net**. This GitHub tree **i
 
 ## Install Radio
 
-- Chrome / Edge → **INSTALL APP**
-- iPhone Safari → Share → Add to Home Screen
-- **CONNECT → Bluetooth → `EXOpace-XXXX`**
-- Do **not** pair in Android Settings
+Direct hardware, in the browser. No Python server and no tunnel.
+
+- **USB SDR** — Chrome or Edge: `/radio/` Live or Decode → **CONNECT USB SDR**. RTL2832U with R820T or R828D (`0x0bda` / `0x2838` or `0x2832`). Until a dongle is paired the page stays `NO USB DEVICE · CLICK CONNECT USB`. Firefox and iOS Safari have no WebUSB. Mic and line-in still work there.
+- **USB mesh** — `/mesh/` and `/maps/` → **CONNECT USB NODE**. Heltec V4 or another ESP32-S3 node at 115200. The bytes are the same v3.0 `track`, `way`, `rf`, and `sos` lines as Bluetooth.
+- **CONNECT → Bluetooth → `EXOpace-XXXX`** when the node is on BLE. Do **not** pair in Android Settings.
 - Wi-Fi fallback: join `EXOpace-XXXX` / `nodelink` → http://192.168.4.1
+- Chrome / Edge → **INSTALL APP**. iPhone Safari → Share → Add to Home Screen.
+
+`scripts/sdr-bridge/` is an optional archived headless relay for a machine that already runs `rtl_tcp`. It is not the visitor path.
 
 Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 
@@ -92,9 +96,13 @@ See `FIRMWARE.md`. The `firmware/exopace_v4/` overlay and `~/nodelink` field tre
 
 ## SDR / ingest (not in this git tree)
 
-`SDR_AGENT.md` is the contract: readsb `aircraft.json` on localhost:8080, AIS-catcher optional, one RTL-SDR per band, no demo/fake tracks in prod. The USB dongle lives on workstation **jessy** — not on a Cloud Agent VM; do not open `/dev/bus/usb` here.
+Direct USB is the primary radio path. WebUSB on `/radio/` tunes 24 MHz to 1766 MHz, sets the sample rate, tuner gain, and AGC, and streams bulk IQ into a radix-2 FFT plus FM, AM, or USB audio. Web Serial on `/mesh/` and `/maps/` is the primary node path. The page does not invent spectrum. With no dongle it reads `NO USB DEVICE · CLICK CONNECT USB`.
 
-The Memphis sensor (**dj**) is `SDR.md`: same no-fake rules but a wider verified matrix — ADS-B/AIS/APRS/POCSAG/ISM, Meteor LRPT + NOAA, ISS SSTV, ACARS, RS41 radiosonde tracking, P25/YSF voice, WSPR/FT8, RDS, wideband sweep, rtl_tcp — with a Tailnet phone web UI (`sdr-web`).
+`scripts/sdr-bridge/` is an optional archived relay. It still refuses to invent FFT frames when `rtl_tcp` is down.
+
+`SDR_AGENT.md` remains the headless-agent contract: readsb `aircraft.json` on localhost:8080, AIS-catcher optional, no demo tracks. Do not open `/dev/bus/usb` on a Cloud Agent VM.
+
+`SDR.md` keeps the wider decoder matrix — ADS-B/AIS/APRS/POCSAG/ISM, Meteor LRPT + NOAA, ISS SSTV, ACARS, RS41 radiosonde tracking, P25/YSF voice, WSPR/FT8, RDS, wideband sweep, rtl_tcp. Those host decoders are not required to hear the dongle in the browser.
 
 The Python agent is `/mnt/gsdata/exopace/sdr-agent`. Public `wss://exopace.net/bridge/sensor` is **not** a Pages route yet. Until a Worker/ingest origin exists, MOC AIR/SEA/RF stay empty and must read **ERROR / OFFLINE / NO RF SAMPLES** — never invented tracks.
 
