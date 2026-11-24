@@ -38,14 +38,14 @@
          already falls back to ui-monospace. Load it async; the boot card paints
          on the system mono either way. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=optional"
       rel="stylesheet"
       media="print"
       onload="this.media='all';this.onload=null"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=optional"
         rel="stylesheet"
       />
     </noscript>
@@ -103,6 +103,15 @@
         pointer-events: none;
       }
       #exo-toast[hidden] { display: none; }
+      /* Reserve the lock photo slot so the title and facts do not jump when it arrives. */
+      .dossier { padding-top: 144px; }
+      .dossier img.lock-photo {
+        position: absolute; top: 12px; left: 12px; right: 12px;
+        width: auto; height: 120px; object-fit: cover; display: block;
+      }
+      @media (min-width: 900px) {
+        .tl { flex-wrap: nowrap; min-height: 44px; }
+      }
     </style>
     <link rel="modulepreload" crossorigin href="/assets/index-B5yAHF7-.js?v=94">
     <link rel="modulepreload" crossorigin href="/assets/sat-CIpmmEb5.js">
@@ -251,6 +260,18 @@
         var url = (m ? "/" : location.pathname) + (s ? "?" + s : "") + hash;
         if (m) location.replace(url);
         else history.replaceState(null, "", url);
+      })();
+    </script>
+    <script>
+      (function () {
+        var orig = history.replaceState;
+        history.replaceState = function (state, title, url) {
+          if (typeof url === "string") {
+            if (url === "/") url = "/mission/";
+            else if (url.slice(0, 2) === "/?") url = "/mission/" + url.slice(1);
+          }
+          return orig.call(history, state, title, url);
+        };
       })();
     </script>
     <script>window.CESIUM_BASE_URL = "/cesium/";</script>
