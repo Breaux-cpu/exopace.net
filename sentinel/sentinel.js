@@ -4,14 +4,14 @@ import { BLE, FEEDS } from "../assets/exo-config.js";
 import { pull } from "../assets/exo-feeds.js";
 import { decide } from "../assets/exo-decide.js";
 import {
-  catalogNote, epochAgeDays, findAircraft, findBird, findShip, insideFence, rankText, validWatch,
+  catalogNote, epochAgeDays, feedState, findAircraft, findBird, findShip, insideFence, rankText, validWatch,
 } from "../assets/exo-watch.js";
 
 const statusEl = document.getElementById("sn-status");
 const feedEl = document.getElementById("sn-feed");
 let lane = "all";
 let fix = null;
-let ble = "BLE UNAVAILABLE";
+let ble = "Limited Service";
 let busy = false;
 
 function say(text) { if (statusEl) statusEl.textContent = text; }
@@ -80,10 +80,10 @@ async function loadTle() {
   for (const path of FEEDS.tle) {
     try {
       const res = await fetch(path, { cache: "no-store" });
-      if (!res.ok) { notes.push("TLE UNREACHABLE"); continue; }
+      if (!res.ok) { notes.push("Unavailable"); continue; }
       birds.push(...parseTle(await res.text()));
     } catch (err) {
-      notes.push("TLE UNREACHABLE");
+      notes.push("Unavailable");
     }
   }
   return { birds, notes };
@@ -142,18 +142,21 @@ async function evaluate() {
   const aircraft = air.data && Array.isArray(air.data.aircraft) ? air.data.aircraft : [];
   const ships = sea.data && Array.isArray(sea.data.ships) ? sea.data.ships : [];
 
-  if (air.error) notes.push({ lane: "air", title: "AIR", body: "FEED UNREACHABLE" });
-  else if (!armed.some((row) => row.kind === "icao") && !fences.length) notes.push({ lane: "air", title: "AIR", body: "STANDBY" });
+  if (air.error) notes.push({ lane: "air", title: "AIR", body: "Unavailable" });
+  else if (!armed.some((row) => row.kind === "icao") && !fences.length) notes.push({ lane: "air", title: "AIR", body: "Standby" });
   else notes.push({ lane: "air", title: "AIR", body: aircraft.length ? aircraft.length + " TRACKS" : "QUIET" });
 
-  if (sea.error) notes.push({ lane: "sea", title: "SEA", body: "FEED UNREACHABLE" });
+  if (sea.error) notes.push({ lane: "sea", title: "SEA", body: "Unavailable" });
   else notes.push({ lane: "sea", title: "SEA", body: ships.length ? ships.length + " SHIPS · " + (sea.data.region || "SEA") : "QUIET" });
 
-  if (!tle.birds.length) notes.push({ lane: "orbital", title: "ORBITAL", body: tle.notes[0] || "TLE UNREACHABLE" });
-  else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " CACHED" + (fix ? "" : " · NO FIX") });
+  const ages = tle.birds.map((bird) => epochAgeDays(bird.l1)).filter((age) => age != null);
+  const catalogAge = ages.length ? Math.min(...ages) : null;
+  const catalogState = tle.notes.length && !tle.birds.length ? "ERROR" : feedState(catalogAge);
+  if (!tle.birds.length) notes.push({ lane: "orbital", title: "ORBITAL", body: catalogState });
+  else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " " + catalogState + (fix ? "" : " · NO FIX") });
 
   notes.push({ lane: "rf", title: "RF", body: "BROWSER CANNOT SCAN WIFI OR CELL · " + ble });
-  notes.push({ lane: "geofences", title: "GEOFENCES", body: fences.length ? fences.length + " ARMED" : "STANDBY" });
+  notes.push({ lane: "geofences", title: "GEOFENCES", body: fences.length ? fences.length + " ARMED" : "Standby" });
   if (queue.length) notes.push({ lane: "all", title: "QUEUE", body: queue.length + " QUEUED · LOCAL ONLY" });
 
   armed.forEach((watch) => {
@@ -176,7 +179,7 @@ async function evaluate() {
         return;
       }
       const age = epochAgeDays(bird.l1);
-      const ageText = age == null ? "CACHED" : "CACHED · EPOCH AGE " + age.toFixed(1) + " D";
+      const ageText = age == null ? "ERROR" : feedState(age) + " · EPOCH AGE " + age.toFixed(1) + " D";
       if (!fix) {
         notes.push({ lane: "orbital", title: bird.name, body: ageText + " · NO FIX" });
         return;
@@ -194,11 +197,11 @@ async function evaluate() {
   });
 
   const cameraWatches = armed.filter((row) => row.kind === "camera");
-  if (!cameraWatches.length && !fences.length) notes.push({ lane: "cameras", title: "CAMERAS", body: "STANDBY" });
+  if (!cameraWatches.length && !fences.length) notes.push({ lane: "cameras", title: "CAMERAS", body: "Standby" });
   for (const watch of cameraWatches) {
     const cam = await pull(FEEDS.cameras + "?id=" + encodeURIComponent(watch.value), remember);
     const features = cam.data && Array.isArray(cam.data.features) ? cam.data.features : [];
-    if (cam.error) notes.push({ lane: "cameras", title: "CAMERA " + watch.value, body: "FEED UNREACHABLE" });
+    if (cam.error) notes.push({ lane: "cameras", title: "CAMERA " + watch.value, body: "Unavailable" });
     else if (!features.length) notes.push({ lane: "cameras", title: "CAMERA " + watch.value, body: "QUIET" });
     else {
       const feature = features[0];
@@ -245,7 +248,7 @@ document.querySelectorAll(".sn-tabs button").forEach((btn) => {
 document.getElementById("sn-add").addEventListener("click", async () => {
   const kind = document.getElementById("sn-kind").value;
   const value = document.getElementById("sn-value").value.trim();
-  if (!validWatch(kind, value)) { say("STANDBY"); return; }
+  if (!validWatch(kind, value)) { say("Standby"); return; }
   await putRow("watches", { id: id(), kind, value, armed: true });
   evaluate();
 });
@@ -261,7 +264,7 @@ document.getElementById("sn-fence").addEventListener("click", async () => {
   }
   const gate = await decide("noul", { name });
   const spam = gate && gate.answers && gate.answers.spam;
-  if (spam && spam.noul >= 0.8) { say("STANDBY"); return; }
+  if (spam && spam.noul >= 0.8) { say("Standby"); return; }
   await putRow("fences", { id: id(), name, lat, lon, radiusM, armed: true });
   evaluate();
 });
@@ -279,7 +282,7 @@ document.getElementById("sn-refresh").addEventListener("click", evaluate);
 
 document.getElementById("sn-ble").addEventListener("click", async () => {
   if (!navigator.bluetooth || !navigator.bluetooth.requestDevice) {
-    ble = "BLE UNAVAILABLE";
+    ble = "Limited Service";
     say(ble);
     return;
   }
@@ -297,5 +300,5 @@ document.getElementById("sn-ble").addEventListener("click", async () => {
   evaluate();
 });
 
-say("STANDBY");
+say("Standby");
 evaluate();

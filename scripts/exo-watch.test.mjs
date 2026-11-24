@@ -11,10 +11,10 @@ function check(name, ok) {
 const text = readFileSync(new URL("../tle/stations.txt", import.meta.url), "utf8");
 const birds = parseTle(text);
 const iss = birds.find((row) => row.norad === "25544");
-check("iss cached", catalogNote(birds, "25544") === "CACHED" && iss && iss.l1.startsWith("1 25544"));
-check("unknown norad", catalogNote(birds, "99999") === "NOT IN CACHED TLE");
-const age = epochAgeDays(iss.l1, Date.parse("2026-11-23T00:00:00Z"));
-check("epoch age", age > 70 && age < 120);
+check("iss live or stale", (catalogNote(birds, "25544", Date.parse("2026-11-24T22:00:00Z")) === "LIVE" || catalogNote(birds, "25544", Date.parse("2026-11-24T22:00:00Z")) === "STALE") && iss && iss.l1.startsWith("1 25544"));
+check("unknown norad", catalogNote(birds, "99999") === "ERROR");
+const age = epochAgeDays(iss.l1, Date.parse("2026-11-24T22:00:00Z"));
+check("epoch age", age >= 0 && age < 14);
 
 const a = { lat: 47.6, lon: -122.3 };
 const near = { lat: 47.601, lon: -122.3 };
