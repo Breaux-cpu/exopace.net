@@ -1,0 +1,435 @@
+{
+  "product": "exopace",
+  "files": [
+    {
+      "path": "assets/exo-aar.js",
+      "sha256": "932ec5f3262c87a5d5a26450bbef035fdf49783e6501981df40488d72d6cba6f",
+      "bytes": 1397
+    },
+    {
+      "path": "assets/exo-acoustic-intel.js",
+      "sha256": "13d7afa509a70f9d1d3b48188212f3a26b3765b2613bb8ab4f020ef86a8db782",
+      "bytes": 2586
+    },
+    {
+      "path": "assets/exo-adsb-ais.js",
+      "sha256": "c2ae17c409d5aa73448338752089246b3baf5533d0f29ee099dcf54c32363931",
+      "bytes": 8028
+    },
+    {
+      "path": "assets/exo-amc.js",
+      "sha256": "a3ea6551ab094836260c6ef4e11d8a1f466cf7304404679dc417b94080e6f698",
+      "bytes": 8195
+    },
+    {
+      "path": "assets/exo-apt-decoder.js",
+      "sha256": "3ce397fe1ff7015acf8616460a3d9d112987dcdaacca97e8b5e7c153f6258ed2",
+      "bytes": 5399
+    },
+    {
+      "path": "assets/exo-astro-nav.js",
+      "sha256": "1073a2f7eef3cfacc3ef730d21848b26d45f9a490761bf0edaee0a7919ee7f28",
+      "bytes": 4034
+    },
+    {
+      "path": "assets/exo-audio.js",
+      "sha256": "1e5c96740ee920cc45814ed9f1bd240e9bdc1fd97dc96017dbd664d1ea420189",
+      "bytes": 14455
+    },
+    {
+      "path": "assets/exo-brief-ai.js",
+      "sha256": "ccc6a5c2b6b87bc821a02c35964849d7f978decdfcb547504baff97cfa43a66b",
+      "bytes": 2445
+    },
+    {
+      "path": "assets/exo-bus.js",
+      "sha256": "b62ab264833dfdbd086e5e83b8c583081cb9ce1b2b4afb4fbf23efe36daac763",
+      "bytes": 1241
+    },
+    {
+      "path": "assets/exo-cmd.js",
+      "sha256": "9269c39490723a8aeee22ca0c0447419e6674791019518294f68000d2d6b27ac",
+      "bytes": 8575
+    },
+    {
+      "path": "assets/exo-config.js",
+      "sha256": "8e37ae84349500914fa49ea811e4495d71c71fada78a4a308ab133b3b38a1d85",
+      "bytes": 780
+    },
+    {
+      "path": "assets/exo-custody.js",
+      "sha256": "665466396607aff699d199a727f41ce7ef3746b95bd789c61a1f109ae928458d",
+      "bytes": 4049
+    },
+    {
+      "path": "assets/exo-decide.js",
+      "sha256": "d9d8dea67b4b7733e5beec2a2e9689cbec1afef3bba4b96dc9ef2cfa9913a86f",
+      "bytes": 3090
+    },
+    {
+      "path": "assets/exo-dem.js",
+      "sha256": "882f7ce1a026eb7e7eef7aa4e10f54cc84b0068f2f24017ae2181d90e3197402",
+      "bytes": 4282
+    },
+    {
+      "path": "assets/exo-df.js",
+      "sha256": "283a065b1f27a09cee3dfef535ea97348ca58cb6e01feee54b37e22152c64a4c",
+      "bytes": 3033
+    },
+    {
+      "path": "assets/exo-feeds.js",
+      "sha256": "631b7c37eaccc1cb8f744095feadaa141839c12ee569f2d889d0831c7954860d",
+      "bytes": 469
+    },
+    {
+      "path": "assets/exo-iq-dsp.js",
+      "sha256": "26abdff596d032edac344b141b138dafdff34df4db93874b9b2b3d2866262c19",
+      "bytes": 4800
+    },
+    {
+      "path": "assets/exo-iq-worker.js",
+      "sha256": "259f7d38ef0b1764a42775cfc3f5a808c9a9bb596a13f61139f8a4513240542e",
+      "bytes": 1499
+    },
+    {
+      "path": "assets/exo-link-qos.js",
+      "sha256": "5eaf61dbdcd8cb7b82b955e623de9b45354dc49b02c1225885d67605153aa082",
+      "bytes": 3443
+    },
+    {
+      "path": "assets/exo-link.js",
+      "sha256": "8f5b6a40dbc35ed755524e721db11692ee2360ebb30f078a812f8fbefcd158b0",
+      "bytes": 30501
+    },
+    {
+      "path": "assets/exo-mavlink.js",
+      "sha256": "7ae3c6e33d724a0c496a45978d195cc56fa198eb37969a1bfe5c0b1a744cfbd2",
+      "bytes": 5464
+    },
+    {
+      "path": "assets/exo-mesh-router.js",
+      "sha256": "7b8f8d1c42e25e01b162c397e7610d5bceec7c8885c444c4bb2c1467c363435e",
+      "bytes": 2358
+    },
+    {
+      "path": "assets/exo-mission-planner.js",
+      "sha256": "98b04f406cf8fdf6db2a1e6d84ad61b93f6eb7274b8c774a93c03b4d5efd51cf",
+      "bytes": 8327
+    },
+    {
+      "path": "assets/exo-nostr-sync.js",
+      "sha256": "d628526eadd310d82d9ff72b797462bae668a11514b1701e84091f2529b339d3",
+      "bytes": 1845
+    },
+    {
+      "path": "assets/exo-orbit.js",
+      "sha256": "92be6e65664e6740ac067ad55aa154bb9dd9f7a6fc5fc1dd8c25399c91f4e109",
+      "bytes": 10191
+    },
+    {
+      "path": "assets/exo-passive-radar.js",
+      "sha256": "41863d1f6703823612e2c0a5d979ca8f4655ee54e9eff7f69ecd5e460565a0e6",
+      "bytes": 5205
+    },
+    {
+      "path": "assets/exo-pip.js",
+      "sha256": "444d8f3600f892e9b1df7e1df78fb754c9a8d9ed0f48d88b7a89ceeb70e44373",
+      "bytes": 1958
+    },
+    {
+      "path": "assets/exo-playbook.js",
+      "sha256": "5844154546b647a88e3c260ddca428656edd3fee3a37360ff5cd360a0b717fd0",
+      "bytes": 1474
+    },
+    {
+      "path": "assets/exo-plume.js",
+      "sha256": "deba9f641db4a8c8f288c15fba6996346a172d493c3bf7c98fa2ab4d5e523581",
+      "bytes": 2718
+    },
+    {
+      "path": "assets/exo-prop.js",
+      "sha256": "54b73ff7c647dcad1e33ba61735adb41503d048f5e70e6ddefb7196e9097a9ff",
+      "bytes": 2085
+    },
+    {
+      "path": "assets/exo-qr-beam.js",
+      "sha256": "d897ab53f6402d9ca860c7c2e4288c9327a62d8a27d2869dda3254b8e856b7ac",
+      "bytes": 3445
+    },
+    {
+      "path": "assets/exo-replay-sandbox.js",
+      "sha256": "752bc9afc8b2902c5c1df22e88b9fe924eee8a5410675c7afc48da239acac8f7",
+      "bytes": 4167
+    },
+    {
+      "path": "assets/exo-rf-db.js",
+      "sha256": "7783e146324912979fc116b86222312ed8ae226d5f8e60401321f0105f06627f",
+      "bytes": 1677
+    },
+    {
+      "path": "assets/exo-rf-guard.js",
+      "sha256": "fae71f01850aa56470cdba9534f33edcac35335fd13bd580a21242aee7d85df9",
+      "bytes": 2457
+    },
+    {
+      "path": "assets/exo-room.js",
+      "sha256": "2715d91a9670bb62a5cfd074ccf10ec371cfa16925be54d550358de12f4c9e4a",
+      "bytes": 1647
+    },
+    {
+      "path": "assets/exo-rotator.js",
+      "sha256": "d1429d9c53bf2514fbb8665bc6460795ffc4300cb4595ad3eb9f0131e09f7dbf",
+      "bytes": 2429
+    },
+    {
+      "path": "assets/exo-sdr-client.js",
+      "sha256": "ea974f65cf541352d77991c16c196ab025bf24c1a42fd02932fd636d1a6b31ae",
+      "bytes": 5128
+    },
+    {
+      "path": "assets/exo-sentinel.js",
+      "sha256": "b21f4751f65e10d00ca2429b155da5dbcce3318dd60b558f3d8ea8fa9bd489a8",
+      "bytes": 18531
+    },
+    {
+      "path": "assets/exo-sitrep.js",
+      "sha256": "6ffe64f4ff8d74f421fa3ef2757b96ee3227c8aeae93bc844625402c095511a5",
+      "bytes": 2490
+    },
+    {
+      "path": "assets/exo-state.js",
+      "sha256": "6b1c23f01bdf01c116c56033ca1939ba060fa3d07cda8873abdd620e4baa5cfc",
+      "bytes": 6353
+    },
+    {
+      "path": "assets/exo-swarm.js",
+      "sha256": "64224910bf97b2b3f234c2a49c3adc9f3c4192ab61b1de679559c0f3f79682e9",
+      "bytes": 3961
+    },
+    {
+      "path": "assets/exo-tabs.js",
+      "sha256": "9052b9dcd9ef94d979c0298f40fe86e8a6633d1b3bc14ec599f7eb8da49ce2e8",
+      "bytes": 4366
+    },
+    {
+      "path": "assets/exo-throttle.js",
+      "sha256": "5f436b2d426f2dd3e6edc3da10616c17a36216db263b075d4fd7cc7e38065416",
+      "bytes": 1504
+    },
+    {
+      "path": "assets/exo-viewshed.js",
+      "sha256": "1f9fd9a2f105d7fef7f45f431f5b48377036cd62d73b67ba43efd1630a1f7637",
+      "bytes": 2947
+    },
+    {
+      "path": "assets/exo-voice-codec2.js",
+      "sha256": "8eb4523d20cd2ec9ea99456737f088897daebd91b1536d6ef2525441bab31b28",
+      "bytes": 2343
+    },
+    {
+      "path": "assets/exo-watch.js",
+      "sha256": "9519babe1aa02bdf31ea137530e8ae3f93935d967ac8c36e15a5d36bf4858c4c",
+      "bytes": 2141
+    },
+    {
+      "path": "assets/exo-webserial.js",
+      "sha256": "42ccae652e39dfe52d2f8c7df0fc23771b0819e97f4179410980796565919a18",
+      "bytes": 7967
+    },
+    {
+      "path": "assets/exo-webusb-sdr.js",
+      "sha256": "69e257be969e045094755570ee05301c3dbf01fd8394cdd97f6c16d6b7fff65d",
+      "bytes": 22765
+    },
+    {
+      "path": "deploy/field-box/Caddyfile",
+      "sha256": "8fa0980646eaf25d2859c996e858512da69bda3851db826af409c59e31cc35be",
+      "bytes": 114
+    },
+    {
+      "path": "deploy/field-box/README.md",
+      "sha256": "f3965eef02967c502a10712a11decc9f4e2a1e3e2f46009ec0e2324965217e20",
+      "bytes": 430
+    },
+    {
+      "path": "deploy/field-box/docker-compose.yml",
+      "sha256": "e4e683f147f473aeb2d5ede11df50ace90a3f25c7cbae039b0b5afea73afee57",
+      "bytes": 694
+    },
+    {
+      "path": "deploy/field-box/federation/README.md",
+      "sha256": "8480fdf7bddf3d386d71e3ef7ff79c65b0c83eb4b34e36b2013192ab7a993d25",
+      "bytes": 565
+    },
+    {
+      "path": "deploy/field-box/federation/docker-compose.yml",
+      "sha256": "df977745c97cd653383f9e68821d49785621367889b89acc497c4282b7c01f35",
+      "bytes": 251
+    },
+    {
+      "path": "deploy/field-box/federation/relay.py",
+      "sha256": "b459b1bc71e5fea510eca080817e7a1218f7b7431fe224175d2cb335549b31b3",
+      "bytes": 2097
+    },
+    {
+      "path": "deploy/vq-watchdog.sh",
+      "sha256": "8e58b5f332861d655c44d08f3bc37631795f0aea1b40b35fc7fd0c7631da5584",
+      "bytes": 889
+    },
+    {
+      "path": "functions/api/cameras.geojson.js",
+      "sha256": "9784522f4f589dc11a1ced4ad0f839c51feb66fb11d314d32b1e5ad1cee2ed2b",
+      "bytes": 2903
+    },
+    {
+      "path": "functions/api/cams/[[path]].js",
+      "sha256": "7c9bd279594478099056128d4d1c3fd43ed416c5e5fe5d784dbcfac86fd6c941",
+      "bytes": 1805
+    },
+    {
+      "path": "functions/api/elevation.js",
+      "sha256": "d07d571221e13fe6b9e2fb2a9d98e80a04930f1ef7d6fc55d3c97e7edb560283",
+      "bytes": 3588
+    },
+    {
+      "path": "functions/api/geocode.js",
+      "sha256": "f8be8633534de8187c607952353fa437239e1ddfb6e268e75e5691303dd316ff",
+      "bytes": 1686
+    },
+    {
+      "path": "functions/api/hydro.js",
+      "sha256": "cb81a2e62151b5dfcb9626b290d225c3eb090cca86072c6fb49cf6b70e2c2cad",
+      "bytes": 4296
+    },
+    {
+      "path": "functions/api/overlay.js",
+      "sha256": "38075ae87c40f6cb3b2edc6403e41438d14e9b45bb5e3ea53fa1521a5f4b6d71",
+      "bytes": 8299
+    },
+    {
+      "path": "functions/api/room/[code].js",
+      "sha256": "5e2888305ecfe0bee83ebd31c14e0593fd38d34252a73076131198781b123645",
+      "bytes": 1405
+    },
+    {
+      "path": "functions/api/sentinel/[[path]].js",
+      "sha256": "7c9bd279594478099056128d4d1c3fd43ed416c5e5fe5d784dbcfac86fd6c941",
+      "bytes": 1805
+    },
+    {
+      "path": "functions/api/spaceweather.js",
+      "sha256": "f037a19dcdaadbed4afdc40c49f8ed3ba7fe1d670f52d25a3b6052daed6d4b12",
+      "bytes": 1427
+    },
+    {
+      "path": "functions/api/terrain/[z]/[x]/[y].js",
+      "sha256": "d7017e8dba2f2972058e1b93a4ae6c9819fa0536678c5df18234f890d7d96832",
+      "bytes": 806
+    },
+    {
+      "path": "functions/api/traffic/air.js",
+      "sha256": "8dd675290857f7845f0aade67b2472e1334a220040fc2b4441ad5cb4afe2bafe",
+      "bytes": 2558
+    },
+    {
+      "path": "functions/api/traffic/sea.js",
+      "sha256": "5e1aadce65a2fc05f3694d0e13039f3f5062ac69da4ddd1b9624886db83747be",
+      "bytes": 1521
+    },
+    {
+      "path": "functions/api/weather/radar.js",
+      "sha256": "db87b13cf9781c5cfde2a55a6216f67c20b002c847abfbea861496e63624ab1f",
+      "bytes": 996
+    },
+    {
+      "path": "functions/api/weather/storms.js",
+      "sha256": "08455fd9f99559829144df171d92dc0afeb1aeaef087f5ec68e9e955d14aa392",
+      "bytes": 2647
+    },
+    {
+      "path": "scripts/audit-ui-consistency.mjs",
+      "sha256": "9f4f30505bfd4dbfb1c228dc5f03cb57534228e6186413727c77d057e9c0332a",
+      "bytes": 6623
+    },
+    {
+      "path": "scripts/chaos-audit.test.mjs",
+      "sha256": "084e177a5eddbc54025efdb9d9e3426a32c9bdce3e2222fbdf19ab0de484fe71",
+      "bytes": 1292
+    },
+    {
+      "path": "scripts/exo-decide.test.mjs",
+      "sha256": "37020700037b89964c51d45828b2e8d7afec2117cdab141fc2f01155c38108f4",
+      "bytes": 1956
+    },
+    {
+      "path": "scripts/exo-dem.test.mjs",
+      "sha256": "e90efc6097054300e30dd766f907f34e7fb822d7b5af778f60a6f0723ed38320",
+      "bytes": 1062
+    },
+    {
+      "path": "scripts/exo-df.test.mjs",
+      "sha256": "fb064f7d74a00243b9828c9c34c1071f92bc5cd4d3255fdc8229a14b613ce827",
+      "bytes": 1337
+    },
+    {
+      "path": "scripts/exo-playbook.test.mjs",
+      "sha256": "71c46f5a35dcbfb81e45803d4dc3b0a21b0d46cb2de151bdc5f37e3d8a5e1ee0",
+      "bytes": 1109
+    },
+    {
+      "path": "scripts/exo-room.test.mjs",
+      "sha256": "400137f98b4ac3512d792c7efc8a62e3ae58e2dfadfde6883a900c8dd8a89e01",
+      "bytes": 1015
+    },
+    {
+      "path": "scripts/exo-sdr-bridge.test.mjs",
+      "sha256": "5c554654c86472a4bf465d58c164a521c9bf73d56a19e87371a079f357ad003c",
+      "bytes": 1638
+    },
+    {
+      "path": "scripts/exo-spaceweather.test.mjs",
+      "sha256": "ad6fac56f6c94a87265e5b1764ff7cb9542ffcb9fd48e47dda54347ebf975091",
+      "bytes": 471
+    },
+    {
+      "path": "scripts/exo-watch.test.mjs",
+      "sha256": "d7b18d508c9a590cb00ac9ae90af7e8a8a8619c088453b510360e2592e8b99ad",
+      "bytes": 1287
+    },
+    {
+      "path": "scripts/exo-wave.test.mjs",
+      "sha256": "a6256294f420a1d053431e4dbccb40f3169dd06134b89d82605d5e62666707c0",
+      "bytes": 6249
+    },
+    {
+      "path": "scripts/exo-wave3.test.mjs",
+      "sha256": "8fc071a58724c902dd07b6ede89130bdc13529eaf3f25cae90f93b95f382b25b",
+      "bytes": 9114
+    },
+    {
+      "path": "scripts/exo-wave4.test.mjs",
+      "sha256": "ec5b5c0e65a7723a6182350bd504720ffc9577929f955cc9dc6440570152c0f3",
+      "bytes": 14411
+    },
+    {
+      "path": "scripts/exo-webusb-sdr.test.mjs",
+      "sha256": "651e57200d76ad1f0aa772fc942ef1d0fe71550a5a926ceb7be6bc099ed8b234",
+      "bytes": 2017
+    },
+    {
+      "path": "scripts/generate-sbom.mjs",
+      "sha256": "7d33b8e2787db24e375b90aa5580685a989b01935a775097efc9a970e7e3a0e9",
+      "bytes": 2965
+    },
+    {
+      "path": "scripts/monitor-exopace.mjs",
+      "sha256": "f539b6fef507516ca46cd2f19ecae72e871252294a0371b91bbddebbeddf806c",
+      "bytes": 7771
+    },
+    {
+      "path": "scripts/verify.mjs",
+      "sha256": "35cc565e743b3866fedf6c5d3ea6f678f205fb3fbb244bad03f6796c6af684c9",
+      "bytes": 64766
+    }
+  ]
+}
