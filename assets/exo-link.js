@@ -328,9 +328,24 @@
     if (points[0].lat == null || points[1].lat == null) { setStatus("NEED TWO POINTS"); return Promise.resolve(null); }
     var band = bandById(host.querySelector("[data-band]").value);
     var n = 48;
-    var url = "/api/elevation?a=" + points[0].lat.toFixed(5) + "," + points[0].lon.toFixed(5)
-      + "&b=" + points[1].lat.toFixed(5) + "," + points[1].lon.toFixed(5) + "&n=" + n;
-    return fetch(url).then(function (res) { return res.json(); }).catch(function () { return { ok: false }; }).then(function (body) {
+    var path = [];
+    for (var i = 0; i < n; i++) {
+      var t = i / (n - 1);
+      path.push({
+        lat: points[0].lat + (points[1].lat - points[0].lat) * t,
+        lon: points[0].lon + (points[1].lon - points[0].lon) * t,
+      });
+    }
+    var demJob = root.EXO && root.EXO.dem
+      ? root.EXO.dem.samplePath(path).catch(function () { return null; })
+      : Promise.resolve(null);
+    return demJob.then(function (demSamples) {
+      var measured = demSamples && demSamples.length > 1 && demSamples.every(function (row) { return row.elev != null; });
+      if (measured) return { ok: true, samples: demSamples };
+      var url = "/api/elevation?a=" + points[0].lat.toFixed(5) + "," + points[0].lon.toFixed(5)
+        + "&b=" + points[1].lat.toFixed(5) + "," + points[1].lon.toFixed(5) + "&n=" + n;
+      return fetch(url).then(function (res) { return res.json(); }).catch(function () { return { ok: false }; });
+    }).then(function (body) {
       var samples = body && body.ok && body.samples && body.samples.length > 1 ? body.samples : null;
       var flatNote = "";
       if (!samples) {
@@ -682,6 +697,7 @@
       if (!ev || !ev.lngLat || (armed !== "A" && armed !== "B")) return false;
       return takeClick(ev.lngLat.lat, ev.lngLat.lng);
     },
+    profile: profile,
     fresnel: fresnel,
     fspl: fspl,
     bulge: bulge,

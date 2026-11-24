@@ -15,10 +15,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-    <link rel="stylesheet" href="/assets/exo-modern.css?v=5" />
+    <link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
     <style>
-      html, body { margin: 0; min-height: 100%; background: var(--exo-void); color: var(--exo-cyan); }
-      body { display: flex; flex-direction: column; font-family: var(--exo-mono); }
+      html, body { margin: 0; min-height: 100%; color: var(--exo-cyan); }
+      body { display: flex; flex-direction: column; }
       .miss {
         flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
         letter-spacing: 0.2em; font-size: 12px; text-align: center;
@@ -31,9 +31,7 @@
       }
       .miss-jumps a {
         display: flex; align-items: center; justify-content: center; min-height: 44px;
-        padding: 12px 14px; border: 1px solid var(--exo-line); border-radius: 12px;
-        color: var(--exo-text); background: rgba(3, 6, 11, 0.72); text-decoration: none;
-        font-family: var(--exo-sans); font-size: var(--exo-text-sm);
+        padding: 12px 14px; text-decoration: none;
       }
       .miss-jumps a:focus-visible { outline: 2px solid var(--exo-amber); outline-offset: 2px; }
     </style>
@@ -49,6 +47,13 @@
     <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<div class="exo-pill" id="exo-pill" aria-live="polite">
+  <span id="exo-pill-clock">UTC — · JD —</span>
+  <span id="exo-pill-fix">NO FIX</span>
+  <span id="exo-pill-target">NO TARGET</span>
+  <button type="button" id="exo-pill-copy">COPY</button>
+  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+</div>
     <main class="miss" id="exo-main">
       <b>EXOpace</b>
       404 · NO SUCH ROUTE
@@ -60,6 +65,9 @@
         <a href="/cameras/">Cameras</a>
       </nav>
     </main>
+    <script src="/maps/mgrs.js"></script>
+    <script src="/assets/exo-bus.js"></script>
+    <script src="/assets/exo-state.js"></script>
     <script src="/assets/exo-cmd.js?v=1"></script>
   </body>
 </html>

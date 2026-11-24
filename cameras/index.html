@@ -14,19 +14,17 @@
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: #03060b; color: #d7e7ea; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+    html, body { margin: 0; height: 100%; color: #d7e7ea; }
     body { display: flex; flex-direction: column; min-height: 100%; }
     header {
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
       padding: 10px 14px; border-bottom: 1px solid rgba(126, 224, 255, 0.25);
-      background: #03060b;
     }
     .brand { color: #7ee0ff; letter-spacing: 0.18em; text-decoration: none; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
     nav { display: flex; flex-wrap: wrap; gap: 8px; }
     nav a, button.locate {
-      color: #ffe08a; text-decoration: none; border: 1px solid rgba(255, 224, 138, 0.45);
+      text-decoration: none;
       min-height: 44px; min-width: 44px; padding: 0 12px; display: inline-flex; align-items: center;
-      background: transparent; font: inherit; letter-spacing: 0.08em;
     }
     nav a[aria-current="page"] { color: #7ee0ff; border-color: rgba(126, 224, 255, 0.7); }
     #count { margin-left: auto; color: #7ee0ff; font-size: 12px; }
@@ -42,13 +40,12 @@
     }
     .cam-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid rgba(126, 224, 255, 0.25); }
     #cam-q {
-      flex: 1 1 160px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-      background: transparent; color: #e7f4ef; border: 1px solid rgba(126, 224, 255, 0.35);
-      font: inherit; padding: 0 10px;
+      flex: 1 1 160px; min-width: 44px; box-sizing: border-box;
+      padding: 0 10px;
     }
     .cam-stage { flex: 1; min-height: 0; display: flex; }
   </style>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=5" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
 </head>
 <body>
 <header class="exo-bar">
@@ -61,6 +58,13 @@
     <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<div class="exo-pill" id="exo-pill" aria-live="polite">
+  <span id="exo-pill-clock">UTC — · JD —</span>
+  <span id="exo-pill-fix">NO FIX</span>
+  <span id="exo-pill-target">NO TARGET</span>
+  <button type="button" id="exo-pill-copy">COPY</button>
+  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+</div>
   <div class="cam-status">
     <button class="locate" type="button" id="locate">LOCATE</button>
     <input id="cam-q" type="search" aria-label="Search cameras by name or source" placeholder="Name or source" />
@@ -132,6 +136,7 @@
           radius: 5, color: "#7ee0ff", weight: 1, fillColor: "#ffe08a", fillOpacity: 0.9
         });
         marker.camId = id;
+        marker.camName = name;
         const name = props.name ? String(props.name) : "Camera";
         const image = safeHttp(props.image || "");
         const stream = safeHttp(props.stream || "");
@@ -149,6 +154,7 @@
         if (watch) html += '<div><a href="' + esc(watch) + '" target="_blank" rel="noopener">STREAM</a></div>';
         if (id) html += '<div><button type="button" class="cam-copy" data-id="' + esc(id) + '">COPY LINK</button></div>';
         marker.bindPopup(html);
+        marker.on("click", function () { publishCam(marker); });
         marker.addTo(layer);
         markers.push(marker);
       }
@@ -162,6 +168,7 @@
           cursor = markers.indexOf(hit);
           map.setView(hit.getLatLng(), Math.max(map.getZoom(), 12));
           hit.openPopup();
+          publishCam(hit);
         }
       }
     }
@@ -207,6 +214,19 @@
       if (marker.camId) history.replaceState(null, "", "#cam=" + encodeURIComponent(marker.camId));
       map.setView(marker.getLatLng(), Math.max(map.getZoom(), 11));
       marker.openPopup();
+      publishCam(marker);
+    }
+
+    function publishCam(marker) {
+      if (!marker || !window.EXO || !EXO.bus) return;
+      const ll = marker.getLatLng();
+      EXO.bus.set({
+        kind: "camera",
+        id: marker.camId || "",
+        label: marker.camName || "CAMERA",
+        lat: ll.lat,
+        lon: ll.lng,
+      });
     }
 
     async function copyLink() {
@@ -258,6 +278,9 @@
     });
     load();
   </script>
+  <script src="/maps/mgrs.js"></script>
+  <script src="/assets/exo-bus.js"></script>
+  <script src="/assets/exo-state.js"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

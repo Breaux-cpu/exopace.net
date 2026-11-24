@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#04070D" />
   <title>SYSTEM · EXOpace</title>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=6" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
   <style>
     body { margin: 0; background: #04070D; color: #F0F6FC; }
     main { padding: 16px; max-width: 720px; }
@@ -26,6 +26,13 @@
     <a href="/system/" aria-current="page">SYSTEM</a>
   </nav>
 </header>
+<div class="exo-pill" id="exo-pill" aria-live="polite">
+  <span id="exo-pill-clock">UTC — · JD —</span>
+  <span id="exo-pill-fix">NO FIX</span>
+  <span id="exo-pill-target">NO TARGET</span>
+  <button type="button" id="exo-pill-copy">COPY</button>
+  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+</div>
 <main id="exo-main">
   <h1>SYSTEM</h1>
   <p class="sys-row"><span class="sys-k">BLE</span><span id="sys-ble">STANDBY</span></p>
@@ -34,7 +41,9 @@
   <p class="sys-row"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
   <p class="sys-row"><span class="sys-k">SIGN IN</span><a href="https://cams.exopace.net/account">Sign in with Google</a></p>
 </main>
+<script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
+<script src="/assets/exo-state.js"></script>
 <script>
 (function () {
   var ble = document.getElementById("sys-ble");

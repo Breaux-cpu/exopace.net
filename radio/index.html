@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="../assets/exo-modern.css?v=6">
+<link rel="stylesheet" href="../assets/exo-modern.css?v=8">
 <style>
 :root{--bg:#04070d;--bg2:#04070d;--card:rgba(10,18,30,.78);--card2:rgba(10,18,30,.78);--line:rgba(126,224,255,.16);
  --text:#f0f6fc;--muted:#9fb0b4;--accent:#7ee0ff;--accent2:#7ee0ff;--ok:#9fd356;
@@ -17,23 +17,19 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;color:var(--text);font:600 13px/1.45 "IBM Plex Sans",system-ui,sans-serif;
  padding-bottom:calc(16px + env(safe-area-inset-bottom))}
-header{position:sticky;top:0;z-index:9;background:var(--bg);
- padding:12px 14px 0}
+header:not(.exo-bar){position:sticky;top:0;z-index:9;padding:12px 14px 0}
 h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
 a.fieldmaps{margin-left:auto;min-height:44px;display:inline-flex;align-items:center;color:#7ee0ff;font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.04em}
 h1::before{content:"";width:9px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));box-shadow:0 0 12px #22d3ee66}
 .sub{font-size:12px;color:var(--muted);margin:3px 0 10px}
 nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
-nav button{flex:0 0 auto;min-height:44px;background:transparent;border:1px solid transparent;color:var(--muted);
- padding:8px 13px;border-radius:999px;font-size:13px;font-weight:500;transition:.18s}
+nav button{flex:0 0 auto;min-height:44px;padding:8px 13px;transition:.18s}
 @media (max-width:640px){nav:not(.exo-tabs):not(.exo-sites){flex-wrap:wrap;overflow-x:auto}}
-nav button.on{background:linear-gradient(180deg,#123148,#0b2b45 60%,#0a2845);
- border-color:#1c4a6e;color:#bfe6ff;box-shadow:0 1px 8px #0ea5e922}
+nav button.on{box-shadow:none}
 main{padding:14px}section{display:none;animation:fade .22s ease}section.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
- border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 0 #ffffff08 inset}
+.card{padding:14px;margin-bottom:12px}
 .card h2{margin:0 0 10px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;
  letter-spacing:1px}
 .row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #16202d;font-size:14px}
@@ -42,13 +38,11 @@ main{padding:14px}section{display:none;animation:fade .22s ease}section.on{displ
 .v{color:#eef5fb;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
-button.b,a.b{background:linear-gradient(180deg,#1d7de0,#1a6bcf);border:0;color:#fff;padding:12px;
- border-radius:11px;font-size:14px;font-weight:600;width:100%;transition:.15s;box-shadow:0 2px 10px #1d7de033}
-button.b.alt{background:#182238;color:#cfe0f0;box-shadow:none}
-button.b.stop{background:linear-gradient(180deg,#d5483c,#b9342a);box-shadow:0 2px 10px #c9372c33}
+button.b,a.b{padding:12px;width:100%;transition:.15s}
+button.b.alt{box-shadow:none}
+button.b.stop{box-shadow:none}
 button.b:active{transform:scale(.97);opacity:.85}
-input,select{background:#0a1018;border:1px solid #22304a;color:#eef5fb;padding:11px;
- border-radius:10px;font-size:16px;width:100%;outline:none;transition:border .15s}
+input,select{padding:11px;width:100%;outline:none;transition:border .15s}
 input:focus,select:focus{border-color:var(--accent)}
 .pill{display:inline-block;background:#101a28;border:1px solid #243a52;border-radius:6px;
  padding:2px 7px;font-size:11px;color:var(--muted);white-space:nowrap}
@@ -56,9 +50,8 @@ input:focus,select:focus{border-color:var(--accent)}
 canvas{width:100%;display:block;background:#070c13;border:1px solid #14202e;border-radius:10px}
 audio{width:100%;margin-top:9px}
 .presets{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.presets button{background:#101a28;border:1px solid #22304a;color:#cfe0f0;padding:10px 8px;
- border-radius:10px;font-size:13px;text-align:left;transition:.15s}
-.presets button.on{background:#0f2c44;border-color:#1f6ebd;color:#bfe6ff}
+.presets button{padding:10px 8px;font-size:13px;text-align:left;transition:.15s}
+.presets button.on{color:#bfe6ff}
 .presets button:active{transform:scale(.98)}
 .presets small{display:block;color:var(--muted);font-size:11px}
 .f{font-variant-numeric:tabular-nums}
@@ -222,32 +215,41 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
     <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<div class="exo-pill" id="exo-pill" aria-live="polite">
+  <span id="exo-pill-clock">UTC — · JD —</span>
+  <span id="exo-pill-fix">NO FIX</span>
+  <span id="exo-pill-target">NO TARGET</span>
+  <button type="button" id="exo-pill-copy">COPY</button>
+  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+</div>
 <nav class="exo-comms" aria-label="Comms workspaces">
-  <a href="#watch">MONITOR</a>
-  <a href="#decode">PASSES</a>
-  <a href="/mesh/">MESH</a>
-  <a href="/maps/#exo-link">VAULT</a>
+  <a href="/radio/?tab=listen" data-ws="monitor" data-tab="listen" aria-current="page">MONITOR</a>
+  <a href="/radio/?tab=decode" data-ws="passes" data-tab="decode">PASSES</a>
+  <a href="/radio/?tab=ble" data-ws="mesh" data-tab="ble">MESH</a>
+  <a href="/radio/?tab=sentinel" data-ws="vault" data-tab="sentinel">VAULT</a>
 </nav>
 <header><h1>EXOpace Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
 <p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
 <nav class="exo-tabs" aria-label="Radio tools">
- <button data-t="listen" class="on">Listen</button>
- <button data-t="band">Band</button>
- <button data-t="watch">Live</button>
- <button data-t="scan">Scan</button>
- <button data-t="maps">Maps</button>
- <button data-t="replay">Replays</button>
- <button data-t="decode">Decode</button>
- <button data-t="devices">Devices</button>
- <button data-t="events">Events</button>
- <button data-t="clips">Clips</button>
- <button data-t="voice">Voice</button>
- <button data-t="ble">Bluetooth</button>
- <button data-t="wifi">WiFi</button>
- <button data-t="camera">Cam</button>
- <button data-t="sentinel">Sentinel</button>
- <button data-t="weekly">Weekly</button>
- <button data-t="tools">Tools</button>
+ <button data-t="listen" data-ws="monitor" class="on">Listen</button>
+ <button data-t="band" data-ws="monitor">Band</button>
+ <button data-t="watch" data-ws="monitor">Live</button>
+ <button data-t="scan" data-ws="monitor">Scan</button>
+ <button data-t="maps" data-ws="vault" hidden>Maps</button>
+ <button data-t="replay" data-ws="monitor">Replays</button>
+ <button data-t="decode" data-ws="passes" hidden>Decode</button>
+ <button data-t="devices" data-ws="vault" hidden>Devices</button>
+ <button data-t="events" data-ws="vault" hidden>Events</button>
+ <button data-t="clips" data-ws="vault" hidden>Clips</button>
+ <button data-t="voice" data-ws="monitor">Voice</button>
+ <button data-t="ble" data-ws="mesh" hidden>Bluetooth</button>
+ <button data-t="wifi" data-ws="mesh" hidden>WiFi</button>
+ <button data-t="camera" data-ws="vault" hidden>Cam</button>
+ <button data-t="sentinel" data-ws="vault" hidden>Sentinel</button>
+ <button data-t="weekly" data-ws="vault" hidden>Weekly</button>
+ <a href="/maps/#exo-link" data-ws="mesh" hidden>Fresnel</a>
+ <a href="/maps/#exo-link" data-ws="vault" hidden>AES-GCM</a>
+ <button data-t="tools" data-ws="vault" hidden>Tools</button>
 </nav></header><main id="exo-main">
 
 <section id="listen" class="on">
@@ -262,7 +264,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="grid" style="margin-top:9px">
    <button class="b" id="livebtn" onclick="listen()">Listen</button>
    <button class="b alt" onclick="rec()">Record 10s</button></div>
-  <div class="card" style="margin:10px 0 0;border-radius:11px;box-shadow:none">
+  <div class="card" style="margin:10px 0 0">
    <div style="display:flex;justify-content:space-between;align-items:center">
     <span class="muted" style="font-size:13px">Record while the squelch is open</span>
     <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
@@ -281,6 +283,25 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    <input id="bmname" placeholder="name this frequency">
    <button class="b alt" style="width:84px" onclick="addBm()">Save</button></div>
   <div class="presets" id="bm"></div>
+ </div>
+ <div class="card" id="exo-sdr">
+  <h2>Remote bridge</h2>
+  <p id="exo-sdr-status">BRIDGE OFFLINE · NO RF SAMPLES</p>
+  <p id="exo-sdr-meter">S —</p>
+  <p id="exo-rf-note">NO RF SAMPLES</p>
+  <canvas id="exo-sdr-wf" width="640" height="120"></canvas>
+  <div class="presets">
+   <button type="button" data-sdr-hz="162550000">162.550 NOAA</button>
+   <button type="button" data-sdr-hz="144390000">144.390 APRS</button>
+   <button type="button" data-sdr-hz="145800000">145.800 ISS</button>
+   <button type="button" data-sdr-hz="137620000">137.620 NOAA-15</button>
+  </div>
+  <div class="grid3" style="margin-top:8px">
+   <input id="exo-sdr-url" placeholder="ws://127.0.0.1:8765" autocomplete="off">
+   <input id="exo-sdr-token" type="password" placeholder="bridge token" autocomplete="off">
+   <button type="button" class="b" id="exo-sdr-connect">Connect</button>
+  </div>
+  <a href="/maps/#exo-df">Plot bearing on map</a>
  </div>
 </section>
 
@@ -539,7 +560,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    <div id="camlock" style="margin-bottom:9px">
     <div class="muted" style="margin-bottom:6px">Camera is locked. Enter the camera passcode to view.</div>
     <div class="grid" style="grid-template-columns:1fr auto">
-     <input id="camcode" type="password" placeholder="camera passcode" style="background:#0d141d;border:1px solid #24313f;color:#e8f0f8;padding:10px;border-radius:8px;font-size:15px">
+     <input id="camcode" type="password" placeholder="camera passcode">
      <button class="b" onclick="camUnlock()">Unlock</button></div>
    </div>
    <div id="camctl">
@@ -653,12 +674,20 @@ function toast(m){const t=el('toast');if(!t)return;t.textContent=m;t.classList.a
  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
 
 function showTab(name){
- const b=document.querySelector(`nav button[data-t="${name}"]`);
+ const b=document.querySelector(`nav.exo-tabs button[data-t="${name}"]`);
  if(!b||!el(name))return;
+ const ws=b.dataset.ws||'';
  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('nav.exo-tabs [data-ws]').forEach(x=>{x.hidden=!!(ws&&x.dataset.ws!==ws);});
+ document.querySelectorAll('.exo-comms a[data-ws]').forEach(a=>{
+  if(a.dataset.ws===ws)a.setAttribute('aria-current','page');
+  else a.removeAttribute('aria-current');
+ });
  document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));
- b.classList.add('on');el(name).classList.add('on');
- history.replaceState(null,'','#'+name);
+ b.hidden=false;b.classList.add('on');el(name).classList.add('on');
+ const params=new URLSearchParams(location.search);
+ params.set('tab',name);
+ history.replaceState(null,'',location.pathname+'?'+params.toString()+'#'+name);
  ({band:()=>{loadSpec();loadWf();loadWide()},devices:loadDev,events:loadEv,clips:loadClips,
    tools:()=>{loadStatus();loadCaps();loadUsage()},decode:()=>{loadJob();loadPasses()},ble:()=>loadBle(),
    wifi:()=>loadWifi(),camera:loadCam,sentinel:loadSentinel,voice:()=>loadVoice(),weekly:()=>loadWeekly(),
@@ -666,6 +695,11 @@ function showTab(name){
  if(name!=='camera')camStopView();
 }
 document.querySelectorAll('nav.exo-tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+document.querySelectorAll('.exo-comms a[data-tab]').forEach(a=>a.addEventListener('click',e=>{
+ if(location.pathname.indexOf('/radio')<0)return;
+ e.preventDefault();
+ showTab(a.dataset.tab);
+}));
 const RADIO_TABS=['listen','band','watch','scan','maps','replay','decode','devices','events','clips','voice','ble','wifi','camera','sentinel','weekly','tools'];
 document.addEventListener('keydown',e=>{
  if(document.documentElement.dataset.exoCmd==='open')return;
@@ -1287,7 +1321,12 @@ function rpListen(){if(!rpData)return;const f=(rpData.freq_hz);listen(mhz(f));sh
 
 loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 </script>
+<script src="../maps/mgrs.js"></script>
 <script src="../assets/exo-bus.js"></script>
+<script src="../assets/exo-state.js"></script>
+<script src="../assets/exo-rf-db.js"></script>
+<script src="../assets/exo-sdr-client.js"></script>
+<script src="../assets/exo-playbook.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
 <script type="module" src="../assets/exo-orbit.js"></script>
 <script type="module" src="../assets/exo-audio.js"></script>

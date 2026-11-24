@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EXOpace — Field map legend</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=4" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
   <style>
     body {
-      margin: 0; background: var(--exo-void); color: var(--exo-text);
+      margin: 0; color: var(--exo-text);
       font: 13px/1.45 var(--exo-mono);
     }
     main {
       width: min(210mm, 100%); margin: 0 auto; box-sizing: border-box;
       padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
-      background: rgba(3, 6, 11, 0.82); border: 1px solid var(--exo-line); border-radius: 16px;
     }
     h1 { font-size: 16px; letter-spacing: 0.14em; margin: 0 0 8px; color: var(--exo-amber); }
     h2 { font-size: 12px; letter-spacing: 0.12em; margin: 16px 0 6px; color: var(--exo-cyan); }
@@ -24,9 +23,9 @@
     .sw { display: inline-block; width: 28px; height: 8px; margin-right: 8px; vertical-align: middle; }
     @media (max-width: 700px) {
       body { padding: 12px; }
-      main { border-radius: 12px; }
     }
     @media print {
+      header.exo-bar { display: none; }
       body { background: #fff; color: #14202a; padding: 0; }
       main { width: 210mm; border: 0; background: #fff; color: #14202a; border-radius: 0; }
       h1, h2, a { color: #14202a; }
@@ -35,7 +34,17 @@
   </style>
 </head>
 <body>
-  <main>
+  <header class="exo-bar">
+    <a class="exo-skip" href="#legend">Skip to content</a>
+    <a class="exo-brand" href="/mission/">EXOPACE</a>
+    <nav class="exo-sites" aria-label="EXOpace surfaces">
+      <a href="https://cams.exopace.net/map">LIVE MAP</a>
+      <a href="/radio/">COMMS &amp; RF</a>
+      <a href="/sentinel/">SENTINEL</a>
+      <a href="/system/">SYSTEM</a>
+    </nav>
+  </header>
+  <main class="exo-card" id="legend">
     <h1>EXOPACE FIELD MAP</h1>
     <p>Read a grid square from the southwest corner. The two large digits on a line are the 10 km and 1 km figures. A 1:50,000 letter sheet is 8 km by 10 km on portrait letter paper. 1:15,000, 1:24,000, and 1:48,000 use that same 160 mm by 200 mm neatline. They are not USGS quadrangles. A USGS 7.5′ sheet is 7.5 minutes of latitude by 7.5 minutes of longitude. Alaska 7.5′ sheets use 1:25,000. Puerto Rico 7.5′ sheets use 1:20,000. The other USGS series are 15′ at 1:62,500, 30×60′ at 1:100,000, and 1×2° at 1:250,000. Those print as true-scale letter tiles of the quadrangle. Print at actual size. The 100 mm bar must measure 100 mm.</p>
     <h2>SYMBOLS</h2>

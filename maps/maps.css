@@ -1,8 +1,7 @@
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: #03060b; color: #d7e7ea; }
+html, body { margin: 0; height: 100%; color: #d7e7ea; }
 body {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
   display: flex; flex-direction: column; overflow: hidden;
 }
 button, a { font: inherit; }
@@ -74,8 +73,14 @@ button, a { font: inherit; }
   width: 44px;
   height: 44px;
 }
-.maplibregl-ctrl-attrib { font-size: 10px; background: rgba(3, 6, 11, 0.8); }
-.maplibregl-ctrl-attrib a {
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  font-size: 10px;
+  background-color: #0a121e;
+  color: #d5dee8;
+}
+.maplibregl-ctrl-attrib a,
+.maplibregl-ctrl-attrib.maplibregl-compact a {
   color: #7ee0ff;
   display: inline-flex;
   align-items: center;

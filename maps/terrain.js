@@ -34,6 +34,15 @@
     if (z < 0 || z > 15 || x < 0 || y < 0 || x >= n || y >= n) return null;
     var k = key(z, x, y);
     if (cache.has(k)) return cache.get(k);
+    if (root.EXO && root.EXO.dem && root.EXO.dem.record) {
+      var demRec = await root.EXO.dem.record(z, x, y);
+      if (demRec) {
+        cache.set(k, demRec);
+        if (cache.size > MAX) cache.delete(cache.keys().next().value);
+        return demRec;
+      }
+      return null;
+    }
     var urls = [];
     if (root.EXO && root.EXO.offlineHost) urls.push(urlFor(z, x, y));
     urls.push("/api/terrain/" + z + "/" + x + "/" + y);

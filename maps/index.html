@@ -9,12 +9,12 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
-  <link rel="stylesheet" href="maps.css?v=8" />
+  <link rel="stylesheet" href="maps.css?v=9" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=6" />
+<link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
 <link rel="stylesheet" href="/assets/exo-tokens.css" />
 </head>
 <body>
@@ -28,10 +28,17 @@
     <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<div class="exo-pill" id="exo-pill" aria-live="polite">
+  <span id="exo-pill-clock">UTC — · JD —</span>
+  <span id="exo-pill-fix">NO FIX</span>
+  <span id="exo-pill-target">NO TARGET</span>
+  <button type="button" id="exo-pill-copy">COPY</button>
+  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+</div>
 <nav class="exo-comms" aria-label="Comms workspaces">
-  <a href="/radio/#watch">MONITOR</a>
-  <a href="/radio/#decode">PASSES</a>
-  <a href="/mesh/">MESH</a>
+  <a href="/radio/?tab=listen">MONITOR</a>
+  <a href="/radio/?tab=decode">PASSES</a>
+  <a href="/radio/?tab=ble">MESH</a>
   <a href="/maps/#exo-link" aria-current="page">VAULT</a>
 </nav>
   <header class="fm-top">
@@ -51,7 +58,7 @@
     </div>
     <p class="fm-north" id="fm-north">GN —  ·  MAG — CHART</p>
   </header>
-  <div class="fm-body" id="exo-main">
+  <main class="fm-body" id="exo-main">
     <aside class="fm-dock">
       <p class="fm-status" id="fm-status">LOADING</p>
       <h2>FIX</h2>
@@ -246,6 +253,12 @@
         <a class="fm-btn" href="atak/world-imagery.xml" download>IMAGERY XML</a>
         <a class="fm-btn" href="atak/world-hillshade.xml" download>HILL XML</a>
       </div>
+      <h2>OFFLINE TILES &amp; DEM</h2>
+      <p id="exo-vault-status">NO LOCAL PMTILES · DEM CACHE SEPARATE</p>
+      <div class="fm-row">
+        <button type="button" class="fm-btn" id="exo-vault-import">IMPORT PMTILES</button>
+        <input id="exo-vault-file" type="file" accept=".pmtiles,application/octet-stream" hidden>
+      </div>
       <h2>OFFLINE COPY</h2>
       <p>The public site stays on Cloudflare. vq can download a private copy with <span style="color:#ffe08a">maps/offline/pull.sh</span>. That copy is not the live site. World elevation is stored only as far as free disk allows. Military-scale detail is saved per page.</p>
       <div class="fm-row">
@@ -255,8 +268,11 @@
       <p class="fm-note">Roads and names are OpenStreetMap via OpenFreeMap. Relief is AWS Terrain Tiles. USGS and Esri layers keep their own credits in the corner.</p>
     </aside>
     <div class="fm-stage"><div id="fm-map"></div></div>
-  </div>
+  </main>
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
+  <script src="vendor/pmtiles.js?v=1"></script>
+  <script src="pmvault.js?v=1"></script>
+  <script src="/assets/exo-dem.js?v=1"></script>
   <script src="mgrs.js?v=1"></script>
   <script src="measure.js?v=4"></script>
   <script src="sheets.js?v=10"></script>
@@ -270,8 +286,15 @@
   <script src="mbtiles.js?v=1"></script>
   <script src="topo.js?v=5"></script>
   <script src="field.js?v=1"></script>
-  <script src="/assets/exo-bus.js"></script>
+  <script src="/maps/mgrs.js"></script>
+<script src="/assets/exo-bus.js"></script>
+<script src="/assets/exo-state.js"></script>
   <script src="/assets/exo-link.js?v=1"></script>
+  <script src="/assets/exo-df.js"></script>
+  <script src="/assets/exo-rf-db.js"></script>
+  <script src="/assets/exo-playbook.js"></script>
+  <script src="/assets/exo-room.js"></script>
+  <script src="/assets/exo-aar.js"></script>
   <script type="module" src="/assets/exo-decide.js"></script>
   <script src="app.js?v=22"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>

@@ -1626,6 +1626,7 @@
     }
     maplibregl.addProtocol("hill", function (req, abort) { return tile("hill", req, abort); });
     maplibregl.addProtocol("contour", function (req, abort) { return tile("contour", req, abort); });
+    if (EXO && EXO.pmvault) EXO.pmvault.register(maplibregl);
   }
 
   async function boot() {
@@ -1638,6 +1639,13 @@
     }
     EXO.offlineHost = state.offline;
     registerProtocols();
+    if (navigator.onLine === false && EXO.pmvault && !(await EXO.pmvault.hasArchive())) {
+      setStatus("OFFLINE · NO LOCAL PMTILES");
+      var stage = document.getElementById("fm-map");
+      if (stage) stage.textContent = "OFFLINE · NO LOCAL PMTILES";
+      if (EXO.pmvault.paint) EXO.pmvault.paint(null);
+      return;
+    }
     EXO.hill = state.hill;
     EXO.contours = state.contours;
     startView = readHash() || { center: [-98.5, 39.5], zoom: 4 };
@@ -1655,6 +1663,11 @@
       setStatus("MAP FAILED");
       return;
     }
+    EXO.map = map;
+    map.on("load", function () {
+      if (EXO.pmvault) EXO.pmvault.mount(map).catch(function () {});
+    });
+    map.on("error", function () {});
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     wireMap();

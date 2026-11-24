@@ -42,9 +42,9 @@ body.night header{background:linear-gradient(#170606,#0d0404)}
 body.night #toast{color:#1a0505}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;max-width:100%;overflow-x:hidden}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
+body{color:var(--text);font-family:var(--sans);font-size:15px;
   display:flex;flex-direction:column;overscroll-behavior:none}
-header{background:linear-gradient(#1c2010,#14170b);border-bottom:1px solid var(--line);
+header:not(.exo-bar){border-bottom:1px solid var(--line);
   padding:10px 14px 8px;display:flex;align-items:center;gap:10px;
   padding-top:calc(10px + env(safe-area-inset-top));min-width:0;max-width:100%}
 .callsign{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
@@ -70,7 +70,7 @@ main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;displa
 #scr-map.screen.active{display:flex;flex-direction:column;flex:1;min-height:0;padding:0;max-width:none;overflow:hidden}
 h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
   text-transform:uppercase;margin:6px 0 10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;max-width:100%;min-width:0;overflow:hidden}
+.card{padding:14px;margin-bottom:12px;max-width:100%;min-width:0;overflow:hidden}
 #installHint{flex:0 0 auto;overflow:visible}
 #installHint[hidden]{display:none!important;pointer-events:none!important;height:0;margin:0;padding:0;border:0;overflow:hidden}
 #btnInst2[hidden],#btnHintHide[hidden]{display:none!important;pointer-events:none!important}
@@ -81,9 +81,8 @@ h2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mut);
 .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
 .sub{font-size:12px;color:var(--mut);margin-top:4px}
 button,select,input{font:inherit;color:var(--text)}
-.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;
-  font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;width:100%;min-height:44px}
-.btn.primary{background:var(--amber);color:#141406;border-color:var(--amber);font-weight:700}
+.btn{padding:12px 14px;cursor:pointer;width:100%;min-height:44px}
+.btn.primary{font-weight:700}
 .btn:active{transform:translateY(1px)}
 .row{display:flex;gap:10px}
 #chatLog{display:flex;flex-direction:column;gap:8px;padding-bottom:8px;flex:1;overflow-y:auto}
@@ -104,9 +103,8 @@ button,select,input{font:inherit;color:var(--text)}
   padding:8px 14px calc(8px + var(--kb));background:var(--bg);border-top:1px solid var(--line)}
 #composer[hidden]{display:flex!important;visibility:visible!important}
 #qtx[hidden]{display:none!important}
-#composer select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
-  font-family:var(--mono);font-size:12px;padding:0 6px;max-width:96px;min-width:0;min-height:44px;flex:0 1 auto}
-#composer input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
+#composer select{padding:0 6px;max-width:96px;min-width:0;flex:0 1 auto}
+#composer input{flex:1;min-width:0;padding:10px 12px}
 #composer .send{width:auto;flex:0 0 auto}
 .fix{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
   padding:3px 8px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
@@ -230,7 +228,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=6">
+<link rel="stylesheet" href="/assets/exo-modern.css?v=8">
 <link rel="stylesheet" href="/assets/exo-tokens.css">
 </head>
 <body>
@@ -244,11 +242,18 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
     <a href="/system/">SYSTEM</a>
   </nav>
 </header>
+<div class="exo-pill" id="exo-pill" aria-live="polite">
+  <span id="exo-pill-clock">UTC — · JD —</span>
+  <span id="exo-pill-fix">NO FIX</span>
+  <span id="exo-pill-target">NO TARGET</span>
+  <button type="button" id="exo-pill-copy">COPY</button>
+  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+</div>
 <nav class="exo-comms" aria-label="Comms workspaces">
-  <a href="/radio/#watch">MONITOR</a>
-  <a href="/radio/#decode">PASSES</a>
+  <a href="/radio/?tab=listen">MONITOR</a>
+  <a href="/radio/?tab=decode">PASSES</a>
   <a href="/mesh/" aria-current="page">MESH</a>
-  <a href="/maps/#exo-link">VAULT</a>
+  <a href="/radio/?tab=sentinel">VAULT</a>
 </nav>
 
 <header>
@@ -571,8 +576,14 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 })();
 </script>
 <script src="/maps/mgrs.js?v=1"></script>
+<script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
+<script src="/assets/exo-state.js"></script>
+<script src="/assets/exo-dem.js?v=1"></script>
 <script src="/assets/exo-link.js?v=1"></script>
+<script src="/assets/exo-df.js"></script>
+<script src="/assets/exo-room.js"></script>
+<script src="/assets/exo-aar.js"></script>
 <script src="/assets/exo-tabs.js?v=1"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>
 </body>

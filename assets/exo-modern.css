@@ -458,26 +458,29 @@ body:has(#decode) .exo-clock {
     scroll-snap-align: start;
     box-sizing: border-box !important;
     min-height: 44px !important;
-    border-radius: 999px !important;
-    border: 1px solid transparent !important;
-    border-bottom: 2px solid transparent !important;
-    background-color: transparent !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(126, 224, 255, 0.24) !important;
+    background-color: rgba(10, 18, 30, 0.72) !important;
     background-image: none !important;
-    color: #9fb0b4 !important;
+    color: #f0f6fc !important;
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
     font-weight: 600 !important;
     font-size: 13px !important;
     letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     box-shadow: none !important;
-    transition: color 150ms, border-color 150ms !important;
+    transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
   html body nav.exo-tabs > button.on,
   html body nav.exo-tabs > button.active,
   html body nav.exo-tabs > button[aria-selected="true"] {
     color: #7ee0ff !important;
-    border-bottom-color: #7ee0ff !important;
+    border-color: rgba(126, 224, 255, 0.7) !important;
+  }
+
+  html body nav.exo-tabs > button:active {
+    color: #ffb84d !important;
   }
 
   html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button) {
@@ -504,6 +507,12 @@ body:has(#decode) .exo-clock {
 
   html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):active {
     color: #ffb84d !important;
+  }
+
+  html body .sn-tabs button[aria-selected="true"] {
+    color: #04070d !important;
+    background-color: #7ee0ff !important;
+    border-color: #7ee0ff !important;
   }
 
   html body:not(:has(#boot-void)) :is(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel) {
@@ -535,4 +544,72 @@ body:has(#decode) .exo-clock {
     outline: 2px solid #ffb84d !important;
     outline-offset: 2px;
   }
+}
+
+.exo-pill {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  margin: 0;
+  padding: 0 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: rgba(4, 7, 13, 0.78);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(126, 224, 255, 0.16);
+  color: #9fb0b4;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.exo-pill button,
+.exo-pill a {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: #7ee0ff;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+#exo-pill-target { color: #ffb84d; }
+
+nav.exo-tabs > [hidden] { display: none !important; }
+
+html body .exo-pill button {
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 10px !important;
+  line-height: 44px !important;
+}
+
+nav.exo-tabs > a[data-ws] {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  color: #9fb0b4;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
 }
