@@ -16,12 +16,15 @@ export async function onRequest(context) {
   const empty = { type: "FeatureCollection", features: [] };
   try {
     const incoming = new URL(context.request.url);
-    const box = boxOf(incoming.searchParams.get("bbox"));
+    const rawId = String(incoming.searchParams.get("id") || "");
+    const onlyId = /^[A-Za-z0-9_.:-]{1,80}$/.test(rawId) ? rawId : "";
+    const box = onlyId ? null : boxOf(incoming.searchParams.get("bbox"));
     const asked = Number(incoming.searchParams.get("max") || 800);
     const limit = Number.isFinite(asked) ? Math.min(Math.max(Math.floor(asked), 1), 2000) : 800;
     const query = new URL(SUPABASE);
     query.searchParams.set("select", "id,name,lat,lon,source,image_url,stream_url");
     query.searchParams.set("limit", String(limit));
+    if (onlyId) query.searchParams.set("id", "eq." + onlyId);
     if (box) {
       query.searchParams.set("lat", "gte." + box.south);
       query.searchParams.append("lat", "lte." + box.north);

@@ -212,6 +212,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 @media (max-width: 1280px) {
   nav:not(.exo-tabs):not(.exo-sites) { flex-wrap: wrap; overflow: visible; }
 }
+.exo-clock { margin: 0 0 8px; min-height: 44px; display: flex; align-items: center; flex-wrap: wrap; max-width: 100%; color: #ffe08a; font-size: 12px; letter-spacing: 0.04em; }
 </style></head><body>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
@@ -226,6 +227,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   </nav>
 </header>
 <header><h1>EXOpace Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
+<p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
 <nav class="exo-tabs" aria-label="Radio tools">
  <button data-t="listen" class="on">Listen</button>
  <button data-t="band">Band</button>
@@ -635,7 +637,37 @@ function showTab(name){
    watch:loadLiveWf,scan:loadScanner,maps:()=>loadMaps(),replay:loadReplays})[name]?.();
  if(name!=='camera')camStopView();
 }
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+document.querySelectorAll('nav.exo-tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+const RADIO_TABS=['listen','band','watch','scan','maps','replay','decode','devices','events','clips','voice','ble','wifi','camera','sentinel','weekly','tools'];
+document.addEventListener('keydown',e=>{
+ if(document.documentElement.dataset.exoCmd==='open')return;
+ const t=e.target;
+ if(t&&t.closest&&t.closest('input,textarea,select,[contenteditable="true"]'))return;
+ if(e.metaKey||e.ctrlKey||e.altKey)return;
+ const on=document.querySelector('nav.exo-tabs button.on');
+ let i=RADIO_TABS.indexOf(on&&on.dataset.t);
+ if(i<0)i=0;
+ if(e.key===']'||e.key==='['){
+  const next=e.key===']'?(i+1)%RADIO_TABS.length:(i-1+RADIO_TABS.length)%RADIO_TABS.length;
+  showTab(RADIO_TABS[next]);e.preventDefault();
+ }else if(/^[1-9]$/.test(e.key)){showTab(RADIO_TABS[Number(e.key)-1]);e.preventDefault();}
+});
+function tickClock(){
+ const node=el('exo-clock');if(!node)return;
+ const now=new Date();
+ const utc=now.toISOString().slice(0,19).replace('T',' ');
+ const local=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+ const jd=(now.getTime()/86400000+2440587.5).toFixed(5);
+ let pass='NO PASS DATA';
+ const box=el('passes');
+ const raw=box?(box.textContent||'').trim():'';
+ if(raw&&!/loading|no passes|error/i.test(raw)){
+  const hit=raw.match(/\d{1,2}:\d{2}[^.]{0,48}/);
+  if(hit)pass=hit[0];
+ }
+ node.textContent='UTC '+utc+' · LOCAL '+local+' · JD '+jd+' · '+pass;
+}
+tickClock();setInterval(tickClock,1000);
 (function(){const want=new URLSearchParams(location.search).get('tab')||location.hash.replace('#','');
  if(want)setTimeout(()=>showTab(want),150);})();
 
