@@ -1,15 +1,27 @@
+function kpNumber(value) {
+  if (value == null || value === "") return null;
+  const number = Number(String(value).trim());
+  return Number.isFinite(number) ? number : null;
+}
+
 export function parseKp(payload) {
-  if (!Array.isArray(payload) || payload.length < 2) return null;
+  if (!Array.isArray(payload) || payload.length === 0) return null;
   const header = Array.isArray(payload[0]) ? payload[0].map((cell) => String(cell)) : null;
-  if (!header) return null;
-  const idx = header.indexOf("Kp");
-  if (idx < 0) return null;
-  const last = payload[payload.length - 1];
-  if (!Array.isArray(last)) return null;
-  const raw = String(last[idx] ?? "").trim();
-  if (!raw) return null;
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : null;
+  if (header) {
+    if (payload.length < 2) return null;
+    const idx = header.indexOf("Kp");
+    if (idx < 0) return null;
+    const last = payload[payload.length - 1];
+    if (!Array.isArray(last)) return null;
+    return kpNumber(last[idx]);
+  }
+  for (let i = payload.length - 1; i >= 0; i -= 1) {
+    const row = payload[i];
+    if (!row || typeof row !== "object" || Array.isArray(row)) continue;
+    const value = kpNumber(row.Kp);
+    if (value != null) return value;
+  }
+  return null;
 }
 
 export async function onRequest() {
