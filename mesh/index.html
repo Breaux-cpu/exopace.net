@@ -136,7 +136,7 @@ button,select,input{font:inherit;color:var(--text)}
   border-radius:6px;padding:8px 10px;min-height:44px;display:flex;align-items:center}
 .mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
 .mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
-#btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
+/* recage placement is in mesh-deck .mx-maptools */
 #btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnShare[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
 #posLL[hidden]{display:none!important}
 #posMeta[hidden]{display:none!important}
@@ -230,9 +230,9 @@ nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);back
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
 <link rel="stylesheet" href="/assets/exo-modern.css?v=14">
 <link rel="stylesheet" href="/assets/exo-tokens.css">
-<link rel="stylesheet" href="/assets/exo-layout.css?v=1" data-exo-layout="1">
-<script src="/assets/exo-layout.js?v=1" data-exo-layout="1"></script>
-<link rel="stylesheet" href="mesh-deck.css?v=1">
+<link rel="stylesheet" href="/assets/exo-layout.css?v=2" data-exo-layout="1">
+<script src="/assets/exo-layout.js?v=2" data-exo-layout="1"></script>
+<link rel="stylesheet" href="mesh-deck.css?v=3">
 </head>
 <body class="mx-page">
 <header class="exo-bar">
@@ -274,7 +274,7 @@ nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);back
   <button data-s="vitals">NODE</button>
   <button data-s="setup">SET</button>
 </nav>
-<nav class="exo-comms" aria-label="Comms workspaces">
+<nav class="exo-comms exo-comms--keep" aria-label="Comms workspaces">
   <a href="/radio/?tab=listen">MONITOR</a>
   <a href="/radio/?tab=decode">PASSES</a>
   <a href="/mesh/" aria-current="page">MESH</a>

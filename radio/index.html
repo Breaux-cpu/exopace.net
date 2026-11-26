@@ -206,8 +206,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 .exo-clock { margin: 0 0 8px; min-height: 44px; display: flex; align-items: center; flex-wrap: wrap; max-width: 100%; color: #ffe08a; font-size: 12px; letter-spacing: 0.04em; }
 </style>
 <link rel="stylesheet" href="../assets/exo-tokens.css">
-<link rel="stylesheet" href="../assets/exo-layout.css?v=1" data-exo-layout="1">
-<script src="../assets/exo-layout.js?v=1" data-exo-layout="1"></script>
+<link rel="stylesheet" href="../assets/exo-layout.css?v=2" data-exo-layout="1">
+<script src="../assets/exo-layout.js?v=2" data-exo-layout="1"></script>
 <link rel="stylesheet" href="radio-deck.css?v=1">
 </head><body class="rg-page">
 <header class="exo-bar">
@@ -233,7 +233,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <header class="rg-head"><p class="rg-kicker">Comms &amp; RF</p><h1>Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
 <p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
 </header>
-<nav class="exo-comms rg-ws" aria-label="Comms workspaces">
+<nav class="exo-comms exo-comms--keep rg-ws" aria-label="Comms workspaces">
   <a href="/radio/?tab=listen" data-ws="monitor" data-tab="listen" aria-current="page">MONITOR</a>
   <a href="/radio/?tab=decode" data-ws="passes" data-tab="decode">PASSES</a>
   <a href="/radio/?tab=ble" data-ws="mesh" data-tab="ble">MESH</a>
@@ -701,7 +701,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <button type="button" class="rg-primary" id="rg-primary" hidden>Listen</button>
 
 </div>
-<script src="radio-deck.js?v=1"></script><script src="../assets/exo-tabs.js?v=1"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
+<script src="radio-deck.js?v=2"></script><script src="../assets/exo-tabs.js?v=1"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
 const RETIRED="No radio receiver on this site.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});

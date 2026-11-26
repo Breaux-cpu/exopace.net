@@ -1,12 +1,12 @@
-/* EXOpace Radio — layout deck. Page-scoped (body.rg-page); the :not(#_z) triplet lifts these
-   rules over the shell's !important control styles without editing the shell.
+/* EXOpace Radio — layout deck. Page-scoped (body.rg-page).
+   The shell excludes .rg-page from the generic !important control skin and
+   publishes --exo-dock-real for the COPY/JUMP dock.
    Phones (<=719px): header + workspace switch scroll away, tool chips stick under the bar,
    the active tool's primary control sits in a thumb dock just above the shell's COPY/JUMP dock.
    >=720px (Fold inner, tablets, desktop): sticky left rail (workspace + tools), content on the right. */
-
 :root { --rg-rail: clamp(232px, 24vw, 292px); --rg-dock: 68px; }
 
-html body.rg-page:not(#_z):not(#_z):not(#_z) {
+html body.rg-page {
   font: 400 14px/1.5 var(--exo-sans);
   color: var(--exo-text);
   height: 100vh;
@@ -15,7 +15,7 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) {
 }
 /* One scroller under the fixed chrome: header + tools + content scroll together,
    docks sit outside it so nothing ever slides under them. */
-html body.rg-page:not(#_z):not(#_z):not(#_z) > .rg-scroll {
+html body.rg-page > .rg-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow-x: hidden;
@@ -25,21 +25,21 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) > .rg-scroll {
 }
 
 /* ---------- Header ---------- */
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-rail { display: contents; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head {
+html body.rg-page .rg-rail { display: contents; }
+html body.rg-page .rg-head {
   position: static;
   z-index: auto;
   padding: 22px 16px 6px;
   background: transparent;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-kicker {
+html body.rg-page .rg-kicker {
   margin: 0 0 6px;
   color: var(--exo-cyan);
   font: 500 11px/1 var(--exo-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head h1 {
+html body.rg-page .rg-head h1 {
   display: flex;
   align-items: baseline;
   gap: 12px;
@@ -48,8 +48,8 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head h1 {
   font: 300 clamp(2.5rem, 11vw, 3.5rem)/1 var(--exo-sans);
   letter-spacing: -0.04em;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head h1::before { content: none; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) a.fieldmaps {
+html body.rg-page .rg-head h1::before { content: none; }
+html body.rg-page a.fieldmaps {
   margin-left: auto;
   align-self: center;
   min-height: 44px;
@@ -61,8 +61,8 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) a.fieldmaps {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head .sub { margin: 10px 0 4px; color: var(--exo-muted); font-size: 14px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-clock {
+html body.rg-page .rg-head .sub { margin: 10px 0 4px; color: var(--exo-muted); font-size: 14px; }
+html body.rg-page .exo-clock {
   min-height: 0;
   margin: 6px 0 0;
   color: var(--exo-muted);
@@ -71,7 +71,7 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-clock {
 }
 
 /* Workspace switch: segmented, one line */
-html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws {
+html body.rg-page nav.exo-comms.rg-ws {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
@@ -82,7 +82,7 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws {
   border-radius: 14px;
   background: rgba(7, 12, 18, 0.7);
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws a {
+html body.rg-page nav.exo-comms.rg-ws a {
   justify-content: center;
   min-height: 44px;
   min-width: 0;
@@ -92,10 +92,10 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws a {
   font: 500 11px/1 var(--exo-mono);
   letter-spacing: 0.12em;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws a[aria-current="page"] { color: #04070d; background: #f4f8fb; }
+html body.rg-page nav.exo-comms.rg-ws a[aria-current="page"] { color: #04070d; background: #f4f8fb; }
 
 /* Tool chips: one sticky, sideways-scrolling row */
-html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs {
+html body.rg-page nav.exo-tabs {
   position: sticky;
   top: 0;
   z-index: 35;
@@ -112,7 +112,7 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs {
   border-bottom: 1px solid rgba(198, 216, 226, 0.1);
   scroll-padding-inline: 16px;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs > :is(button, a) {
+html body.rg-page nav.exo-tabs > :is(button, a) {
   flex: 0 0 auto;
   min-height: 44px !important;
   padding: 0 16px !important;
@@ -125,38 +125,38 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs > :is(button, a) {
   letter-spacing: 0.01em !important;
   text-transform: none !important;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs > button.on {
+html body.rg-page nav.exo-tabs > button.on {
   color: #04070d !important;
   background: #f4f8fb !important;
   border-color: #f4f8fb !important;
 }
 
 /* ---------- Content ---------- */
-html body.rg-page:not(#_z):not(#_z):not(#_z) main#exo-main { padding: 14px 16px 24px; overflow: visible; min-height: auto !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .card {
+html body.rg-page main#exo-main { padding: 14px 16px 24px; overflow: visible; min-height: auto !important; }
+html body.rg-page .card {
   margin: 0 0 12px;
   padding: 18px;
   border-radius: 16px !important;
   box-shadow: none !important;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .card .card { background: rgba(4, 7, 13, 0.5) !important; padding: 14px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .card h2 {
+html body.rg-page .card .card { background: rgba(4, 7, 13, 0.5) !important; padding: 14px; }
+html body.rg-page .card h2 {
   margin: 0 0 14px;
   color: var(--exo-muted);
   font: 500 11px/1 var(--exo-mono);
   letter-spacing: 0.16em;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .muted,
-html body.rg-page:not(#_z):not(#_z):not(#_z) .card p { color: var(--exo-muted); font-size: 13px; font-weight: 400; line-height: 1.5; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .row { font-size: 14px; border-bottom-color: rgba(198, 216, 226, 0.08); }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .grid,
-html body.rg-page:not(#_z):not(#_z):not(#_z) .grid3 { gap: 8px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .grid > *,
-html body.rg-page:not(#_z):not(#_z):not(#_z) .grid3 > *,
-html body.rg-page:not(#_z):not(#_z):not(#_z) .presets > * { min-width: 0; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .grid:has(> .rg-docked:only-child),
-html body.rg-page:not(#_z):not(#_z):not(#_z) .grid:has(> .rg-docked) { grid-template-columns: 1fr !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-tune input#freq {
+html body.rg-page .muted,
+html body.rg-page .card p { color: var(--exo-muted); font-size: 13px; font-weight: 400; line-height: 1.5; }
+html body.rg-page .row { font-size: 14px; border-bottom-color: rgba(198, 216, 226, 0.08); }
+html body.rg-page .grid,
+html body.rg-page .grid3 { gap: 8px; }
+html body.rg-page .grid > *,
+html body.rg-page .grid3 > *,
+html body.rg-page .presets > * { min-width: 0; }
+html body.rg-page .grid:has(> .rg-docked:only-child),
+html body.rg-page .grid:has(> .rg-docked) { grid-template-columns: 1fr !important; }
+html body.rg-page .rg-tune input#freq {
   width: 100%;
   height: 64px !important;
   min-height: 64px !important;
@@ -165,16 +165,16 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-tune input#freq {
   font-weight: 400;
   letter-spacing: 0.04em;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) input,
-html body.rg-page:not(#_z):not(#_z):not(#_z) select { padding: 0 12px; font-size: 15px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) canvas { border-radius: 12px; border-color: rgba(198, 216, 226, 0.1); background: #05080d; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .meter { height: 6px; border: 0; background: rgba(198, 216, 226, 0.08); }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .meter div { background: linear-gradient(90deg, var(--exo-cyan), var(--exo-amber)); }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .label-sm { font: 500 11px/1 var(--exo-mono); letter-spacing: 0.14em; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .pill { border-radius: 999px; border-color: rgba(198, 216, 226, 0.14); background: transparent; font-family: var(--exo-mono); }
+html body.rg-page input,
+html body.rg-page select { padding: 0 12px; font-size: 15px; }
+html body.rg-page canvas { border-radius: 12px; border-color: rgba(198, 216, 226, 0.1); background: #05080d; }
+html body.rg-page .meter { height: 6px; border: 0; background: rgba(198, 216, 226, 0.08); }
+html body.rg-page .meter div { background: linear-gradient(90deg, var(--exo-cyan), var(--exo-amber)); }
+html body.rg-page .label-sm { font: 500 11px/1 var(--exo-mono); letter-spacing: 0.14em; }
+html body.rg-page .pill { border-radius: 999px; border-color: rgba(198, 216, 226, 0.14); background: transparent; font-family: var(--exo-mono); }
 
 /* Buttons: one key. .b = action (cyan), .alt = neutral, .stop = danger. */
-html body.rg-page:not(#_z):not(#_z):not(#_z) main :is(button.b, a.b) {
+html body.rg-page main :is(button.b, a.b) {
   width: 100%;
   min-height: 48px !important;
   padding: 0 14px !important;
@@ -192,13 +192,13 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) main :is(button.b, a.b) {
   justify-content: center;
   text-decoration: none;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) main :is(button.b.alt, a.b.alt) { color: var(--exo-text) !important; border-color: rgba(198, 216, 226, 0.18) !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) main button.b.stop { color: #ffd0c8 !important; border-color: rgba(248, 113, 113, 0.55) !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) main button.b.on { color: #04070d !important; background: #f4f8fb !important; border-color: #f4f8fb !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) main button.b small { margin-top: 3px; color: var(--exo-muted); font: 400 11px/1.2 var(--exo-mono); }
+html body.rg-page main :is(button.b.alt, a.b.alt) { color: var(--exo-text) !important; border-color: rgba(198, 216, 226, 0.18) !important; }
+html body.rg-page main button.b.stop { color: #ffd0c8 !important; border-color: rgba(248, 113, 113, 0.55) !important; }
+html body.rg-page main button.b.on { color: #04070d !important; background: #f4f8fb !important; border-color: #f4f8fb !important; }
+html body.rg-page main button.b small { margin-top: 3px; color: var(--exo-muted); font: 400 11px/1.2 var(--exo-mono); }
 /* Preset tiles */
-html body.rg-page:not(#_z):not(#_z):not(#_z) .presets { gap: 8px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .presets > button {
+html body.rg-page .presets { gap: 8px; }
+html body.rg-page .presets > button {
   min-height: 56px !important;
   padding: 10px 14px !important;
   border-radius: 12px !important;
@@ -213,22 +213,22 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .presets > button {
   text-transform: none !important;
   white-space: normal;
 }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .presets > button small { margin-top: 4px; color: var(--exo-muted); font: 400 11px/1.2 var(--exo-mono); letter-spacing: 0.04em; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .presets > button.on { border-color: var(--exo-cyan) !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) main a:not(.b):not(.fieldmaps) { color: var(--exo-cyan); display: inline-flex; align-items: center; min-height: 44px; }
+html body.rg-page .presets > button small { margin-top: 4px; color: var(--exo-muted); font: 400 11px/1.2 var(--exo-mono); letter-spacing: 0.04em; }
+html body.rg-page .presets > button.on { border-color: var(--exo-cyan) !important; }
+html body.rg-page main a:not(.b):not(.fieldmaps) { color: var(--exo-cyan); display: inline-flex; align-items: center; min-height: 44px; }
 
 /* Toast sits above whatever is docked */
-html body.rg-page:not(#_z):not(#_z):not(#_z) .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + 16px); z-index: 60; }
-html body.rg-page:not(#_z):not(#_z):not(#_z):has(#rg-dock.has-primary) .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + var(--rg-dock) + 12px); }
+html body.rg-page .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + 16px); z-index: 60; }
+html body.rg-page:has(#rg-dock.has-primary) .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + var(--rg-dock) + 12px); }
 
 /* ---------- Thumb dock (phones) ---------- */
-html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-dock { display: none; }
+html body.rg-page .rg-dock { display: none; }
 @media (max-width: 719.98px) and (min-height: 501px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-dock.has-primary {
+  html body.rg-page .rg-dock.has-primary {
     position: fixed;
     left: var(--exo-sal);
     right: var(--exo-sar);
-    bottom: var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab)));
+    bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
     z-index: 44;
     display: flex;
     height: var(--rg-dock);
@@ -238,8 +238,8 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-dock { display: none; }
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(198, 216, 226, 0.12);
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z):has(#rg-dock.has-primary) { padding-bottom: calc(var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab))) + var(--rg-dock)); }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-primary {
+  html body.rg-page:has(#rg-dock.has-primary) { padding-bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + var(--rg-dock)); }
+  html body.rg-page .rg-primary {
     flex: 1 1 auto;
     min-height: 48px !important;
     border-radius: 14px !important;
@@ -250,48 +250,48 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-dock { display: none; }
     letter-spacing: 0.01em !important;
     text-transform: none !important;
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-primary[data-tone="stop"] { color: #ffd0c8 !important; background: rgba(60, 14, 12, 0.9) !important; border-color: rgba(248, 113, 113, 0.7) !important; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-primary:disabled { color: var(--exo-muted) !important; background: rgba(8, 14, 22, 0.92) !important; border-color: rgba(198, 216, 226, 0.16) !important; }
+  html body.rg-page .rg-primary[data-tone="stop"] { color: #ffd0c8 !important; background: rgba(60, 14, 12, 0.9) !important; border-color: rgba(248, 113, 113, 0.7) !important; }
+  html body.rg-page .rg-primary:disabled { color: var(--exo-muted) !important; background: rgba(8, 14, 22, 0.92) !important; border-color: rgba(198, 216, 226, 0.16) !important; }
   /* The in-card source of the docked control is hidden only while the dock shows it */
-  html body.rg-page:not(#_z):not(#_z):not(#_z) main .rg-docked { display: none !important; }
+  html body.rg-page main .rg-docked { display: none !important; }
 }
 @media (max-width: 719.98px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .presets { grid-template-columns: 1fr 1fr; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .grid3 { grid-template-columns: 1fr 1fr !important; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .grid3 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  html body.rg-page .presets { grid-template-columns: 1fr 1fr; }
+  html body.rg-page .grid3 { grid-template-columns: 1fr 1fr !important; }
+  html body.rg-page .grid3 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
-/* Short landscape: the shell hides .exo-comms; ours is in-flow in the header, keep it. */
+/* Short landscape: .exo-comms--keep leaves the workspace switch visible; keep it in-flow in the header. */
 @media (max-height: 500px) and (max-width: 719.98px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws { display: grid; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head { padding-top: 12px; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head h1 { font-size: 2.25rem; }
+  html body.rg-page nav.exo-comms.rg-ws { display: grid; }
+  html body.rg-page .rg-head { padding-top: 12px; }
+  html body.rg-page .rg-head h1 { font-size: 2.25rem; }
 }
 
 /* ---------- Two panes ---------- */
 @media (min-width: 720px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) > .rg-scroll {
+  html body.rg-page > .rg-scroll {
     display: grid;
     grid-template-columns: var(--rg-rail) minmax(0, 1fr);
     align-items: start;
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-rail {
+  html body.rg-page .rg-rail {
     grid-column: 1;
     position: sticky;
     top: 0;
     display: flex;
     flex-direction: column;
-    max-height: calc(100dvh - var(--exo-chrome-top) - var(--pg-shell-dock, 0px));
+    max-height: calc(100dvh - var(--exo-chrome-top) - var(--exo-dock-real, 0px));
     overflow-y: auto;
     min-height: 0;
     padding: 0 0 20px;
     border-right: 1px solid rgba(198, 216, 226, 0.1);
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) > .rg-scroll > main#exo-main { grid-column: 2; min-width: 0; padding: 24px clamp(16px, 3vw, 36px) 48px; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head { padding: 24px 18px 4px; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head h1 { font-size: 2.75rem; flex-wrap: wrap; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) a.fieldmaps { margin-left: 0; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws { display: grid; grid-template-columns: 1fr 1fr; margin: 16px 14px 8px; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs {
+  html body.rg-page > .rg-scroll > main#exo-main { grid-column: 2; min-width: 0; padding: 24px clamp(16px, 3vw, 36px) 48px; }
+  html body.rg-page .rg-head { padding: 24px 18px 4px; }
+  html body.rg-page .rg-head h1 { font-size: 2.75rem; flex-wrap: wrap; }
+  html body.rg-page a.fieldmaps { margin-left: 0; }
+  html body.rg-page nav.exo-comms.rg-ws { display: grid; grid-template-columns: 1fr 1fr; margin: 16px 14px 8px; }
+  html body.rg-page nav.exo-tabs {
     position: static;
     flex-direction: column;
     gap: 2px;
@@ -304,14 +304,14 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-dock { display: none; }
     -webkit-mask-image: none;
     mask-image: none;
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs > :is(button, a) {
+  html body.rg-page nav.exo-tabs > :is(button, a) {
     justify-content: flex-start;
     text-align: left;
     min-height: 44px !important;
     border-color: transparent !important;
     border-radius: 10px !important;
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-tabs > button.on {
+  html body.rg-page nav.exo-tabs > button.on {
     color: var(--exo-text) !important;
     background: rgba(126, 224, 255, 0.08) !important;
     border-color: transparent !important;
@@ -319,33 +319,33 @@ html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-dock { display: none; }
   }
 }
 @media (min-width: 720px) and (max-height: 500px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) nav.exo-comms.rg-ws { display: grid; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head { padding-top: 12px; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .rg-head h1 { font-size: 2rem; }
+  html body.rg-page nav.exo-comms.rg-ws { display: grid; }
+  html body.rg-page .rg-head { padding-top: 12px; }
+  html body.rg-page .rg-head h1 { font-size: 2rem; }
 }
 @media (min-width: 1100px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) main#exo-main > section.on {
+  html body.rg-page main#exo-main > section.on {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0 16px;
     align-items: start;
   }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) main#exo-main > section.on > .card { min-width: 0; }
-  html body.rg-page:not(#_z):not(#_z):not(#_z) .presets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html body.rg-page main#exo-main > section.on > .card { min-width: 0; }
+  html body.rg-page .presets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 /* Reserve exactly the shell dock's real height (it can exceed --exo-dock-h in short landscape) */
-html body.rg-page:not(#_z):not(#_z):not(#_z):not(:has(#rg-dock.has-primary)) { padding-bottom: var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab))); }
+html body.rg-page:not(:has(#rg-dock.has-primary)) { padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))); }
 @media (min-width: 720px), (max-height: 500px) {
-  html body.rg-page:not(#_z):not(#_z):not(#_z) { padding-bottom: var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab))) !important; }
+  html body.rg-page { padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) !important; }
 }
 
 /* Audio input decoder (exo-audio.js) */
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__row > select { flex: 1 1 180px; min-width: 0; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__row > button { flex: 0 0 auto; min-width: 72px; padding: 0 16px !important; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__num { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--exo-muted); font: 500 11px/1 var(--exo-mono); letter-spacing: 0.12em; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) label.exo-au__num:has([data-floor]) { flex: 1 1 200px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__num input[type=range] { flex: 1 1 auto; min-width: 0; width: 100%; height: 44px; accent-color: var(--exo-cyan); }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__num input[type=number] { width: 96px; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au canvas { width: 100%; height: auto; display: block; }
-html body.rg-page:not(#_z):not(#_z):not(#_z) .exo-au__log { margin-top: 10px; color: var(--exo-muted); font: 500 12px/1.5 var(--exo-mono); }
+html body.rg-page .exo-au__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+html body.rg-page .exo-au__row > select { flex: 1 1 180px; min-width: 0; }
+html body.rg-page .exo-au__row > button { flex: 0 0 auto; min-width: 72px; padding: 0 16px !important; }
+html body.rg-page .exo-au__num { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--exo-muted); font: 500 11px/1 var(--exo-mono); letter-spacing: 0.12em; }
+html body.rg-page label.exo-au__num:has([data-floor]) { flex: 1 1 200px; }
+html body.rg-page .exo-au__num input[type=range] { flex: 1 1 auto; min-width: 0; width: 100%; height: 44px; accent-color: var(--exo-cyan); }
+html body.rg-page .exo-au__num input[type=number] { width: 96px; }
+html body.rg-page .exo-au canvas { width: 100%; height: auto; display: block; }
+html body.rg-page .exo-au__log { margin-top: 10px; color: var(--exo-muted); font: 500 12px/1.5 var(--exo-mono); }

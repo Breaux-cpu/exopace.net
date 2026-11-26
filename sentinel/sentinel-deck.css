@@ -1,15 +1,17 @@
 /* Sentinel layout — phone thumb dock + bottom-sheet watchlist; two panes from 640px.
-   Page-scoped (body.sn-page). Loaded after the shell and rf.css. */
+   Page-scoped (body.sn-page). The shell excludes .sn-page from the generic !important
+   control skin and publishes --exo-dock-real for the COPY/JUMP dock. Loaded after the shell and rf.css. */
 
-html body.sn-page:not(#_z):not(#_z):not(#_z) {
+:root { --sn-dock: 74px; }
+html body.sn-page {
   margin: 0;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
 }
 /* The footer lives at the end of the scrolling main, not pinned under it */
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-main > .exo-foot { margin: 48px -16px 0; padding-bottom: 8px; }
-html body.sn-page:not(#_z):not(#_z):not(#_z) > .sn-main { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+html body.sn-page .sn-main > .exo-foot { margin: 48px -16px 0; padding-bottom: 8px; }
+html body.sn-page > .sn-main { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 body.sn-page .sn-main { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
 body.sn-page .sn-hero .exo-display { font-size: clamp(3rem, 11vw, 5.5rem); line-height: 0.95; }
 body.sn-page .sn-hero .exo-lead { font-size: clamp(1rem, 0.94rem + 0.3vw, 1.15rem); line-height: 1.5; }
@@ -21,7 +23,7 @@ body.sn-page .rf-actions {
   justify-content: start;
   gap: 8px;
 }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-deck .rf-actions button {
+html body.sn-page .rf-deck .rf-actions button {
   min-height: 48px !important;
   padding: 0 18px !important;
   white-space: nowrap;
@@ -46,8 +48,8 @@ body.sn-page .sn-tabs {
 }
 body.sn-page .rf-filters::-webkit-scrollbar,
 body.sn-page .sn-tabs::-webkit-scrollbar { display: none; }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-filters button,
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-tabs button {
+html body.sn-page .rf-filters button,
+html body.sn-page .sn-tabs button {
   flex: 0 0 auto;
   scroll-snap-align: start;
   min-height: 44px !important;
@@ -61,8 +63,8 @@ html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-tabs button {
   font: 500 11px/1 var(--exo-mono) !important;
   letter-spacing: 0.14em !important;
 }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-filters button[aria-pressed="true"],
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-tabs button[aria-selected="true"] {
+html body.sn-page .rf-filters button[aria-pressed="true"],
+html body.sn-page .sn-tabs button[aria-selected="true"] {
   color: #04070d !important;
   background: #f4f8fb !important;
   border-color: #f4f8fb !important;
@@ -70,13 +72,13 @@ html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-tabs button[aria-selected="true
 }
 
 body.sn-page .rf-list-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-list-actions button { text-transform: none !important; letter-spacing: 0.01em !important; font-size: 14px !important; }
+html body.sn-page .rf-list-actions button { text-transform: none !important; letter-spacing: 0.01em !important; font-size: 14px !important; }
 
 /* Watch lanes read as a second instrument, not a leftover */
 body.sn-page .sn-lanes { margin: 8px 0 0; padding-top: 28px; border-top: 1px solid rgba(198, 216, 226, 0.1); }
 body.sn-page .sn-lanes .exo-kicker { margin: 0 0 8px; }
 body.sn-page #sn-feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-card {
+html body.sn-page .sn-card {
   padding: 16px 18px;
   border-radius: 14px !important;
   box-shadow: none !important;
@@ -98,10 +100,10 @@ body.sn-page .sn-row > * { min-width: 0; width: 100%; }
 body.sn-page .sn-row > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
 body.sn-page .sn-row:last-of-type { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 body.sn-page .sn-row:last-of-type > button:last-child { grid-column: auto; }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-sheet .sn-row button { min-height: 44px !important; padding: 0 8px !important; }
+html body.sn-page .sn-sheet .sn-row button { min-height: 44px !important; padding: 0 8px !important; }
 body.sn-page .sn-note { color: var(--exo-muted); font-size: 13px; line-height: 1.45; margin: 4px 0 8px; }
 body.sn-page .sn-waves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-waves .exo-wave {
+html body.sn-page .sn-waves .exo-wave {
   margin: 0;
   min-height: 44px;
   padding: 10px 12px;
@@ -113,14 +115,16 @@ html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-waves .exo-wave {
   letter-spacing: 0.08em;
   overflow-wrap: anywhere;
 }
-html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-waves .exo-wave-btn { margin: 0; min-height: 44px; width: 100%; }
+html body.sn-page .sn-waves .exo-wave-btn { margin: 0; min-height: 44px; width: 100%; }
 
 body.sn-page .sn-dock-cta { display: none; }
 
 /* ---------- Phones (portrait, < 640px) ---------- */
-@media (max-width: 719.98px) {
-  html body.sn-page:not(#_z):not(#_z):not(#_z) { padding-bottom: calc(var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab))) + 74px); }
-  body.sn-page .sn-main { padding: 20px 16px 32px; }
+@media (max-width: 639.98px) {
+  /* Shell already reserves --exo-dock-real on the body. Shrink the scroller so the
+     watchlist thumb dock sits in the gap, not over the last controls. */
+  html body.sn-page > .sn-main { margin-bottom: var(--sn-dock); }
+  body.sn-page .sn-main { padding: 20px 16px 16px; }
   body.sn-page .sn-hero { margin-bottom: 20px; }
   body.sn-page .sn-hero .exo-display { font-size: clamp(3rem, 16vw, 4.25rem); margin-bottom: 12px; }
   body.sn-page .sn-hero .exo-lead { font-size: 1rem; }
@@ -128,7 +132,7 @@ body.sn-page .sn-dock-cta { display: none; }
   /* Start lives in the thumb dock; the deck keeps the secondary instruments */
   body.sn-page .rf-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body.sn-page .rf-actions #rf-start { display: none !important; }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-deck .rf-actions button {
+  html body.sn-page .rf-deck .rf-actions button {
     min-height: 48px !important;
     padding: 0 6px !important;
     white-space: normal;
@@ -136,7 +140,7 @@ body.sn-page .sn-dock-cta { display: none; }
     font-size: 13px !important;
   }
   body.sn-page .rf-list-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-list-actions button { padding: 0 6px !important; font-size: 13px !important; line-height: 1.15 !important; white-space: normal; }
+  html body.sn-page .rf-list-actions button { padding: 0 6px !important; font-size: 13px !important; line-height: 1.15 !important; white-space: normal; }
   body.sn-page .rf-filters,
   body.sn-page .sn-tabs {
     margin-left: -16px;
@@ -150,11 +154,11 @@ body.sn-page .sn-dock-cta { display: none; }
   body.sn-page #sn-feed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   /* Thumb dock + bottom sheet */
-  html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-sheet {
+  html body.sn-page .sn-sheet {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab)));
+    bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
     width: auto;
     transform: none;
     display: flex;
@@ -184,7 +188,7 @@ body.sn-page .sn-dock-cta { display: none; }
   }
   body.sn-page .sn-sheet[data-open="false"] .sn-dock { border-top: 0; }
   body.sn-page .sn-dock-cta { display: inline-flex; }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-dock-cta {
+  html body.sn-page .sn-dock-cta {
     flex: 1 1 auto;
     align-items: center;
     justify-content: center;
@@ -197,12 +201,12 @@ body.sn-page .sn-dock-cta { display: none; }
     letter-spacing: 0.01em !important;
     text-transform: none !important;
   }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) .sn-dock-cta:disabled {
+  html body.sn-page .sn-dock-cta:disabled {
     color: var(--exo-muted) !important;
     background: rgba(8, 14, 22, 0.92) !important;
     border-color: rgba(198, 216, 226, 0.16) !important;
   }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) #sn-sheet-toggle {
+  html body.sn-page #sn-sheet-toggle {
     flex: 0 0 auto;
     width: auto;
     min-width: 128px;
@@ -218,14 +222,22 @@ body.sn-page .sn-dock-cta { display: none; }
   body.sn-page .sn-sheet[data-open="true"] #sn-sheet-toggle::after { content: "▾"; }
   body:has(.sn-sheet[data-open="true"]).sn-page .sn-main { padding-bottom: 32px; }
 }
+
+@media (max-width: 639.98px) and (max-height: 500px) {
+  body.sn-page .sn-hero { margin-bottom: 10px; }
+  body.sn-page .sn-hero .exo-display { font-size: 2.4rem; margin-bottom: 6px; }
+  body.sn-page .sn-hero .exo-lead { font-size: 0.92rem; margin: 0; }
+  html body.sn-page > .sn-main { margin-bottom: var(--sn-dock); }
+  body.sn-page .sn-main { padding: 12px 16px 12px; }
+}
 @media (max-width: 359.98px) {
   body.sn-page .sn-row { grid-template-columns: 1fr; }
   body.sn-page #sn-feed { grid-template-columns: 1fr; }
 }
 
 /* ---------- Two panes (Fold inner, tablets, landscape, desktop) ---------- */
-@media (min-width: 720px) {
-  html body.sn-page:not(#_z):not(#_z):not(#_z) {
+@media (min-width: 640px) {
+  html body.sn-page {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
     grid-template-rows: auto auto minmax(0, 1fr);
@@ -235,9 +247,9 @@ body.sn-page .sn-dock-cta { display: none; }
   }
   body.sn-page > header.exo-bar,
   body.sn-page > .exo-pill { grid-column: 1 / -1; }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) > .sn-main { align-self: stretch; min-height: 0; overflow-y: auto; }
+  html body.sn-page > .sn-main { align-self: stretch; min-height: 0; overflow-y: auto; }
   body.sn-page > .sn-main { grid-column: 1; grid-row: 3; min-width: 0; padding: 32px clamp(20px, 3vw, 40px) 48px; }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) > .sn-sheet {
+  html body.sn-page > .sn-sheet {
     grid-column: 2;
     grid-row: 3;
     position: relative;
@@ -269,31 +281,31 @@ body.sn-page .sn-dock-cta { display: none; }
   body:has(.sn-sheet[data-open="true"]).sn-page .sn-main { padding-bottom: 48px; }
   body.sn-page .rf-caps, body.sn-page .rf-hardware { grid-template-columns: 1fr; }
 }
-@media (min-width: 720px) and (max-width: 900px) {
+@media (min-width: 640px) and (max-width: 900px) {
   body.sn-page .rf-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) .rf-deck .rf-actions button { padding: 0 10px !important; }
+  html body.sn-page .rf-deck .rf-actions button { padding: 0 10px !important; }
 }
-@media (min-width: 720px) and (max-height: 500px) {
+@media (min-width: 640px) and (max-height: 500px) {
   body.sn-page .sn-hero .exo-display { font-size: 3rem; }
   body.sn-page .sn-hero { margin-bottom: 16px; }
 }
 @media (min-width: 1180px) {
   body.sn-page .rf-caps, body.sn-page .rf-hardware { grid-template-columns: 1fr 1fr; }
-  html body.sn-page:not(#_z):not(#_z):not(#_z) { grid-template-columns: minmax(0, 1fr) 360px; }
+  html body.sn-page { grid-template-columns: minmax(0, 1fr) 360px; }
 }
 
 /* Capability + hardware slabs: content-height, no hollow cards */
-html body.sn-page:not(#_z):not(#_z):not(#_z) :is(.rf-cap, .rf-hw) {
+html body.sn-page :is(.rf-cap, .rf-hw) {
   min-height: 0;
   height: auto;
   justify-content: flex-start;
   gap: 10px;
   padding: 18px 20px;
 }
-@media (min-width: 720px) {
-  html body.sn-page:not(#_z):not(#_z):not(#_z) { padding-bottom: var(--pg-shell-dock, calc(var(--exo-dock-h) + var(--exo-sab))); }
+@media (min-width: 640px) {
+  html body.sn-page { padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))); }
 }
 /* Phone sheet is modal: the page underneath stops taking taps; a tap on the dimmed page closes it */
-@media (max-width: 719.98px) {
-  html body.sn-page:not(#_z):not(#_z):not(#_z):has(.sn-sheet[data-open="true"]) :is(.sn-main, .exo-pill, header.exo-bar) { pointer-events: none; }
+@media (max-width: 639.98px) {
+  html body.sn-page:has(.sn-sheet[data-open="true"]) :is(.sn-main, .exo-pill, header.exo-bar) { pointer-events: none; }
 }
