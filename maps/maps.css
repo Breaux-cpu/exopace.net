@@ -406,3 +406,70 @@ button, a, input { font: inherit; }
 
 /* Search capsule: 1px frame outside the 44px input row. */
 .fm-body .fm-go { height: calc(var(--fm-t) + 2px) !important; }
+
+/* Legend sheet (folded in from the old /maps/legend.html page). */
+#legend .lg-panel { max-height: min(88dvh, 88svh); }
+#legend .lg-kicker { margin: 0; color: var(--fm-mut); font: 500 11px/1.2 var(--fm-mono); letter-spacing: 0.18em; text-transform: uppercase; }
+#legend .lg-title { margin: 6px 0 12px; font: 300 clamp(28px, 6vw, 44px)/1.08 var(--fm-sans); letter-spacing: -0.02em; color: var(--fm-ink); }
+#legend .lg-lead, #legend .lg-section p { margin: 0 0 16px; max-width: 70ch; color: #c9d6dc; font-size: 15px; line-height: 1.55; }
+#legend h3 { margin: 28px 0 12px; font: 600 11px/1.3 var(--fm-mono); letter-spacing: 0.18em; color: var(--fm-cyan); text-transform: uppercase; }
+#legend .lg-title { text-transform: none; letter-spacing: -0.02em; color: var(--fm-ink); }
+#legend .lg-symbols { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+#legend .lg-symbols li {
+  display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--fm-line); background: rgba(7, 12, 18, 0.72); font-size: 14px; line-height: 1.45; color: var(--fm-ink);
+}
+#legend .sw { flex: 0 0 auto; display: inline-block; width: 32px; height: 10px; margin-top: 6px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(240, 246, 252, 0.28); }
+#legend .lg-section { padding-top: 4px; border-top: 1px solid var(--fm-line); margin-top: 24px; }
+#legend .lg-section h3 { margin-top: 16px; }
+#legend .lg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+@media print {
+  body:has(#legend[data-open="true"], #legend.is-open) header.exo-bar,
+  body:has(#legend[data-open="true"], #legend.is-open) .exo-pill,
+  body:has(#legend[data-open="true"], #legend.is-open) .exo-comms,
+  body:has(#legend[data-open="true"], #legend.is-open) .fm-body,
+  body:has(#legend[data-open="true"], #legend.is-open) #legend .exo-sheet-scrim,
+  body:has(#legend[data-open="true"], #legend.is-open) #legend .exo-sheet-head,
+  body:has(#legend[data-open="true"], #legend.is-open) #legend .lg-actions { display: none !important; }
+  body:has(#legend[data-open="true"], #legend.is-open) { background: #fff !important; color: #14202a; }
+  body:has(#legend[data-open="true"], #legend.is-open) #legend,
+  body:has(#legend[data-open="true"], #legend.is-open) #legend .lg-panel,
+  body:has(#legend[data-open="true"], #legend.is-open) #legend .exo-sheet-body {
+    display: block !important; position: static !important; inset: auto !important;
+    max-height: none !important; overflow: visible !important; background: #fff !important;
+    box-shadow: none !important; border: 0 !important; padding: 0 !important;
+  }
+  #legend .lg-title, #legend h3, #legend p, #legend .lg-lead, #legend .lg-kicker, #legend .lg-symbols li { color: #14202a !important; }
+  #legend .lg-symbols li { background: #fff; border-color: #c8d0d6; break-inside: avoid; }
+}
+
+
+/* exo-layout.css is loaded for the site nav and the legend sheet. On phone
+   portrait the Field Maps peek-dock owns the thumb zone, so keep COPY/JUMP in
+   the ticker. Short landscape still uses the shell's bottom action dock. */
+@media (max-width: 719px) and (min-height: 501px) {
+  body:has(.fm-body):has(.exo-pill):not(:has(#composer)) {
+    --exo-dock-h: 0px;
+    padding-bottom: 0 !important;
+  }
+  body:has(.fm-body) .exo-pill-actions,
+  body:has(.fm-body):not(:has(.exo-pill-actions)) #exo-pill-copy,
+  body:has(.fm-body):not(:has(.exo-pill-actions)) #exo-pill-jump {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: var(--fm-t) !important;
+    padding-bottom: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+}
+body:has(.fm-body) > main#exo-main,
+body:has(.fm-body) > main.fm-body {
+  overflow: hidden !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}

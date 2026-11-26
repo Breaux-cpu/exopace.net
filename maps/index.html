@@ -16,17 +16,21 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
 <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
 <link rel="stylesheet" href="/assets/exo-tokens.css" />
-<link rel="stylesheet" href="maps.css?v=13" />
+<link rel="stylesheet" href="/assets/exo-layout.css?v=3" data-exo-layout="1" />
+<link rel="stylesheet" href="maps.css?v=14" />
 </head>
 <body>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="https://cams.exopace.net/map">LIVE MAP</a>
-    <a href="/radio/">COMMS &amp; RF</a>
-    <a href="/sentinel/">SENTINEL</a>
-    <a href="/system/">SYSTEM</a>
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/" aria-current="page">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/">System</a>
   </nav>
 </header>
 <div class="exo-pill" id="exo-pill" aria-live="polite">
@@ -247,7 +251,7 @@
         <details class="fm-help"><summary>How this works</summary><p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar. A measured route is drawn in the neatline of each page it crosses, and the collar says so. On a quadrangle, the collar also names the next cell north, east, south, and west by that cell's corner. A cell past the sheet grid is omitted.</p></details>
         <div class="fm-row">
           <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
-          <a class="fm-btn" href="legend.html">LEGEND</a>
+          <button type="button" class="fm-btn" id="fm-legend-open" data-exo-sheet-toggle aria-controls="legend" aria-expanded="false">LEGEND</button>
         </div>
         <h2>ATAK</h2>
         <details class="fm-help"><summary>How this works</summary><p>SEND TO ATAK builds a KMZ of the pages. When a route is measured, that file also contains the route as its own line, clamped to the ground, plus a numbered point for each click. ATAK MBTILES packs imagery for the selected sheets into one raster file. Copy it into ATAK or use Import. It is not a world download. Esri, Maxar, Earthstar Geographics. ATAK-CIV is not installed on this phone, so this page cannot finish the import. GARMIN KMZ is a Custom Map for Garmin/CustomMaps. Each image is at most 1024 px. No Garmin drive is connected here, so it has not been loaded on a Garmin. The XML links are online basemaps. Finish ATAK’s callsign screen yourself.</p></details>
@@ -355,6 +359,62 @@
   <script src="/assets/exo-swarm.js"></script>
   <script src="/assets/exo-viewshed.js"></script>
   <script src="/assets/exo-plume.js"></script>
+  <script src="/assets/exo-layout.js?v=3" data-exo-layout="1"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
+
+<aside class="exo-sheet" id="legend" role="dialog" aria-labelledby="legend-title" data-open="false">
+  <button type="button" class="exo-sheet-scrim" data-exo-sheet-close aria-label="Close legend"></button>
+  <div class="exo-sheet-panel lg-panel">
+    <div class="exo-sheet-head">
+      <h2 class="exo-sheet-title" id="legend-title">Legend</h2>
+      <button type="button" class="exo-btn exo-sheet-close" data-exo-sheet-close>CLOSE</button>
+    </div>
+    <div class="exo-sheet-body lg" id="legend-body">
+      <p class="lg-kicker">Field maps · Legend</p>
+      <h3 class="lg-title">Reading an EXOpace sheet</h3>
+      <p class="lg-lead">Read a grid square from the southwest corner. The two large digits on a line are the 10 km and 1 km figures. A 1:50,000 letter sheet is 8 km by 10 km on portrait letter paper. 1:15,000, 1:24,000, and 1:48,000 use that same 160 mm by 200 mm neatline. They are not USGS quadrangles. A USGS 7.5′ sheet is 7.5 minutes of latitude by 7.5 minutes of longitude. Alaska 7.5′ sheets use 1:25,000. Puerto Rico 7.5′ sheets use 1:20,000. The other USGS series are 15′ at 1:62,500, 30×60′ at 1:100,000, and 1×2° at 1:250,000. Those print as true-scale letter tiles of the quadrangle. Print at actual size. The 100 mm bar must measure 100 mm.</p>
+      <h3>Symbols</h3>
+      <ul class="lg-symbols">
+        <li><i class="sw" style="background:#8a5a32"></i>Contour. Index lines are darker.</li>
+        <li><i class="sw" style="background:#b7d0e2"></i>Water</li>
+        <li><i class="sw" style="background:#b7c7a4"></i>Woods, from OpenStreetMap land cover</li>
+        <li><i class="sw" style="background:#d2563a"></i>Motorway</li>
+        <li><i class="sw" style="background:#e6d7a8;border:1px solid #8a7044"></i>Primary and secondary roads</li>
+        <li><i class="sw" style="background:#3a3a3a"></i>Rail</li>
+        <li><i class="sw" style="background:#1f2933"></i>MGRS / UTM grid</li>
+        <li><i class="sw" style="background:#c45c26"></i>OSM power line or substation, from OpenInfraMap</li>
+        <li><i class="sw" style="background:#6b3fa0"></i>OSM petroleum pipeline, from OpenInfraMap</li>
+        <li><i class="sw" style="background:#2f6f8f"></i>FEMA flood hazard zone. Zone X is lighter. United States only.</li>
+        <li><i class="sw" style="background:#8ea84e"></i>OSM broadleaved wood. Needleleaved is darker. Deciduous, where only the cycle is tagged, is tan.</li>
+        <li><i class="sw" style="background:#ffe08a"></i>OSM amateur radio. Not a complete repeater list.</li>
+        <li><i class="sw" style="background:#9a3412"></i>Measured route on a printed page. Numbered points are the clicks that fall inside that page.</li>
+      </ul>
+      <section class="lg-section">
+        <h3>Measure</h3>
+        <p>Each click adds a point. The latest leg is the WGS84 geodesic. True azimuth is clockwise from true north at the start of that leg. Grid azimuth subtracts grid convergence there, east positive, in that UTM zone. Magnetic azimuth subtracts the World Magnetic Model declination when NOAA returns it. If that line says to use a chart, do that. The total is the sum of the legs. Slope uses the geodesic as the horizontal run and the terrain-tile elevations as the rise. ROUTE GPX is a track. Import that file in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that same route on each page it crosses. Every leg shows its own true, grid, and back azimuth. Magnetic azimuth stays with that leg after NOAA answers for its start. A shared link keeps the route to about one meter.</p>
+      </section>
+      <section class="lg-section">
+        <h3>Grid</h3>
+        <p>Example: 15S YU 688 934 is a 100 m square. 15S is the zone and latitude band. YU is the 100 km square. 688 is easting to 100 m. 934 is northing to 100 m. Read right, then up.</p>
+      </section>
+      <section class="lg-section">
+        <h3>Collar</h3>
+        <p>Grid convergence is grid-to-true, east positive. Magnetic declination is the World Magnetic Model when the chart can reach NOAA. If that line says to use a current chart, do that. Do not invent a declination. On a quadrangle, the collar names the next cell north, east, south, and west by that cell's corner. A cell past the sheet grid is omitted. Those corners are this grid, not a National Map title. When the route crosses the neatline, the collar says ROUTE MARKED ON THIS PAGE. That line is the clicked route drawn in the sheet’s UTM zone. It is not a surveyed traverse.</p>
+      </section>
+      <section class="lg-section">
+        <h3>Extra Layers</h3>
+        <p>3DEP is the USGS shaded-relief service. It is elevation, including lidar where USGS used lidar, and it is not a point cloud. Flood zones come from the FEMA National Flood Hazard Layer. Power lines and pipelines come from OpenInfraMap’s OpenStreetMap tiles. Leaf type and amateur radio are only the features OpenStreetMap has tagged in the current view. If a layer says unavailable, nothing is drawn. A 7.5′, 15′, or 30×60′ sheet uses the USGS National Map cell name when that polygon has the same edges. A 1×2° sheet keeps the corner label, because that degree index is 1° by 1°. FIND USGS SCAN opens the USGS GeoPDF of that paper map, collar included. SHOW crops that year's scan to the quadrangle. The link keeps that year, and opening the link places it again. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline, and the collar stays off the neighboring cells. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map. That placement is the USGS file, not a redraw.</p>
+      </section>
+      <div class="lg-actions">
+        <button type="button" class="exo-btn exo-btn-primary" data-exo-sheet-close>Back to the map</button>
+        <button type="button" class="exo-btn" id="fm-legend-print">Print legend</button>
+      </div>
+    </div>
+  </div>
+</aside>
+<script>
+  document.getElementById("fm-legend-print") && document.getElementById("fm-legend-print").addEventListener("click", function () { window.print(); });
+</script>
+
 </body>
 </html>

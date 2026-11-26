@@ -414,6 +414,15 @@ body:has(#composer) {
   }
 }
 
+/* Site row: seven surfaces, fade so a peek is obvious on phones. */
+@media (max-width: 719px) {
+  html body .exo-sites {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--exo-fade-r, 28px)), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--exo-fade-r, 28px)), transparent 100%);
+  }
+  html body .exo-sites a { padding: 0 8px; }
+}
+
 /* Tight phones: keep the top nav readable or obviously scrollable. */
 @media (max-width: 430px) {
   html body .exo-bar {

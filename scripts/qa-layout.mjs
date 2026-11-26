@@ -18,6 +18,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { VIEWPORTS, PAGES, SHOT_VIEWPORTS } from "./qa-viewports.mjs";
+import { crawlSite } from "./qa-site-flow.mjs";
 import { collectOverlap } from "./qa-overlap.js";
 import { genericChrome, flows as shellFlows } from "./qa-flows/shell.mjs";
 
@@ -187,6 +188,11 @@ async function main() {
   let flowFail = 0;
 
   try {
+    if (!args.overlapOnly) {
+      const crawl = await crawlSite(base);
+      flowRows.push({ page: "site", vp: "all", ok: crawl.ok, flow: "internal links and orphans", skip: "", untestable: "", detail: crawl.detail });
+      if (!crawl.ok) flowFail++;
+    }
     for (const meta of pages) {
       for (const vp of VIEWPORTS) {
         const page = await browser.newPage();

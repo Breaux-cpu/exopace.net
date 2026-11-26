@@ -113,6 +113,9 @@
     document.body.classList.add("exo-sheet-open");
     var toggle = document.querySelector('[data-exo-sheet-toggle][aria-controls="' + sheet.id + '"]');
     if (toggle) toggle.setAttribute("aria-expanded", "true");
+    if (sheet.id && location.hash !== "#" + sheet.id) {
+      try { history.replaceState(null, "", "#" + sheet.id); } catch (e) {}
+    }
   }
 
   function closeSheet(sheet) {
@@ -127,6 +130,9 @@
     if (!open) document.body.classList.remove("exo-sheet-open");
     var toggle = target.id && document.querySelector('[data-exo-sheet-toggle][aria-controls="' + target.id + '"]');
     if (toggle) toggle.setAttribute("aria-expanded", "false");
+    if (target.id && location.hash === "#" + target.id) {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    }
   }
 
   function toggleSheet(sheet) {
@@ -155,16 +161,53 @@
     if (event.key === "Escape") closeSheet();
   }
 
+
+  var SITES = [
+    { href: "/mission/", label: "Mission", match: /^\/$|^\/index\.html$|^\/mission\/|^\/lock\// },
+    { href: "/radio/", label: "Radio", match: /^\/radio\// },
+    { href: "/mesh/", label: "Mesh", match: /^\/mesh\// },
+    { href: "/maps/", label: "Field Maps", match: /^\/maps\// },
+    { href: "/cameras/", label: "Cameras", match: /^\/cameras\// },
+    { href: "/sentinel/", label: "Sentinel", match: /^\/sentinel\// },
+    { href: "/system/", label: "System", match: /^\/system\// }
+  ];
+
+  function ensureSites() {
+    var nav = document.querySelector("nav.exo-sites");
+    if (!nav) return nav;
+    var path = location.pathname || "/";
+    nav.setAttribute("aria-label", "EXOpace surfaces");
+    nav.innerHTML = SITES.map(function (s) {
+      var cur = s.match.test(path) ? ' aria-current="page"' : "";
+      return '<a href="' + s.href + '"' + cur + ">" + s.label + "</a>";
+    }).join("");
+    return nav;
+  }
+
+  function openHashSheet() {
+    var id = (location.hash || "").replace(/^#/, "");
+    if (!id) return;
+    var sheet = document.getElementById(id);
+    if (sheet && (sheet.classList.contains("exo-sheet") || sheet.getAttribute("data-exo-sheet") != null)) {
+      openSheet(sheet);
+    }
+  }
+
   function init() {
     ensureStyles();
+    ensureSites();
     wrapPill(document);
     observeDock();
     publishDockHeight();
+    openHashSheet();
+    window.addEventListener("hashchange", openHashSheet);
     document.addEventListener("click", onDocClick);
     document.addEventListener("keydown", onKey);
   }
 
   global.EXO_LAYOUT = {
+    sites: SITES,
+    ensureSites: ensureSites,
     wrapPill: wrapPill,
     openSheet: openSheet,
     closeSheet: closeSheet,

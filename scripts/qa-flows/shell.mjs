@@ -13,7 +13,7 @@ export const genericChrome = [
       const hasBar = await page.$("header.exo-bar, .exo-sites");
       if (!hasBar) return { ok: true, skip: "no exo-bar on this page" };
       const texts = await page.$$eval(".exo-sites a", (els) => els.map((a) => a.textContent.trim()));
-      const need = ["LIVE MAP", "COMMS & RF", "SENTINEL", "SYSTEM"];
+      const need = ["Mission", "Radio", "Mesh", "Field Maps", "Cameras", "Sentinel", "System"];
       const missing = need.filter((n) => !texts.some((t) => t.includes(n)));
       return { ok: missing.length === 0, detail: missing.length ? "missing " + missing.join(", ") : texts.join(" | ") };
     }
@@ -81,7 +81,7 @@ export const flows = {
       name: "jump cluster links to live decks",
       test: async (page) => {
         const hrefs = await page.$$eval(".miss-jumps a", (els) => els.map((a) => a.getAttribute("href")));
-        const need = ["/mission/", "/radio/", "/mesh/", "/maps/", "/cameras/"];
+        const need = ["/mission/", "/radio/", "/mesh/", "/maps/", "/cameras/", "/sentinel/", "/system/"];
         const missing = need.filter((n) => !hrefs.includes(n));
         return { ok: missing.length === 0, detail: hrefs.join(" ") };
       }

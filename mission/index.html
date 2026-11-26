@@ -10,14 +10,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="EXOpace" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>EXOpace — Mission Control</title>
+    <title>EXOpace — Mission</title>
     <link rel="canonical" href="https://exopace.net/mission/" />
     <meta name="author" content="EXOpace" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <!-- Shared lock URLs used to unfurl as a bare link with no title card. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EXOpace" />
-    <meta property="og:title" content="EXOpace — Mission Control" />
+    <meta property="og:title" content="EXOpace — Mission" />
     <meta property="og:description" content="Planetary and orbital mission control: live TLE, pass prediction, and a field-radio PWA." />
     <meta property="og:url" content="https://exopace.net/" />
     <meta property="og:image" content="https://exopace.net/og.png" />
@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="EXOpace Mission Control — an Earth limb and orbit track over the void palette." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="EXOpace — Mission Control" />
+    <meta name="twitter:title" content="EXOpace — Mission" />
     <meta name="twitter:description" content="Planetary and orbital mission control: live TLE, pass prediction, and a field-radio PWA." />
     <meta name="twitter:image" content="https://exopace.net/og.png" />
     <link rel="manifest" href="/manifest.json" />
@@ -174,11 +174,14 @@
       <a class="exo-skip" href="#root">Skip to content</a>
       <a class="exo-brand" href="/mission/">EXOPACE</a>
       <nav class="exo-sites" aria-label="EXOpace surfaces">
-        <a href="https://cams.exopace.net/map">LIVE MAP</a>
-        <a href="/radio/">COMMS &amp; RF</a>
-        <a href="/sentinel/">SENTINEL</a>
-        <a href="/system/">SYSTEM</a>
-      </nav>
+    <a href="/mission/" aria-current="page">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/">System</a>
+  </nav>
     </header>
     <div class="exo-pill" id="exo-pill" aria-live="polite">
       <span id="exo-pill-clock">UTC — · JD —</span>
@@ -586,6 +589,7 @@
   <link rel="stylesheet" href="/assets/exo-modern.css?v=14" media="print" onload="this.media='all';this.onload=null" />
   <noscript><link rel="stylesheet" href="/assets/exo-modern.css?v=14" /></noscript>
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=3" data-exo-layout="1" />
   <link rel="stylesheet" href="/mission/mission.css?v=6" />
   <script src="/mission/mission.js?v=4" defer></script>
   <script src="/maps/mgrs.js"></script>
@@ -594,6 +598,7 @@
   <script src="/assets/exo-mavlink.js"></script>
   <script src="/assets/exo-astro-nav.js"></script>
   <script src="/assets/exo-rotator.js"></script>
+  <script src="/assets/exo-layout.js?v=3" data-exo-layout="1"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

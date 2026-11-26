@@ -22,10 +22,8 @@ export const VIEWPORTS = [
 export const PAGES = [
   { name: "mission", path: "/mission/", boot: true },
   { name: "maps", path: "/maps/" },
-  { name: "legend", path: "/maps/legend.html" },
   { name: "cameras", path: "/cameras/" },
   { name: "radio", path: "/radio/" },
-  { name: "unlock", path: "/radio/unlock.html" },
   { name: "mesh", path: "/mesh/" },
   { name: "sentinel", path: "/sentinel/" },
   { name: "system", path: "/system/" },

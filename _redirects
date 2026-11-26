@@ -17,6 +17,14 @@
 /scripts/*      /scripts/:splat 200
 /tle/*          /tle/:splat 200
 /icon-maskable.svg /icon-maskable.svg 200
+# Folded legacy surfaces — stay bookmarked, open on the parent page.
+/maps/legend.html /maps/#legend 301
+/maps/legend      /maps/#legend 301
+/radio/unlock.html /radio/#unlock 301
+/radio/unlock      /radio/#unlock 301
+/maintenance      /cameras/ 301
+/maintenance/     /cameras/ 301
+/maintenance/*    /cameras/ 301
 /radio          /radio/ 301
 /radio/*        /radio/:splat 200
 /mesh           /mesh/ 301

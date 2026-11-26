@@ -1,4 +1,4 @@
-/* Radio-group flows: /radio, /radio/unlock.html, /mesh, /sentinel.
+/* Radio-group flows: /radio, /mesh, /sentinel. Unlock is a sheet on /radio.
    Hardware paths (Web Bluetooth, Web Serial, WebUSB) are checked up to the honest
    unsupported / picker state only. Nothing here creates detections or radio data. */
 import { collectOverlap } from "../qa-overlap.js";
@@ -108,11 +108,22 @@ const radio = [
   },
 ];
 
+async function openUnlock(page) {
+  await page.evaluate(() => {
+    var s = document.getElementById("unlock");
+    if (!s) throw new Error("unlock sheet missing");
+    if (window.EXO_LAYOUT) EXO_LAYOUT.openSheet(s);
+    else { s.setAttribute("data-open", "true"); s.classList.add("is-open"); document.body.classList.add("exo-sheet-open"); }
+  });
+}
+
 const unlock = [
   {
     name: "empty Unlock shows an inline error",
     test: async (page) => {
-      await tap(page, ".ul-form button[type=submit]");
+      await openUnlock(page);
+      await page.waitForSelector("#unlock[data-open='true'] #ul-form", { timeout: 4000 });
+      await page.$eval("#ul-form", (f) => { const t = f.querySelector("#t"); if (t) t.value = ""; f.requestSubmit(); });
       const err = await textOf(page, "#ul-err");
       const inv = await page.$eval("#t", (el) => el.getAttribute("aria-invalid"));
       return { ok: /Paste the access token/.test(err) && inv === "true", detail: err };
@@ -121,10 +132,15 @@ const unlock = [
   {
     name: "a token redirects to ./?t=… on this origin",
     test: async (page) => {
-      await page.type("#t", "qa-token");
-      await Promise.all([page.waitForNavigation({ waitUntil: "domcontentloaded" }).catch(() => null), page.click(".ul-form button[type=submit]")]);
+      await openUnlock(page);
+      await page.waitForSelector("#unlock[data-open='true'] #ul-form", { timeout: 4000 });
+      const pending = page.waitForFunction(() => {
+        try { return new URL(location.href).searchParams.get("t") === "qa-token"; } catch (e) { return false; }
+      }, { timeout: 8000 }).catch(() => null);
+      await page.$eval("#ul-form", (f) => { const t = f.querySelector("#t"); t.value = "qa-token"; f.requestSubmit(); });
+      const reached = await pending;
       const u = new URL(page.url());
-      return { ok: u.pathname === "/radio/" && u.searchParams.get("t") === "qa-token", detail: u.pathname + u.search };
+      return { ok: u.pathname.replace(/index\.html$/, "") === "/radio/" && u.searchParams.get("t") === "qa-token", detail: u.pathname + u.search + (reached ? "" : " (no t= in time)") };
     },
   },
 ];
@@ -262,4 +278,4 @@ const sentinel = [
   },
 ];
 
-export const flows = { radio, unlock, mesh, sentinel };
+export const flows = { radio: radio.concat(unlock), mesh, sentinel };
