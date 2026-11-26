@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const PRIMARY = [
+  { path: "/", name: "Home", title: "EXOpace — Home", file: "index.html" },
   { path: "/mission/", name: "Mission", title: "EXOpace — Mission", file: "mission/index.html" },
   { path: "/radio/", name: "Radio", title: "EXOpace — Radio", file: "radio/index.html" },
   { path: "/mesh/", name: "Mesh", title: "EXOpace — Mesh", file: "mesh/index.html" },
@@ -24,8 +25,7 @@ export const OFF_ORIGIN = [
 ];
 
 export const ALIASES = {
-  "/": "/mission/",
-  "/index.html": "/mission/",
+  "/index.html": "/",
   "/maintenance": "/cameras/",
   "/maintenance/": "/cameras/",
   "/maintenance/index.html": "/cameras/",
@@ -35,7 +35,7 @@ export const ALIASES = {
   "/radio/unlock": "/radio/#unlock",
 };
 
-export const UTILITY = new Set(["/404.html"]);
+export const UTILITY = new Set(["/404.html", "/signin/"]);
 
 const SKIP_DIRS = new Set([".git", "node_modules", "cesium", "dist", "build", "out", "coverage", "target"]);
 
@@ -123,6 +123,7 @@ export async function crawlSite(base) {
     ...PRIMARY.map((p) => p.file),
     "index.html",
     "404.html",
+    "signin/index.html",
     "cameras/index.html",
     "maintenance/index.html",
     "maps/legend.html",
@@ -210,7 +211,6 @@ export async function crawlSite(base) {
 
   // Alias files must mention their parent target.
   const aliasFiles = {
-    "index.html": "/mission/",
     "maintenance/index.html": "/cameras/",
     "maps/legend.html": "/maps/#legend",
     "radio/unlock.html": "/radio/#unlock",
@@ -226,7 +226,7 @@ export async function crawlSite(base) {
     problems,
     pages: PRIMARY.map((p) => p.path),
     detail: ok
-      ? "6 on-origin surfaces + Cameras on cams · " + htmlFiles.length + " html files · aliases fold into parents"
+      ? "Home + 6 on-origin surfaces + Cameras on cams · " + htmlFiles.length + " html files · aliases fold into parents"
       : problems.slice(0, 8).join(" | ") + (problems.length > 8 ? " · +" + (problems.length - 8) + " more" : ""),
   };
 }

@@ -144,3 +144,7 @@
   Cache-Control: no-cache
 /assets/exo-tokens.css
   Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+/signin/*
+  Cache-Control: no-cache

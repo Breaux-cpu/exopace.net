@@ -585,3 +585,57 @@ body.exo-stage > main.exo-hero {
     font-size: 11px;
   }
 }
+
+/* —— Signed-in indicator (exo-layout.js probes cams /api/me once per session) —— */
+html body .exo-bar > .exo-sites { flex: 1 1 auto; min-width: 0; }
+html body .exo-acct {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: var(--exo-target);
+  min-height: var(--exo-target);
+  height: var(--exo-target);
+  margin-left: auto;
+  padding: 0 12px;
+  border: 1px solid var(--exo-line-btn);
+  border-radius: 999px;
+  background: rgba(8, 14, 22, 0.7);
+  color: var(--exo-muted);
+  font-family: var(--exo-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--exo-ease), color var(--exo-ease);
+}
+html body .exo-acct:hover { border-color: var(--exo-cyan); color: var(--exo-text); }
+html body .exo-acct:focus-visible { outline: 2px solid var(--exo-amber); outline-offset: 2px; }
+html body .exo-acct[aria-current="page"] { border-color: rgba(126, 224, 255, 0.45); }
+.exo-acct-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--exo-muted);
+}
+.exo-acct[data-state="in"] { color: var(--exo-cyan); border-color: rgba(126, 224, 255, 0.35); }
+.exo-acct[data-state="in"] .exo-acct-dot { background: var(--exo-cyan); box-shadow: 0 0 10px rgba(126, 224, 255, 0.7); }
+.exo-acct[data-state="out"] { color: var(--exo-amber); }
+.exo-acct[data-state="out"] .exo-acct-dot { box-shadow: inset 0 0 0 1.5px var(--exo-amber); }
+.exo-acct[data-state="error"] .exo-acct-dot { box-shadow: inset 0 0 0 1.5px rgba(159, 176, 180, 0.6); }
+/* Phones: the dot alone, a 44px target, so the surface row keeps its width. */
+@media (max-width: 719px) {
+  html body .exo-acct { padding: 0; width: var(--exo-target); border-radius: 50%; gap: 0; }
+  html body .exo-acct .exo-acct-label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  html body .exo-acct .exo-acct-dot { width: 10px; height: 10px; }
+}
+@media (max-height: 500px) {
+  html body .exo-acct { height: 40px; min-height: 40px; }
+}

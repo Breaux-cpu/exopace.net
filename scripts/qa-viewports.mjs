@@ -20,6 +20,8 @@ export const VIEWPORTS = [
 ];
 
 export const PAGES = [
+  { name: "home", path: "/" },
+  { name: "signin", path: "/signin/" },
   { name: "mission", path: "/mission/", boot: true },
   { name: "maps", path: "/maps/" },
   { name: "cameras", path: "/cameras/", allowRedirect: true, skipOverlap: true },

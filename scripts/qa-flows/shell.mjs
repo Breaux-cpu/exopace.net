@@ -13,7 +13,7 @@ export const genericChrome = [
       const hasBar = await page.$("header.exo-bar, .exo-sites");
       if (!hasBar) return { ok: true, skip: "no exo-bar on this page" };
       const texts = await page.$$eval(".exo-sites a", (els) => els.map((a) => a.textContent.trim()));
-      const need = ["Mission", "Radio", "Mesh", "Field Maps", "Cameras", "Sentinel", "System"];
+      const need = ["Home", "Mission", "Radio", "Mesh", "Field Maps", "Cameras", "Sentinel", "System"];
       const missing = need.filter((n) => !texts.some((t) => t.includes(n)));
       return { ok: missing.length === 0, detail: missing.length ? "missing " + missing.join(", ") : texts.join(" | ") };
     }
@@ -62,10 +62,10 @@ export const flows = {
       }
     },
     {
-      name: "sign-in link is off-origin",
+      name: "account control opens /signin/",
       test: async (page) => {
-        const href = await page.$eval('a[href*="cams.exopace.net/account"]', (a) => a.getAttribute("href"));
-        return { ok: href.includes("cams.exopace.net/account"), detail: href };
+        const href = await page.$eval("#sys-account", (a) => a.getAttribute("href"));
+        return { ok: href === "/signin/", detail: href };
       }
     },
     {
@@ -81,7 +81,7 @@ export const flows = {
       name: "jump cluster links to live decks",
       test: async (page) => {
         const hrefs = await page.$$eval(".miss-jumps a", (els) => els.map((a) => a.getAttribute("href")));
-        const need = ["/mission/", "/radio/", "/mesh/", "/maps/", "https://cams.exopace.net/map", "/sentinel/", "/system/"];
+        const need = ["/", "/mission/", "/radio/", "/mesh/", "/maps/", "https://cams.exopace.net/map", "/sentinel/", "/system/", "/signin/"];
         const missing = need.filter((n) => !hrefs.includes(n));
         return { ok: missing.length === 0, detail: hrefs.join(" ") };
       }
