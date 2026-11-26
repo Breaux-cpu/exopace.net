@@ -147,6 +147,9 @@ async function openPath(page, base, meta) {
     });
   }
   await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
+  await page.evaluate(() => {
+    if (window.EXO_LAYOUT && window.EXO_LAYOUT.publishDockHeight) window.EXO_LAYOUT.publishDockHeight();
+  }).catch(() => {});
   await new Promise((r) => setTimeout(r, 250));
 }
 
@@ -198,6 +201,43 @@ async function main() {
         }
         if (!args.flowsOnly) {
           const result = await checkOverlap(page);
+          const dock = await page.evaluate(() => {
+            const actions = document.querySelector(".exo-pill-actions");
+            if (!actions) return { skip: true };
+            const st = getComputedStyle(actions);
+            if (st.position !== "fixed" || st.display === "none") return { skip: true };
+            const measured = Math.round(actions.getBoundingClientRect().height);
+            const reserved = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+            const published = getComputedStyle(document.documentElement).getPropertyValue("--exo-dock-real").trim();
+            return { measured, reserved, published };
+          });
+          if (!dock.skip && dock.reserved < dock.measured - 1) {
+            result.failures.push({
+              type: "dock-reserve",
+              a: "padding-bottom " + dock.reserved + "px < dock " + dock.measured + "px ( --exo-dock-real: " + dock.published + ")"
+            });
+          }
+          if (vp.w <= 360) {
+            const nav = await page.evaluate(() => {
+              const sys = [...document.querySelectorAll(".exo-sites a")].find((a) => /SYSTEM/i.test(a.textContent || ""));
+              const strip = document.querySelector(".exo-sites");
+              if (!sys || !strip) return { skip: true };
+              sys.scrollIntoView({ inline: "end", block: "nearest" });
+              const r = sys.getBoundingClientRect();
+              return {
+                fullyInView: r.left >= -1 && r.right <= window.innerWidth + 1,
+                right: Math.round(r.right),
+                vw: window.innerWidth,
+                canScroll: strip.scrollWidth > strip.clientWidth + 1
+              };
+            });
+            if (!nav.skip && !nav.fullyInView) {
+              result.failures.push({
+                type: "nav-clip",
+                a: "SYSTEM right=" + nav.right + " vw=" + nav.vw + (nav.canScroll ? " (scroll did not reveal)" : "")
+              });
+            }
+          }
           const ok = result.failures.length === 0;
           if (!ok) overlapFail++;
           overlapRows.push({ page: meta.name, vp: vp.id, ok, failures: result.failures, count: result.count });

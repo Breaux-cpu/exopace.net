@@ -2,6 +2,33 @@
    Breakpoints: phone <=719px, tablet/fold-inner >=720px, wide >=1100px, short <=500px tall.
    Helpers: use these classes; request shell changes in /workspace/exopace-shared/shell-requests.md */
 
+/* Fallback tokens if exo-tokens.css was not linked. Identical names; the tokens
+   file wins when it loads after this one. exo-layout.js also injects tokens. */
+:root {
+  --exo-void: #04070d;
+  --exo-cyan: #7ee0ff;
+  --exo-amber: #ffb84d;
+  --exo-text: #f0f6fc;
+  --exo-muted: #9fb0b4;
+  --exo-line: rgba(186, 214, 226, 0.14);
+  --exo-line-btn: rgba(186, 214, 226, 0.18);
+  --exo-line-field: rgba(126, 224, 255, 0.22);
+  --exo-btn: rgba(8, 14, 22, 0.92);
+  --exo-inset: #060b14;
+  --exo-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --exo-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --exo-target: 44px;
+  --exo-sat: max(env(safe-area-inset-top, 0px), var(--exo-safe-top, 0px));
+  --exo-sab: max(env(safe-area-inset-bottom, 0px), var(--exo-safe-bottom, 0px));
+  --exo-sal: max(env(safe-area-inset-left, 0px), var(--exo-safe-left, 0px));
+  --exo-sar: max(env(safe-area-inset-right, 0px), var(--exo-safe-right, 0px));
+  --exo-bar-h: calc(52px + var(--exo-sat));
+  --exo-pill-h: 44px;
+  --exo-dock-h: 0px;
+  --exo-chrome-top: calc(var(--exo-bar-h) + var(--exo-pill-h));
+  --exo-ease: 150ms ease;
+}
+
 html {
   box-sizing: border-box;
 }
@@ -296,8 +323,9 @@ body.exo-sheet-open .exo-sheet:target {
 /* —— Phone bottom dock for pill actions (not used when Mesh owns the thumb bar) —— */
 @media (max-width: 719px) and (min-height: 501px) {
   body:has(.exo-pill):not(:has(#composer)) {
-    --exo-dock-h: 52px;
-    padding-bottom: calc(var(--exo-dock-h) + var(--exo-sab));
+    /* 44px actions + 6+6 padding + 1px border */
+    --exo-dock-h: 57px;
+    padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
   }
   body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions,
   body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy,
@@ -312,6 +340,8 @@ body.exo-sheet-open .exo-sheet:target {
     display: flex;
     gap: 8px;
     align-items: center;
+    box-sizing: border-box;
+    height: calc(var(--exo-dock-h) + var(--exo-sab));
     min-height: calc(var(--exo-dock-h) + var(--exo-sab));
     padding: 6px 12px calc(6px + var(--exo-sab));
     background: rgba(6, 10, 16, 0.94);
@@ -351,8 +381,9 @@ body:has(#composer) {
     --exo-pill-h: 0px;
   }
   body:has(.exo-pill):not(:has(#composer)) {
-    --exo-dock-h: 44px;
-    padding-bottom: calc(var(--exo-dock-h) + var(--exo-sab));
+    /* 44px actions + 4+4 padding + 1px border */
+    --exo-dock-h: 53px;
+    padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
   }
   body:has(.exo-pill) .exo-pill-status { display: none; }
   body:has(.exo-pill):not(:has(#composer)) .exo-pill {
@@ -370,12 +401,14 @@ body:has(#composer) {
     right: var(--exo-sar);
     bottom: 0;
     z-index: 45;
-    min-height: calc(44px + var(--exo-sab));
+    box-sizing: border-box;
+    height: calc(var(--exo-dock-h) + var(--exo-sab));
+    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
     padding: 4px 10px calc(4px + var(--exo-sab));
     background: rgba(6, 10, 16, 0.94);
     border-top: 1px solid var(--exo-line);
   }
-  .exo-comms { display: none; }
+  .exo-comms:not(.exo-comms--keep) { display: none; }
   html body .exo-bar {
     --exo-bar-h: calc(44px + var(--exo-sat));
   }
@@ -405,7 +438,7 @@ body:has(#composer) {
 .maplibregl-ctrl-bottom-right,
 .maplibregl-ctrl-bottom-left,
 .cesium-viewer-bottom {
-  bottom: calc(var(--exo-dock-h) + var(--exo-sab)) !important;
+  bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) !important;
 }
 
 /* Typographic pages: main scrolls; footer sits above the dock. */
@@ -439,4 +472,35 @@ body.exo-stage > main.exo-hero {
     transition: none;
   }
   .exo-btn:active { transform: none; }
+}
+
+/* 360px cover / small Android: SYSTEM was clipped. Tighten the bar, and if the
+   row still overflows, fade the trailing edge and leave a scroll spacer so the
+   last item can sit fully in view. */
+@media (max-width: 360px) {
+  html body .exo-bar {
+    padding-left: 8px;
+    padding-right: 6px;
+    gap: 4px;
+  }
+  html body .exo-brand {
+    letter-spacing: 0.08em;
+    margin-right: 0;
+    padding-right: 4px;
+    font-size: 0.66rem;
+  }
+  html body .exo-sites {
+    gap: 0;
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+  }
+  html body .exo-sites::after {
+    content: "";
+    flex: 0 0 20px;
+    height: 1px;
+  }
+  html body .exo-sites a {
+    padding: 0 4px;
+    font-size: 11px;
+  }
 }

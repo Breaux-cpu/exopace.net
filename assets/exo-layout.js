@@ -1,15 +1,40 @@
-/* Shared shell helpers: wrap the status pill, drive sheets. Idempotent. */
+/* Shared shell helpers: wrap the status pill, drive sheets, measure the dock. Idempotent. */
 (function (global) {
   if (global.EXO_LAYOUT) return;
 
-  
-  function ensureStyles() {
-    if (document.querySelector("link[data-exo-layout], style[data-exo-layout]")) return;
+  function assetUrl(name) {
+    var script = document.querySelector("script[src*='exo-layout.js']");
+    if (script && script.src) {
+      try { return new URL(name, script.src).href; } catch (e) {}
+    }
+    return "/assets/" + name;
+  }
+
+  function hasStylesheet(fragment) {
+    var nodes = document.querySelectorAll("link[rel='stylesheet'], style");
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var href = el.getAttribute("href") || "";
+      if (href.indexOf(fragment) !== -1) return true;
+    }
+    return false;
+  }
+
+  function injectLink(href, attr) {
     var l = document.createElement("link");
     l.rel = "stylesheet";
-    l.href = "/assets/exo-layout.css?v=1";
-    l.setAttribute("data-exo-layout", "1");
+    l.href = href;
+    l.setAttribute(attr, "1");
     (document.head || document.documentElement).appendChild(l);
+  }
+
+  function ensureStyles() {
+    if (!hasStylesheet("exo-tokens.css") && !document.querySelector("link[data-exo-tokens], style[data-exo-tokens]")) {
+      injectLink(assetUrl("exo-tokens.css"), "data-exo-tokens");
+    }
+    if (!hasStylesheet("exo-layout.css") && !document.querySelector("link[data-exo-layout], style[data-exo-layout]")) {
+      injectLink(assetUrl("exo-layout.css?v=2"), "data-exo-layout");
+    }
   }
 
   function wrapPill(root) {
@@ -35,6 +60,46 @@
     pill.appendChild(status);
     if (actions.childNodes.length) pill.appendChild(actions);
     return pill;
+  }
+
+  function publishDockHeight() {
+    var root = document.documentElement;
+    var actions = document.querySelector(".exo-pill-actions");
+    var height = 0;
+    if (actions && !document.querySelector("#composer")) {
+      var st = window.getComputedStyle(actions);
+      if (st.position === "fixed" && st.display !== "none" && st.visibility !== "hidden") {
+        height = Math.round(actions.getBoundingClientRect().height);
+      }
+    }
+    var value = height + "px";
+    root.style.setProperty("--exo-dock-real", value);
+    if (document.body) document.body.style.setProperty("--exo-dock-real", value);
+    return height;
+  }
+
+  var dockFrame = 0;
+  function scheduleDockPublish() {
+    if (dockFrame) cancelAnimationFrame(dockFrame);
+    dockFrame = requestAnimationFrame(function () {
+      dockFrame = 0;
+      publishDockHeight();
+    });
+  }
+
+  function observeDock() {
+    if (observeDock._bound) return;
+    observeDock._bound = true;
+    window.addEventListener("resize", scheduleDockPublish);
+    window.addEventListener("orientationchange", scheduleDockPublish);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", scheduleDockPublish);
+    }
+    if (typeof ResizeObserver === "function") {
+      observeDock._ro = new ResizeObserver(scheduleDockPublish);
+      var actions = document.querySelector(".exo-pill-actions");
+      if (actions) observeDock._ro.observe(actions);
+    }
   }
 
   function closestSheet(el) {
@@ -93,6 +158,8 @@
   function init() {
     ensureStyles();
     wrapPill(document);
+    observeDock();
+    publishDockHeight();
     document.addEventListener("click", onDocClick);
     document.addEventListener("keydown", onKey);
   }
@@ -102,6 +169,7 @@
     openSheet: openSheet,
     closeSheet: closeSheet,
     toggleSheet: toggleSheet,
+    publishDockHeight: publishDockHeight,
     init: init
   };
 

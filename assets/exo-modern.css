@@ -513,7 +513,7 @@ body:has(#decode) .exo-clock {
     color: #ffb84d !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle) {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) :where(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle) {
     box-sizing: border-box !important;
     min-height: 44px !important;
     border-radius: 10px !important;
@@ -530,12 +530,12 @@ body:has(#decode) .exo-clock {
     transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):hover {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) :where(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):hover {
     color: #7ee0ff !important;
     border-color: rgba(126, 224, 255, 0.24) !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):active {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) :where(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):active {
     color: #ffb84d !important;
   }
 
@@ -584,7 +584,7 @@ body:has(#decode) .exo-clock {
     }
   }
 
-  html body:not(:has(#boot-void)) :is(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel, .exo-slab) {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) :where(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel, .exo-slab) {
     border-radius: 16px !important;
     background-color: rgba(7, 12, 18, 0.86) !important;
     background-image: none !important;
@@ -594,7 +594,7 @@ body:has(#decode) .exo-clock {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.28) !important;
   }
 
-  html body:not(:has(#boot-void)) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="color"]) {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) :where(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="color"]) {
     box-sizing: border-box !important;
     min-height: 44px !important;
     height: 44px !important;
@@ -606,11 +606,11 @@ body:has(#decode) .exo-clock {
     font-family: "IBM Plex Mono", ui-monospace, monospace !important;
   }
 
-  html body:not(:has(#boot-void)) textarea {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) textarea {
     height: auto !important;
   }
 
-  html body:not(:has(#boot-void)) :is(input, select, textarea, button, a.btn):focus-visible {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page)) :where(input, select, textarea, button, a.btn):focus-visible {
     outline: 2px solid #ffb84d !important;
     outline-offset: 2px;
   }
