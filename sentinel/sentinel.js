@@ -155,7 +155,7 @@ async function evaluate() {
   if (!tle.birds.length) notes.push({ lane: "orbital", title: "ORBITAL", body: catalogState });
   else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " " + catalogState + (fix ? "" : " · NO FIX") });
 
-  notes.push({ lane: "rf", title: "RF", body: "BROWSER CANNOT SCAN WIFI OR CELL · " + ble });
+  notes.push({ lane: "rf", title: "RF", body: "BLE SCAN IS IN RF SCAN ABOVE · WIFI AND CELL NEED HARDWARE · " + ble });
   notes.push({ lane: "geofences", title: "GEOFENCES", body: fences.length ? fences.length + " ARMED" : "Standby" });
   if (queue.length) notes.push({ lane: "all", title: "QUEUE", body: queue.length + " QUEUED · LOCAL ONLY" });
 

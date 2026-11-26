@@ -1,0 +1,38 @@
+EXOpace RF Scan
+===============
+
+This directory is a web port of detection signatures from RF Sentinel
+(https://github.com/CIS-C0/RFSentinel), Copyright © 2026 CIS-C0.
+
+RF Sentinel is free software licensed under the GNU General Public License
+version 3 (or later). This port, including the OUI preset JSON files copied
+from RF Sentinel's assets/oui_presets and the matching logic derived from
+SignatureEngine.kt, HackerWatch.kt, OuiWatchlist.kt and OuiEntry.kt, is
+likewise licensed under GPL-3.0-or-later. See LICENSE in this directory.
+
+The rest of the EXOpace site outside this directory is not automatically
+relicensed by this notice. If you distribute this port, you must keep these
+files under GPL-3.0-or-later and provide their corresponding source.
+
+Credits (as required by RF Sentinel and its signature sources):
+
+- RF Sentinel, CIS-C0, GPL-3.0-or-later
+  https://github.com/CIS-C0/RFSentinel
+- all-cameras-are-beacons signature reference, Apache-2.0
+  (confidence ladder and many non-registry signature values; no code copied)
+  https://github.com/soyboi1312/all-cameras-are-beacons
+- Bluetooth SIG assigned-numbers (company IDs and 16-bit UUIDs)
+- IEEE MA-L / MA-M / MA-S registry (MAC prefixes)
+- ASTM F3411 Remote ID / opendroneid-core-c, Apache-2.0
+- SignalSweep research (GPL-3.0; facts only, no code)
+- FlipDeFlock (GPL-3.0) probe-shape notes (WiFi hardware path only)
+- SquachWatch DETECTIONS.md (GPL-3.0) for skimmer / Flipper / hidden-camera rows
+- Flock-You, SquachWatch, GainSec, ryanohoro, nite-oui-collection,
+  yj_nearbyglasses, Fieldwatch (OffGridPete, MIT), Wardrive Go (facts only),
+  AirGuard / SEEMOO (Apache-2.0), IETF DULT draft, Google Find Hub accessory spec,
+  Axon admin documentation, ExpressLRS docs
+
+This web port cannot perform WiFi, cellular, GNSS-jam, USB-WiFi probe, or
+background BLE scans that a native Android app can. Browsers also hide
+Bluetooth addresses, so OUI prefix matches usually need EXOpace / ESP32
+hardware that reports a real MAC. The UI must never invent detections.

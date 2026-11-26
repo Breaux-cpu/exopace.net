@@ -1,0 +1,148 @@
+/* EXOpace RF Scan deck — studio chrome, no stars or particles. */
+.rf-deck {
+  margin: 0 0 12px;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--exo-line);
+  border-radius: 16px;
+  background: var(--exo-glass);
+  box-shadow: var(--exo-metal-edge);
+  backdrop-filter: blur(18px) saturate(160%);
+}
+.rf-deck h1 {
+  margin: 0 0 4px;
+  font: 600 13px/1.2 var(--exo-mono), ui-monospace, monospace;
+  letter-spacing: 0.18em;
+  color: var(--exo-cyan);
+}
+.rf-lede, .rf-note, .rf-credit, .rf-empty, .rf-hw p, .rf-cap p, .rf-device p, .rf-device dl, .rf-alert {
+  margin: 0;
+  color: var(--exo-dim);
+  font: 13px/1.45 var(--exo-sans), system-ui, sans-serif;
+}
+.rf-lede { margin-bottom: 12px; max-width: 62ch; }
+.rf-credit { margin-top: 12px; font-size: 12px; }
+.rf-credit a { color: var(--exo-steel); }
+.rf-caps {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+  margin: 0 0 12px;
+}
+.rf-cap, .rf-hw, .rf-device, .rf-alert {
+  padding: 10px 12px;
+  border: 1px solid var(--exo-line);
+  border-radius: 12px;
+  background: var(--exo-surface);
+}
+.rf-cap h2, .rf-hw h2, .rf-device h2, .rf-list-head h2, .rf-filters legend {
+  margin: 0 0 4px;
+  font: 600 11px/1.2 var(--exo-mono), ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  color: var(--exo-steel);
+}
+.rf-cap[data-state="ready"] h2 { color: var(--exo-cyan); }
+.rf-cap[data-state="limited"] h2, .rf-cap[data-state="needs-hardware"] h2, .rf-cap[data-state="needs-app"] h2 { color: var(--exo-amber); }
+.rf-cap[data-state="blocked"], .rf-cap[data-state="unavailable"] { border-color: rgba(255, 184, 77, 0.35); }
+.rf-actions, .rf-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.rf-deck button, .rf-filters label {
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
+}
+.rf-deck button {
+  padding: 0 14px;
+  color: var(--exo-amber);
+  cursor: pointer;
+}
+.rf-deck button[data-primary="true"] {
+  color: var(--exo-void);
+  background: var(--exo-cyan);
+  border-color: var(--exo-cyan);
+}
+.rf-deck button[disabled] { opacity: 0.45; cursor: not-allowed; }
+.rf-status {
+  margin: 0 0 12px;
+  min-height: 24px;
+  color: var(--exo-amber);
+  letter-spacing: 0.08em;
+  font: 13px/1.3 var(--exo-mono), ui-monospace, monospace;
+}
+.rf-alerts { display: grid; gap: 8px; margin: 0 0 12px; }
+.rf-alert {
+  border-color: rgba(255, 184, 77, 0.45);
+  color: var(--exo-text);
+}
+.rf-alert strong {
+  display: block;
+  margin-bottom: 2px;
+  letter-spacing: 0.08em;
+  font: 600 11px/1.2 var(--exo-mono), ui-monospace, monospace;
+  color: var(--exo-amber);
+}
+.rf-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.rf-list-head h2 { margin: 0; }
+.rf-filters {
+  border: 0;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.rf-filters div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rf-filters label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--exo-line);
+  border-radius: 999px;
+  color: var(--exo-dim);
+  font: 11px/1 var(--exo-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+.rf-filters input { margin: 0; }
+.rf-devices { display: grid; gap: 8px; }
+.rf-device h2 { color: var(--exo-text); letter-spacing: 0.08em; }
+.rf-device[data-tier="strong"] { border-color: rgba(255, 184, 77, 0.55); }
+.rf-device[data-tier="probable"] { border-color: rgba(126, 224, 255, 0.4); }
+.rf-chip {
+  display: inline-block;
+  margin: 0 6px 6px 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--exo-line-btn);
+  color: var(--exo-cyan);
+  font: 10px/1.6 var(--exo-mono), ui-monospace, monospace;
+  letter-spacing: 0.1em;
+}
+.rf-device dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.rf-device dt { color: var(--exo-steel); letter-spacing: 0.08em; font-size: 10px; }
+.rf-hardware { display: grid; gap: 8px; margin-top: 12px; }
+.rf-empty { padding: 12px 0; }
+.rf-deck.rf-lane-on {
+  outline: 1px solid rgba(126, 224, 255, 0.35);
+}
+@media (min-width: 900px) {
+  .rf-caps { grid-template-columns: 1fr 1fr; }
+  .rf-hardware { grid-template-columns: 1fr 1fr; }
+}
