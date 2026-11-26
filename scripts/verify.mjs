@@ -114,14 +114,16 @@ const meshSw = read("mesh/sw.js");
 assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v69"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v90"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v63"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v68"), "Radio SW cache bumped");
+const mapsSw = read("maps/sw.js");
+assert(mapsSw.includes("exopace-maps-v31"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(meshSw), "Radio SW does not precache app.js");
 assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -288,7 +290,6 @@ assert(!/text: "SOS " \+ \(m\.msg/.test(meshApp), "SOS handler does not glue SOS
 
 // --- SDR web app at /radio/ (dj SDR) ---
 const sdrHtml = read("radio/index.html");
-const sdrUnlock = read("radio/unlock.html");
 assert(sdrHtml.includes("dj SDR"), "SDR app title");
 assert(sdrHtml.includes('const BASE="https://dj.tail0e44f5.ts.net"'), "SDR app points at the host backend over HTTPS");
 assert(sdrHtml.includes("fetch(BASE+p+"), "SDR api() prefixes BASE");
@@ -300,7 +301,10 @@ assert(sdrHtml.includes("assets/leaflet.min.js") && sdrHtml.includes("assets/lea
 assert(sdrHtml.includes("api_key=cb1_3pqj_1_3ae9e10bef10a2dc2ff55371"), "SDR CARTO tiles carry the API key");
 assert(!sdrHtml.includes('src="/assets/') && !sdrHtml.includes('href="/assets/'), "SDR app has no absolute /assets/ refs");
 assert(existsSync(join(root, "radio/assets/leaflet.min.js")) && existsSync(join(root, "radio/assets/leaflet.css")), "SDR leaflet assets exist");
-assert(sdrUnlock.includes("./?t="), "SDR unlock redirects to its own path");
+assert(read("radio/index.html").includes("./?t="), "SDR unlock form on Radio redirects to its own path");
+assert(read("radio/unlock.html").includes("/radio/#unlock"), "legacy /radio/unlock.html bounces to Radio unlock sheet");
+assert(read("maps/legend.html").includes("/maps/#legend"), "legacy /maps/legend.html bounces to Field Maps legend sheet");
+assert(read("_redirects").includes("/radio/unlock.html") && read("_redirects").includes("/maps/legend.html"), "_redirects folds unlock and legend into parent pages");
 assert(!existsSync(join(root, "radio/app.js")) && !existsSync(join(root, "radio/sw.js")), "SDR app replaced the radio PWA at /radio/");
 assert(headers.includes("/radio/index.html") && headers.includes("/mesh/index.html"), "in-place SDR + mesh index are no-cache");
 assert(read("assets/index-B5yAHF7-.js").includes('href:"/radio/"'), "MOC RADIO button points at the SDR app");

@@ -1,4 +1,26 @@
 /* Keyboard jump list. Ctrl/Cmd+K, or / when focus is not in a field. */
+(function loadExoLayout() {
+  if (!document.querySelector("link[href*='exo-tokens.css'], link[data-exo-tokens], style[data-exo-tokens]")) {
+    var t = document.createElement("link");
+    t.rel = "stylesheet";
+    t.href = "/assets/exo-tokens.css";
+    t.setAttribute("data-exo-tokens", "1");
+    (document.head || document.documentElement).appendChild(t);
+  }
+  if (!document.querySelector("link[data-exo-layout]")) {
+    var l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = "/assets/exo-layout.css?v=2";
+    l.setAttribute("data-exo-layout", "1");
+    (document.head || document.documentElement).appendChild(l);
+  }
+  if (window.EXO_LAYOUT || document.querySelector("script[data-exo-layout]")) return;
+  var s = document.createElement("script");
+  s.src = "/assets/exo-layout.js?v=2";
+  s.async = true;
+  s.setAttribute("data-exo-layout", "1");
+  (document.head || document.documentElement).appendChild(s);
+})();
 (function () {
   var TABS = [
     ["Listen", "listen"], ["Band", "band"], ["Live", "watch"], ["Scan", "scan"],

@@ -2,11 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta http-equiv="refresh" content="0; url=/cameras/" />
   <title>EXOpace — Cameras</title>
   <link rel="canonical" href="https://exopace.net/cameras/" />
-  <style>body{background:#03060b;color:#7ee0ff;font-family:ui-monospace,monospace;padding:24px}</style>
+  <style>
+    html, body { margin: 0; min-height: 100dvh; background: #04070d; color: #7ee0ff;
+      font-family: "IBM Plex Mono", ui-monospace, monospace; }
+    body { display: flex; align-items: center; justify-content: center;
+      padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px)); }
+    a { display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px; min-width: 44px; padding: 0 14px;
+      color: #7ee0ff; text-decoration: none; border: 1px solid rgba(126, 224, 255, 0.35); border-radius: 10px; }
+    a:focus-visible { outline: 2px solid #ffb84d; outline-offset: 2px; }
+    p { margin: 0; text-align: center; }
+  </style>
 </head>
 <body>
   <p>The catalogue is on <a href="/cameras/">Cameras</a>.</p>

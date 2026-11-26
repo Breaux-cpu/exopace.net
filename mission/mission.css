@@ -1,0 +1,441 @@
+/* Mission Control HUD layout — instrument gallery.
+   One deliberate layout per screen class, replacing the old patch stack.
+   The bundle mounts .hud children with absolute positions; this file owns
+   every anchor so nothing is left to chance.
+
+   Phone portrait   ≤ 719w           top: search + CAMS · right: map capsule · selection card
+                                      bottom: thumb bar LAYERS · STATION · VIEW; one bottom sheet
+   Landscape / Fold inner / tablet    same thumb bar bottom-left; the sheet is a left side panel,
+                                      selection card right, capsule far right
+   Desktop ≥ 1100w                   docked layer column + STATION, SELECTION right
+   mission.js moves the bundle's own controls into the sheet below desktop.
+*/
+
+:root {
+  --mi-g: 12px;               /* outer gutter */
+  --mi-s: 8px;                /* gap between stacked rows */
+  --mi-t: 44px;               /* touch target */
+  /* Stage already sits above the shell's bottom dock (body padding), so the
+     bottom inset only matters where no dock is drawn. Shell tokens carry env() + test overrides. */
+  --mi-sb: 0px;
+  --mi-sl: var(--exo-sal, env(safe-area-inset-left, 0px));
+  --mi-sr: var(--exo-sar, env(safe-area-inset-right, 0px));
+  --mi-glass: rgba(6, 10, 16, 0.78);
+  --mi-glass-solid: rgba(6, 10, 16, 0.94);
+  --mi-line: rgba(198, 216, 226, 0.14);
+  --mi-line-strong: rgba(198, 216, 226, 0.26);
+  --mi-ink: #e8f0f4;
+  --mi-mut: #8fa2aa;
+  --mi-cyan: #7ee0ff;
+  --mi-amber: #ffb84d;
+}
+
+/* ---------- page frame: header + pill in flow, stage fills the rest ---------- */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; }
+body > header.exo-bar, body > .exo-pill { flex: none; position: relative; }
+main#exo-main { position: relative !important; inset: auto !important; flex: 1 1 auto; min-height: 0; z-index: 1; }
+main#exo-main > #root { position: absolute !important; inset: 0; height: auto !important; min-height: 0 !important; }
+#globe { box-sizing: border-box; }
+.exo-wave { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; margin: -1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; border: 0 !important; white-space: nowrap; }
+
+/* Cesium canvas always sits under the HUD. */
+#globe .cesium-widget canvas { z-index: 0 !important; }
+.hud { z-index: 4; }
+
+/* No stars: the skybox is switched off in mission/mission.js; keep the void flat. */
+#globe, .cesium-viewer, .cesium-widget { background: #03060b; }
+
+/* ---------- shared control language ---------- */
+.hud .btn, .hud .chip, #exo-locate, #exo-traffic .btn {
+  box-sizing: border-box;
+  min-height: var(--mi-t) !important;
+  min-width: var(--mi-t);
+  padding: 0 12px !important;
+  margin: 0 !important;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 12px !important;
+  font: 500 11px/1 "IBM Plex Mono", ui-monospace, monospace !important;
+  letter-spacing: 0.1em !important;
+  white-space: nowrap;
+  color: var(--mi-mut);
+  background: var(--mi-glass) !important;
+  border: 1px solid var(--mi-line) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
+  box-shadow: none !important;
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.hud .btn:hover, #exo-locate:hover { color: var(--mi-ink); border-color: var(--mi-line-strong) !important; }
+.hud .btn.on, #exo-traffic .btn.on { color: var(--mi-cyan) !important; border-color: rgba(126, 224, 255, 0.42) !important; background: rgba(14, 34, 44, 0.82) !important; }
+.hud .btn:focus-visible, .hud input:focus-visible, .hud select:focus-visible, #exo-locate:focus-visible { outline: 2px solid var(--mi-cyan); outline-offset: 2px; }
+
+/* Segmented groups: one glass capsule, hairline dividers, no per-button frames. */
+.hud .camstrip, .hud .timebar, .hud .zoom {
+  display: flex !important; gap: 0 !important; padding: 3px !important;
+  background: var(--mi-glass) !important;
+  border: 1px solid var(--mi-line) !important;
+  border-radius: 15px !important;
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+  transform: none !important;
+  max-width: none !important;
+  flex-wrap: nowrap !important;
+  z-index: 8 !important;
+}
+.hud .camstrip .btn, .hud .timebar .btn, .hud .zoom .btn {
+  background: transparent !important; border: 0 !important; border-radius: 11px !important;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  flex: none;
+}
+.hud .camstrip .btn.on, .hud .timebar .btn.on, .hud .zoom .btn.on { background: rgba(126, 224, 255, 0.12) !important; }
+/* hairline dividers between neighbours; none beside the lit segment */
+.hud .camstrip .btn + .btn:not(.on), .hud .timebar .btn + .btn:not(.on) {
+  background: linear-gradient(var(--mi-line), var(--mi-line)) left center / 1px 18px no-repeat !important;
+}
+.hud .camstrip .btn.on + .btn:not(.on), .hud .timebar .btn.on + .btn:not(.on) { background: transparent !important; }
+.hud .timebar .rate { display: none !important; }
+.hud .zoom { flex-direction: column !important; width: auto !important; height: auto !important; }
+.hud .zoom .btn { width: var(--mi-t) !important; min-width: var(--mi-t) !important; padding: 0 !important; font-size: 15px !important; color: var(--mi-ink); }
+.hud .zoom .btn + .btn:not(.on) { background: linear-gradient(var(--mi-line), var(--mi-line)) center top / 18px 1px no-repeat !important; }
+
+/* Rails scroll sideways instead of wrapping onto each other. */
+.hud .camstrip, #exo-traffic-row, .hud .layers.open {
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.hud .camstrip::-webkit-scrollbar, #exo-traffic-row::-webkit-scrollbar, .hud .layers::-webkit-scrollbar { display: none; }
+.hud .camstrip > *, #exo-traffic-row > * { scroll-snap-align: start; }
+
+/* Rails fade at the trailing edge so a cut-off chip reads as "scroll for more". */
+@media (max-width: 1099px) {
+  .hud .camstrip, #exo-traffic-row {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+            mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+  .hud .camstrip { padding-right: 24px !important; }
+  #exo-traffic-row { padding-right: 24px; }
+}
+
+/* Search */
+.hud .search { display: block !important; transform: none !important; z-index: 9; }
+.hud .search input {
+  box-sizing: border-box; width: 100%; height: var(--mi-t); min-height: var(--mi-t);
+  padding: 0 14px 0 38px !important;
+  border-radius: 14px !important;
+  background: var(--mi-glass-solid) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa2aa' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px 50% no-repeat !important;
+  border: 1px solid var(--mi-line) !important;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  color: var(--mi-ink) !important;
+  font: 500 12px/1 "IBM Plex Mono", ui-monospace, monospace !important; letter-spacing: 0.08em !important;
+}
+.hud .search input::placeholder { color: var(--mi-mut); }
+
+/* Top-right cluster */
+.hud .tl { display: flex !important; flex-wrap: nowrap !important; gap: 6px !important; max-width: none !important; justify-content: flex-end; z-index: 9; }
+.hud .tl .utc { display: none !important; }        /* the shell pill already carries UTC */
+.hud .tl select.chip { padding-right: 8px !important; }
+
+/* Panels: dossier (SELECTION), STATION, layer list */
+.hud .dossier, .hud .station {
+  box-sizing: border-box;
+  background: var(--mi-glass-solid) !important;
+  border: 1px solid var(--mi-line) !important;
+  border-radius: 18px !important;
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.4) !important;
+  padding: 14px 16px !important;
+  overflow: auto; overscroll-behavior: contain;
+  z-index: 7 !important;
+  width: auto !important; max-width: none !important; max-height: none !important;
+  transform: none !important;
+}
+.hud .dossier h3, .hud .station h3 { font: 600 11px/1.2 "IBM Plex Mono", ui-monospace, monospace !important; letter-spacing: 0.16em !important; color: var(--mi-amber) !important; margin: 0 0 10px !important; }
+.hud .station h3:not(:first-child) { margin-top: 16px !important; }
+.hud .dossier .kv, .hud .station .kv { grid-template-columns: 96px 1fr; gap: 6px 10px; }
+/* Empty selection: a compact status card, not a photo frame with nothing in it. */
+.hud .dossier:not(:has(img.lock-photo)) { padding: 14px 16px !important; }
+.hud .dossier:has(.empty) { padding: 12px 16px !important; }
+.hud .dossier img.lock-photo { border-radius: 10px !important; }
+.hud .dossier button.btn { margin-top: 10px !important; }
+.hud .dossier a.lock-wiki { display: inline-flex !important; align-items: center; min-height: var(--mi-t); padding: 0 2px; color: var(--mi-cyan) !important; font: 500 11px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.1em; text-decoration: none; }
+.hud .dossier a.lock-wiki::after { content: " ↗"; }
+.hud .station .btn { width: 100%; justify-content: flex-start; margin-top: 8px !important; }
+.hud .station .passlist li { min-height: var(--mi-t); padding: 6px 8px !important; border-radius: 10px !important; align-content: center; }
+
+.hud .layers { display: none !important; }
+.hud .layers.open {
+  display: flex !important; flex-direction: row !important; gap: 6px !important;
+  padding: 0 !important; background: transparent !important; border: 0 !important;
+  max-height: none !important; z-index: 9 !important;
+}
+.hud .layers .btn { width: auto !important; flex: none; }
+
+/* Traffic + weather rail (exo-traffic.js writes inline styles; these win). */
+#exo-traffic {
+  left: auto !important; right: auto !important; bottom: auto !important; top: auto !important;
+  max-width: none !important; z-index: 8 !important; gap: 6px !important;
+}
+#exo-traffic-row { flex-wrap: nowrap !important; gap: 6px !important; max-width: 100% !important; align-items: center; }
+#exo-traffic .btn { flex: none; }
+#exo-sea-caption { flex: none; padding: 0 2px; color: var(--mi-amber) !important; }
+#exo-radar-clock:not([hidden]) { display: inline-flex !important; gap: 6px; align-items: center; flex: none; }
+#exo-radar-time, #exo-radar-live { flex: none; font: 500 11px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .06em; color: var(--mi-cyan); white-space: nowrap; }
+#exo-legend { white-space: normal !important; font-size: 11px !important; color: var(--mi-mut) !important; text-shadow: 0 1px 2px #000; }
+#exo-locate { position: absolute !important; left: auto !important; top: auto !important; z-index: 8 !important; color: var(--mi-ink); }
+#exo-craft, #exo-storm {
+  left: var(--mi-g) !important; right: auto !important; z-index: 10 !important;
+  border-radius: 16px !important; border-color: var(--mi-line-strong) !important;
+  background: var(--mi-glass-solid) !important;
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+}
+
+/* Cesium credits: a quiet attribution chip with a real tap target. */
+#globe .cesium-viewer-bottom {
+  position: absolute !important; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important;
+  transform: none !important; z-index: 6 !important;
+  display: flex !important; align-items: center; gap: 8px; padding: 0 10px;
+  height: var(--mi-t); box-sizing: border-box;
+  background: rgba(6, 10, 16, 0.62); border: 1px solid var(--mi-line); border-radius: 12px;
+  contain: paint;
+}
+#globe .cesium-widget-credits { display: flex !important; align-items: center; gap: 8px; position: static !important; }
+#globe .cesium-credit-logoContainer { display: inline-flex !important; align-items: center; }
+#globe .cesium-credit-logoContainer img { height: 18px !important; width: auto !important; max-width: 100% !important; opacity: .7; }
+#globe .cesium-credit-textContainer { display: none !important; }
+#globe a.cesium-credit-expand-link { display: inline-flex !important; align-items: center; min-height: var(--mi-t); color: var(--mi-mut) !important; font: 500 10px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .08em; text-decoration: none; pointer-events: auto; }
+
+/* Toast + install: above the thumb stack, never on a control. */
+#exo-toast { position: fixed !important; top: auto !important; bottom: calc(var(--mi-toast, 200px) + var(--mi-sb)) !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 90 !important; border-radius: 999px !important; }
+.hud .toast { top: auto !important; bottom: calc(var(--mi-toast, 200px) + var(--mi-sb)) !important; pointer-events: none !important; border-radius: 999px !important; z-index: 20 !important; }
+#exo-install { right: auto !important; left: 50% !important; transform: translateX(-50%); bottom: calc(var(--mi-toast, 200px) + 52px + var(--mi-sb)) !important; border-radius: 999px !important; padding: 0 16px !important; }
+
+/* =====================================================================
+   COMPACT  (everything below desktop: phones, phone landscape, Fold inner, tablets)
+   One thumb bar (LAYERS · STATION · VIEW) and one sheet. mission/mission.js
+   moves the layer list, traffic + weather toggles, camera modes, time bar and
+   LOCATE into the sheet while this layout applies and puts them back on desktop.
+   Phone portrait: bar along the bottom, sheet rises above it.
+   Landscape / Fold inner / tablet: bar bottom-left, sheet is a left side panel.
+   STATION opens in the same slot as the sheet; only one is open at a time.
+   ===================================================================== */
+@media (max-width: 1099px), (max-height: 500px) {
+  :root { --mi-thumb: 60px; }
+  /* Thumb bar */
+  #mi-thumb {
+    position: absolute; z-index: 12;
+    height: var(--mi-thumb); box-sizing: border-box; padding: 6px; gap: 6px;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    background: var(--mi-glass-solid); border: 1px solid var(--mi-line); border-radius: 18px;
+    -webkit-backdrop-filter: blur(18px) saturate(130%); backdrop-filter: blur(18px) saturate(130%);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+  }
+  #mi-thumb button {
+    min-width: 0; min-height: var(--mi-t); padding: 0 6px; margin: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    border: 0; border-radius: 13px; background: transparent; color: var(--mi-ink); cursor: pointer;
+    font: 600 11px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.14em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #mi-thumb button small { font: 500 9.5px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.08em; color: var(--mi-mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #mi-thumb button[aria-expanded="true"], #mi-thumb button[aria-pressed="true"] { background: rgba(126, 224, 255, 0.12); color: var(--mi-cyan); }
+  #mi-thumb button:focus-visible { outline: 2px solid var(--mi-cyan); outline-offset: 2px; }
+
+  /* Sheet */
+  #mi-sheet {
+    position: absolute; z-index: 11; box-sizing: border-box;
+    display: flex; flex-direction: column;
+    background: var(--mi-glass-solid); border: 1px solid var(--mi-line); border-radius: 18px;
+    -webkit-backdrop-filter: blur(18px) saturate(130%); backdrop-filter: blur(18px) saturate(130%);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  }
+  #mi-sheet[hidden] { display: none; }
+  .mi-sheet-head { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 16px; flex: none; }
+  .mi-sheet-head h2 { flex: 1; margin: 0; font: 600 11px/1.2 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.16em; color: var(--mi-amber); }
+  #mi-sheet-close {
+    width: var(--mi-t); height: var(--mi-t); margin: 0; padding: 0; border: 0; border-radius: 12px; background: transparent;
+    color: var(--mi-mut); font: 400 20px/1 "IBM Plex Sans", system-ui, sans-serif; cursor: pointer;
+  }
+  .mi-sheet-body { overflow: auto; overscroll-behavior: contain; padding: 0 12px 14px; min-height: 0; }
+  .mi-pane[hidden] { display: none; }
+  .mi-label { margin: 12px 4px 8px; font: 500 10px/1.2 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.16em; color: var(--mi-mut); }
+  .mi-pane > .mi-label:first-child { margin-top: 2px; }
+
+  /* Everything moved into the sheet flows in the sheet. */
+  #mi-sheet .layers, #mi-sheet .camstrip, #mi-sheet .timebar, #mi-sheet #exo-traffic, #mi-sheet #exo-locate {
+    position: static !important; inset: auto !important; translate: none !important; transform: none !important;
+    width: auto !important; max-width: none !important; max-height: none !important; margin: 0 !important;
+    -webkit-mask-image: none !important; mask-image: none !important; overflow: visible !important;
+    box-shadow: none !important;
+  }
+  #mi-sheet .layers, #mi-sheet .layers.open, #mi-sheet .camstrip {
+    display: grid !important; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px !important;
+    padding: 0 !important; background: none !important; border: 0 !important;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  #mi-sheet .camstrip > .btn:nth-child(1), #mi-sheet .camstrip > .btn:nth-child(2) { display: none !important; }
+  #mi-sheet .layers .btn, #mi-sheet .camstrip .btn, #mi-sheet #exo-traffic .btn {
+    width: auto !important; min-width: 0 !important; padding: 0 6px !important; justify-content: center !important;
+    background: rgba(10, 18, 28, 0.9) !important; border: 1px solid var(--mi-line) !important; border-radius: 12px !important;
+  }
+  #mi-sheet .layers .btn.on, #mi-sheet .camstrip .btn.on, #mi-sheet #exo-traffic .btn.on {
+    background: rgba(14, 34, 44, 0.95) !important; border-color: rgba(126, 224, 255, 0.42) !important; color: var(--mi-cyan) !important;
+  }
+  #mi-sheet .timebar {
+    display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 3px !important;
+    background: rgba(10, 18, 28, 0.9) !important;
+  }
+  #mi-sheet .timebar .btn { min-width: 0 !important; padding: 0 !important; }
+  #mi-sheet #exo-traffic { display: block !important; }
+  #mi-sheet #exo-traffic-row { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px !important; padding: 0 !important; -webkit-mask-image: none !important; mask-image: none !important; overflow: visible !important; }
+  #mi-sheet #exo-sea-caption { display: none !important; }
+  #mi-sheet #exo-radar-clock:not([hidden]) { grid-column: 1 / -1; display: flex !important; flex-wrap: wrap; align-items: center; gap: 6px; }
+  #mi-sheet #exo-radar-clock > .btn { flex: 1 1 0; }
+  #mi-sheet #exo-radar-time, #mi-sheet #exo-radar-live { flex: none; font: 500 10px/1.2 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.08em; color: var(--mi-mut); }
+  #mi-sheet #exo-radar-live:not([hidden]) { color: var(--mi-cyan); text-transform: uppercase; }
+  #mi-sheet #exo-legend { display: block !important; margin: 10px 4px 0 !important; white-space: normal !important; text-shadow: none; }
+  #mi-sheet #exo-locate { display: flex !important; width: 100% !important; margin-top: 12px !important; }
+
+  #mi-sheet .layers .btn, #mi-sheet .camstrip .btn, #mi-sheet #exo-traffic .btn, #mi-sheet .timebar .btn { overflow: hidden; text-overflow: ellipsis; }
+}
+@media (min-width: 1100px) and (min-height: 501px) {
+  #mi-thumb, #mi-sheet { display: none !important; }
+}
+
+/* ---------- phone portrait  (≤ 719 wide, taller than 500) ---------- */
+@media (max-width: 719px) and (min-height: 501px) {
+  :root {
+    --mi-row1: var(--mi-g);
+    --mi-row2: calc(var(--mi-g) + var(--mi-t) + var(--mi-s));
+    --mi-b1: var(--mi-g);
+    --mi-b2: calc(var(--mi-b1) + var(--mi-thumb) + var(--mi-s));       /* just above the thumb bar */
+    --mi-toast: calc(var(--mi-b2) + var(--mi-t) + 12px);
+  }
+  .hud .search { top: var(--mi-row1) !important; left: calc(var(--mi-g) + var(--mi-sl)) !important; right: calc(var(--mi-g) + 148px) !important; width: auto !important; }
+  .hud .tl { width: 140px; top: var(--mi-row1) !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; left: auto !important; }
+  .hud .tl > * { flex: 1 1 0; }
+  .hud .tl .chip { display: none !important; }
+  .hud .tl a.radio-link { min-width: 64px; }
+
+  .hud .zoom { top: var(--mi-row2) !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; bottom: auto !important; left: auto !important; }
+  /* Pinch zooms on a phone; keep home, north and focus. */
+  .hud .zoom .btn:nth-child(2), .hud .zoom .btn:nth-child(3) { display: none !important; }
+
+  .hud .dossier {
+    top: var(--mi-row2) !important; bottom: auto !important;
+    left: calc(var(--mi-g) + var(--mi-sl)) !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g)) !important;
+    max-height: calc(100% - var(--mi-row2) - var(--mi-b2) - var(--mi-t) - var(--mi-s)) !important;
+  }
+  #mi-thumb { left: calc(var(--mi-g) + var(--mi-sl)); right: calc(var(--mi-g) + var(--mi-sr)); bottom: var(--mi-b1); }
+  #mi-sheet, .hud .station {
+    top: auto !important; bottom: var(--mi-b2) !important;
+    left: calc(var(--mi-g) + var(--mi-sl)) !important; right: calc(var(--mi-g) + var(--mi-sr)) !important;
+    max-height: calc(100% - var(--mi-row2) - var(--mi-b2)) !important;
+  }
+
+  /* One surface at a time: an open sheet or STATION hides the cards it would cover. */
+  body[data-mi-open] .hud .dossier, body[data-mi-open] .hud .zoom, body[data-mi-open] #globe .cesium-viewer-bottom,
+  body[data-mi-open] #exo-craft, body[data-mi-open] #exo-storm { display: none !important; }
+  .hud:has(.station) .dossier { display: none !important; }
+
+  #globe .cesium-viewer-bottom { left: calc(var(--mi-g) + var(--mi-sl)) !important; bottom: var(--mi-b2) !important; }
+  #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; transform: none !important; bottom: calc(var(--mi-b2) + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))) !important; }
+  #exo-craft, #exo-storm { left: var(--mi-g) !important; right: var(--mi-g) !important; bottom: calc(var(--mi-b2) + var(--mi-t) + var(--mi-s)) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-b2) - var(--mi-t) - var(--mi-s)) !important; max-width: none !important; }
+}
+
+/* ---------- side panel: phone landscape, Fold inner, tablets ---------- */
+@media (min-width: 720px) and (max-width: 1099px), (max-height: 500px) {
+  :root {
+    --mi-row1: var(--mi-g);
+    --mi-row2: calc(var(--mi-g) + var(--mi-t) + var(--mi-s));
+    --mi-b1: var(--mi-g);
+    --mi-b2: calc(var(--mi-b1) + var(--mi-thumb) + var(--mi-s));
+    --mi-col: min(340px, 42vw);
+    --mi-right: calc(100vw - var(--mi-g) - var(--mi-sl) - var(--mi-col) - var(--mi-g));   /* room right of the panel */
+    --mi-toast: calc(var(--mi-b1) + var(--mi-t) + 16px);
+  }
+  .hud .search { top: var(--mi-row1) !important; left: calc(var(--mi-g) + var(--mi-sl)) !important; right: auto !important; width: var(--mi-col) !important; }
+  .hud .tl { top: var(--mi-row1) !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; left: auto !important; max-width: calc(var(--mi-right) - var(--mi-g)) !important; }
+  .hud .tl span.chip:nth-of-type(n + 2) { display: none !important; }
+
+  #mi-thumb { left: calc(var(--mi-g) + var(--mi-sl)); width: var(--mi-col); bottom: var(--mi-b1); }
+  #mi-sheet, .hud .station {
+    top: var(--mi-row2) !important; bottom: var(--mi-b2) !important; height: auto !important;
+    left: calc(var(--mi-g) + var(--mi-sl)) !important; right: auto !important; width: var(--mi-col) !important; max-height: none !important;
+  }
+  .mi-sheet-body { flex: 1 1 auto; }
+
+  .hud .zoom { top: var(--mi-row2) !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; bottom: auto !important; left: auto !important; }
+  .hud .dossier {
+    top: var(--mi-row2) !important; bottom: auto !important; left: auto !important;
+    right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g) + var(--mi-sr)) !important;
+    width: min(340px, calc(var(--mi-right) - var(--mi-t) - 6px - 2 * var(--mi-g) - var(--mi-sr))) !important;
+    max-height: calc(100% - var(--mi-row2) - var(--mi-b1) - var(--mi-t) - var(--mi-s)) !important;
+  }
+  #globe .cesium-viewer-bottom { right: calc(var(--mi-g) + var(--mi-sr)) !important; bottom: var(--mi-b1) !important; width: 158px; }
+  #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr) + 158px + var(--mi-s)) !important; transform: none !important; bottom: calc(var(--mi-b1) + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))) !important; }
+  #exo-craft, #exo-storm { left: auto !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g) + var(--mi-sr)) !important; top: auto !important; bottom: calc(var(--mi-b1) + var(--mi-t) + var(--mi-s)) !important; max-width: min(340px, calc(var(--mi-right) - var(--mi-t) - 6px - 2 * var(--mi-g))) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-b1) - var(--mi-t) - var(--mi-s)) !important; }
+}
+/* Short landscape: tighter rows, a slimmer bar, and only home + north on the capsule. */
+@media (max-height: 500px) {
+  :root { --mi-g: 10px; --mi-row1: 8px; --mi-row2: calc(8px + var(--mi-t) + var(--mi-s)); --mi-b1: 8px; --mi-thumb: 54px; --mi-col: min(320px, 44vw); }
+  #mi-thumb button small { display: none; }
+  .hud .tl .chip, .hud .tl select, .hud .tl button { display: none !important; }
+  .hud .zoom .btn:nth-child(2), .hud .zoom .btn:nth-child(3), .hud .zoom .btn:nth-child(5) { display: none !important; }
+  #globe .cesium-viewer-bottom { width: 110px; padding: 0 6px; gap: 4px; }
+  #globe .cesium-credit-logoContainer img { height: 14px !important; }
+  #exo-install { right: calc(var(--mi-g) + var(--mi-sr) + 110px + var(--mi-s)) !important; }
+}
+
+/* =====================================================================
+   DESKTOP  (≥ 1100 wide, taller than 500)
+   ===================================================================== */
+@media (min-width: 1100px) and (min-height: 501px) {
+  :root {
+    --mi-g: 16px;
+    --mi-row1: var(--mi-g);
+    --mi-row2: calc(var(--mi-g) + var(--mi-t) + var(--mi-s) + 4px);
+    --mi-b1: calc(var(--mi-g) + var(--mi-sb));
+    --mi-b2: calc(var(--mi-b1) + var(--mi-t) + 6px + var(--mi-s));
+    --mi-top-of-stack: calc(var(--mi-b2) + var(--mi-t) + 26px);
+    --mi-toast: calc(var(--mi-top-of-stack) + 8px);
+  }
+  .hud .search { top: var(--mi-row1) !important; left: var(--mi-g) !important; right: auto !important; width: 320px !important; }
+  .hud .tl { top: var(--mi-row1) !important; right: var(--mi-g) !important; left: auto !important; }
+  /* Layer column is always docked on desktop. */
+  .hud .layers, .hud .layers.open {
+    display: flex !important; flex-direction: column !important; gap: 0 !important;
+    top: var(--mi-row2) !important; left: var(--mi-g) !important; right: auto !important; width: 132px;
+    padding: 3px !important; background: var(--mi-glass) !important; border: 1px solid var(--mi-line) !important; border-radius: 15px !important;
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  }
+  .hud .layers .btn { width: 100% !important; justify-content: flex-start !important; background: transparent !important; border: 0 !important; border-radius: 11px !important; }
+    .hud .layers .btn + .btn:not(.on) { background: linear-gradient(var(--mi-line), var(--mi-line)) 12px top / calc(100% - 24px) 1px no-repeat !important; }
+  .hud .station {
+    top: var(--mi-row2) !important; bottom: var(--mi-top-of-stack) !important; max-height: none !important;
+    left: calc(var(--mi-g) + 132px + var(--mi-g)) !important; right: auto !important; width: 340px !important;
+  }
+  .hud .dossier {
+    top: var(--mi-row2) !important; bottom: auto !important; right: var(--mi-g) !important; left: auto !important; width: 380px !important;
+    max-height: calc(100% - var(--mi-row2) - var(--mi-g) - 5 * var(--mi-t) - 36px - var(--mi-b2)) !important;
+  }
+  .hud .zoom { right: var(--mi-g) !important; bottom: var(--mi-b2) !important; top: auto !important; left: auto !important; }
+  .hud .camstrip { left: var(--mi-g) !important; right: auto !important; bottom: var(--mi-b1) !important; top: auto !important; }
+  .hud .timebar { left: 50% !important; right: auto !important; bottom: var(--mi-b1) !important; top: auto !important; translate: -50% 0; }
+  #exo-locate { right: calc(var(--mi-g) + 180px + var(--mi-s)) !important; bottom: calc(var(--mi-b1) + 3px) !important; }
+  #globe .cesium-viewer-bottom { right: var(--mi-g) !important; bottom: calc(var(--mi-b1) + 3px) !important; width: 180px; }
+  #exo-traffic { left: var(--mi-g) !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g)) !important; bottom: var(--mi-b2) !important; }
+  #exo-legend { white-space: nowrap !important; }
+  #exo-craft, #exo-storm { left: auto !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g)) !important; bottom: var(--mi-top-of-stack) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-top-of-stack)) !important; }
+}
+/* Between 1100 and ~1360 the time capsule centred would meet the camera rail. */
+@media (min-width: 1100px) and (max-width: 1359px) and (min-height: 501px) {
+  .hud .timebar { left: calc(var(--mi-g) + 520px) !important; translate: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud .btn, #exo-locate { transition: none; }
+}

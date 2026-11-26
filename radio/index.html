@@ -3,13 +3,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070a0f">
 <meta name="mobile-web-app-capable" content="yes">
-<title>EXOpace Radio</title>
+<title>EXOpace — Radio</title>
 <link rel="stylesheet" href="assets/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="../assets/exo-modern.css?v=8">
+<link rel="stylesheet" href="../assets/exo-modern.css?v=14">
 <style>
 :root{--bg:#04070d;--bg2:#04070d;--card:rgba(10,18,30,.78);--card2:rgba(10,18,30,.78);--line:rgba(126,224,255,.16);
  --text:#f0f6fc;--muted:#9fb0b4;--accent:#7ee0ff;--accent2:#7ee0ff;--ok:#9fd356;
@@ -204,15 +204,23 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   nav:not(.exo-tabs):not(.exo-sites) { flex-wrap: wrap; overflow: visible; }
 }
 .exo-clock { margin: 0 0 8px; min-height: 44px; display: flex; align-items: center; flex-wrap: wrap; max-width: 100%; color: #ffe08a; font-size: 12px; letter-spacing: 0.04em; }
-</style></head><body>
+</style>
+<link rel="stylesheet" href="../assets/exo-tokens.css">
+<link rel="stylesheet" href="../assets/exo-layout.css?v=3" data-exo-layout="1">
+<script src="../assets/exo-layout.js?v=3" data-exo-layout="1"></script>
+<link rel="stylesheet" href="radio-deck.css?v=3">
+</head><body class="rg-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="https://cams.exopace.net/map">LIVE MAP</a>
-    <a href="/radio/" aria-current="page">COMMS &amp; RF</a>
-    <a href="/sentinel/">SENTINEL</a>
-    <a href="/system/">SYSTEM</a>
+    <a href="/mission/">Mission</a>
+    <a href="/radio/" aria-current="page">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/">System</a>
   </nav>
 </header>
 <div class="exo-pill" id="exo-pill" aria-live="polite">
@@ -222,14 +230,18 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <button type="button" id="exo-pill-copy">COPY</button>
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
-<nav class="exo-comms" aria-label="Comms workspaces">
+
+<div class="rg-scroll" id="rg-scroll">
+<aside class="rg-rail" aria-label="Radio workspaces and tools">
+<header class="rg-head"><p class="rg-kicker">Comms &amp; RF</p><h1>Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
+<p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
+</header>
+<nav class="exo-comms exo-comms--keep rg-ws" aria-label="Comms workspaces">
   <a href="/radio/?tab=listen" data-ws="monitor" data-tab="listen" aria-current="page">MONITOR</a>
   <a href="/radio/?tab=decode" data-ws="passes" data-tab="decode">PASSES</a>
   <a href="/radio/?tab=ble" data-ws="mesh" data-tab="ble">MESH</a>
   <a href="/radio/?tab=sentinel" data-ws="vault" data-tab="sentinel">VAULT</a>
 </nav>
-<header><h1>EXOpace Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
-<p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
 <nav class="exo-tabs" aria-label="Radio tools">
  <button data-t="listen" data-ws="monitor" class="on">Listen</button>
  <button data-t="band" data-ws="monitor">Band</button>
@@ -250,12 +262,12 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <a href="/maps/#exo-link" data-ws="mesh" hidden>Fresnel</a>
  <a href="/maps/#exo-link" data-ws="vault" hidden>AES-GCM</a>
  <button data-t="tools" data-ws="vault" hidden>Tools</button>
-</nav></header><main id="exo-main">
+</nav>
+</aside><main id="exo-main">
 
 <section id="listen" class="on">
  <div class="card"><h2>Tune</h2>
-  <div style="display:flex;gap:8px"><input id="freq" value="162.475M" inputmode="decimal" aria-label="Frequency">
-   <button class="b" style="width:96px" onclick="listen()">Listen</button></div>
+  <div class="rg-tune"><input id="freq" value="162.475M" inputmode="decimal" aria-label="Frequency"></div>
   <div id="np" class="muted" style="margin-top:9px">stopped</div>
   <div id="rds" style="display:none;margin-top:6px"></div>
   <div class="meter"><div id="smbar"></div></div>
@@ -376,7 +388,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <canvas id="lwf" height="340" style="height:200px;margin-top:10px;cursor:crosshair"></canvas>
   <div class="muted" id="lwfm" style="margin-top:6px">not running — pick a range and Start.</div>
   <div id="lwfpeaks" style="margin-top:8px"></div></div>
- <div id="exo-audio"></div>
+ <div class="card rg-audio"><h2>Audio input decoder</h2><div id="exo-audio"></div></div>
+ <div class="card" id="rg-modules" hidden><h2>Instruments</h2></div>
 </section>
 
 <section id="scan">
@@ -685,7 +698,13 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="muted" id="sentdlnote" style="margin-top:7px;font-size:12px"></div>
  </div>
 </section>
-</main><script src="../assets/exo-tabs.js?v=1"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
+</main>
+</div>
+<div class="rg-dock" id="rg-dock">
+ <button type="button" class="rg-primary" id="rg-primary" hidden>Listen</button>
+
+</div>
+<script src="radio-deck.js?v=3"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
 const RETIRED="No radio receiver on this site.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
@@ -800,7 +819,7 @@ function job(k,f){api('/api/job/start?kind='+k+(f?'&f='+encodeURIComponent(f):''
  .then(r=>{el('jobstate').textContent=r.error?('error: '+r.error):('running '+r.kind);loadJob();});}
 function prep(k,f){el('jobkind').value=k;el('jobfreq').value=(f/1e6)+'M';
  el('jobstate').textContent='loaded '+k+' @ '+(f/1e6).toFixed(4)+' MHz — press Start when the pass is up';
- window.scrollTo({top:0,behavior:'smooth'});}
+ (document.getElementById('rg-scroll')||window).scrollTo({top:0,behavior:'smooth'});}
 let passTimer=null;
 function loadPasses(){api('/api/passes?hours=24&min_el=10').then(d=>{
  const box=el('passes');if(!box)return;
@@ -1127,7 +1146,7 @@ function loadBm(){api('/api/bookmarks').then(p=>{
  if(!Array.isArray(p)){el('bm').innerHTML='<div class="muted">'+RETIRED+'</div>';return;}
  el('bm').innerHTML=p.map(x=>
  `<button onclick="listen('${x.f}')">${x.label}<small>${x.f} · ${x.note||''}</small></button>`).join('');});}
-function addBm(){const n=el('bmname').value.trim();if(!n)return;
+function addBm(){const n=el('bmname').value.trim();if(!n){toast('Name the frequency first');el('bmname').focus();return;}
  api('/api/bookmarks',{method:'POST',body:JSON.stringify({label:n,f:el('freq').value,note:'saved'})})
   .then(()=>{el('bmname').value='';loadBm();});}
 
@@ -1379,4 +1398,38 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <section id="exo-voice" class="exo-wave">NO AUDIO</section>
 <section id="exo-qos" class="exo-wave">STANDBY</section>
 <div class="toast" id="toast"></div>
+
+<aside class="exo-sheet" id="unlock" role="dialog" aria-labelledby="unlock-title" data-open="false">
+  <button type="button" class="exo-sheet-scrim" data-exo-sheet-close aria-label="Close unlock"></button>
+  <div class="exo-sheet-panel">
+    <div class="exo-sheet-head">
+      <h2 class="exo-sheet-title" id="unlock-title">Unlock</h2>
+      <button type="button" class="exo-btn exo-sheet-close" data-exo-sheet-close>CLOSE</button>
+    </div>
+    <div class="exo-sheet-body ul-card">
+      <p class="exo-kicker">EXOpace Radio · this device</p>
+      <p class="exo-lead">This device isn't unlocked yet. Paste the access token to save it here, or open the full link that includes <code>?t=…</code></p>
+      <form class="ul-form" id="ul-form" novalidate onsubmit="event.preventDefault();(function(){var f=document.getElementById('t'),err=document.getElementById('ul-err'),v=f.value.trim();if(!v){f.setAttribute('aria-invalid','true');err.textContent='Paste the access token first.';f.focus();return;}f.removeAttribute('aria-invalid');err.textContent='';location.href='./?t='+encodeURIComponent(v);}());">
+        <label for="t">Access token</label>
+        <input id="t" name="t" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-describedby="ul-err">
+        <p class="ul-err" id="ul-err" role="alert"></p>
+        <button type="submit">Unlock</button>
+      </form>
+    </div>
+  </div>
+</aside>
+<script>
+document.getElementById("ul-form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var f = document.getElementById("t"), err = document.getElementById("ul-err"), v = f.value.trim();
+  if (!v) { f.setAttribute("aria-invalid", "true"); err.textContent = "Paste the access token first."; f.focus(); return; }
+  f.removeAttribute("aria-invalid"); err.textContent = "";
+  location.href = "./?t=" + encodeURIComponent(v);
+});
+document.getElementById("t").addEventListener("input", function () {
+  this.removeAttribute("aria-invalid");
+  document.getElementById("ul-err").textContent = "";
+});
+</script>
+
 </body></html>

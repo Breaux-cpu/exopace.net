@@ -1,19 +1,34 @@
+/* EXOpace shell tokens — instrument gallery. Keep legacy names stable. */
 :root {
   --exo-void: #04070d;
-  --exo-glass: rgba(10, 18, 30, 0.78);
-  --exo-surface: rgba(10, 18, 30, 0.78);
-  --exo-btn: rgba(10, 18, 30, 0.72);
+  --exo-glass: rgba(7, 12, 18, 0.86);
+  --exo-surface: rgba(7, 12, 18, 0.86);
+  --exo-btn: rgba(8, 14, 22, 0.92);
   --exo-inset: #060b14;
   --exo-cyan: #7ee0ff;
   --exo-amber: #ffb84d;
   --exo-text: #f0f6fc;
   --exo-dim: #9fb0b4;
   --exo-muted: #9fb0b4;
-  --exo-line: rgba(126, 224, 255, 0.16);
-  --exo-line-btn: rgba(126, 224, 255, 0.24);
+  --exo-line: rgba(186, 214, 226, 0.14);
+  --exo-line-btn: rgba(186, 214, 226, 0.18);
   --exo-line-field: rgba(126, 224, 255, 0.22);
   --exo-sans: "IBM Plex Sans", system-ui, sans-serif;
   --exo-mono: "IBM Plex Mono", ui-monospace, monospace;
   --exo-space: 8px;
   --exo-target: 44px;
+  --exo-steel: #c5d4de;
+  --exo-chrome: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.15));
+  --exo-metal-edge: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.28);
+
+  /* Layout slots. Tests may override --exo-safe-*. */
+  --exo-sat: max(env(safe-area-inset-top, 0px), var(--exo-safe-top, 0px));
+  --exo-sab: max(env(safe-area-inset-bottom, 0px), var(--exo-safe-bottom, 0px));
+  --exo-sal: max(env(safe-area-inset-left, 0px), var(--exo-safe-left, 0px));
+  --exo-sar: max(env(safe-area-inset-right, 0px), var(--exo-safe-right, 0px));
+  --exo-bar-h: calc(52px + var(--exo-sat));
+  --exo-pill-h: 44px;
+  --exo-dock-h: 0px;
+  --exo-chrome-top: calc(var(--exo-bar-h) + var(--exo-pill-h));
+  --exo-ease: 150ms ease;
 }

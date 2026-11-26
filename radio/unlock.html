@@ -1,40 +1,14 @@
-<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EXOpace Radio — unlock</title>
-<link rel="stylesheet" href="../assets/exo-modern.css?v=8">
-<style>
-body{margin:0;color:var(--exo-text);
- display:flex;flex-direction:column;align-items:stretch;min-height:100vh;
- padding:0 0 calc(20px + env(safe-area-inset-bottom))}
-body > .exo-bar{min-width:0;width:100%}
-.w{box-sizing:border-box;max-width:420px;width:calc(100% - 32px);padding:22px 18px;margin:auto}
-h1{font-family:var(--exo-mono);font-size:19px;letter-spacing:.08em;color:var(--exo-amber);margin:0 0 8px}
-p{color:var(--exo-muted);font-size:14px;line-height:1.5}
-input{padding:13px;width:100%;margin:12px 0;box-sizing:border-box}
-button{padding:13px;width:100%}
-code{background:#111823;padding:2px 6px;border-radius:5px;font-size:13px;color:var(--exo-cyan)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--exo-amber);outline-offset:2px}
-</style></head><body>
-<header class="exo-bar">
-  <a class="exo-skip" href="#unlock">Skip to content</a>
-  <a class="exo-brand" href="/mission/">EXOPACE</a>
-  <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="https://cams.exopace.net/map">LIVE MAP</a>
-    <a href="/radio/" aria-current="page">COMMS &amp; RF</a>
-    <a href="/sentinel/">SENTINEL</a>
-    <a href="/system/">SYSTEM</a>
-  </nav>
-</header>
-<div class="w" id="unlock">
-<h1>EXOpace Radio</h1>
-<p>This device isn't unlocked yet. Paste the access token to save it here permanently,
-or open the full link that includes <code>?t=...</code></p>
-<input id="t" placeholder="access token" autocapitalize="off" autocorrect="off" spellcheck="false">
-<button onclick="go()">Unlock</button>
-</div><script>
-function go(){const v=document.getElementById('t').value.trim();
- if(v)location.href='./?t='+encodeURIComponent(v);}
-document.getElementById('t').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
-</script>
-<script src="../assets/exo-cmd.js?v=1"></script>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="0; url=/radio/#unlock" />
+  <link rel="canonical" href="https://exopace.net/radio/#unlock" />
+  <title>EXOpace — Radio</title>
+  <script>location.replace("/radio/#unlock");</script>
+</head>
+<body style="background:#04070d;color:#e6f0ea;font-family:system-ui,sans-serif">
+  <p>Unlock is on <a href="/radio/#unlock" style="color:#7ee0ff">Radio</a>.</p>
+</body>
+</html>

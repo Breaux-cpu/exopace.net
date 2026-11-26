@@ -3,9 +3,10 @@ html,
 body {
   background-color: #04070d;
   background-image:
-    radial-gradient(900px 420px at 12% -10%, rgba(126, 224, 255, 0.16), transparent 58%),
-    radial-gradient(800px 480px at 100% 0%, rgba(255, 184, 77, 0.1), transparent 55%);
+    radial-gradient(70% 50% at 100% 0%, rgba(126, 224, 255, 0.05), transparent 58%),
+    linear-gradient(180deg, #060a10 0%, #04070d 38%, #04070d 100%);
   background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 #boot-void {
@@ -39,6 +40,8 @@ button.b,
   --exo-mono: "IBM Plex Mono", ui-monospace, monospace;
   --exo-text-sm: clamp(0.8125rem, 0.78rem + 0.16vw, 0.9375rem);
   --exo-bar-h: calc(57px + env(safe-area-inset-top));
+  --exo-steel: #c5d4de;
+  --exo-metal-edge: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .exo-skip {
@@ -92,9 +95,11 @@ button.b,
   min-height: var(--exo-bar-h);
   margin: 0;
   padding: calc(6px + env(safe-area-inset-top)) 12px 6px;
-  background: rgba(3, 6, 11, 0.9);
-  border-bottom: 1px solid var(--exo-line);
-  backdrop-filter: blur(16px);
+  background: rgba(4, 7, 13, 0.9);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
   color: var(--exo-text);
   font-family: var(--exo-sans);
   font-size: var(--exo-text-sm);
@@ -108,15 +113,23 @@ button.b,
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  margin-right: 8px;
+  padding: 0 12px 0 0;
+  border: 0;
+  border-right: 1px solid rgba(198, 216, 226, 0.16);
+  border-radius: 0;
   color: var(--exo-amber);
   font-family: var(--exo-mono);
   font-weight: 600;
   font-size: 0.8125rem;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-decoration: none;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
+  background: none;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: var(--exo-amber);
+  filter: none;
 }
 
 .exo-sites {
@@ -169,10 +182,19 @@ button.b,
   text-transform: none;
 }
 
-.exo-sites a:hover,
+.exo-sites a:hover {
+  color: var(--exo-text);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
 .exo-sites a[aria-current="page"] {
-  color: var(--exo-cyan);
-  border-color: rgba(126, 224, 255, 0.45);
+  color: var(--exo-text);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--exo-cyan);
+  border-radius: 0;
 }
 
 .exo-sites a:focus-visible,
@@ -424,10 +446,14 @@ body:has(#decode) .exo-clock {
   html body {
     background-color: #04070d !important;
     background-image:
-      radial-gradient(900px 420px at 12% -10%, rgba(126, 224, 255, 0.16), transparent 58%),
-      radial-gradient(800px 480px at 100% 0%, rgba(255, 184, 77, 0.1), transparent 55%) !important;
+      radial-gradient(90% 70% at 78% 28%, rgba(126, 224, 255, 0.14), transparent 58%),
+      radial-gradient(70% 55% at 8% 92%, rgba(255, 184, 77, 0.1), transparent 52%),
+      radial-gradient(50% 40% at 50% 0%, rgba(198, 216, 226, 0.07), transparent 60%),
+      linear-gradient(180deg, #071019 0%, #04070d 42%, #05080f 100%) !important;
     background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+    color: var(--exo-text);
   }
 
   html body .exo-bar {
@@ -438,8 +464,12 @@ body:has(#decode) .exo-clock {
     padding-top: env(safe-area-inset-top);
     padding-bottom: 0;
     align-items: center;
-    background-color: rgba(4, 7, 13, 0.92);
-    border-bottom: 1px solid rgba(126, 224, 255, 0.16);
+    background-color: rgba(6, 10, 16, 0.72);
+    background-image: linear-gradient(180deg, rgba(232, 244, 250, 0.1), rgba(8, 14, 22, 0.55) 38%, rgba(4, 7, 13, 0.82));
+    border-bottom: 1px solid rgba(198, 216, 226, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 40px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
   }
 
   html body nav.exo-tabs {
@@ -460,15 +490,15 @@ body:has(#decode) .exo-clock {
     min-height: 44px !important;
     border-radius: 10px !important;
     border: 1px solid rgba(126, 224, 255, 0.24) !important;
-    background-color: rgba(10, 18, 30, 0.72) !important;
+    background-color: rgba(8, 14, 22, 0.92) !important;
     background-image: none !important;
     color: #f0f6fc !important;
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 13px !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
-    box-shadow: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
@@ -483,48 +513,88 @@ body:has(#decode) .exo-clock {
     color: #ffb84d !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button) {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) :where(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle) {
     box-sizing: border-box !important;
     min-height: 44px !important;
     border-radius: 10px !important;
     border: 1px solid rgba(126, 224, 255, 0.24) !important;
-    background-color: rgba(10, 18, 30, 0.72) !important;
+    background-color: rgba(8, 14, 22, 0.92) !important;
     background-image: none !important;
     color: #f0f6fc !important;
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 13px !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
-    box-shadow: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):hover {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) :where(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):hover {
     color: #7ee0ff !important;
     border-color: rgba(126, 224, 255, 0.24) !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):active {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) :where(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):active {
     color: #ffb84d !important;
   }
 
   html body .sn-tabs button[aria-selected="true"] {
-    color: #04070d !important;
-    background-color: #7ee0ff !important;
-    border-color: #7ee0ff !important;
+    color: #f0f6fc !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: inset 0 -1px 0 #7ee0ff !important;
   }
 
-  html body:not(:has(#boot-void)) :is(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel) {
-    border-radius: 16px !important;
-    background-color: rgba(10, 18, 30, 0.78) !important;
+  html body:not(:has(#boot-void)) .rf-filters button,
+  html body:not(:has(#boot-void)) .sn-tabs button,
+  html body:not(:has(#boot-void)) #sn-sheet-toggle {
+    min-height: 36px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     background-image: none !important;
-    border: 1px solid rgba(126, 224, 255, 0.16) !important;
-    backdrop-filter: blur(16px);
-    box-shadow: inset 0 1px 0 rgba(126, 224, 255, 0.55) !important;
+    box-shadow: none !important;
+    color: #9fb0b4 !important;
+    font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    padding: 0 10px !important;
+  }
+  html body:not(:has(#boot-void)) .rf-filters button[aria-pressed="true"],
+  html body:not(:has(#boot-void)) .sn-tabs button[aria-selected="true"] {
+    color: #f0f6fc !important;
+    box-shadow: inset 0 -1px 0 #7ee0ff !important;
+  }
+  html body:not(:has(#boot-void)) .rf-filters button:hover,
+  html body:not(:has(#boot-void)) .sn-tabs button:hover,
+  html body:not(:has(#boot-void)) #sn-sheet-toggle:hover {
+    color: #f0f6fc !important;
+    border: 0 !important;
+    background: transparent !important;
   }
 
-  html body:not(:has(#boot-void)) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="color"]) {
+  @media (max-width: 800px) {
+    html body:not(:has(#boot-void)) .rf-filters button {
+      min-height: 32px !important;
+      padding: 0 8px !important;
+    }
+  }
+
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) :where(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel, .exo-slab) {
+    border-radius: 16px !important;
+    background-color: rgba(7, 12, 18, 0.86) !important;
+    background-image: none !important;
+    border: 1px solid rgba(198, 216, 226, 0.14) !important;
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) :where(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="color"]) {
     box-sizing: border-box !important;
     min-height: 44px !important;
     height: 44px !important;
@@ -536,11 +606,11 @@ body:has(#decode) .exo-clock {
     font-family: "IBM Plex Mono", ui-monospace, monospace !important;
   }
 
-  html body:not(:has(#boot-void)) textarea {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) textarea {
     height: auto !important;
   }
 
-  html body:not(:has(#boot-void)) :is(input, select, textarea, button, a.btn):focus-visible {
+  html body:not(.rg-page):not(.sn-page):not(.mx-page):not(.ul-page):not(:has(#boot-void, .fm-body, .cam-stage, .rg-page, .sn-page, .mx-page, .ul-page)) :where(input, select, textarea, button, a.btn):focus-visible {
     outline: 2px solid #ffb84d !important;
     outline-offset: 2px;
   }
@@ -654,4 +724,538 @@ nav.exo-tabs > a[data-ws] {
   background: #04070d;
   border: 1px solid #ffb84d;
   border-radius: 10px;
+}
+
+
+
+/* Make the top nav fit when it can, and fade/scroll obviously when it cannot. */
+.exo-sites {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 20px), transparent 100%);
+}
+.exo-sites::after {
+  content: "";
+  flex: 0 0 28px;
+  height: 1px;
+}
+@media (min-width: 720px) {
+  .exo-sites {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .exo-sites::after { flex-basis: 0; content: none; }
+}
+@media (max-width: 430px) {
+  .exo-bar { padding-left: 10px; padding-right: 8px; gap: 8px; }
+  .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 0;
+    padding-right: 6px;
+    font-size: 0.72rem;
+  }
+  .exo-sites {
+    gap: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .exo-sites::after { flex-basis: 0; content: none; }
+  .exo-sites a {
+    padding: 0 5px;
+    font-size: 12px;
+  }
+}
+/* —— Hard-coded 2026 shell: framed studio artifact, typographic deck. No starfields. —— */
+.exo-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+}
+
+body.exo-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+body.exo-stage > header.exo-bar,
+body.exo-stage > .exo-pill,
+body.exo-stage > main,
+body.exo-stage > footer.exo-foot {
+  position: relative;
+  z-index: 1;
+}
+
+body.exo-stage > header.exo-bar,
+body.exo-stage > .exo-pill,
+body.exo-stage > .exo-cmd,
+body.exo-stage > .sn-sheet {
+  z-index: 40;
+}
+
+/* Sentinel / app pages must not wear the artifact as wallpaper. */
+body:has(.sn-main) > canvas.exo-scene,
+body:has(.sn-main) > .exo-scene-fallback,
+body:has(#decode) > canvas.exo-scene,
+body:has(.fm-body) > canvas.exo-scene,
+body:has(.cam-stage) > canvas.exo-scene,
+body:has(#composer) > canvas.exo-scene,
+body:has(#boot-void) > canvas.exo-scene {
+  display: none !important;
+}
+
+.exo-scene-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: #070b12;
+}
+
+.exo-plinth {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  aspect-ratio: 1 / 1;
+  justify-self: end;
+  overflow: hidden;
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 80% at 35% 20%, rgba(186, 214, 226, 0.1), transparent 42%),
+    radial-gradient(80% 60% at 80% 90%, rgba(255, 184, 77, 0.08), transparent 50%),
+    #070b12;
+  border: 1px solid rgba(198, 216, 226, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    0 40px 80px rgba(0, 0, 0, 0.45);
+}
+
+.exo-plinth .exo-scene,
+.exo-plinth .exo-scene-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* CSS stand-in when WebGL or motion is off: a still chrome body in the same frame. */
+.exo-plinth .exo-scene-fallback {
+  background:
+    radial-gradient(ellipse 70% 30% at 50% 82%, rgba(0, 0, 0, 0.55), transparent 70%),
+    #070b12;
+  perspective: 720px;
+}
+.exo-fallback-body {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 44%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #ffffff 0 3%, #d7e4ee 16%, #7c909c 40%, #1c262e 64%, #0a0e12 80%);
+  box-shadow:
+    0 28px 36px rgba(0, 0, 0, 0.5),
+    inset -14px -18px 28px rgba(0, 0, 0, 0.35),
+    inset 8px 10px 18px rgba(255, 255, 255, 0.12);
+}
+.exo-fallback-ring {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 70%;
+  aspect-ratio: 2.6 / 1;
+  transform: translate(-50%, -50%) rotateX(66deg);
+  border: 3px solid rgba(210, 226, 234, 0.7);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.exo-foot {
+  margin-top: auto;
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(198, 216, 226, 0.1);
+  background: transparent;
+  box-shadow: none;
+}
+
+.exo-foot nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.exo-foot a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+.exo-foot a:hover,
+.exo-foot a[aria-current="page"] {
+  color: var(--exo-text);
+  border-color: transparent;
+}
+
+.exo-foot p {
+  max-width: 1180px;
+  margin: 8px auto 0;
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.exo-hero {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 28px 72px;
+  min-height: calc(100svh - var(--exo-bar-h) - 52px);
+}
+
+.exo-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: 48px 64px;
+  align-items: center;
+  margin: 0 0 48px;
+}
+
+.exo-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 36rem;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.exo-kicker {
+  margin: 0 0 18px;
+  color: var(--exo-cyan);
+  font-family: var(--exo-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.exo-display {
+  margin: 0 0 20px;
+  color: #f4f8fb;
+  font-family: var(--exo-sans);
+  font-weight: 300;
+  font-size: clamp(4rem, 10vw, 7.4rem);
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+  background: none;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: #f4f8fb;
+}
+
+.exo-lead {
+  max-width: 28rem;
+  margin: 0;
+  color: #c3d0d6;
+  font-family: var(--exo-sans);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.exo-hero > .exo-slab-list,
+.exo-hero > .miss-jumps {
+  position: relative;
+  z-index: 1;
+}
+
+.exo-slab-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.exo-slab {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 104px;
+  padding: 20px 22px;
+  font-family: var(--exo-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--exo-text);
+}
+
+.exo-slab .sys-k,
+.exo-k {
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.exo-slab a {
+  color: var(--exo-cyan);
+  text-decoration: none;
+}
+
+.exo-slab a:hover {
+  color: var(--exo-text);
+}
+
+.exo-slab:last-child {
+  grid-column: 1 / -1;
+}
+
+main.miss.exo-hero,
+.miss.exo-hero {
+  display: block;
+  align-items: stretch;
+  justify-content: flex-start;
+  letter-spacing: normal;
+  font-size: inherit;
+  text-align: left;
+  padding: 48px 28px 72px;
+}
+
+.miss-jumps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: none;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+
+.exo-pill {
+  background: rgba(4, 7, 13, 0.82);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.1);
+  box-shadow: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@media (max-width: 800px) {
+  .exo-hero,
+  main.miss.exo-hero,
+  .miss.exo-hero {
+    padding: 28px 16px 56px;
+    min-height: calc(100svh - var(--exo-bar-h) - 52px);
+  }
+
+  .exo-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin: 0 0 28px;
+  }
+
+  .exo-plinth {
+    max-width: none;
+    justify-self: stretch;
+    aspect-ratio: 16 / 11;
+  }
+
+  .exo-display {
+    font-size: clamp(3.4rem, 18vw, 5.2rem);
+  }
+
+  .exo-slab-list,
+  .miss-jumps {
+    grid-template-columns: 1fr;
+  }
+
+  .miss-jumps {
+    grid-template-columns: 1fr 1fr;
+  }
+  .miss-jumps a:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .exo-slab {
+    min-height: 88px;
+    padding: 16px 18px;
+  }
+
+  .exo-sites a {
+    padding: 0 8px;
+  }
+  .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 4px;
+    padding-right: 8px;
+  }
+}
+
+@media (max-width: 430px) {
+  .exo-bar { padding-left: 10px; padding-right: 8px; gap: 8px; }
+  .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 0;
+    padding-right: 6px;
+    font-size: 0.72rem;
+  }
+  .exo-sites {
+    gap: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .exo-sites::after { flex-basis: 0; content: none; }
+  .exo-sites a {
+    padding: 0 5px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, body {
+    background-attachment: scroll;
+  }
+  .exo-brand {
+    filter: none;
+  }
+}
+
+/* —— App decks: HUD chrome around existing canvases. Positions stay intact. —— */
+body:has(#decode) #decode {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+body:has(#decode) #decode > header h1,
+body:has(#decode) header:not(.exo-bar) h1 {
+  font-family: var(--exo-sans);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
+body:has(#decode) #decode h2,
+body:has(#decode) .card h2 {
+  font-family: var(--exo-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exo-muted);
+}
+
+body:has(#decode) audio#au,
+body:has(#decode) audio {
+  width: 100%;
+  margin-top: 10px;
+  accent-color: #7ee0ff;
+  color-scheme: dark;
+  background: #060b14;
+  border-radius: 10px;
+}
+
+body:has(#decode) #listen input,
+body:has(#decode) .card input[inputmode="decimal"] {
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+body:has(#decode) nav.exo-tabs {
+  padding: 6px 0 10px;
+}
+
+body:has(.fm-body) .fm-top {
+  background: rgba(4, 7, 13, 0.92);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body:has(.fm-body) .fm-dock h2 {
+  font-family: var(--exo-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exo-muted);
+}
+
+body:has(.fm-body) .fm-dock p,
+body:has(.fm-body) .fm-note {
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+body:has(.fm-body) .fm-stage {
+  background: #070b10;
+  box-shadow: inset 1px 0 0 rgba(198, 216, 226, 0.1);
+}
+
+body:has(.cam-stage) .cam-status {
+  background: rgba(4, 7, 13, 0.92);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body:has(.cam-stage) .cam-stage {
+  background: #070b10;
+}
+
+body:has(#composer) #composer {
+  background: transparent;
+}
+
+body:has(#composer) .exo-comms + * {
+  /* keep mesh typography on the void, not a smear */
+}
+
+body:has(#boot-void) .hud .dossier,
+body:has(#boot-void) .hud .station,
+body:has(#boot-void) .hud .timebar {
+  background: rgba(6, 10, 16, 0.8);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid rgba(198, 216, 226, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+body:has(#boot-void) .hud .dossier,
+body:has(#boot-void) .hud .station {
+  border-radius: 16px;
 }

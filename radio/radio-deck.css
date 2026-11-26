@@ -1,0 +1,527 @@
+/* EXOpace Radio — layout deck. Page-scoped (body.rg-page).
+   The shell excludes .rg-page from the generic !important control skin and
+   publishes --exo-dock-real for the COPY/JUMP dock.
+   Phones (<=719px): header + workspace switch scroll away, tool chips stick under the bar,
+   the active tool's primary control sits in a thumb dock just above the shell's COPY/JUMP dock.
+   >=720px (Fold inner, tablets, desktop): sticky left rail (workspace + tools), content on the right. */
+:root { --rg-rail: clamp(232px, 24vw, 292px); --rg-dock: 68px; }
+
+html body.rg-page {
+  font: 400 14px/1.5 var(--exo-sans);
+  color: var(--exo-text);
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+/* One scroller under the fixed chrome: header + tools + content scroll together,
+   docks sit outside it so nothing ever slides under them. */
+html body.rg-page > .rg-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Header ---------- */
+html body.rg-page .rg-rail { display: contents; }
+html body.rg-page .rg-head {
+  position: static;
+  z-index: auto;
+  padding: 22px 16px 6px;
+  background: transparent;
+}
+html body.rg-page .rg-kicker {
+  margin: 0 0 6px;
+  color: var(--exo-cyan);
+  font: 500 11px/1 var(--exo-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+html body.rg-page .rg-head h1 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  color: #f4f8fb;
+  font: 300 clamp(2.5rem, 11vw, 3.5rem)/1 var(--exo-sans);
+  letter-spacing: -0.04em;
+}
+html body.rg-page .rg-head h1::before { content: none; }
+html body.rg-page a.fieldmaps {
+  margin-left: auto;
+  align-self: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(198, 216, 226, 0.16);
+  border-radius: 999px;
+  color: var(--exo-steel);
+  font: 500 11px/1 var(--exo-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+html body.rg-page .rg-head .sub { margin: 10px 0 4px; color: var(--exo-muted); font-size: 14px; }
+html body.rg-page .exo-clock {
+  min-height: 0;
+  margin: 6px 0 0;
+  color: var(--exo-muted);
+  font: 500 11px/1.5 var(--exo-mono);
+  letter-spacing: 0.06em;
+}
+
+/* Workspace switch: segmented, one line */
+html body.rg-page nav.exo-comms.rg-ws {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 14px 16px 6px;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(198, 216, 226, 0.12);
+  border-radius: 14px;
+  background: rgba(7, 12, 18, 0.7);
+}
+html body.rg-page nav.exo-comms.rg-ws a {
+  justify-content: center;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0 4px;
+  border-radius: 10px;
+  color: var(--exo-muted);
+  font: 500 11px/1 var(--exo-mono);
+  letter-spacing: 0.12em;
+}
+html body.rg-page nav.exo-comms.rg-ws a[aria-current="page"] { color: #04070d; background: #f4f8fb; }
+
+/* Tool chips: one sticky, sideways-scrolling row.
+   A strong edge fade and trailing peek make overflow obvious; chips snap so
+   nothing sits half-clipped at rest. */
+html body.rg-page nav.exo-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 16px;
+  padding-inline-end: 40px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: rgba(4, 7, 13, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 0;
+  border-bottom: 1px solid rgba(198, 216, 226, 0.1);
+  scroll-padding-inline: 16px 40px;
+  scroll-snap-type: x proximity;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--exo-fade-l, 0px), #000 calc(100% - var(--exo-fade-r, 0px)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--exo-fade-l, 0px), #000 calc(100% - var(--exo-fade-r, 0px)), transparent 100%);
+}
+html body.rg-page nav.exo-tabs::-webkit-scrollbar { display: none; }
+html body.rg-page nav.exo-tabs::after {
+  content: "";
+  flex: 0 0 12px;
+  height: 1px;
+  pointer-events: none;
+}
+html body.rg-page nav.exo-tabs > :is(button, a) {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+  min-height: 44px !important;
+  padding: 0 16px !important;
+  border: 1px solid rgba(198, 216, 226, 0.14) !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--exo-steel) !important;
+  font: 500 13px/1 var(--exo-sans) !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+}
+html body.rg-page nav.exo-tabs > button.on {
+  color: #04070d !important;
+  background: #f4f8fb !important;
+  border-color: #f4f8fb !important;
+}
+
+/* ---------- Content ---------- */
+html body.rg-page main#exo-main { padding: 14px 16px 24px; overflow: visible; min-height: auto !important; }
+html body.rg-page .card {
+  margin: 0 0 12px;
+  padding: 18px;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+html body.rg-page .card .card { background: rgba(4, 7, 13, 0.5) !important; padding: 14px; }
+html body.rg-page .card h2 {
+  margin: 0 0 14px;
+  color: var(--exo-muted);
+  font: 500 11px/1 var(--exo-mono);
+  letter-spacing: 0.16em;
+}
+html body.rg-page .muted,
+html body.rg-page .card p { color: var(--exo-muted); font-size: 13px; font-weight: 400; line-height: 1.5; }
+html body.rg-page .row { font-size: 14px; border-bottom-color: rgba(198, 216, 226, 0.08); }
+html body.rg-page .grid,
+html body.rg-page .grid3 { gap: 8px; }
+html body.rg-page .grid > *,
+html body.rg-page .grid3 > *,
+html body.rg-page .presets > * { min-width: 0; }
+html body.rg-page .grid:has(> .rg-docked:only-child),
+html body.rg-page .grid:has(> .rg-docked) { grid-template-columns: 1fr !important; }
+html body.rg-page .rg-tune input#freq {
+  width: 100%;
+  height: 64px !important;
+  min-height: 64px !important;
+  padding: 0 16px;
+  font-size: 1.6rem !important;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+html body.rg-page input,
+html body.rg-page select { padding: 0 12px; font-size: 15px; }
+html body.rg-page canvas { border-radius: 12px; border-color: rgba(198, 216, 226, 0.1); background: #05080d; }
+html body.rg-page .meter { height: 6px; border: 0; background: rgba(198, 216, 226, 0.08); }
+html body.rg-page .meter div { background: linear-gradient(90deg, var(--exo-cyan), var(--exo-amber)); }
+html body.rg-page .label-sm { font: 500 11px/1 var(--exo-mono); letter-spacing: 0.14em; }
+html body.rg-page .pill { border-radius: 999px; border-color: rgba(198, 216, 226, 0.14); background: transparent; font-family: var(--exo-mono); }
+
+/* Buttons: one key. .b = action (cyan), .alt = neutral, .stop = danger. */
+html body.rg-page main :is(button.b, a.b) {
+  width: 100%;
+  min-height: 48px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: 1px solid rgba(126, 224, 255, 0.4) !important;
+  color: var(--exo-cyan) !important;
+  font: 500 14px/1.2 var(--exo-sans) !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  white-space: normal;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+html body.rg-page main :is(button.b.alt, a.b.alt) { color: var(--exo-text) !important; border-color: rgba(198, 216, 226, 0.18) !important; }
+html body.rg-page main button.b.stop { color: #ffd0c8 !important; border-color: rgba(248, 113, 113, 0.55) !important; }
+html body.rg-page main button.b.on { color: #04070d !important; background: #f4f8fb !important; border-color: #f4f8fb !important; }
+html body.rg-page main button.b small { margin-top: 3px; color: var(--exo-muted); font: 400 11px/1.2 var(--exo-mono); }
+/* Preset tiles */
+html body.rg-page .presets { gap: 8px; }
+html body.rg-page .presets > button {
+  min-height: 56px !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  text-align: left;
+  align-items: flex-start;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  color: var(--exo-text) !important;
+  font: 500 14px/1.2 var(--exo-sans) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: normal;
+}
+html body.rg-page .presets > button small { margin-top: 4px; color: var(--exo-muted); font: 400 11px/1.2 var(--exo-mono); letter-spacing: 0.04em; }
+html body.rg-page .presets > button.on { border-color: var(--exo-cyan) !important; }
+html body.rg-page main a:not(.b):not(.fieldmaps) { color: var(--exo-cyan); display: inline-flex; align-items: center; min-height: 44px; }
+
+/* Toast sits above whatever is docked */
+html body.rg-page .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + 16px); z-index: 60; }
+html body.rg-page:has(#rg-dock.has-primary) .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + var(--rg-dock) + 12px); }
+
+/* ---------- Thumb dock (phones) ---------- */
+html body.rg-page .rg-dock { display: none; }
+@media (max-width: 719.98px) and (min-height: 501px) {
+  html body.rg-page .rg-dock.has-primary {
+    position: fixed;
+    left: var(--exo-sal);
+    right: var(--exo-sar);
+    bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
+    z-index: 44;
+    display: flex;
+    height: var(--rg-dock);
+    padding: 10px 16px;
+    background: rgba(6, 10, 16, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(198, 216, 226, 0.12);
+  }
+  html body.rg-page:has(#rg-dock.has-primary) { padding-bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + var(--rg-dock)); }
+  html body.rg-page .rg-primary {
+    flex: 1 1 auto;
+    min-height: 48px !important;
+    border-radius: 14px !important;
+    color: #04070d !important;
+    background: #f4f8fb !important;
+    border: 1px solid #f4f8fb !important;
+    font: 500 15px/1 var(--exo-sans) !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
+  }
+  html body.rg-page .rg-primary[data-tone="stop"] { color: #ffd0c8 !important; background: rgba(60, 14, 12, 0.9) !important; border-color: rgba(248, 113, 113, 0.7) !important; }
+  html body.rg-page .rg-primary:disabled { color: var(--exo-muted) !important; background: rgba(8, 14, 22, 0.92) !important; border-color: rgba(198, 216, 226, 0.16) !important; }
+  /* The in-card source of the docked control is hidden only while the dock shows it */
+  html body.rg-page main .rg-docked { display: none !important; }
+}
+@media (max-width: 719.98px) {
+  html body.rg-page .presets { grid-template-columns: 1fr 1fr; }
+  html body.rg-page .grid3 { grid-template-columns: 1fr 1fr !important; }
+  html body.rg-page .grid3 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+/* Short landscape: .exo-comms--keep leaves the workspace switch visible; keep it in-flow in the header. */
+@media (max-height: 500px) and (max-width: 719.98px) {
+  html body.rg-page nav.exo-comms.rg-ws { display: grid; }
+  html body.rg-page .rg-head { padding-top: 12px; }
+  html body.rg-page .rg-head h1 { font-size: 2.25rem; }
+}
+
+/* ---------- Two panes ---------- */
+@media (min-width: 720px) {
+  html body.rg-page > .rg-scroll {
+    display: grid;
+    grid-template-columns: var(--rg-rail) minmax(0, 1fr);
+    align-items: start;
+  }
+  html body.rg-page .rg-rail {
+    grid-column: 1;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - var(--exo-chrome-top) - var(--exo-dock-real, 0px));
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0 0 20px;
+    border-right: 1px solid rgba(198, 216, 226, 0.1);
+  }
+  html body.rg-page > .rg-scroll > main#exo-main { grid-column: 2; min-width: 0; padding: 24px clamp(16px, 3vw, 36px) 48px; }
+  html body.rg-page .rg-head { padding: 24px 18px 4px; }
+  html body.rg-page .rg-head h1 { font-size: 2.75rem; flex-wrap: wrap; }
+  html body.rg-page a.fieldmaps { margin-left: 0; }
+  html body.rg-page nav.exo-comms.rg-ws { display: grid; grid-template-columns: 1fr 1fr; margin: 16px 14px 8px; }
+  html body.rg-page nav.exo-tabs {
+    position: static;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    padding-inline-end: 12px;
+    overflow: visible;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 0;
+    scroll-snap-type: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  html body.rg-page nav.exo-tabs::after { content: none; }
+  html body.rg-page nav.exo-tabs > :is(button, a) { scroll-snap-align: none; }
+  html body.rg-page nav.exo-tabs > :is(button, a) {
+    justify-content: flex-start;
+    text-align: left;
+    min-height: 44px !important;
+    border-color: transparent !important;
+    border-radius: 10px !important;
+  }
+  html body.rg-page nav.exo-tabs > button.on {
+    color: var(--exo-text) !important;
+    background: rgba(126, 224, 255, 0.08) !important;
+    border-color: transparent !important;
+    box-shadow: inset 2px 0 0 var(--exo-cyan) !important;
+  }
+}
+@media (min-width: 720px) and (max-height: 500px) {
+  html body.rg-page nav.exo-comms.rg-ws { display: grid; }
+  html body.rg-page .rg-head { padding-top: 12px; }
+  html body.rg-page .rg-head h1 { font-size: 2rem; }
+}
+@media (min-width: 1100px) {
+  html body.rg-page main#exo-main > section.on {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+    align-items: start;
+  }
+  html body.rg-page main#exo-main > section.on > .card { min-width: 0; }
+  html body.rg-page .presets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* Reserve exactly the shell dock's real height (it can exceed --exo-dock-h in short landscape) */
+html body.rg-page:not(:has(#rg-dock.has-primary)) { padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))); }
+@media (min-width: 720px), (max-height: 500px) {
+  html body.rg-page { padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) !important; }
+}
+
+/* Audio input decoder (exo-audio.js) */
+html body.rg-page .exo-au__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+html body.rg-page .exo-au__row > select { flex: 1 1 180px; min-width: 0; }
+html body.rg-page .exo-au__row > button { flex: 0 0 auto; min-width: 72px; padding: 0 16px !important; }
+html body.rg-page .exo-au__num { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--exo-muted); font: 500 11px/1 var(--exo-mono); letter-spacing: 0.12em; }
+html body.rg-page label.exo-au__num:has([data-floor]) { flex: 1 1 200px; }
+html body.rg-page .exo-au__num input[type=range] { flex: 1 1 auto; min-width: 0; width: 100%; height: 44px; accent-color: var(--exo-cyan); }
+html body.rg-page .exo-au__num input[type=number] { width: 96px; }
+html body.rg-page .exo-au canvas { width: 100%; height: auto; display: block; }
+html body.rg-page .exo-au__log { margin-top: 10px; color: var(--exo-muted); font: 500 12px/1.5 var(--exo-mono); }
+
+/* Custom instrument player: drives the same <audio> elements, no native chrome. */
+html body.rg-page audio.rg-player-src {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  border: 0 !important;
+}
+html body.rg-page .rg-player {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: 44px 44px;
+  column-gap: 8px;
+  row-gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 8px 10px 6px;
+  border: 1px solid rgba(198, 216, 226, 0.14);
+  border-radius: 16px;
+  background: rgba(6, 10, 16, 0.88);
+}
+html body.rg-page .rg-player-play,
+html body.rg-page .rg-player-mute {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 !important;
+  border: 1px solid rgba(198, 216, 226, 0.16) !important;
+  border-radius: 12px !important;
+  background: rgba(126, 224, 255, 0.06) !important;
+  color: var(--exo-text) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+html body.rg-page .rg-player-play:disabled,
+html body.rg-page .rg-player-mute:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+html body.rg-page .rg-player-play:focus-visible,
+html body.rg-page .rg-player-mute:focus-visible,
+html body.rg-page .rg-player-seek:focus-visible,
+html body.rg-page .rg-player-vol:focus-visible {
+  outline: 2px solid var(--exo-cyan);
+  outline-offset: 2px;
+}
+html body.rg-page .rg-player-play svg,
+html body.rg-page .rg-player-mute svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+html body.rg-page .rg-player-scrub {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+html body.rg-page .rg-player-time,
+html body.rg-page .rg-player-dur {
+  color: var(--exo-muted);
+  font: 500 11px/1 var(--exo-mono);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2em;
+}
+html body.rg-page .rg-player-dur { text-align: right; }
+html body.rg-page .rg-player-seek,
+html body.rg-page .rg-player-vol {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+html body.rg-page .rg-player-seek::-webkit-slider-runnable-track,
+html body.rg-page .rg-player-vol::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(198, 216, 226, 0.18);
+}
+html body.rg-page .rg-player-seek::-webkit-slider-thumb,
+html body.rg-page .rg-player-vol::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #f4f8fb;
+  border: 0;
+  box-shadow: 0 0 0 2px rgba(126, 224, 255, 0.35);
+}
+html body.rg-page .rg-player-seek::-moz-range-track,
+html body.rg-page .rg-player-vol::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(198, 216, 226, 0.18);
+}
+html body.rg-page .rg-player-seek::-moz-range-thumb,
+html body.rg-page .rg-player-vol::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #f4f8fb;
+  border: 0;
+}
+html body.rg-page .rg-player-volwrap {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+}
+html body.rg-page .rg-player-volwrap .rg-player-mute { margin-left: auto; }
+html body.rg-page .rg-player-vol { max-width: 128px; height: 44px; }
+html body.rg-page .rg-player-vol::-webkit-slider-thumb { margin-top: -6px; }
+@media (min-width: 520px) {
+  html body.rg-page .rg-player {
+    grid-template-columns: 44px minmax(0, 1fr) 44px minmax(72px, 120px);
+    grid-template-rows: 44px;
+  }
+  html body.rg-page .rg-player-volwrap {
+    grid-column: 3 / 5;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+  html body.rg-page .rg-player-mute { margin-left: 0; }
+}
+
+/* Unlock sheet (folded in from the old /radio/unlock.html page). */
+html body.rg-page #unlock .ul-card { width: min(440px, 100%); margin: 8px auto 16px; }
+html body.rg-page #unlock .exo-lead { margin: 0 0 20px; color: var(--exo-muted); font-size: 1rem; line-height: 1.55; }
+html body.rg-page #unlock code { padding: 2px 6px; border-radius: 6px; background: #0a121c; color: var(--exo-cyan); font-family: var(--exo-mono); font-size: .9em; }
+html body.rg-page #unlock .ul-form { display: grid; gap: 12px; }
+html body.rg-page #unlock .ul-form label { color: var(--exo-muted); font: 500 11px/1 var(--exo-mono); letter-spacing: .16em; text-transform: uppercase; }
+html body.rg-page #unlock .ul-form input { width: 100%; height: 52px; min-height: 52px; padding: 0 14px; font-size: 16px; }
+html body.rg-page #unlock .ul-form input[aria-invalid="true"] { border-color: #f87171; }
+html body.rg-page #unlock .ul-form button[type="submit"] {
+  width: 100%; min-height: 52px; border-radius: 14px;
+  color: #04070d; background: #f4f8fb; border: 1px solid #f4f8fb;
+  font: 500 15px/1 var(--exo-sans); letter-spacing: .01em; text-transform: none; cursor: pointer;
+}
+html body.rg-page #unlock .ul-err { min-height: 1.4em; margin: 0; color: #ffd0c8; font: 500 12px/1.4 var(--exo-mono); letter-spacing: .06em; }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>EXOpace Mesh</title>
+<title>EXOpace — Mesh</title>
 <link rel="canonical" href="https://exopace.net/mesh/">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -37,7 +37,7 @@
 body.night{--bg:#04070d;--panel:rgba(10,18,30,.78);--panel2:#0a121e;--line:rgba(126,224,255,.16);
   --amber:#ffb84d;--amber-dim:#7d6132;--text:#f0f6fc;--mut:#9fb0b4;
   --ok:#9fd356;--warn:#ffb84d}
-body.night .mapwrap,body.night nav,body.night header,body.night #navHud{background:#0d0404}
+body.night .mapwrap,body.night nav.exo-tabs,body.night header:not(.exo-bar),body.night #navHud{background:#0d0404}
 body.night header{background:linear-gradient(#170606,#0d0404)}
 body.night #toast{color:#1a0505}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -136,7 +136,7 @@ button,select,input{font:inherit;color:var(--text)}
   border-radius:6px;padding:8px 10px;min-height:44px;display:flex;align-items:center}
 .mapst label{display:flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 4px;cursor:pointer}
 .mapst input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:0;flex:0 0 22px;accent-color:var(--amber)}
-#btnRecage{position:absolute;left:8px;bottom:8px;z-index:2;width:auto;min-width:120px}
+/* recage placement is in mesh-deck .mx-maptools */
 #btnRange[hidden],#btnWay[hidden],#wayKind[hidden],#btnCopy[hidden],#btnShare[hidden],#btnMaps[hidden],#mapsHint[hidden]{display:none!important}
 #posLL[hidden]{display:none!important}
 #posMeta[hidden]{display:none!important}
@@ -159,11 +159,11 @@ button,select,input{font:inherit;color:var(--text)}
 #freqHint[hidden]{display:none!important}
 #cfgForm[hidden],#hFreq[hidden],#chatSend[hidden]{display:none!important}
 #cfgHw[hidden]{display:none!important}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;border-top:1px solid var(--line);
+nav.exo-tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;border-top:1px solid var(--line);
   background:#14170b;height:calc(62px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px #0008}
-nav button{flex:1;background:none;border:none;padding:14px 0 12px;min-height:44px;font-family:var(--mono);
+nav.exo-tabs button{flex:1;background:none;border:none;padding:14px 0 12px;min-height:44px;font-family:var(--mono);
   font-size:12px;letter-spacing:.12em;color:var(--mut);cursor:pointer;border-top:2px solid transparent}
-nav button.active{color:var(--amber);border-top-color:var(--amber);background:linear-gradient(#1c2010,#14170b)}
+nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);background:linear-gradient(#1c2010,#14170b)}
 #navHud{position:fixed;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom) + 8px);z-index:31;
   display:flex;align-items:center;gap:10px;background:#14170b;border:1px solid var(--amber);
   border-radius:10px;padding:8px 10px;font-family:var(--mono);font-size:12px;box-shadow:0 4px 14px #0008}
@@ -228,18 +228,24 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-<link rel="stylesheet" href="/assets/exo-modern.css?v=8">
+<link rel="stylesheet" href="/assets/exo-modern.css?v=14">
 <link rel="stylesheet" href="/assets/exo-tokens.css">
+<link rel="stylesheet" href="/assets/exo-layout.css?v=3" data-exo-layout="1">
+<script src="/assets/exo-layout.js?v=3" data-exo-layout="1"></script>
+<link rel="stylesheet" href="mesh-deck.css?v=3">
 </head>
-<body>
+<body class="mx-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="https://cams.exopace.net/map">LIVE MAP</a>
-    <a href="/radio/" aria-current="page">COMMS &amp; RF</a>
-    <a href="/sentinel/">SENTINEL</a>
-    <a href="/system/">SYSTEM</a>
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/" aria-current="page">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/">System</a>
   </nav>
 </header>
 <div class="exo-pill" id="exo-pill" aria-live="polite">
@@ -249,14 +255,10 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
   <button type="button" id="exo-pill-copy">COPY</button>
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
-<nav class="exo-comms" aria-label="Comms workspaces">
-  <a href="/radio/?tab=listen">MONITOR</a>
-  <a href="/radio/?tab=decode">PASSES</a>
-  <a href="/mesh/" aria-current="page">MESH</a>
-  <a href="/radio/?tab=sentinel">VAULT</a>
-</nav>
 
-<header>
+
+<aside class="mx-rail" aria-label="Mesh link and screens">
+<header class="mx-head">
   <div>
     <div class="callsign" id="hName">EXOpace</div>
     <div class="freq" id="hFreq" hidden>--- MHz · SF-</div>
@@ -268,6 +270,20 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
   <button class="conn" id="btnInst" hidden style="display:none">INSTALL</button>
   <button class="conn" id="btnConn">CONNECT</button>
 </header>
+<nav class="exo-tabs" aria-label="Mesh screens">
+  <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
+  <button data-s="map">MAP</button>
+  <button data-s="nodes">NET</button>
+  <button data-s="vitals">NODE</button>
+  <button data-s="setup">SET</button>
+</nav>
+<nav class="exo-comms exo-comms--keep" aria-label="Comms workspaces">
+  <a href="/radio/?tab=listen">MONITOR</a>
+  <a href="/radio/?tab=decode">PASSES</a>
+  <a href="/mesh/" aria-current="page">MESH</a>
+  <a href="/radio/?tab=sentinel">VAULT</a>
+</nav>
+</aside>
 
 <div id="sosBanner" hidden role="alert" aria-live="assertive">
   <div class="sosTxt"><b>SOS</b> <span id="sosWho"></span> — <span id="sosMsg"></span> <span id="sosRange"></span></div>
@@ -287,7 +303,7 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
       <button class="btn" data-qtx="Need relay">Need relay</button>
       <button class="btn primary" data-qtx="SOS" data-sos="1" title="Type a reason in the message box first to attach it">SOS</button>
     </div>
-    <div class="row" style="margin-bottom:10px">
+    <div class="row mx-tools mx-chattools">
       <button class="btn" id="btnExportChat">EXPORT CHAT</button>
       <button class="btn" id="btnClearChat">CLEAR</button>
       <button class="btn" id="btnTz">TIME UTC</button>
@@ -308,15 +324,17 @@ nav button.active{color:var(--amber);border-top-color:var(--amber);background:li
       <div id="mapEmpty">WAITING FOR FIX — walk outside
 MESH QUIET — peer dots appear when nodes report position.</div>
       <div id="mapTip"></div>
-      <div class="mapst" style="flex-direction:column;align-items:flex-start;gap:6px;right:8px;top:8px">
+      <div class="mapst" role="group" aria-label="Map layers">
         <label><input type="checkbox" id="stPin"> STATION</label>
         <label><input type="checkbox" id="stTrail"> TRAIL</label>
         <label><input type="checkbox" id="stRings"> RINGS</label>
         <label><input type="checkbox" id="stHeat"> HEAT</label>
       </div>
-      <button class="btn" id="btnRecage">RECAGE ON ME</button>
-      <button class="btn" id="btnTapDrop" style="position:absolute;left:8px;bottom:104px;z-index:2;width:auto">TAP DROP</button>
-      <button class="btn" id="btnRange" hidden style="position:absolute;left:8px;bottom:56px;z-index:2;width:auto">RANGE TEST</button>
+      <div class="mx-maptools" role="toolbar" aria-label="Map tools">
+        <button class="btn" id="btnRecage">RECAGE ON ME</button>
+        <button class="btn" id="btnTapDrop">TAP DROP</button>
+        <button class="btn" id="btnRange" hidden>RANGE TEST</button>
+      </div>
     </div>
     <div class="card mapsec">
       <div class="mapread">
@@ -359,13 +377,25 @@ MESH QUIET — peer dots appear when nodes report position.</div>
       <div class="sub" id="stNearestWay">nearest way —</div>
       <div class="sub" id="stTrip">trip —</div>
     </div>
+    <h2>Topology</h2>
+    <div class="card mx-topo">
+      <div class="lbl">Route table</div>
+      <p id="exo-mesh-topo" class="exo-wave">STANDBY</p>
+      <div class="lbl">Federation</div>
+      <p id="exo-federation" class="exo-wave">STANDBY</p>
+      <canvas id="exo-mesh-graph" width="640" height="180" aria-label="Mesh graph"></canvas>
+    </div>
     <h2>Mesh roster</h2>
-    <button class="btn" id="btnSort" style="width:auto;margin-bottom:8px">SORT · SIGNAL</button>
-    <button class="btn" id="btnNodesCsv" style="width:auto;margin-bottom:8px">EXPORT NODES</button>
+    <div class="row mx-tools">
+      <button class="btn" id="btnSort">SORT · SIGNAL</button>
+      <button class="btn" id="btnNodesCsv">EXPORT NODES</button>
+    </div>
     <div id="nodeList"><div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div></div>
     <h2>Waypoints</h2>
-    <button class="btn" id="btnWaySort" style="width:auto;margin-bottom:8px">SORT · NEWEST</button>
-    <button class="btn" id="btnWaysClear" style="width:auto;margin-bottom:8px">DELETE ALL</button>
+    <div class="row mx-tools">
+      <button class="btn" id="btnWaySort">SORT · NEWEST</button>
+      <button class="btn" id="btnWaysClear">DELETE ALL</button>
+    </div>
     <div id="wayList"><div class="card sub">NO WAYPOINTS. Drop one from MAP when you have a fix.</div></div>
     <div class="row" style="margin-top:10px">
       <button class="btn" id="btnGpx">EXPORT GPX</button>
@@ -507,13 +537,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   <button class="btn" id="navStop" style="width:auto;min-width:60px">STOP</button>
 </div>
 
-<nav class="exo-tabs" aria-label="Mesh screens">
-  <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
-  <button data-s="map">MAP</button>
-  <button data-s="nodes">NET</button>
-  <button data-s="vitals">NODE</button>
-  <button data-s="setup">SET</button>
-</nav>
+
 <div id="sheet">
   <div class="sheet">
     <h3>Link</h3>
@@ -561,9 +585,6 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   });
 })();
 </script>
-<p id="exo-mesh-topo" class="exo-wave">STANDBY</p>
-<p id="exo-federation" class="exo-wave">STANDBY</p>
-<canvas id="exo-mesh-graph" width="640" height="180"></canvas>
 <script src="app.js?v=61"></script>
 <script src="/assets/exo-webserial.js"></script>
 <script>
@@ -590,7 +611,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 <script src="/assets/exo-df.js"></script>
 <script src="/assets/exo-room.js"></script>
 <script src="/assets/exo-aar.js"></script>
-<script src="/assets/exo-tabs.js?v=1"></script>
+<script src="/assets/exo-tabs.js?v=2"></script>
 <script src="/assets/exo-mesh-router.js"></script>
 <script src="/assets/exo-nostr-sync.js"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>

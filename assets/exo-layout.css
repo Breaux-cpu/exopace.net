@@ -1,0 +1,515 @@
+/* Shared shell layout and control system.
+   Breakpoints: phone <=719px, tablet/fold-inner >=720px, wide >=1100px, short <=500px tall.
+   Helpers: use these classes; request shell changes in /workspace/exopace-shared/shell-requests.md */
+
+/* Fallback tokens if exo-tokens.css was not linked. Identical names; the tokens
+   file wins when it loads after this one. exo-layout.js also injects tokens. */
+:root {
+  --exo-void: #04070d;
+  --exo-cyan: #7ee0ff;
+  --exo-amber: #ffb84d;
+  --exo-text: #f0f6fc;
+  --exo-muted: #9fb0b4;
+  --exo-line: rgba(186, 214, 226, 0.14);
+  --exo-line-btn: rgba(186, 214, 226, 0.18);
+  --exo-line-field: rgba(126, 224, 255, 0.22);
+  --exo-btn: rgba(8, 14, 22, 0.92);
+  --exo-inset: #060b14;
+  --exo-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --exo-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --exo-target: 44px;
+  --exo-sat: max(env(safe-area-inset-top, 0px), var(--exo-safe-top, 0px));
+  --exo-sab: max(env(safe-area-inset-bottom, 0px), var(--exo-safe-bottom, 0px));
+  --exo-sal: max(env(safe-area-inset-left, 0px), var(--exo-safe-left, 0px));
+  --exo-sar: max(env(safe-area-inset-right, 0px), var(--exo-safe-right, 0px));
+  --exo-bar-h: calc(52px + var(--exo-sat));
+  --exo-pill-h: 44px;
+  --exo-dock-h: 0px;
+  --exo-chrome-top: calc(var(--exo-bar-h) + var(--exo-pill-h));
+  --exo-ease: 150ms ease;
+}
+
+html {
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: inherit; }
+
+html, body {
+  min-height: 100dvh;
+  min-height: 100svh;
+}
+
+body:has(> header.exo-bar) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  min-height: 100svh;
+  padding-left: var(--exo-sal);
+  padding-right: var(--exo-sar);
+}
+
+/* —— Top bar: already defined in exo-modern; lock safe-area + 44px taps —— */
+html body .exo-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  flex: 0 0 auto;
+  min-height: var(--exo-bar-h);
+  height: var(--exo-bar-h);
+  max-height: var(--exo-bar-h);
+  padding-top: var(--exo-sat);
+  padding-bottom: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.exo-brand,
+.exo-sites a,
+.exo-foot a,
+.exo-comms a {
+  min-height: var(--exo-target);
+  min-width: var(--exo-target);
+}
+
+/* —— Status pill —— */
+.exo-pill {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--exo-pill-h);
+  height: var(--exo-pill-h);
+  max-height: var(--exo-pill-h);
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+.exo-pill-status {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.exo-pill-status::-webkit-scrollbar { display: none; }
+
+.exo-pill-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* backdrop-filter / filter on .exo-pill would make position:fixed actions
+   anchor to the ticker instead of the viewport (they then collide with the nav). */
+html body .exo-pill,
+html body.exo-stage > .exo-pill {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  filter: none;
+  transform: none;
+  contain: none;
+  will-change: auto;
+}
+
+
+/* —— Buttons —— */
+.exo-btn,
+button.exo-btn,
+a.exo-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--exo-target);
+  min-width: var(--exo-target);
+  padding: 0 14px;
+  margin: 0;
+  border: 1px solid var(--exo-line-btn);
+  border-radius: 10px;
+  background: var(--exo-btn);
+  color: var(--exo-text);
+  font-family: var(--exo-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--exo-ease), border-color var(--exo-ease), color var(--exo-ease), opacity var(--exo-ease);
+}
+.exo-btn:hover { border-color: var(--exo-cyan); color: var(--exo-text); }
+.exo-btn:active { transform: scale(0.98); }
+.exo-btn:focus-visible,
+.exo-sites a:focus-visible,
+.exo-brand:focus-visible,
+.exo-pill button:focus-visible,
+.exo-pill a:focus-visible {
+  outline: 2px solid var(--exo-amber);
+  outline-offset: 2px;
+}
+.exo-btn[disabled],
+.exo-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.exo-btn[aria-pressed="true"],
+.exo-btn.is-on {
+  color: var(--exo-cyan);
+  border-color: rgba(126, 224, 255, 0.7);
+  box-shadow: inset 0 -1px 0 var(--exo-cyan);
+}
+.exo-btn-primary,
+.exo-btn.exo-btn-primary {
+  background: #f0f6fc;
+  color: #04070d;
+  border-color: #f0f6fc;
+  font-weight: 600;
+}
+.exo-btn-primary:hover { background: #fff; color: #04070d; }
+.exo-btn-ghost,
+.exo-btn.exo-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--exo-muted);
+}
+.exo-btn-danger,
+.exo-btn.exo-btn-danger {
+  color: #ff8a80;
+  border-color: rgba(255, 138, 128, 0.45);
+}
+
+.exo-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.exo-cluster > .exo-btn,
+.exo-cluster > a,
+.exo-cluster > button {
+  flex: 1 1 auto;
+  min-height: var(--exo-target);
+}
+
+.exo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.exo-field input,
+.exo-field select,
+.exo-field textarea {
+  min-height: var(--exo-target);
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--exo-line-field);
+  border-radius: 10px;
+  background: var(--exo-inset);
+  color: var(--exo-text);
+  font: 15px/1.3 var(--exo-sans);
+}
+.exo-field textarea { padding: 10px 12px; min-height: 88px; }
+
+/* —— Sheets —— */
+.exo-sheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.exo-sheet[data-open="true"],
+.exo-sheet.is-open,
+body.exo-sheet-open .exo-sheet:target {
+  display: block;
+  pointer-events: auto;
+}
+.exo-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 7, 13, 0.64);
+  border: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  cursor: pointer;
+}
+.exo-sheet-panel {
+  position: absolute;
+  left: var(--exo-sal);
+  right: var(--exo-sar);
+  bottom: 0;
+  max-height: min(80dvh, 80svh);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px calc(16px + var(--exo-sab));
+  border: 1px solid var(--exo-line);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: #0a121e;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.exo-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-height: var(--exo-target);
+}
+.exo-sheet-head h2,
+.exo-sheet-title {
+  flex: 1 1 auto;
+  margin: 0;
+  color: var(--exo-text);
+  font-family: var(--exo-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.exo-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.exo-sheet-close {
+  flex: 0 0 auto;
+}
+
+/* —— Side rail (tablet / fold inner / desktop) —— */
+.exo-rail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+@media (min-width: 720px) {
+  .exo-sheet-panel {
+    left: auto;
+    right: var(--exo-sar);
+    top: var(--exo-chrome-top);
+    bottom: 0;
+    width: min(380px, 42vw);
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+    border-left: 1px solid var(--exo-line);
+  }
+  .exo-two-pane {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(380px, 36vw);
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+  .exo-two-pane > .exo-rail { grid-column: 2; }
+}
+
+/* —— Phone bottom dock for pill actions (not used when Mesh owns the thumb bar) —— */
+@media (max-width: 719px) and (min-height: 501px) {
+  body:has(.exo-pill):not(:has(#composer)) {
+    /* 44px actions + 6+6 padding + 1px border */
+    --exo-dock-h: 57px;
+    padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
+  }
+  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions,
+  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy,
+  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-jump {
+    position: fixed;
+    z-index: 45;
+    bottom: 0;
+  }
+  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions {
+    left: var(--exo-sal);
+    right: var(--exo-sar);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    box-sizing: border-box;
+    height: calc(var(--exo-dock-h) + var(--exo-sab));
+    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
+    padding: 6px 12px calc(6px + var(--exo-sab));
+    background: rgba(6, 10, 16, 0.94);
+    border-top: 1px solid var(--exo-line);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions > * {
+    flex: 1 1 0;
+    min-height: var(--exo-target);
+  }
+  /* Unwrapped pill (before exo-layout.js runs): split the two actions. */
+  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy,
+  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-jump {
+    width: 50%;
+    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
+    padding-bottom: var(--exo-sab);
+    border-radius: 0;
+    background: rgba(6, 10, 16, 0.94) !important;
+  }
+  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy {
+    left: var(--exo-sal);
+  }
+  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-jump {
+    right: var(--exo-sar);
+  }
+}
+
+/* Mesh: composer + tab bar already occupy the thumb zone. Keep pill actions in the ticker. */
+body:has(#composer) {
+  --exo-dock-h: calc(62px + 8px);
+}
+
+/* Short landscape: collapse ticker, keep a single action row. */
+@media (max-height: 500px) {
+  body:has(.exo-pill) {
+    --exo-pill-h: 0px;
+  }
+  body:has(.exo-pill):not(:has(#composer)) {
+    /* 44px actions + 4+4 padding + 1px border */
+    --exo-dock-h: 53px;
+    padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
+  }
+  body:has(.exo-pill) .exo-pill-status { display: none; }
+  body:has(.exo-pill):not(:has(#composer)) .exo-pill {
+    height: 0;
+    min-height: 0;
+    max-height: 0;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions {
+    position: fixed;
+    left: var(--exo-sal);
+    right: var(--exo-sar);
+    bottom: 0;
+    z-index: 45;
+    box-sizing: border-box;
+    height: calc(var(--exo-dock-h) + var(--exo-sab));
+    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
+    padding: 4px 10px calc(4px + var(--exo-sab));
+    background: rgba(6, 10, 16, 0.94);
+    border-top: 1px solid var(--exo-line);
+  }
+  .exo-comms:not(.exo-comms--keep) { display: none; }
+  html body .exo-bar {
+    --exo-bar-h: calc(44px + var(--exo-sat));
+  }
+}
+
+/* Site row: seven surfaces, fade so a peek is obvious on phones. */
+@media (max-width: 719px) {
+  html body .exo-sites {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--exo-fade-r, 28px)), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--exo-fade-r, 28px)), transparent 100%);
+  }
+  html body .exo-sites a { padding: 0 8px; }
+}
+
+/* Tight phones: keep the top nav readable or obviously scrollable. */
+@media (max-width: 430px) {
+  html body .exo-bar {
+    padding-left: 10px;
+    padding-right: 8px;
+    gap: 8px;
+  }
+  html body .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 0;
+    padding-right: 6px;
+    font-size: 0.72rem;
+  }
+  html body .exo-sites a {
+    padding: 0 6px;
+    font-size: 12px;
+  }
+}
+
+/* Reserve the dock so map/globe widgets are not covered by the shell. */
+.leaflet-bottom,
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left,
+.cesium-viewer-bottom {
+  bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) !important;
+}
+
+/* Typographic pages: main scrolls; footer sits above the dock. */
+body.exo-stage:has(> footer.exo-foot) {
+  height: 100dvh;
+  height: 100svh;
+  overflow: hidden;
+}
+body:has(> header.exo-bar) > main,
+body.exo-stage > main,
+body.exo-stage > main.exo-hero {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.exo-foot {
+  flex: 0 0 auto;
+  padding-bottom: 16px;
+}
+.miss-jumps {
+  padding-bottom: 8px;
+}
+.exo-foot a {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exo-btn, .exo-sheet-panel, .exo-sheet-scrim {
+    transition: none;
+  }
+  .exo-btn:active { transform: none; }
+}
+
+/* 360px cover / small Android: SYSTEM was clipped. Tighten the bar, and if the
+   row still overflows, fade the trailing edge and leave a scroll spacer so the
+   last item can sit fully in view. */
+@media (max-width: 360px) {
+  html body .exo-bar {
+    padding-left: 8px;
+    padding-right: 6px;
+    gap: 4px;
+  }
+  html body .exo-brand {
+    letter-spacing: 0.08em;
+    margin-right: 0;
+    padding-right: 4px;
+    font-size: 0.66rem;
+  }
+  html body .exo-sites {
+    gap: 0;
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+  }
+  html body .exo-sites::after {
+    content: "";
+    flex: 0 0 20px;
+    height: 1px;
+  }
+  html body .exo-sites a {
+    padding: 0 4px;
+    font-size: 11px;
+  }
+}
