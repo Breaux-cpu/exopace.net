@@ -423,6 +423,9 @@ button, a, input { font: inherit; }
 #legend .lg-section { padding-top: 4px; border-top: 1px solid var(--fm-line); margin-top: 24px; }
 #legend .lg-section h3 { margin-top: 16px; }
 #legend .lg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+#legend .exo-sheet-body, #legend .lg-panel, #legend .lg-symbols {
+  padding-bottom: calc(28px + var(--exo-sab, 0px));
+}
 @media print {
   body:has(#legend[data-open="true"], #legend.is-open) header.exo-bar,
   body:has(#legend[data-open="true"], #legend.is-open) .exo-pill,
@@ -462,9 +465,13 @@ button, a, input { font: inherit; }
     width: auto !important;
     height: auto !important;
     min-height: var(--fm-t) !important;
-    padding-bottom: 0 !important;
+    padding: 0 !important;
     background: transparent !important;
     border: 0 !important;
+  }
+  body:has(.fm-body) .exo-pill-actions > * {
+    flex: 0 0 auto !important;
+    width: auto !important;
   }
 }
 body:has(.fm-body) > main#exo-main,

@@ -1075,20 +1075,21 @@ main.miss.exo-hero,
   .exo-hero,
   main.miss.exo-hero,
   .miss.exo-hero {
-    padding: 28px 16px 56px;
-    min-height: calc(100svh - var(--exo-bar-h) - 52px);
+    padding: 20px 16px 24px;
+    min-height: 0;
   }
 
   .exo-hero-grid {
     grid-template-columns: 1fr;
-    gap: 28px;
-    margin: 0 0 28px;
+    gap: 16px;
+    margin: 0 0 16px;
   }
 
   .exo-plinth {
     max-width: none;
     justify-self: stretch;
-    aspect-ratio: 16 / 11;
+    aspect-ratio: 16 / 10;
+    max-height: 180px;
   }
 
   .exo-display {

@@ -414,6 +414,53 @@ body:has(#composer) {
   }
 }
 
+/* Comms workspace switch is redundant with the main nav on phones and
+   steals height from Maps. Mesh keeps its own strip (exo-comms--keep). */
+@media (max-width: 719px) {
+  .exo-comms:not(.exo-comms--keep) { display: none; }
+}
+
+/* When COPY/JUMP stay in the ticker (Maps peek-dock, Mesh composer), they
+   must sit in-flow so the clock/MGRS can scroll instead of painting under them. */
+body:has(#composer) .exo-pill,
+body:has(.fm-body) .exo-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body:has(#composer) .exo-pill-status,
+body:has(.fm-body) .exo-pill-status {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+}
+body:has(#composer) .exo-pill-actions,
+body:has(.fm-body) .exo-pill-actions {
+  position: static !important;
+  inset: auto !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  gap: 6px;
+}
+body:has(#composer) .exo-pill-actions > *,
+body:has(.fm-body) .exo-pill-actions > * {
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+/* Footer sits above the phone action dock so typographic pages can scroll
+   the last rows (System status, 404 jumps) into view. */
+@media (max-width: 719px) and (min-height: 501px) {
+  body:has(.exo-pill):not(:has(#composer)) .exo-foot {
+    padding-bottom: calc(12px + var(--exo-dock-real, calc(var(--exo-dock-h, 57px) + var(--exo-sab))));
+  }
+}
+
 /* Site row: seven surfaces, fade so a peek is obvious on phones. */
 @media (max-width: 719px) {
   html body .exo-sites {

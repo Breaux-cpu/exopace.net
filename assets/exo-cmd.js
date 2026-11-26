@@ -10,7 +10,7 @@
   if (!document.querySelector("link[data-exo-layout]")) {
     var l = document.createElement("link");
     l.rel = "stylesheet";
-    l.href = "/assets/exo-layout.css?v=2";
+    l.href = "/assets/exo-layout.css?v=4";
     l.setAttribute("data-exo-layout", "1");
     (document.head || document.documentElement).appendChild(l);
   }

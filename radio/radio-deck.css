@@ -255,6 +255,10 @@ html body.rg-page .rg-dock { display: none; }
     border-top: 1px solid rgba(198, 216, 226, 0.12);
   }
   html body.rg-page:has(#rg-dock.has-primary) { padding-bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + var(--rg-dock)); }
+  html body.rg-page:has(#rg-dock.has-primary) #exo-main,
+  html body.rg-page:has(#rg-dock.has-primary) main {
+    padding-bottom: calc(var(--rg-dock) + 16px);
+  }
   html body.rg-page .rg-primary {
     flex: 1 1 auto;
     min-height: 48px !important;
