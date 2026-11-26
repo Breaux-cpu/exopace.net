@@ -431,78 +431,178 @@
       });
     }
 
-    async function playHls(box, me, src) {
+    function looksLikeSignIn(status, text) {
+      if (status !== 401 && status !== 403) return false;
+      return /sign in/i.test(String(text || ""));
+    }
+
+    async function sessionLooksSignedIn() {
+      try {
+        const res = await fetch(CAMS + "/api/me", { credentials: "include", cache: "no-store" });
+        if (res.ok) return true;
+        const text = await res.text();
+        if (looksLikeSignIn(res.status, text)) return false;
+        return false;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function clearPlayMedia(box, me) {
+      if (me.hangTimer) { clearTimeout(me.hangTimer); me.hangTimer = 0; }
+      if (me.hls) { try { me.hls.destroy(); } catch (err) {} me.hls = null; }
+      if (me.video) { try { me.video.pause(); me.video.removeAttribute("src"); me.video.load(); } catch (err) {} me.video = null; }
+      if (me.objectUrl) { try { URL.revokeObjectURL(me.objectUrl); } catch (err) {} me.objectUrl = ""; }
+      for (const old of box.querySelectorAll("img, video")) old.remove();
+    }
+
+    function playCamsSignIn(box, me, props) {
+      box.__retryPlay = function () { if (!me.dead) playCams(box, me, props); };
+      say(box, "signin", "SIGN IN TO PLAY", "This camera plays through EXOpace Cams, which needs a Google sign-in. After you sign in, return to this tab if it stays open.", '<a class="exo-btn cam-signin" href="' + CAMS + "/account?next=" + encodeURIComponent(location.href) + '">SIGN IN</a>');
+    }
+
+    async function playHls(box, me, src, opts) {
+      const fallback = !!(opts && opts.fallback);
       const video = document.createElement("video");
       video.muted = true; video.playsInline = true; video.autoplay = true; video.controls = true;
       video.setAttribute("playsinline", "");
       box.insertBefore(video, box.firstChild);
       me.video = video;
-      const fail = function (why) {
+      return new Promise(function (resolve) {
+        let settled = false;
+        const done = function (ok, why) {
+          if (settled) return;
+          settled = true;
+          if (me.hangTimer) { clearTimeout(me.hangTimer); me.hangTimer = 0; }
+          if (!ok && !fallback && !me.dead) say(box, "error", "NOT ANSWERING", why, '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
+          resolve({ ok: ok, why: why || "" });
+        };
+        video.addEventListener("playing", function () {
+          if (me.dead) return done(false, "");
+          if (me.hangTimer) { clearTimeout(me.hangTimer); me.hangTimer = 0; }
+          box.dataset.state = "playing";
+          box.querySelector(".cam-live").textContent = "LIVE";
+          done(true, "");
+        });
         if (me.hangTimer) clearTimeout(me.hangTimer);
-        if (!me.dead) say(box, "error", "NOT ANSWERING", why, '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
-      };
-      video.addEventListener("playing", function () {
-        if (me.dead) return;
-        if (me.hangTimer) clearTimeout(me.hangTimer);
-        box.dataset.state = "playing";
-        box.querySelector(".cam-live").textContent = "LIVE";
+        me.hangTimer = setTimeout(function () {
+          if (!me.dead && box.dataset.state === "loading") done(false, "This camera is not answering. Try again.");
+        }, PLAY_WAIT_MS);
+        const start = async function () {
+          const Hls = window.MediaSource || window.ManagedMediaSource ? await loadHlsLib().catch(function () { return null; }) : null;
+          if (me.dead) return done(false, "");
+          if (Hls && Hls.isSupported()) {
+            const hls = new Hls({ xhrSetup: function (xhr) { xhr.withCredentials = true; }, lowLatencyMode: false, maxBufferLength: 10, manifestLoadingTimeOut: PLAY_WAIT_MS, manifestLoadingMaxRetry: 1, levelLoadingTimeOut: PLAY_WAIT_MS });
+            me.hls = hls;
+            hls.on(Hls.Events.ERROR, function (_e, data) { if (data && data.fatal) done(false, "The publisher's stream answered with an error (" + (data.response && data.response.code ? "HTTP " + data.response.code : data.details) + ")."); });
+            hls.loadSource(src);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function () {}); });
+          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = src;
+            video.addEventListener("error", function () { done(false, "The stream did not load."); });
+            video.play().catch(function () {});
+          } else done(false, "This browser cannot play HLS video.");
+        };
+        start();
       });
-      if (me.hangTimer) clearTimeout(me.hangTimer);
-      me.hangTimer = setTimeout(function () {
-        if (!me.dead && box.dataset.state === "loading") fail("This camera is not answering. Try again.");
-      }, PLAY_WAIT_MS);
-      const Hls = window.MediaSource || window.ManagedMediaSource ? await loadHlsLib().catch(function () { return null; }) : null;
-      if (me.dead) return;
-      if (Hls && Hls.isSupported()) {
-        const hls = new Hls({ xhrSetup: function (xhr) { xhr.withCredentials = true; }, lowLatencyMode: false, maxBufferLength: 10, manifestLoadingTimeOut: PLAY_WAIT_MS, manifestLoadingMaxRetry: 1, levelLoadingTimeOut: PLAY_WAIT_MS });
-        me.hls = hls;
-        hls.on(Hls.Events.ERROR, function (_e, data) { if (data && data.fatal) fail("The publisher's stream answered with an error (" + (data.response && data.response.code ? "HTTP " + data.response.code : data.details) + ")."); });
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function () {}); });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-        video.addEventListener("error", function () { fail("The stream did not load."); });
-        video.play().catch(function () {});
-      } else fail("This browser cannot play HLS video.");
+    }
+
+    async function stillOnce(box, me, src) {
+      try {
+        const url = new URL(src, location.href);
+        url.searchParams.set("t", String(Date.now()));
+        const ctl = new AbortController();
+        const stop = setTimeout(function () { ctl.abort(); }, PLAY_WAIT_MS);
+        const res = await fetch(url.href, { credentials: "include", cache: "no-store", signal: ctl.signal });
+        clearTimeout(stop);
+        if (me.dead) return { ok: false, why: "" };
+        const type = (res.headers.get("content-type") || "").toLowerCase();
+        const text = type.indexOf("json") >= 0 || type.indexOf("text/") === 0 ? await res.clone().text().catch(function () { return ""; }) : "";
+        if (looksLikeSignIn(res.status, text) && (await sessionLooksSignedIn()) !== true) return { ok: false, signIn: true, why: text };
+        if (!res.ok || (type && type.indexOf("image/") !== 0 && type.indexOf("octet-stream") < 0)) {
+          return { ok: false, why: text || ("The camera did not return a picture (HTTP " + res.status + ").") };
+        }
+        const blob = await res.blob();
+        if (me.dead) return { ok: false, why: "" };
+        let img = box.querySelector("img");
+        if (!img) { img = document.createElement("img"); img.alt = ""; img.decoding = "async"; box.insertBefore(img, box.firstChild); }
+        if (me.objectUrl) { try { URL.revokeObjectURL(me.objectUrl); } catch (err) {} }
+        me.objectUrl = URL.createObjectURL(blob);
+        img.src = me.objectUrl;
+        box.dataset.state = "playing";
+        return { ok: true, why: "" };
+      } catch (err) {
+        return { ok: false, why: "The camera's publisher did not return a picture in time." };
+      }
     }
 
     async function playCams(box, me, props) {
-      let res;
+      const api = props.play.api;
+      let res, raw = "";
       try {
         const ctl = new AbortController();
         const stop = setTimeout(function () { ctl.abort(); }, 12000);
-        res = await fetch(props.play.api + "/media", { credentials: "include", cache: "no-store", signal: ctl.signal });
+        res = await fetch(api + "/media", { credentials: "include", cache: "no-store", signal: ctl.signal });
         clearTimeout(stop);
+        raw = await res.text();
       } catch (err) {
         if (me.dead) return;
         say(box, "error", "CAMS DID NOT ANSWER", location.hostname.endsWith("exopace.net") ? "cams.exopace.net is unreachable right now." : "Cams pictures play on exopace.net only; this preview host cannot use the cams sign-in.");
         return;
       }
       if (me.dead) return;
-      if (res.status === 401 || res.status === 403) {
-        box.__retryPlay = function () { if (!me.dead) playCams(box, me, props); };
-        say(box, "signin", "SIGN IN TO PLAY", "This camera plays through EXOpace Cams, which needs a Google sign-in. After you sign in, return to this tab if it stays open.", '<a class="exo-btn cam-signin" href="' + CAMS + "/account?next=" + encodeURIComponent(location.href) + '">SIGN IN</a>');
+      let body = null;
+      try { body = JSON.parse(raw); } catch (err) {}
+      if (looksLikeSignIn(res.status, raw) && (await sessionLooksSignedIn()) !== true) {
+        playCamsSignIn(box, me, props);
         return;
       }
-      if (res.status === 404) { say(box, "error", "CAMERA GONE", "EXOpace Cams no longer lists this camera."); return; }
-      if (!res.ok) { say(box, "error", "CAMS ERROR", "EXOpace Cams answered HTTP " + res.status + ".", '<button type="button" class="exo-btn cam-retry-one">RETRY</button>'); return; }
-      let body = null;
-      try { body = await res.json(); } catch (err) {}
-      if (me.dead) return;
-      const raw = body && typeof body === "object"
+      if (res.status === 404 || (body && body.error === "camera not found")) {
+        say(box, "error", "CAMERA GONE", "EXOpace Cams no longer lists this camera.");
+        return;
+      }
+      const path = body && typeof body === "object"
         ? [body.play_path, body.url, body.href, body.src, body.path].find(function (x) { return typeof x === "string" && x; }) || ""
         : "";
       let src = "";
-      if (/^https:\/\/cams\.exopace\.net\//i.test(raw)) src = raw;
-      else if (raw.indexOf("/api/cameras/") === 0) src = CAMS + raw;
-      if (!src) { say(box, "error", "NO PICTURE", "This camera has no picture to show."); return; }
-      const kind = String((body && (body.type || body.kind || body.format || body.media)) || "");
-      const hls = /\/hls\/?(\?|$)/i.test(src) || /\.m3u8(\?|$)/i.test(src)
-        || (/hls|mpegurl|stream/i.test(kind) && !/image|jpeg|jpg|png|still/i.test(kind));
-      if (hls) playHls(box, me, src);
-      else stillLoop(box, me, src, Number(props.refresh_s) || 60);
+      if (/^https:\/\/cams\.exopace\.net\//i.test(path)) src = path;
+      else if (path.indexOf("/api/cameras/") === 0) src = CAMS + path;
+      const paths = [];
+      if (src) paths.push(src);
+      if (paths.every(function (p) { return !/\/hls(\?|$)/i.test(p) && !/\.m3u8(\?|$)/i.test(p); })) paths.push(api + "/hls");
+      if (paths.every(function (p) { return !/\/snapshot(\?|$)/i.test(p); })) paths.push(api + "/snapshot");
+      let lastWhy = "This camera has no picture to show.";
+      for (let i = 0; i < paths.length; i++) {
+        if (me.dead) return;
+        const next = paths[i];
+        const kind = String((body && (body.type || body.kind || body.format || body.media || body.feed)) || "");
+        const hls = /\/hls(\?|$)/i.test(next) || /\.m3u8(\?|$)/i.test(next)
+          || (i === 0 && /hls|mpegurl|stream|live/i.test(kind) && !/image|jpeg|jpg|png|still/i.test(kind) && !/\/snapshot(\?|$)/i.test(next));
+        const more = i < paths.length - 1;
+        if (hls) {
+          const result = await playHls(box, me, next, { fallback: more });
+          if (me.dead) return;
+          if (result.ok) return;
+          lastWhy = result.why || lastWhy;
+          clearPlayMedia(box, me);
+          say(box, "loading", "LOADING", "");
+          continue;
+        }
+        const still = await stillOnce(box, me, next);
+        if (me.dead) return;
+        if (still.signIn && !more) { playCamsSignIn(box, me, props); return; }
+        if (still.ok) {
+          stillLoop(box, me, next, Number(props.refresh_s) || 60);
+          return;
+        }
+        lastWhy = still.why || lastWhy;
+        clearPlayMedia(box, me);
+        say(box, "loading", "LOADING", "");
+      }
+      say(box, "error", "NOT ANSWERING", lastWhy, '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
     }
+
 
     function startPlayer(marker, root) {
       stopPlayer();
@@ -620,6 +720,9 @@
             q.push("lat=" + Number(coords[1]).toFixed(5));
             q.push("lon=" + Number(coords[0]).toFixed(5));
           }
+          // Cams currently reads camera/lat/lon only; z is for a closer fly if/when it honors it.
+          q.push("z=13");
+          q.push("zoom=13");
           if (q.length) camsHref += "?" + q.join("&");
           acts += '<a class="exo-btn" href="' + esc(camsHref) + '" target="_blank" rel="noopener">OPEN IN CAMS</a>';
         }
