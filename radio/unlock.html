@@ -1,20 +1,31 @@
-<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#04070D">
 <title>EXOpace Radio — unlock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="../assets/exo-modern.css?v=14">
+<link rel="stylesheet" href="../assets/exo-tokens.css">
+<link rel="stylesheet" href="../assets/exo-layout.css?v=1" data-exo-layout="1">
+<script src="../assets/exo-layout.js?v=1" data-exo-layout="1"></script>
 <style>
-body{margin:0;color:var(--exo-text);
- display:flex;flex-direction:column;align-items:stretch;min-height:100vh;
- padding:0 0 calc(20px + env(safe-area-inset-bottom))}
-body > .exo-bar{min-width:0;width:100%}
-.w{box-sizing:border-box;max-width:420px;width:calc(100% - 32px);padding:22px 18px;margin:auto}
-h1{font-family:var(--exo-mono);font-size:19px;letter-spacing:.08em;color:var(--exo-amber);margin:0 0 8px}
-p{color:var(--exo-muted);font-size:14px;line-height:1.5}
-input{padding:13px;width:100%;margin:12px 0;box-sizing:border-box}
-button{padding:13px;width:100%}
-code{background:#111823;padding:2px 6px;border-radius:5px;font-size:13px;color:var(--exo-cyan)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--exo-amber);outline-offset:2px}
-</style></head><body>
+body.ul-page{margin:0;color:var(--exo-text)}
+.ul-main{flex:1 1 auto;display:flex;align-items:center;justify-content:center;
+ padding:32px max(20px,var(--exo-sar)) calc(32px + var(--exo-sab)) max(20px,var(--exo-sal))}
+.ul-card{width:min(440px,100%)}
+.ul-card .exo-display{font-size:clamp(2.75rem,12vw,4rem);line-height:.95;margin:0 0 14px}
+.ul-card .exo-lead{margin:0 0 28px;color:var(--exo-muted);font-size:1rem;line-height:1.55}
+.ul-card code{padding:2px 6px;border-radius:6px;background:#0a121c;color:var(--exo-cyan);font-family:var(--exo-mono);font-size:.9em}
+.ul-form{display:grid;gap:12px}
+.ul-form label{color:var(--exo-muted);font:500 11px/1 var(--exo-mono);letter-spacing:.16em;text-transform:uppercase}
+html body.ul-page:not(#_z):not(#_z):not(#_z) .ul-form input{width:100%;height:52px!important;min-height:52px!important;padding:0 14px;font-size:16px}
+html body.ul-page:not(#_z):not(#_z):not(#_z) .ul-form input[aria-invalid="true"]{border-color:#f87171!important}
+html body.ul-page:not(#_z):not(#_z):not(#_z) .ul-form button{width:100%;min-height:52px!important;border-radius:14px!important;
+ color:#04070d!important;background:#f4f8fb!important;border-color:#f4f8fb!important;font:500 15px/1 var(--exo-sans)!important;
+ letter-spacing:.01em!important;text-transform:none!important}
+.ul-err{min-height:1.4em;margin:0;color:#ffd0c8;font:500 12px/1.4 var(--exo-mono);letter-spacing:.06em}
+.ul-back{display:inline-flex;align-items:center;min-height:44px;margin-top:18px;color:var(--exo-steel);text-decoration:none;font-size:14px}
+.ul-back:hover{color:var(--exo-cyan)}
+</style></head><body class="ul-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#unlock">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -25,16 +36,29 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--exo-amber);outl
     <a href="/system/">SYSTEM</a>
   </nav>
 </header>
-<div class="w" id="unlock">
-<h1>EXOpace Radio</h1>
-<p>This device isn't unlocked yet. Paste the access token to save it here permanently,
-or open the full link that includes <code>?t=...</code></p>
-<input id="t" placeholder="access token" autocapitalize="off" autocorrect="off" spellcheck="false">
-<button onclick="go()">Unlock</button>
-</div><script>
-function go(){const v=document.getElementById('t').value.trim();
- if(v)location.href='./?t='+encodeURIComponent(v);}
-document.getElementById('t').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+<main class="ul-main" id="unlock">
+ <div class="ul-card">
+  <p class="exo-kicker">EXOpace Radio · this device</p>
+  <h1 class="exo-display">Unlock</h1>
+  <p class="exo-lead">This device isn't unlocked yet. Paste the access token to save it here, or open the full link that includes <code>?t=…</code></p>
+  <form class="ul-form" id="ul-form" novalidate>
+   <label for="t">Access token</label>
+   <input id="t" name="t" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-describedby="ul-err">
+   <p class="ul-err" id="ul-err" role="alert"></p>
+   <button type="submit">Unlock</button>
+  </form>
+  <a class="ul-back" href="/radio/">← Back to Radio</a>
+ </div>
+</main>
+<script>
+document.getElementById('ul-form').addEventListener('submit',function(e){
+ e.preventDefault();
+ var f=document.getElementById('t'),err=document.getElementById('ul-err'),v=f.value.trim();
+ if(!v){f.setAttribute('aria-invalid','true');err.textContent='Paste the access token first.';f.focus();return;}
+ f.removeAttribute('aria-invalid');err.textContent='';
+ location.href='./?t='+encodeURIComponent(v);
+});
+document.getElementById('t').addEventListener('input',function(){this.removeAttribute('aria-invalid');document.getElementById('ul-err').textContent='';});
 </script>
 <script src="../assets/exo-cmd.js?v=1"></script>
 </body></html>
