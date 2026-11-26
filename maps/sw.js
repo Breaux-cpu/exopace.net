@@ -3,7 +3,8 @@ const SHARED = ["/assets/exo-modern.css", "/assets/exo-tokens.css", "/assets/exo
 const SHELL = [
   "/maps/",
   "/maps/index.html",
-  "/maps/maps.css?v=8",
+  "/maps/maps.css?v=11",
+  "/maps/layout.js?v=1",
   "/maps/legend.html",
   "/maps/host.json",
   "/maps/mgrs.js?v=1",

@@ -9,13 +9,14 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css?v=1" />
-  <link rel="stylesheet" href="maps.css?v=9" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
 <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
 <link rel="stylesheet" href="/assets/exo-tokens.css" />
+<link rel="stylesheet" href="maps.css?v=11" />
 </head>
 <body>
 <header class="exo-bar">
@@ -41,249 +42,280 @@
   <a href="/radio/?tab=ble">MESH</a>
   <a href="/maps/#exo-link" aria-current="page">VAULT</a>
 </nav>
-  <header class="fm-top">
-    <a class="fm-brand" href="/mission/">EXOPACE</a>
-    <div class="fm-readout">
-      <strong id="fm-mgrs">—</strong>
-      <span id="fm-scale">SHEET</span>
-    </div>
-    <form class="fm-go" id="fm-go">
-      <input id="fm-q" type="search" placeholder="Town, ZIP, MGRS, or lat, lon" autocomplete="off" enterkeyhint="go" aria-label="Find a place" />
-      <button type="submit">GO</button>
-      <ul id="fm-suggest" hidden></ul>
-    </form>
-    <div class="fm-actions">
-      <button type="button" id="fm-locate">LOCATE</button>
-      <button type="button" id="fm-fit">SCALE</button>
-    </div>
-    <p class="fm-north" id="fm-north">GN —  ·  MAG — CHART</p>
-  </header>
   <main class="fm-body" id="exo-main">
-    <aside class="fm-dock">
-      <p class="fm-status" id="fm-status">LOADING</p>
-      <h2>FIX</h2>
-      <p class="fm-note" id="fm-sky">SUN — · MOON — EST</p>
-      <p class="fm-note" id="fm-ready">TILES —</p>
-      <div class="fm-row" id="fm-copy">
-        <button type="button" class="fm-btn" data-copy="mgrs">MGRS</button>
-        <button type="button" class="fm-btn" data-copy="dd">DD</button>
-        <button type="button" class="fm-btn" data-copy="dms">DMS</button>
-        <button type="button" class="fm-btn" data-copy="plus">PLUS</button>
-        <button type="button" class="fm-btn" data-copy="geo">GEO</button>
+    <aside class="fm-dock" id="fm-dock" data-state="peek">
+      <div class="fm-panel-head">
+        <button type="button" class="fm-grab" id="fm-grab" aria-label="Expand panel" aria-controls="fm-dock" aria-expanded="false"><span></span></button>
+        <p class="fm-status" id="fm-status">LOADING</p>
+        <div class="fm-tabs" role="tablist" aria-label="Map tools">
+          <button type="button" role="tab" id="fm-tab-fix" aria-controls="fm-sec-fix" aria-selected="true" tabindex="0" data-tab="fix">FIX</button>
+          <button type="button" role="tab" id="fm-tab-measure" aria-controls="fm-sec-measure" aria-selected="false" tabindex="-1" data-tab="measure">MEASURE</button>
+          <button type="button" role="tab" id="fm-tab-sheet" aria-controls="fm-sec-sheet" aria-selected="false" tabindex="-1" data-tab="sheet">SHEET</button>
+          <button type="button" role="tab" id="fm-tab-style" aria-controls="fm-sec-style" aria-selected="false" tabindex="-1" data-tab="style">STYLE</button>
+          <button type="button" role="tab" id="fm-tab-layers" aria-controls="fm-sec-layers" aria-selected="false" tabindex="-1" data-tab="layers">LAYERS</button>
+          <button type="button" role="tab" id="fm-tab-export" aria-controls="fm-sec-export" aria-selected="false" tabindex="-1" data-tab="export">EXPORT</button>
+          <button type="button" role="tab" id="fm-tab-device" aria-controls="fm-sec-device" aria-selected="false" tabindex="-1" data-tab="device">DEVICE</button>
+        </div>
       </div>
-      <p class="fm-toast" id="fm-toast" role="status" hidden>COPIED</p>
-      <p>Click a page. Click it again to drop it. Shift-drag fills an area. A letter page steps 1 km. A USGS quadrangle steps to the next cell. Arrow keys nudge the selected page.</p>
-      <h2>MEASURE</h2>
-      <div class="fm-seg" data-key="measure">
-        <button type="button" data-value="off" aria-pressed="true">OFF</button>
-        <button type="button" data-value="on">ON</button>
+      <div class="fm-panel-body">
+      <section class="fm-sec" id="fm-sec-fix" role="tabpanel" aria-labelledby="fm-tab-fix" data-sec="fix">
+        <h2>FIX</h2>
+        <p class="fm-note" id="fm-sky">SUN — · MOON — EST</p>
+        <p class="fm-note" id="fm-ready">TILES —</p>
+        <div class="fm-row" id="fm-copy">
+          <button type="button" class="fm-btn" data-copy="mgrs">MGRS</button>
+          <button type="button" class="fm-btn" data-copy="dd">DD</button>
+          <button type="button" class="fm-btn" data-copy="dms">DMS</button>
+          <button type="button" class="fm-btn" data-copy="plus">PLUS</button>
+          <button type="button" class="fm-btn" data-copy="geo">GEO</button>
+        </div>
+        <p class="fm-toast" id="fm-toast" role="status" hidden>COPIED</p>
+        <details class="fm-help"><summary>How this works</summary><p>Click a page. Click it again to drop it. Shift-drag fills an area. A letter page steps 1 km. A USGS quadrangle steps to the next cell. Arrow keys nudge the selected page.</p></details>
+      </section>
+      <section class="fm-sec" id="fm-sec-measure" role="tabpanel" aria-labelledby="fm-tab-measure" data-sec="measure" hidden>
+        <h2>MEASURE</h2>
+        <div class="fm-seg" data-key="measure">
+          <button type="button" data-value="off" aria-pressed="true">OFF</button>
+          <button type="button" data-value="on">ON</button>
+        </div>
+        <details class="fm-help"><summary>How this works</summary><p>Each click adds a point, up to 24. The latest leg is a WGS84 geodesic. Azimuth is clockwise from north at the start of that leg. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Slope uses those elevations as the rise. ROUTE GPX is a track to import in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that route on each page it crosses. Every leg shows its own true, grid, and back azimuth. Magnetic azimuth stays with that leg after NOAA answers for its start. The link keeps the route to about one meter.</p></details>
+        <p class="fm-note" id="fm-leg">MEASURE OFF</p>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="fm-route-clear">CLEAR ROUTE</button>
+          <button type="button" class="fm-btn" id="fm-gpx">ROUTE GPX</button>
+        </div>
+      </section>
+      <section class="fm-sec" id="fm-sec-sheet" role="tabpanel" aria-labelledby="fm-tab-sheet" data-sec="sheet" hidden>
+        <h2>SHEET</h2>
+        <div class="fm-seg" data-key="series">
+          <button type="button" data-value="letter" aria-pressed="true">LETTER</button>
+          <button type="button" data-value="usgs75">7.5′</button>
+          <button type="button" data-value="usgs15">15′</button>
+          <button type="button" data-value="usgs100">30×60′</button>
+          <button type="button" data-value="usgs250">1×2°</button>
+        </div>
+        <p class="fm-note" id="fm-series-note">Each letter scale uses the same 160 mm by 200 mm neatline. 1:24k is 3.84 km by 4.8 km. It is not a USGS quadrangle.</p>
+        <h2>SCALE</h2>
+        <div class="fm-seg" data-key="scale">
+          <button type="button" data-value="15000">1:15k</button>
+          <button type="button" data-value="24000">1:24k</button>
+          <button type="button" data-value="25000">1:25k</button>
+          <button type="button" data-value="48000">1:48k</button>
+          <button type="button" data-value="50000" aria-pressed="true">1:50k</button>
+          <button type="button" data-value="100000">1:100k</button>
+          <button type="button" data-value="250000">1:250k</button>
+        </div>
+        <p class="fm-note">Letter scales stay on the 160 mm by 200 mm neatline. Choosing a USGS series replaces that sheet with the real quadrangle.</p>
+        <h2>PAGE</h2>
+        <div class="fm-seg" data-key="orient">
+          <button type="button" data-value="portrait" aria-pressed="true">PORTRAIT</button>
+          <button type="button" data-value="landscape">LANDSCAPE</button>
+        </div>
+        <div class="fm-row" style="margin-top:8px">
+          <button type="button" class="fm-btn" id="fm-fill">FILL VIEW</button>
+          <button type="button" class="fm-btn" id="fm-clear">CLEAR</button>
+          <button type="button" class="fm-btn" id="fm-pages">ZOOM TO PAGES</button>
+          <button type="button" class="fm-btn" id="fm-undo">UNDO</button>
+          <button type="button" class="fm-btn" id="fm-redo">REDO</button>
+          <span class="fm-note" id="fm-count" style="align-self:center">0 PAGES</span>
+        </div>
+        <p class="fm-note" id="fm-adjoins" hidden></p>
+      </section>
+      <section class="fm-sec" id="fm-sec-style" role="tabpanel" aria-labelledby="fm-tab-style" data-sec="style" hidden>
+        <h2>BASE</h2>
+        <div class="fm-seg" data-key="base">
+          <button type="button" data-value="paper" aria-pressed="true">PAPER</button>
+          <button type="button" data-value="imagery">IMAGERY</button>
+          <button type="button" data-value="usgs">USGS</button>
+        </div>
+        <h2>HILLSHADE</h2>
+        <div class="fm-seg" data-key="hill">
+          <button type="button" data-value="off">OFF</button>
+          <button type="button" data-value="soft" aria-pressed="true">SOFT</button>
+          <button type="button" data-value="sharp">SHARP</button>
+        </div>
+        <h2>CONTOURS</h2>
+        <div class="fm-seg" data-key="contours">
+          <button type="button" data-value="off">OFF</button>
+          <button type="button" data-value="sparse">SPARSE</button>
+          <button type="button" data-value="full" aria-pressed="true">FULL</button>
+        </div>
+        <h2>LABELS</h2>
+        <div class="fm-seg" data-key="labels">
+          <button type="button" data-value="sparse" aria-pressed="true">SPARSE</button>
+          <button type="button" data-value="full">FULL</button>
+        </div>
+        <h2>INK</h2>
+        <div class="fm-seg" data-key="ink">
+          <button type="button" data-value="color" aria-pressed="true">COLOR</button>
+          <button type="button" data-value="bw">BLACK</button>
+        </div>
+        <h2>SECOND GRID</h2>
+        <div class="fm-seg" data-key="secondary">
+          <button type="button" data-value="off" aria-pressed="true">OFF</button>
+          <button type="button" data-value="utm">UTM</button>
+          <button type="button" data-value="latlon">LAT/LONG</button>
+        </div>
+        <p class="fm-note">UTM uses the same meter lines as the MGRS grid. Lat/long is a separate graticule.</p>
+        <h2>UNITS</h2>
+        <div class="fm-seg" data-key="units">
+          <button type="button" data-value="metric" aria-pressed="true">METRIC</button>
+          <button type="button" data-value="imperial">IMPERIAL</button>
+        </div>
+        <h2>VIEW</h2>
+        <div class="fm-seg" data-key="pitch">
+          <button type="button" data-value="2d" aria-pressed="true">2D</button>
+          <button type="button" data-value="3d">3D</button>
+        </div>
+      </section>
+      <section class="fm-sec" id="fm-sec-layers" role="tabpanel" aria-labelledby="fm-tab-layers" data-sec="layers" hidden>
+        <h2>LAYERS</h2>
+        <div class="fm-seg" data-key="layer-woods">
+          <button type="button" data-value="true" aria-pressed="true">WOODS</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-water" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">WATER</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-roads" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">ROADS</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-trails" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">TRAILS</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-air" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">AIRFIELDS</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-land" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">LAND USE</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-rail" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">RAIL</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-buildings" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">BUILDINGS</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-peaks" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">PEAKS</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-power" style="margin-top:6px">
+          <button type="button" data-value="true">POWER</button>
+          <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-pipeline" style="margin-top:6px">
+          <button type="button" data-value="true">PIPELINES</button>
+          <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-flood" style="margin-top:6px">
+          <button type="button" data-value="true">FLOOD</button>
+          <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-dep" style="margin-top:6px">
+          <button type="button" data-value="true">3DEP</button>
+          <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-ham" style="margin-top:6px">
+          <button type="button" data-value="true">HAM</button>
+          <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+        </div>
+        <div class="fm-seg" data-key="layer-leaf" style="margin-top:6px">
+          <button type="button" data-value="true">LEAF TYPE</button>
+          <button type="button" data-value="false" aria-pressed="true">HIDE</button>
+        </div>
+        <details class="fm-help"><summary>How this works</summary><p>Power lines and pipelines are OpenStreetMap via OpenInfraMap. Flood zones are FEMA NFHL, United States only. 3DEP is USGS shaded relief, not a lidar point cloud. Ham and leaf type are OpenStreetMap tags for this view. Untagged woods stay in WOODS. A missing ham point is not a statement that no repeater exists.</p></details>
+        <div class="fm-seg" data-key="layer-grid" style="margin-top:6px">
+          <button type="button" data-value="true" aria-pressed="true">MGRS GRID</button>
+          <button type="button" data-value="false">HIDE</button>
+        </div>
+      </section>
+      <section class="fm-sec" id="fm-sec-export" role="tabpanel" aria-labelledby="fm-tab-export" data-sec="export" hidden>
+        <h2>USGS SCAN</h2>
+        <details class="fm-help"><summary>How this works</summary><p>FIND USGS SCAN asks the USGS catalogue for the scanned paper map of the selected quadrangle. Each year opens their GeoPDF, collar included. SHOW crops that year's scan to the quadrangle. The link keeps that year, and opening the link places it again. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of the letter pages. The collar names the next cell on each side by that cell's corner. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.</p></details>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="fm-topo">FIND USGS SCAN</button>
+        </div>
+        <div id="fm-topo-out" class="fm-note">Pick a USGS quadrangle, then find its scan.</div>
+        <h2>PRINT</h2>
+        <details class="fm-help"><summary>How this works</summary><p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar. A measured route is drawn in the neatline of each page it crosses, and the collar says so. On a quadrangle, the collar also names the next cell north, east, south, and west by that cell's corner. A cell past the sheet grid is omitted.</p></details>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
+          <a class="fm-btn" href="legend.html">LEGEND</a>
+        </div>
+        <h2>ATAK</h2>
+        <details class="fm-help"><summary>How this works</summary><p>SEND TO ATAK builds a KMZ of the pages. When a route is measured, that file also contains the route as its own line, clamped to the ground, plus a numbered point for each click. ATAK MBTILES packs imagery for the selected sheets into one raster file. Copy it into ATAK or use Import. It is not a world download. Esri, Maxar, Earthstar Geographics. ATAK-CIV is not installed on this phone, so this page cannot finish the import. GARMIN KMZ is a Custom Map for Garmin/CustomMaps. Each image is at most 1024 px. No Garmin drive is connected here, so it has not been loaded on a Garmin. The XML links are online basemaps. Finish ATAK’s callsign screen yourself.</p></details>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="fm-atak">SEND TO ATAK</button>
+          <button type="button" class="fm-btn" id="fm-mbtiles">ATAK MBTILES</button>
+          <button type="button" class="fm-btn" id="fm-garmin">GARMIN KMZ</button>
+          <a class="fm-btn" href="atak/usgs-imagery-topo.xml" download>USGS XML</a>
+          <a class="fm-btn" href="atak/world-imagery.xml" download>IMAGERY XML</a>
+          <a class="fm-btn" href="atak/world-hillshade.xml" download>HILL XML</a>
+        </div>
+        <h2>OFFLINE TILES &amp; DEM</h2>
+        <p id="exo-vault-status">NO LOCAL PMTILES · DEM CACHE SEPARATE</p>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="exo-vault-import">IMPORT PMTILES</button>
+          <input id="exo-vault-file" type="file" accept=".pmtiles,application/octet-stream" hidden>
+        </div>
+        <h2>OFFLINE COPY</h2>
+        <details class="fm-help"><summary>How this works</summary><p>The public site stays on Cloudflare. vq can download a private copy with <span style="color:#ffe08a">maps/offline/pull.sh</span>. That copy is not the live site. World elevation is stored only as far as free disk allows. Military-scale detail is saved per page.</p></details>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="fm-save">SAVE SHEETS TO COPY</button>
+          <a class="fm-btn" href="offline/pull.sh" download>PULL SCRIPT</a>
+        </div>
+        <p class="fm-note">Roads and names are OpenStreetMap via OpenFreeMap. Relief is AWS Terrain Tiles. USGS and Esri layers keep their own credits in the corner.</p>
+      </section>
+      <section class="fm-sec" id="fm-sec-device" role="tabpanel" aria-labelledby="fm-tab-device" data-sec="device" hidden>
+        <h2>NODE</h2>
+        <p class="fm-note" id="exo-usb-node-status" data-usb-node-status>NO USB DEVICE · CLICK CONNECT USB</p>
+        <p class="fm-note" id="exo-usb-node-fallback"></p>
+        <div class="fm-row">
+          <button type="button" class="fm-btn" id="exo-usb-node-connect" data-usb-node-connect>CONNECT USB NODE</button>
+          <button type="button" class="fm-btn" id="exo-usb-node-ble" data-usb-node-ble>CONNECT BLE</button>
+        </div>
+        <p class="fm-note" id="exo-usb-node-log">No node line yet.</p>
+        <h2>LINE OF SIGHT</h2>
+        <div id="exo-link"></div>
+        <p class="exo-wave" id="exo-tracks">NO USB DEVICE</p>
+        <p class="exo-wave" id="exo-mav">NO USB DEVICE</p>
+        <p class="exo-wave" id="exo-sitrep">NO OBSERVATIONS</p>
+        <p class="exo-wave" id="exo-qr">NO QR FRAME</p>
+        <p class="exo-wave" id="exo-planner">NO POLYGON</p>
+        <p class="exo-wave" id="exo-swarm">NO VEHICLES</p>
+        <p class="exo-wave" id="exo-viewshed">NO DEM</p>
+        <p class="exo-wave" id="exo-plume">NO OBSERVATIONS</p>
+      </section>
       </div>
-      <p class="fm-note">Each click adds a point, up to 24. The latest leg is a WGS84 geodesic. Azimuth is clockwise from north at the start of that leg. Grid north uses that point’s UTM zone. Magnetic north is the World Magnetic Model when NOAA answers. Slope uses those elevations as the rise. ROUTE GPX is a track to import in ATAK or another GPS app. PDF, ATAK, and Garmin pages draw that route on each page it crosses. Every leg shows its own true, grid, and back azimuth. Magnetic azimuth stays with that leg after NOAA answers for its start. The link keeps the route to about one meter.</p>
-      <p class="fm-note" id="fm-leg">MEASURE OFF</p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="fm-route-clear">CLEAR ROUTE</button>
-        <button type="button" class="fm-btn" id="fm-gpx">ROUTE GPX</button>
-      </div>
-      <h2>NODE</h2>
-      <p class="fm-note" id="exo-usb-node-status" data-usb-node-status>NO USB DEVICE · CLICK CONNECT USB</p>
-      <p class="fm-note" id="exo-usb-node-fallback"></p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="exo-usb-node-connect" data-usb-node-connect>CONNECT USB NODE</button>
-        <button type="button" class="fm-btn" id="exo-usb-node-ble" data-usb-node-ble>CONNECT BLE</button>
-      </div>
-      <p class="fm-note" id="exo-usb-node-log">No node line yet.</p>
-      <h2>LINE OF SIGHT</h2>
-      <div id="exo-link"></div>
-      <p class="exo-wave" id="exo-tracks">NO USB DEVICE</p>
-      <p class="exo-wave" id="exo-mav">NO USB DEVICE</p>
-      <p class="exo-wave" id="exo-sitrep">NO OBSERVATIONS</p>
-      <p class="exo-wave" id="exo-qr">NO QR FRAME</p>
-      <p class="exo-wave" id="exo-planner">NO POLYGON</p>
-      <p class="exo-wave" id="exo-swarm">NO VEHICLES</p>
-      <p class="exo-wave" id="exo-viewshed">NO DEM</p>
-      <p class="exo-wave" id="exo-plume">NO OBSERVATIONS</p>
-      <h2>SHEET</h2>
-      <div class="fm-seg" data-key="series">
-        <button type="button" data-value="letter" aria-pressed="true">LETTER</button>
-        <button type="button" data-value="usgs75">7.5′</button>
-        <button type="button" data-value="usgs15">15′</button>
-        <button type="button" data-value="usgs100">30×60′</button>
-        <button type="button" data-value="usgs250">1×2°</button>
-      </div>
-      <p class="fm-note" id="fm-series-note">Each letter scale uses the same 160 mm by 200 mm neatline. 1:24k is 3.84 km by 4.8 km. It is not a USGS quadrangle.</p>
-      <h2>SCALE</h2>
-      <div class="fm-seg" data-key="scale">
-        <button type="button" data-value="15000">1:15k</button>
-        <button type="button" data-value="24000">1:24k</button>
-        <button type="button" data-value="25000">1:25k</button>
-        <button type="button" data-value="48000">1:48k</button>
-        <button type="button" data-value="50000" aria-pressed="true">1:50k</button>
-        <button type="button" data-value="100000">1:100k</button>
-        <button type="button" data-value="250000">1:250k</button>
-      </div>
-      <p class="fm-note">Letter scales stay on the 160 mm by 200 mm neatline. Choosing a USGS series replaces that sheet with the real quadrangle.</p>
-      <h2>PAGE</h2>
-      <div class="fm-seg" data-key="orient">
-        <button type="button" data-value="portrait" aria-pressed="true">PORTRAIT</button>
-        <button type="button" data-value="landscape">LANDSCAPE</button>
-      </div>
-      <div class="fm-row" style="margin-top:8px">
-        <button type="button" class="fm-btn" id="fm-fill">FILL VIEW</button>
-        <button type="button" class="fm-btn" id="fm-clear">CLEAR</button>
-        <button type="button" class="fm-btn" id="fm-pages">ZOOM TO PAGES</button>
-        <button type="button" class="fm-btn" id="fm-undo">UNDO</button>
-        <button type="button" class="fm-btn" id="fm-redo">REDO</button>
-        <span class="fm-note" id="fm-count" style="align-self:center">0 PAGES</span>
-      </div>
-      <p class="fm-note" id="fm-adjoins" hidden></p>
-      <h2>BASE</h2>
-      <div class="fm-seg" data-key="base">
-        <button type="button" data-value="paper" aria-pressed="true">PAPER</button>
-        <button type="button" data-value="imagery">IMAGERY</button>
-        <button type="button" data-value="usgs">USGS</button>
-      </div>
-      <h2>HILLSHADE</h2>
-      <div class="fm-seg" data-key="hill">
-        <button type="button" data-value="off">OFF</button>
-        <button type="button" data-value="soft" aria-pressed="true">SOFT</button>
-        <button type="button" data-value="sharp">SHARP</button>
-      </div>
-      <h2>CONTOURS</h2>
-      <div class="fm-seg" data-key="contours">
-        <button type="button" data-value="off">OFF</button>
-        <button type="button" data-value="sparse">SPARSE</button>
-        <button type="button" data-value="full" aria-pressed="true">FULL</button>
-      </div>
-      <h2>LABELS</h2>
-      <div class="fm-seg" data-key="labels">
-        <button type="button" data-value="sparse" aria-pressed="true">SPARSE</button>
-        <button type="button" data-value="full">FULL</button>
-      </div>
-      <h2>INK</h2>
-      <div class="fm-seg" data-key="ink">
-        <button type="button" data-value="color" aria-pressed="true">COLOR</button>
-        <button type="button" data-value="bw">BLACK</button>
-      </div>
-      <h2>SECOND GRID</h2>
-      <div class="fm-seg" data-key="secondary">
-        <button type="button" data-value="off" aria-pressed="true">OFF</button>
-        <button type="button" data-value="utm">UTM</button>
-        <button type="button" data-value="latlon">LAT/LONG</button>
-      </div>
-      <p class="fm-note">UTM uses the same meter lines as the MGRS grid. Lat/long is a separate graticule.</p>
-      <h2>UNITS</h2>
-      <div class="fm-seg" data-key="units">
-        <button type="button" data-value="metric" aria-pressed="true">METRIC</button>
-        <button type="button" data-value="imperial">IMPERIAL</button>
-      </div>
-      <h2>VIEW</h2>
-      <div class="fm-seg" data-key="pitch">
-        <button type="button" data-value="2d" aria-pressed="true">2D</button>
-        <button type="button" data-value="3d">3D</button>
-      </div>
-      <h2>LAYERS</h2>
-      <div class="fm-seg" data-key="layer-woods">
-        <button type="button" data-value="true" aria-pressed="true">WOODS</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-water" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">WATER</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-roads" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">ROADS</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-trails" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">TRAILS</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-air" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">AIRFIELDS</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-land" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">LAND USE</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-rail" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">RAIL</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-buildings" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">BUILDINGS</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-peaks" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">PEAKS</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-power" style="margin-top:6px">
-        <button type="button" data-value="true">POWER</button>
-        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-pipeline" style="margin-top:6px">
-        <button type="button" data-value="true">PIPELINES</button>
-        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-flood" style="margin-top:6px">
-        <button type="button" data-value="true">FLOOD</button>
-        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-dep" style="margin-top:6px">
-        <button type="button" data-value="true">3DEP</button>
-        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-ham" style="margin-top:6px">
-        <button type="button" data-value="true">HAM</button>
-        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
-      </div>
-      <div class="fm-seg" data-key="layer-leaf" style="margin-top:6px">
-        <button type="button" data-value="true">LEAF TYPE</button>
-        <button type="button" data-value="false" aria-pressed="true">HIDE</button>
-      </div>
-      <p class="fm-note">Power lines and pipelines are OpenStreetMap via OpenInfraMap. Flood zones are FEMA NFHL, United States only. 3DEP is USGS shaded relief, not a lidar point cloud. Ham and leaf type are OpenStreetMap tags for this view. Untagged woods stay in WOODS. A missing ham point is not a statement that no repeater exists.</p>
-      <div class="fm-seg" data-key="layer-grid" style="margin-top:6px">
-        <button type="button" data-value="true" aria-pressed="true">MGRS GRID</button>
-        <button type="button" data-value="false">HIDE</button>
-      </div>
-      <h2>USGS SCAN</h2>
-      <p>FIND USGS SCAN asks the USGS catalogue for the scanned paper map of the selected quadrangle. Each year opens their GeoPDF, collar included. SHOW crops that year's scan to the quadrangle. The link keeps that year, and opening the link places it again. The picture is the sharpest overview under about 1.2 MB, not the full sheet. Print draws it in the neatline of the letter pages. The collar names the next cell on each side by that cell's corner. A WGS84 sheet uses transverse mercator. A CONUS NAD27 polyconic sheet is shifted with the published three-parameter datum. Any other projection stays off the map.</p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="fm-topo">FIND USGS SCAN</button>
-      </div>
-      <div id="fm-topo-out" class="fm-note">Pick a USGS quadrangle, then find its scan.</div>
-      <h2>PRINT</h2>
-      <p>Letter sheets print on US Letter at actual size. A USGS quadrangle prints as true-scale letter tiles of that latitude and longitude cell. The 1 km bar is 40 mm at 1:25,000. Measure the 100 mm bar. A measured route is drawn in the neatline of each page it crosses, and the collar says so. On a quadrangle, the collar also names the next cell north, east, south, and west by that cell's corner. A cell past the sheet grid is omitted.</p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="fm-pdf">DOWNLOAD PDF</button>
-        <a class="fm-btn" href="legend.html">LEGEND</a>
-      </div>
-      <h2>ATAK</h2>
-      <p>SEND TO ATAK builds a KMZ of the pages. When a route is measured, that file also contains the route as its own line, clamped to the ground, plus a numbered point for each click. ATAK MBTILES packs imagery for the selected sheets into one raster file. Copy it into ATAK or use Import. It is not a world download. Esri, Maxar, Earthstar Geographics. ATAK-CIV is not installed on this phone, so this page cannot finish the import. GARMIN KMZ is a Custom Map for Garmin/CustomMaps. Each image is at most 1024 px. No Garmin drive is connected here, so it has not been loaded on a Garmin. The XML links are online basemaps. Finish ATAK’s callsign screen yourself.</p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="fm-atak">SEND TO ATAK</button>
-        <button type="button" class="fm-btn" id="fm-mbtiles">ATAK MBTILES</button>
-        <button type="button" class="fm-btn" id="fm-garmin">GARMIN KMZ</button>
-        <a class="fm-btn" href="atak/usgs-imagery-topo.xml" download>USGS XML</a>
-        <a class="fm-btn" href="atak/world-imagery.xml" download>IMAGERY XML</a>
-        <a class="fm-btn" href="atak/world-hillshade.xml" download>HILL XML</a>
-      </div>
-      <h2>OFFLINE TILES &amp; DEM</h2>
-      <p id="exo-vault-status">NO LOCAL PMTILES · DEM CACHE SEPARATE</p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="exo-vault-import">IMPORT PMTILES</button>
-        <input id="exo-vault-file" type="file" accept=".pmtiles,application/octet-stream" hidden>
-      </div>
-      <h2>OFFLINE COPY</h2>
-      <p>The public site stays on Cloudflare. vq can download a private copy with <span style="color:#ffe08a">maps/offline/pull.sh</span>. That copy is not the live site. World elevation is stored only as far as free disk allows. Military-scale detail is saved per page.</p>
-      <div class="fm-row">
-        <button type="button" class="fm-btn" id="fm-save">SAVE SHEETS TO COPY</button>
-        <a class="fm-btn" href="offline/pull.sh" download>PULL SCRIPT</a>
-      </div>
-      <p class="fm-note">Roads and names are OpenStreetMap via OpenFreeMap. Relief is AWS Terrain Tiles. USGS and Esri layers keep their own credits in the corner.</p>
     </aside>
-    <div class="fm-stage"><div id="fm-map"></div></div>
+    <div class="fm-stage">
+      <div id="fm-map"></div>
+      <div class="fm-hud">
+      <form class="fm-go" id="fm-go">
+        <input id="fm-q" type="search" placeholder="Town, ZIP, MGRS, or lat, lon" autocomplete="off" enterkeyhint="go" aria-label="Find a place" />
+        <button type="submit">GO</button>
+        <ul id="fm-suggest" hidden></ul>
+      </form>
+        <div class="fm-chip">
+        <div class="fm-readout">
+          <strong id="fm-mgrs">—</strong>
+          <span id="fm-scale">SHEET</span>
+        </div>
+            <p class="fm-north" id="fm-north">GN —  ·  MAG — CHART</p>
+        </div>
+      <div class="fm-actions">
+        <button type="button" id="fm-locate">LOCATE</button>
+        <button type="button" id="fm-fit">SCALE</button>
+      </div>
+      </div>
+    </div>
   </main>
   <script src="vendor/maplibre-gl.js?v=1" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'"></script>
   <script src="vendor/pmtiles.js?v=1"></script>
@@ -314,6 +346,7 @@
   <script src="/assets/exo-aar.js"></script>
   <script type="module" src="/assets/exo-decide.js"></script>
   <script src="app.js?v=22"></script>
+  <script src="layout.js?v=1"></script>
   <script src="/assets/exo-adsb-ais.js"></script>
   <script src="/assets/exo-mavlink.js"></script>
   <script src="/assets/exo-sitrep.js"></script>
