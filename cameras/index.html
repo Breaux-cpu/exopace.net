@@ -11,43 +11,155 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
+  <link rel="stylesheet" href="/assets/exo-tokens.css" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=1" data-exo-layout="1" />
+  <script src="/assets/exo-layout.js?v=1"></script>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; color: #d7e7ea; }
-    body { display: flex; flex-direction: column; min-height: 100%; }
-    header {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
-      padding: 10px 14px; border-bottom: 1px solid rgba(126, 224, 255, 0.25);
+    html, body { margin: 0; height: 100%; color: var(--exo-text, #f0f6fc); }
+    body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+
+    /* Stage: rail + map. Phone: map full-bleed, rail pieces float over it. */
+    .cam-stage { position: relative; flex: 1 1 auto; min-height: 0; display: flex; }
+    #map { position: relative; z-index: 0; isolation: isolate; flex: 1 1 auto; min-width: 0; min-height: 0; background: #05080e; }
+    .leaflet-container { background: #05080e; font-family: var(--exo-sans, "IBM Plex Sans", system-ui, sans-serif); }
+
+    .cam-rail { display: contents; }
+    .cam-kicker {
+      margin: 0; color: var(--exo-muted, #9fb0b4);
+      font: 500 11px/1.2 var(--exo-mono, "IBM Plex Mono", ui-monospace, monospace);
+      letter-spacing: 0.16em; text-transform: uppercase;
     }
-    .brand { color: #7ee0ff; letter-spacing: 0.18em; text-decoration: none; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
-    nav { display: flex; flex-wrap: wrap; gap: 8px; }
-    nav a, button.locate {
-      text-decoration: none;
-      min-height: 44px; min-width: 44px; padding: 0 12px; display: inline-flex; align-items: center;
+    .cam-find { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .cam-find input {
+      flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 12px;
+      border: 1px solid var(--exo-line-field, rgba(126, 224, 255, 0.22)); border-radius: 12px;
+      background: rgba(6, 11, 20, 0.92); color: var(--exo-text, #f0f6fc);
+      font: 15px/1.2 var(--exo-sans, system-ui, sans-serif);
     }
-    nav a[aria-current="page"] { color: #7ee0ff; border-color: rgba(126, 224, 255, 0.7); }
-    #count { margin-left: auto; color: #7ee0ff; font-size: 12px; }
-    #map { flex: 1; min-height: 0; background: #071018; }
-    .leaflet-container { background: #071018; font-family: inherit; }
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #03060b; color: #d7e7ea; border: 1px solid rgba(126, 224, 255, 0.35); }
-    .leaflet-popup-content { margin: 10px 12px; }
-    .leaflet-popup-content img { display: block; max-width: 240px; margin-top: 8px; }
-    .leaflet-bar a { min-width: 44px; min-height: 44px; line-height: 44px; background: #03060b; color: #7ee0ff; border-bottom-color: rgba(126, 224, 255, 0.35); }
-    .leaflet-control-attribution a { display: inline-flex; align-items: center; box-sizing: border-box; min-width: 44px; min-height: 44px; padding: 0 6px; color: #7ee0ff; }
-    @media (max-width: 720px) {
-      #count { width: 100%; margin-left: 0; }
+    .cam-find input::placeholder { color: #7f9298; }
+    #count {
+      flex: 0 0 auto; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px;
+      border-radius: 12px; border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
+      background: rgba(6, 10, 16, 0.86); color: var(--exo-cyan, #7ee0ff);
+      font: 500 11px/1 var(--exo-mono, ui-monospace, monospace); letter-spacing: 0.12em; white-space: nowrap;
     }
-    .cam-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid rgba(126, 224, 255, 0.25); }
-    #cam-q {
-      flex: 1 1 160px; min-width: 44px; box-sizing: border-box;
-      padding: 0 10px;
+    .cam-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    html body:not(:has(#boot-void)) #exo-main#exo-main .cam-actions .exo-btn { min-width: 0 !important; padding: 0 6px !important; font-size: 11px !important; letter-spacing: 0.1em !important; white-space: nowrap; }
+    #cam-list-toggle { display: none; }
+
+    /* Empty / error card: honest, never invented. */
+    .cam-empty {
+      display: none; margin: 0; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14)); background: rgba(6, 10, 16, 0.9);
+      color: var(--exo-text, #f0f6fc); font: 14px/1.45 var(--exo-sans, system-ui, sans-serif);
     }
-    .cam-stage { flex: 1; min-height: 0; display: flex; }
+    .cam-empty b { display: block; margin-bottom: 4px; font: 600 11px/1.3 var(--exo-mono, monospace); letter-spacing: 0.16em; color: var(--exo-amber, #ffb84d); }
+    .cam-empty .exo-btn { margin-top: 10px; }
+    body[data-cam-state="empty"] .cam-empty,
+    body[data-cam-state="error"] .cam-empty { display: block; }
+
+    /* Camera list (sheet on phones, inline in the rail from 720px). */
+    .cam-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    html body:not(:has(#boot-void)) #exo-main #cam-list button {
+      width: 100%; min-height: 52px !important; display: grid; gap: 2px; justify-items: start; text-align: left;
+      padding: 8px 12px !important; border-radius: 12px !important; border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14)) !important;
+      background-color: rgba(8, 14, 22, 0.7) !important; color: var(--exo-text, #f0f6fc) !important; cursor: pointer;
+      font: 14px/1.3 var(--exo-sans, system-ui, sans-serif) !important; letter-spacing: 0 !important; text-transform: none !important;
+    }
+    html body:not(:has(#boot-void)) #exo-main #cam-list button small { color: var(--exo-muted, #9fb0b4); font: 11px/1.2 var(--exo-mono, monospace); letter-spacing: 0.08em; }
+    html body:not(:has(#boot-void)) #exo-main #cam-list button[aria-current="true"] { border-color: rgba(126, 224, 255, 0.7) !important; box-shadow: inset 3px 0 0 var(--exo-cyan, #7ee0ff) !important; }
+    .cam-list-note { margin: 8px 2px 0; color: var(--exo-muted, #9fb0b4); font: 12px/1.4 var(--exo-sans, system-ui, sans-serif); }
+    .cam-list-note:empty { display: none; }
+
+    /* Leaflet chrome in the shell's language. */
+    .leaflet-bar { border: 0 !important; box-shadow: none !important; display: grid; gap: 8px; }
+    html body .leaflet-bar a, html body .leaflet-bar a:hover {
+      width: 44px !important; height: 44px !important; line-height: 44px !important;
+      border-radius: 12px !important; border: 1px solid var(--exo-line-btn, rgba(186, 214, 226, 0.18)) !important;
+      background: rgba(6, 10, 16, 0.88) !important; color: var(--exo-text, #f0f6fc) !important; font: 400 20px/42px var(--exo-sans, system-ui) !important;
+    }
+    .leaflet-control-attribution {
+      background: rgba(6, 10, 16, 0.78) !important; color: #b9c6cc !important; border-radius: 8px 0 0 0;
+      font: 10px/1.3 var(--exo-sans, system-ui, sans-serif) !important; padding: 2px 6px !important;
+    }
+    .leaflet-control-attribution a { color: var(--exo-cyan, #7ee0ff) !important; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+      background: rgba(6, 10, 16, 0.96); color: var(--exo-text, #f0f6fc);
+      border: 1px solid rgba(198, 216, 226, 0.2); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+    .leaflet-popup-content-wrapper { border-radius: 14px; }
+    .leaflet-popup-content { margin: 12px 14px; min-width: 200px; font: 14px/1.4 var(--exo-sans, system-ui, sans-serif); }
+    .leaflet-popup-content strong { display: block; font-weight: 600; margin-bottom: 2px; padding-right: 28px; }
+    .leaflet-popup-content .cam-src { color: var(--exo-muted, #9fb0b4); font: 11px/1.3 var(--exo-mono, monospace); letter-spacing: 0.08em; }
+    .leaflet-popup-content img { display: block; width: 100%; max-width: 260px; margin-top: 10px; border-radius: 10px; }
+    .leaflet-popup-content .cam-pop-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .leaflet-popup-content .cam-pop-actions > * { flex: 1 1 0; }
+    .leaflet-container a.leaflet-popup-close-button { width: 44px; height: 44px; font: 22px/44px var(--exo-sans, system-ui); color: var(--exo-muted, #9fb0b4); top: 0; right: 0; }
+
+    /* —— Phone (cover screens): floating search on top, thumb bar above the shell dock —— */
+    @media (max-width: 719px) and (min-height: 501px) {
+      .cam-find, .cam-empty, .cam-actions { position: absolute; z-index: 30; left: calc(12px + var(--exo-sal, 0px)); right: calc(12px + var(--exo-sar, 0px)); }
+      .cam-find { top: 12px; }
+      .cam-kicker { display: none; }
+      .cam-empty { top: 68px; right: calc(68px + var(--exo-sar, 0px)); }
+      .cam-actions {
+        bottom: calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px) + 12px);
+        grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px; gap: 6px;
+        border-radius: 16px; border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
+        background: rgba(6, 10, 16, 0.9); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+      }
+      html body:not(:has(#boot-void)) #exo-main#exo-main .cam-actions .exo-btn { border-color: transparent !important; background-color: transparent !important; box-shadow: none !important; font-size: 10.5px !important; letter-spacing: 0.06em !important; }
+      html body:not(:has(#boot-void)) #exo-main#exo-main .cam-actions .exo-btn[aria-expanded="true"] { color: var(--exo-cyan, #7ee0ff) !important; }
+      #cam-list-toggle { display: inline-flex; }
+      body.exo-sheet-open .cam-actions, body.exo-sheet-open .cam-find, body.exo-sheet-open .cam-empty { visibility: hidden; }
+      .leaflet-top { top: 68px; }
+      html body .leaflet-bottom { bottom: calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px) + 80px) !important; }
+      .cam-sheet .exo-sheet-panel { bottom: 0; }
+      .cam-sheet .exo-sheet-body { padding-bottom: 8px; }
+    }
+
+    /* —— Fold inner / tablet / desktop / landscape: two-pane with a left rail —— */
+    @media (min-width: 720px), (max-height: 500px) {
+      .cam-rail {
+        display: flex; flex-direction: column; gap: 12px; flex: 0 0 min(360px, 40vw); min-height: 0;
+        padding: 16px 16px calc(16px + var(--exo-dock-h, 0px) + var(--exo-sab, 0px));
+        border-right: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
+        background: rgba(5, 9, 15, 0.92); overflow: hidden;
+      }
+      .cam-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #locate { order: 1; } #cam-share { order: 2; } #cam-prev { order: 3; } #cam-next { order: 4; }
+      .cam-rail > * { flex-shrink: 0; }
+      .cam-rail > .cam-sheet { flex-shrink: 1; }
+      body[data-cam-state="error"] .cam-list-note { display: none; }
+      .cam-sheet, .cam-sheet[data-open], .cam-sheet.is-open {
+        display: flex !important; position: static !important; inset: auto !important; z-index: auto;
+        flex: 1 1 auto; min-height: 0; pointer-events: auto;
+      }
+      .cam-sheet .exo-sheet-scrim, .cam-sheet .exo-sheet-close { display: none !important; }
+      .cam-sheet .exo-sheet-panel {
+        position: static !important; inset: auto !important; width: auto !important; max-height: none !important;
+        flex: 1 1 auto; min-height: 0; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+        background: transparent !important; box-shadow: none !important;
+      }
+      .cam-sheet .exo-sheet-head { min-height: 28px; }
+      .cam-sheet .exo-sheet-title { color: var(--exo-muted, #9fb0b4); font-size: 11px; }
+    }
+    @media (max-height: 500px) {
+      /* Shell dock renders 53px tall but reserves 44px (see shell-requests.md). */
+      .cam-stage { margin-bottom: 10px; }
+      .cam-rail { flex-basis: min(300px, 42vw); padding: 10px 12px calc(10px + var(--exo-dock-h, 0px) + var(--exo-sab, 0px)); gap: 8px; overflow: auto; }
+      .cam-kicker { display: none; }
+      .cam-find { flex-wrap: wrap; }
+      .cam-find input { flex-basis: 100%; }
+      .cam-sheet { flex: 0 0 auto; }
+      .cam-sheet .exo-sheet-body { overflow: visible; }
+    }
   </style>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
 </head>
-<body>
+<body data-cam-state="loading">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -65,24 +177,56 @@
   <button type="button" id="exo-pill-copy">COPY</button>
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
-  <div class="cam-status">
-    <button class="locate" type="button" id="locate">LOCATE</button>
-    <input id="cam-q" type="search" aria-label="Search cameras by name or source" placeholder="Name or source" />
-    <button class="locate" type="button" id="cam-prev">PREV</button>
-    <button class="locate" type="button" id="cam-next">NEXT</button>
-    <button class="locate" type="button" id="cam-share">COPY LINK</button>
-    <div id="count">LOADING</div>
-  </div>
-  <main class="cam-stage" id="exo-main"><div id="map"></div></main>
+  <main class="cam-stage" id="exo-main">
+    <aside class="cam-rail" aria-label="Cameras">
+      <p class="cam-kicker">Public cameras</p>
+      <div class="cam-find">
+        <input id="cam-q" type="search" aria-label="Search cameras by name or source" placeholder="Search name or source" enterkeyhint="search" autocomplete="off" />
+        <div id="count" role="status" aria-live="polite">LOADING</div>
+      </div>
+      <div class="cam-empty" id="cam-empty" role="status">
+        <b id="cam-empty-title">NO CAMERAS IN VIEW</b>
+        <span id="cam-empty-text">Pan or zoom out to look somewhere else.</span>
+        <div><button class="exo-btn" type="button" id="cam-retry">RETRY</button></div>
+      </div>
+      <div class="cam-actions" role="toolbar" aria-label="Camera controls">
+        <button class="exo-btn" type="button" id="locate">LOCATE</button>
+        <button class="exo-btn" type="button" id="cam-list-toggle" data-exo-sheet-toggle aria-controls="cam-sheet" aria-expanded="false">LIST</button>
+        <button class="exo-btn" type="button" id="cam-prev" aria-label="Previous camera">PREV</button>
+        <button class="exo-btn" type="button" id="cam-next" aria-label="Next camera">NEXT</button>
+        <button class="exo-btn" type="button" id="cam-share">SHARE</button>
+      </div>
+      <div class="exo-sheet cam-sheet" id="cam-sheet" data-open="false">
+        <button class="exo-sheet-scrim" type="button" aria-label="Close camera list" tabindex="-1"></button>
+        <div class="exo-sheet-panel" role="dialog" aria-labelledby="cam-sheet-title">
+          <div class="exo-sheet-head">
+            <h2 class="exo-sheet-title" id="cam-sheet-title">Cameras in view</h2>
+            <button class="exo-btn exo-btn-ghost exo-sheet-close" type="button" data-exo-sheet-close>CLOSE</button>
+          </div>
+          <div class="exo-sheet-body">
+            <ul class="cam-list" id="cam-list"></ul>
+            <p class="cam-list-note" id="cam-list-note"></p>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div id="map" role="region" aria-label="Camera map"></div>
+  </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const countEl = document.getElementById("count");
-    const map = L.map("map", { zoomControl: true, worldCopyJump: true }).setView([39.5, -98.3], 4);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: "&copy; OpenStreetMap &copy; CARTO",
-      subdomains: "abcd",
-      maxZoom: 19
+    const listEl = document.getElementById("cam-list");
+    const listNote = document.getElementById("cam-list-note");
+    const LIST_MAX = 150;
+    const map = L.map("map", { zoomControl: false, worldCopyJump: true }).setView([39.5, -98.3], 4);
+    L.control.zoom({ position: "topright" }).addTo(map);
+    // CARTO basemaps now return "API key required" tiles. Esri's dark canvas is keyless with attribution.
+    const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+    L.tileLayer(ESRI + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+      attribution: "Esri, HERE, Garmin, &copy; OpenStreetMap contributors",
+      maxNativeZoom: 16, maxZoom: 19
     }).addTo(map);
+    L.tileLayer(ESRI + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 16, maxZoom: 19 }).addTo(map);
     const layer = L.layerGroup().addTo(map);
     let timer = 0;
     let seq = 0;
@@ -90,6 +234,30 @@
     let markers = [];
     let cursor = -1;
     let openedHash = false;
+    let baseCount = "LOADING";
+    let flashUntil = 0;
+
+    function setCount(t) {
+      baseCount = t;
+      if (Date.now() >= flashUntil) countEl.textContent = t;
+    }
+
+    function flash(t) {
+      countEl.textContent = t;
+      flashUntil = Date.now() + 2500;
+      setTimeout(function () { if (Date.now() >= flashUntil) countEl.textContent = baseCount; }, 2600);
+    }
+
+    function popPad() {
+      const phone = matchMedia("(max-width: 719px) and (min-height: 501px)").matches;
+      return phone ? { tl: [16, 80], br: [16, 150] } : { tl: [24, 24], br: [24, 24] };
+    }
+
+    function setState(state, title, text) {
+      document.body.dataset.camState = state;
+      if (title) document.getElementById("cam-empty-title").textContent = title;
+      if (text) document.getElementById("cam-empty-text").textContent = text;
+    }
 
     function safeHttp(url) {
       try {
@@ -117,7 +285,33 @@
       return url.href;
     }
 
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    function markCurrent() {
+      for (const b of listEl.querySelectorAll("button")) b.setAttribute("aria-current", String(Number(b.dataset.i) === cursor));
+    }
+
+    function drawList() {
+      listEl.textContent = "";
+      const n = Math.min(markers.length, LIST_MAX);
+      for (let i = 0; i < n; i++) {
+        const m = markers[i];
+        const li = document.createElement("li");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.dataset.i = String(i);
+        b.innerHTML = esc(m.camName) + (m.camSource ? "<small>" + esc(m.camSource) + "</small>" : "");
+        li.appendChild(b);
+        listEl.appendChild(li);
+      }
+      listNote.textContent = markers.length > LIST_MAX ? (markers.length - LIST_MAX) + " more on the map. Zoom in to narrow the list." : (markers.length ? "" : "No cameras in this view.");
+      markCurrent();
+    }
+
     function draw() {
+      const prev = markers[cursor] || markers.find((m) => m.isPopupOpen && m.isPopupOpen());
+      const keepId = prev ? prev.camId : "";
+      const keepOpen = !!(prev && prev.isPopupOpen && prev.isPopupOpen());
       const q = (document.getElementById("cam-q").value || "").trim().toLowerCase();
       const shown = features.filter((f) => {
         const props = (f && f.properties) || {};
@@ -126,18 +320,20 @@
       });
       layer.clearLayers();
       markers = [];
+      cursor = -1;
       for (let i = 0; i < shown.length; i++) {
         const f = shown[i];
         const coords = f && f.geometry && f.geometry.coordinates;
         if (!coords) continue;
         const props = f.properties || {};
         const id = props.id ? String(props.id) : "";
+        const name = props.name ? String(props.name) : "Camera";
         const marker = L.circleMarker([coords[1], coords[0]], {
-          radius: 5, color: "#7ee0ff", weight: 1, fillColor: "#ffe08a", fillOpacity: 0.9
+          radius: 6, color: "#7ee0ff", weight: 1.5, fillColor: "#ffb84d", fillOpacity: 0.95
         });
         marker.camId = id;
         marker.camName = name;
-        const name = props.name ? String(props.name) : "Camera";
+        marker.camSource = props.source ? String(props.source) : "";
         const image = safeHttp(props.image || "");
         const stream = safeHttp(props.stream || "");
         let picture = "";
@@ -147,19 +343,32 @@
           if (kind === "image") picture = image;
           else if (!watch) watch = image;
         }
-        const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
         let html = "<strong>" + esc(name) + "</strong>";
-        if (props.source) html += '<div>' + esc(String(props.source)) + "</div>";
+        if (props.source) html += '<div class="cam-src">' + esc(String(props.source)) + "</div>";
         if (picture) html += '<img alt="" src="' + esc(picture) + '" />';
-        if (watch) html += '<div><a href="' + esc(watch) + '" target="_blank" rel="noopener">STREAM</a></div>';
-        if (id) html += '<div><button type="button" class="cam-copy" data-id="' + esc(id) + '">COPY LINK</button></div>';
-        marker.bindPopup(html);
-        marker.on("click", function () { publishCam(marker); });
+        let acts = "";
+        if (watch) acts += '<a class="exo-btn" href="' + esc(watch) + '" target="_blank" rel="noopener">STREAM</a>';
+        if (id) acts += '<button type="button" class="exo-btn cam-copy" data-id="' + esc(id) + '">COPY LINK</button>';
+        if (acts) html += '<div class="cam-pop-actions">' + acts + "</div>";
+        const pad = popPad();
+        marker.bindPopup(html, { autoPanPaddingTopLeft: pad.tl, autoPanPaddingBottomRight: pad.br, maxWidth: 280 });
+        marker.on("click", function () { cursor = markers.indexOf(marker); markCurrent(); publishCam(marker); });
         marker.addTo(layer);
         markers.push(marker);
       }
       const clipped = features.length >= 800;
-      countEl.textContent = shown.length + " SHOWN" + (q ? " / " + features.length : "") + (clipped ? " — ZOOM FOR MORE" : "");
+      setCount(shown.length + (q ? " / " + features.length : "") + " IN VIEW" + (clipped ? " · ZOOM FOR MORE" : ""));
+      if (!features.length) setState("empty", "NO CAMERAS IN VIEW", "The camera feed has no cameras here. Pan or zoom out to look somewhere else.");
+      else if (!shown.length) setState("empty", "NO MATCHES", "No camera in this view matches “" + q + "”.");
+      else setState("ready");
+      if (keepId) {
+        const again = markers.find((m) => m.camId === keepId);
+        if (again) {
+          cursor = markers.indexOf(again);
+          if (keepOpen) again.openPopup();
+        }
+      }
+      drawList();
       const want = camHash();
       if (want && !openedHash) {
         const hit = markers.find((m) => m.camId === want);
@@ -169,6 +378,7 @@
           map.setView(hit.getLatLng(), Math.max(map.getZoom(), 12));
           hit.openPopup();
           publishCam(hit);
+          markCurrent();
         }
       }
     }
@@ -190,7 +400,7 @@
       const b = map.getBounds();
       const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].map((n) => n.toFixed(4)).join(",");
       const mine = ++seq;
-      countEl.textContent = "LOADING";
+      setCount("LOADING");
       try {
         const res = await fetch("/api/cameras.geojson?bbox=" + encodeURIComponent(bbox) + "&max=800");
         if (!res.ok) throw new Error(String(res.status));
@@ -203,18 +413,28 @@
         if (mine !== seq) return;
         features = [];
         markers = [];
-        countEl.textContent = "FEED UNREACHABLE";
+        cursor = -1;
+        layer.clearLayers();
+        drawList();
+        setCount("FEED OFFLINE");
+        setState("error", "CAMERA FEED UNREACHABLE", "The camera list did not answer. Nothing is shown rather than a guess.");
       }
     }
 
-    function cycle(step) {
-      if (!markers.length) return;
-      cursor = (cursor + step + markers.length) % markers.length;
-      const marker = markers[cursor];
+    function focusMarker(i) {
+      const marker = markers[i];
+      if (!marker) return;
+      cursor = i;
       if (marker.camId) history.replaceState(null, "", "#cam=" + encodeURIComponent(marker.camId));
       map.setView(marker.getLatLng(), Math.max(map.getZoom(), 11));
       marker.openPopup();
       publishCam(marker);
+      markCurrent();
+    }
+
+    function cycle(step) {
+      if (!markers.length) { flash("NO CAMERAS"); return; }
+      focusMarker((cursor + step + markers.length) % markers.length);
     }
 
     function publishCam(marker) {
@@ -232,14 +452,17 @@
     async function copyLink() {
       const marker = markers[cursor] || markers.find((m) => m.isPopupOpen && m.isPopupOpen());
       const id = marker && marker.camId;
-      if (!id) { countEl.textContent = "NO CAMERA"; return; }
+      if (!id) { flash("PICK A CAMERA"); return; }
       const text = shareUrl(id);
+      try {
+        if (navigator.share && matchMedia("(pointer: coarse)").matches) { await navigator.share({ title: marker.camName, url: text }); flash("SHARED"); return; }
+      } catch (err) { if (err && err.name === "AbortError") return; }
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
         else throw new Error("no clipboard");
-        countEl.textContent = "LINK COPIED";
+        flash("LINK COPIED");
       } catch (err) {
-        countEl.textContent = "COPY FAILED";
+        flash("COPY FAILED");
       }
     }
 
@@ -248,15 +471,23 @@
       timer = setTimeout(load, 250);
     });
     document.getElementById("locate").addEventListener("click", function () {
-      if (!navigator.geolocation) return;
+      if (!navigator.geolocation) { flash("NO LOCATION"); return; }
+      flash("LOCATING");
       navigator.geolocation.getCurrentPosition(function (pos) {
         map.setView([pos.coords.latitude, pos.coords.longitude], 10);
-      });
+      }, function () { flash("LOCATION DENIED"); }, { timeout: 10000 });
     });
-    document.getElementById("cam-q").addEventListener("input", draw);
+    document.getElementById("cam-q").addEventListener("input", function () { flashUntil = 0; draw(); });
     document.getElementById("cam-prev").addEventListener("click", function () { cycle(-1); });
     document.getElementById("cam-next").addEventListener("click", function () { cycle(1); });
     document.getElementById("cam-share").addEventListener("click", copyLink);
+    document.getElementById("cam-retry").addEventListener("click", load);
+    listEl.addEventListener("click", function (event) {
+      const b = event.target.closest("button[data-i]");
+      if (!b) return;
+      if (window.EXO_LAYOUT && matchMedia("(max-width: 719px) and (min-height: 501px)").matches) EXO_LAYOUT.closeSheet(document.getElementById("cam-sheet"));
+      focusMarker(Number(b.dataset.i));
+    });
     map.on("popupopen", function (event) {
       const root = event.popup.getElement();
       const btn = root && root.querySelector(".cam-copy");
@@ -268,6 +499,7 @@
         copyLink();
       });
     });
+    addEventListener("resize", function () { map.invalidateSize(); });
     document.addEventListener("keydown", function (event) {
       if (document.documentElement.dataset.exoCmd === "open") return;
       const target = event.target;
