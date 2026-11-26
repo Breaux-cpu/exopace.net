@@ -341,7 +341,7 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
   .hud:has(.station) .dossier { display: none !important; }
 
   #globe .cesium-viewer-bottom { left: calc(var(--mi-g) + var(--mi-sl)) !important; bottom: var(--mi-b2) !important; }
-  #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; transform: none !important; bottom: calc(var(--mi-b2) + var(--exo-dock-h, 0px) + var(--exo-sab, 0px)) !important; }
+  #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; transform: none !important; bottom: calc(var(--mi-b2) + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))) !important; }
   #exo-craft, #exo-storm { left: var(--mi-g) !important; right: var(--mi-g) !important; bottom: calc(var(--mi-b2) + var(--mi-t) + var(--mi-s)) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-b2) - var(--mi-t) - var(--mi-s)) !important; max-width: none !important; }
 }
 
@@ -375,13 +375,11 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
     max-height: calc(100% - var(--mi-row2) - var(--mi-b1) - var(--mi-t) - var(--mi-s)) !important;
   }
   #globe .cesium-viewer-bottom { right: calc(var(--mi-g) + var(--mi-sr)) !important; bottom: var(--mi-b1) !important; width: 158px; }
-  #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr) + 158px + var(--mi-s)) !important; transform: none !important; bottom: calc(var(--mi-b1) + var(--exo-dock-h, 0px) + var(--exo-sab, 0px)) !important; }
+  #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr) + 158px + var(--mi-s)) !important; transform: none !important; bottom: calc(var(--mi-b1) + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))) !important; }
   #exo-craft, #exo-storm { left: auto !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g) + var(--mi-sr)) !important; top: auto !important; bottom: calc(var(--mi-b1) + var(--mi-t) + var(--mi-s)) !important; max-width: min(340px, calc(var(--mi-right) - var(--mi-t) - 6px - 2 * var(--mi-g))) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-b1) - var(--mi-t) - var(--mi-s)) !important; }
 }
 /* Short landscape: tighter rows, a slimmer bar, and only home + north on the capsule. */
 @media (max-height: 500px) {
-  /* TEMP: the shell reserves 44px for a 53px landscape dock (shell-requests.md 09:35). */
-  main#exo-main { margin-bottom: 10px; }
   :root { --mi-g: 10px; --mi-row1: 8px; --mi-row2: calc(8px + var(--mi-t) + var(--mi-s)); --mi-b1: 8px; --mi-thumb: 54px; --mi-col: min(320px, 44vw); }
   #mi-thumb button small { display: none; }
   .hud .tl .chip, .hud .tl select, .hud .tl button { display: none !important; }

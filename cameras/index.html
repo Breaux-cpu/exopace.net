@@ -13,8 +13,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-layout.css?v=1" data-exo-layout="1" />
-  <script src="/assets/exo-layout.js?v=1"></script>
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=2" data-exo-layout="1" />
+  <script src="/assets/exo-layout.js?v=2"></script>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -47,7 +47,7 @@
       font: 500 11px/1 var(--exo-mono, ui-monospace, monospace); letter-spacing: 0.12em; white-space: nowrap;
     }
     .cam-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    html body:not(:has(#boot-void)) #exo-main#exo-main .cam-actions .exo-btn { min-width: 0 !important; padding: 0 6px !important; font-size: 11px !important; letter-spacing: 0.1em !important; white-space: nowrap; }
+    .cam-stage .cam-actions .exo-btn { min-width: 0 !important; padding: 0 6px !important; font-size: 11px !important; letter-spacing: 0.1em !important; white-space: nowrap; }
     #cam-list-toggle { display: none; }
 
     /* Empty / error card: honest, never invented. */
@@ -63,14 +63,14 @@
 
     /* Camera list (sheet on phones, inline in the rail from 720px). */
     .cam-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-    html body:not(:has(#boot-void)) #exo-main #cam-list button {
+    .cam-stage #cam-list button {
       width: 100%; min-height: 52px !important; display: grid; gap: 2px; justify-items: start; text-align: left;
       padding: 8px 12px !important; border-radius: 12px !important; border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14)) !important;
       background-color: rgba(8, 14, 22, 0.7) !important; color: var(--exo-text, #f0f6fc) !important; cursor: pointer;
       font: 14px/1.3 var(--exo-sans, system-ui, sans-serif) !important; letter-spacing: 0 !important; text-transform: none !important;
     }
-    html body:not(:has(#boot-void)) #exo-main #cam-list button small { color: var(--exo-muted, #9fb0b4); font: 11px/1.2 var(--exo-mono, monospace); letter-spacing: 0.08em; }
-    html body:not(:has(#boot-void)) #exo-main #cam-list button[aria-current="true"] { border-color: rgba(126, 224, 255, 0.7) !important; box-shadow: inset 3px 0 0 var(--exo-cyan, #7ee0ff) !important; }
+    .cam-stage #cam-list button small { color: var(--exo-muted, #9fb0b4); font: 11px/1.2 var(--exo-mono, monospace); letter-spacing: 0.08em; }
+    .cam-stage #cam-list button[aria-current="true"] { border-color: rgba(126, 224, 255, 0.7) !important; box-shadow: inset 3px 0 0 var(--exo-cyan, #7ee0ff) !important; }
     .cam-list-note { margin: 8px 2px 0; color: var(--exo-muted, #9fb0b4); font: 12px/1.4 var(--exo-sans, system-ui, sans-serif); }
     .cam-list-note:empty { display: none; }
 
@@ -106,17 +106,17 @@
       .cam-kicker { display: none; }
       .cam-empty { top: 68px; right: calc(68px + var(--exo-sar, 0px)); }
       .cam-actions {
-        bottom: calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px) + 12px);
+        bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + 12px);
         grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px; gap: 6px;
         border-radius: 16px; border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
         background: rgba(6, 10, 16, 0.9); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
       }
-      html body:not(:has(#boot-void)) #exo-main#exo-main .cam-actions .exo-btn { border-color: transparent !important; background-color: transparent !important; box-shadow: none !important; font-size: 10.5px !important; letter-spacing: 0.06em !important; }
-      html body:not(:has(#boot-void)) #exo-main#exo-main .cam-actions .exo-btn[aria-expanded="true"] { color: var(--exo-cyan, #7ee0ff) !important; }
+      .cam-stage .cam-actions .exo-btn { border-color: transparent !important; background-color: transparent !important; box-shadow: none !important; font-size: 10.5px !important; letter-spacing: 0.06em !important; }
+      .cam-stage .cam-actions .exo-btn[aria-expanded="true"] { color: var(--exo-cyan, #7ee0ff) !important; }
       #cam-list-toggle { display: inline-flex; }
       body.exo-sheet-open .cam-actions, body.exo-sheet-open .cam-find, body.exo-sheet-open .cam-empty { visibility: hidden; }
       .leaflet-top { top: 68px; }
-      html body .leaflet-bottom { bottom: calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px) + 80px) !important; }
+      html body .leaflet-bottom { bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + 80px) !important; }
       .cam-sheet .exo-sheet-panel { bottom: 0; }
       .cam-sheet .exo-sheet-body { padding-bottom: 8px; }
     }
@@ -125,7 +125,7 @@
     @media (min-width: 720px), (max-height: 500px) {
       .cam-rail {
         display: flex; flex-direction: column; gap: 12px; flex: 0 0 min(360px, 40vw); min-height: 0;
-        padding: 16px 16px calc(16px + var(--exo-dock-h, 0px) + var(--exo-sab, 0px));
+        padding: 16px 16px calc(16px + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))));
         border-right: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
         background: rgba(5, 9, 15, 0.92); overflow: hidden;
       }
@@ -148,9 +148,7 @@
       .cam-sheet .exo-sheet-title { color: var(--exo-muted, #9fb0b4); font-size: 11px; }
     }
     @media (max-height: 500px) {
-      /* Shell dock renders 53px tall but reserves 44px (see shell-requests.md). */
-      .cam-stage { margin-bottom: 10px; }
-      .cam-rail { flex-basis: min(300px, 42vw); padding: 10px 12px calc(10px + var(--exo-dock-h, 0px) + var(--exo-sab, 0px)); gap: 8px; overflow: auto; }
+      .cam-rail { flex-basis: min(300px, 42vw); padding: 10px 12px calc(10px + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))); gap: 8px; overflow: auto; }
       .cam-kicker { display: none; }
       .cam-find { flex-wrap: wrap; }
       .cam-find input { flex-basis: 100%; }

@@ -689,6 +689,7 @@
 
   function applyStyle() {
     EXO.hill = state.hill;
+    if (contoursFailed) state.contours = "off";
     EXO.contours = state.contours;
     EXO.mapStyle.apply(map, state);
     paintChips();
@@ -1601,9 +1602,25 @@
     });
   }
 
+  /* 1x1 fully transparent PNG. A red/pink pixel here tints the whole base map
+     when a contour or hillshade tile fails to render. */
   var emptyPng = Uint8Array.from(atob(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNgYGBgAAAABQABeqhXUAAAAABJRU5ErkJggg=="
   ), function (c) { return c.charCodeAt(0); });
+  var contoursFailed = false;
+  var contourFailCount = 0;
+  function disableContours(reason) {
+    if (contoursFailed) return;
+    contoursFailed = true;
+    state.contours = "off";
+    try {
+      if (map && map.getLayer && map.getLayer("contours")) {
+        map.setLayoutProperty("contours", "visibility", "none");
+      }
+    } catch (err) {}
+    setStatus(reason || "CONTOURS OFF · TILES FAILED");
+    try { paintChips(); } catch (err) {}
+  }
 
   function packBytes(bytes) {
     if (!bytes || !bytes.byteLength) return emptyPng.buffer;
@@ -1620,7 +1637,12 @@
       var job = kind === "hill"
         ? EXO.terrain.hillshadePng(Number(m[1]), Number(m[2]), Number(m[3]), signal)
         : EXO.terrain.contourPng(Number(m[1]), Number(m[2]), Number(m[3]), signal);
-      return job.then(function (bytes) { return { data: packBytes(bytes) }; }).catch(function () {
+      return job.then(function (bytes) { return { data: packBytes(bytes) }; }).catch(function (err) {
+        if (signal && signal.aborted) return { data: emptyPng.buffer };
+        if (kind === "contour") {
+          contourFailCount += 1;
+          if (contourFailCount >= 2) disableContours("CONTOURS OFF · TILES FAILED");
+        }
         return { data: emptyPng.buffer };
       });
     }
@@ -1667,7 +1689,11 @@
     map.on("load", function () {
       if (EXO.pmvault) EXO.pmvault.mount(map).catch(function () {});
     });
-    map.on("error", function () {});
+    map.on("error", function (ev) {
+      var id = ev && ev.sourceId;
+      var msg = ev && ev.error ? String(ev.error.message || ev.error) : "";
+      if (id === "contours" || /contour/i.test(msg)) disableContours("CONTOURS OFF · TILES FAILED");
+    });
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     wireMap();
