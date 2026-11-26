@@ -8,6 +8,7 @@
   --fm-g: 12px;
   --fm-t: 44px;
   --fm-glass: rgba(6, 10, 16, 0.8);
+  --fm-glass-solid: rgba(6, 10, 16, 0.94);
   --fm-solid: #070b11;
   --fm-line: rgba(198, 216, 226, 0.14);
   --fm-line-2: rgba(198, 216, 226, 0.26);
@@ -28,6 +29,18 @@ button, a, input { font: inherit; }
 .fm-stage { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; background: #0b1118; }
 #fm-map { position: absolute; inset: 0; }
 
+/* Soften labels that would otherwise be sliced by the dock divider or the screen edge. */
+#fm-map {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 8px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 8px), transparent 100%);
+}
+@media (max-width: 719px) {
+  #fm-map {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 6px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 6px), transparent 100%);
+  }
+}
+
 /* ---------- floating map HUD (search, readout, actions) ---------- */
 .fm-hud {
   position: absolute; z-index: 5; top: var(--fm-g); left: var(--fm-g);
@@ -39,7 +52,7 @@ button, a, input { font: inherit; }
 .fm-go {
   position: relative; display: flex; align-items: center; width: 100%; min-width: 0; height: var(--fm-t);
   border-radius: 14px; border: 1px solid var(--fm-line);
-  background: var(--fm-glass) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa2aa' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 14px 50% no-repeat;
+  background: var(--fm-glass-solid) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa2aa' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 14px 50% no-repeat;
   -webkit-backdrop-filter: blur(16px) saturate(130%); backdrop-filter: blur(16px) saturate(130%);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
@@ -74,7 +87,8 @@ button, a, input { font: inherit; }
 .fm-chip {
   display: flex; flex-direction: column; gap: 2px; max-width: 100%;
   padding: 7px 12px; border-radius: 12px; border: 1px solid var(--fm-line);
-  background: var(--fm-glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  background: var(--fm-glass-solid); -webkit-backdrop-filter: blur(18px) saturate(130%); backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
   pointer-events: none !important;
 }
 .fm-readout { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex-wrap: wrap; }
@@ -83,8 +97,8 @@ button, a, input { font: inherit; }
 .fm-actions { display: flex; gap: 8px; }
 .fm-actions button {
   height: var(--fm-t); min-width: var(--fm-t); padding: 0 14px; border-radius: 12px;
-  border: 1px solid var(--fm-line); background: var(--fm-glass); color: var(--fm-ink);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--fm-line); background: var(--fm-glass-solid); color: var(--fm-ink);
+  -webkit-backdrop-filter: blur(18px) saturate(130%); backdrop-filter: blur(18px) saturate(130%);
   font: 500 11px/1 var(--fm-mono); letter-spacing: 0.1em; cursor: pointer;
   display: inline-flex; align-items: center; gap: 8px;
 }
@@ -321,7 +335,7 @@ button, a, input { font: inherit; }
 .fm-body #fm-suggest button { width: 100% !important; min-height: var(--fm-t) !important; padding: 8px 12px !important; text-align: left !important; border: 0 !important; border-radius: 10px !important; background: transparent !important; color: var(--fm-ink) !important; font: 14px/1.3 var(--fm-sans) !important; cursor: pointer !important; text-transform: none !important; letter-spacing: 0 !important; box-shadow: none !important; }
 .fm-body #fm-suggest button:hover, .fm-body #fm-suggest button:focus-visible { background: rgba(126, 224, 255, 0.1) !important; outline: none !important; }
 .fm-body .fm-actions { display: flex !important; gap: 8px !important; }
-.fm-body .fm-actions button { height: var(--fm-t) !important; min-width: var(--fm-t) !important; padding: 0 14px !important; border-radius: 12px !important; border: 1px solid var(--fm-line) !important; background: var(--fm-glass) !important; color: var(--fm-ink) !important; -webkit-backdrop-filter: blur(14px) !important; backdrop-filter: blur(14px) !important; font: 500 11px/1 var(--fm-mono) !important; letter-spacing: 0.1em !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; gap: 8px !important; }
+.fm-body .fm-actions button { height: var(--fm-t) !important; min-width: var(--fm-t) !important; padding: 0 14px !important; border-radius: 12px !important; border: 1px solid var(--fm-line) !important; background: var(--fm-glass-solid) !important; color: var(--fm-ink) !important; -webkit-backdrop-filter: blur(18px) saturate(130%) !important; backdrop-filter: blur(18px) saturate(130%) !important; font: 500 11px/1 var(--fm-mono) !important; letter-spacing: 0.1em !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; gap: 8px !important; }
 .fm-body .fm-actions button::before { content: "" !important; width: 14px !important; height: 14px !important; background: currentColor !important; opacity: .9 !important; -webkit-mask: var(--ico) center / contain no-repeat !important; mask: var(--ico) center / contain no-repeat !important; }
 .fm-body .fm-actions button:hover { border-color: var(--fm-line-2) !important; }
 .fm-body .fm-actions button:focus-visible, .fm-body .fm-tabs button:focus-visible, .fm-body .fm-grab:focus-visible { outline: 2px solid var(--fm-cyan) !important; outline-offset: 2px !important; }

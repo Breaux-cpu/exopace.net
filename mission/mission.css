@@ -36,6 +36,7 @@ body { display: flex; flex-direction: column; height: 100dvh; min-height: 0; ove
 body > header.exo-bar, body > .exo-pill { flex: none; position: relative; }
 main#exo-main { position: relative !important; inset: auto !important; flex: 1 1 auto; min-height: 0; z-index: 1; }
 main#exo-main > #root { position: absolute !important; inset: 0; height: auto !important; min-height: 0 !important; }
+#globe { box-sizing: border-box; }
 .exo-wave { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; margin: -1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; border: 0 !important; white-space: nowrap; }
 
 /* Cesium canvas always sits under the HUD. */
@@ -124,7 +125,7 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
   box-sizing: border-box; width: 100%; height: var(--mi-t); min-height: var(--mi-t);
   padding: 0 14px 0 38px !important;
   border-radius: 14px !important;
-  background: var(--mi-glass) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa2aa' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px 50% no-repeat !important;
+  background: var(--mi-glass-solid) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa2aa' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px 50% no-repeat !important;
   border: 1px solid var(--mi-line) !important;
   -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
   color: var(--mi-ink) !important;

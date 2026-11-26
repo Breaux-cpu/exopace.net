@@ -26,8 +26,8 @@
     var max = nav.scrollWidth - nav.clientWidth;
     var left = max > 2 && nav.scrollLeft > 2;
     var right = max > 2 && nav.scrollLeft < max - 2;
-    nav.style.setProperty("--exo-fade-l", left ? "28px" : "0px");
-    nav.style.setProperty("--exo-fade-r", right ? "28px" : "0px");
+    nav.style.setProperty("--exo-fade-l", left ? "52px" : "0px");
+    nav.style.setProperty("--exo-fade-r", right ? "52px" : "0px");
   }
 
   function center(tab) {

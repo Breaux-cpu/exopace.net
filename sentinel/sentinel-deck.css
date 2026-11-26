@@ -264,7 +264,9 @@ body.sn-page .sn-dock-cta { display: none; }
     max-height: none;
     overflow-y: auto;
     margin: 24px clamp(16px, 2vw, 28px) 24px 0;
-    padding: 18px 18px 24px;
+    padding: 18px 18px 28px;
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - var(--sn-fade-b, 0px)), transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - var(--sn-fade-b, 0px)), transparent 100%);
     border: 1px solid rgba(198, 216, 226, 0.14);
     border-radius: 16px;
     background: rgba(7, 12, 18, 0.86);

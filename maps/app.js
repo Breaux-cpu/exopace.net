@@ -983,7 +983,7 @@
   }
 
   function flyTo(hit) {
-    map.flyTo({ center: [hit.lon, hit.lat], zoom: hit.zoom || 12 });
+    map.flyTo({ center: [hit.lon, hit.lat], zoom: hit.zoom || 12, duration: 1400, essential: true });
     setStatus(hit.label || "FOUND");
   }
 
@@ -1056,7 +1056,7 @@
       bounds.extend([s.se.lon, s.se.lat]);
       bounds.extend([s.nw.lon, s.nw.lat]);
     });
-    map.fitBounds(bounds, { padding: 36, duration: 400 });
+    map.fitBounds(bounds, { duration: 400, padding: cameraPadding() });
   }
 
   async function saveToCopy() {
@@ -1428,7 +1428,7 @@
     $("fm-locate").onclick = function () {
       if (!navigator.geolocation) { setStatus("NO GPS"); return; }
       navigator.geolocation.getCurrentPosition(function (pos) {
-        map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 });
+        map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, duration: 1400, essential: true });
         setStatus("GPS FIX");
       }, function () { setStatus("NO GPS FIX"); }, { enableHighAccuracy: true, timeout: 8000 });
     };
@@ -1649,6 +1649,37 @@
     maplibregl.addProtocol("hill", function (req, abort) { return tile("hill", req, abort); });
     maplibregl.addProtocol("contour", function (req, abort) { return tile("contour", req, abort); });
     if (EXO && EXO.pmvault) EXO.pmvault.register(maplibregl);
+  }
+
+
+  function cameraPadding() {
+    var stage = document.querySelector(".fm-stage");
+    var hud = document.querySelector(".fm-hud");
+    var gap = 8;
+    var pad = { top: gap, right: gap, bottom: gap, left: 14 };
+    if (!stage) return pad;
+    var sr = stage.getBoundingClientRect();
+    if (sr.width < 40 || sr.height < 40) return pad;
+    if (hud) {
+      var hr = hud.getBoundingClientRect();
+      if (hr.height > 0) pad.top = Math.max(pad.top, Math.round(hr.bottom - sr.top + gap));
+    }
+    var zoom = stage.querySelector(".maplibregl-ctrl-top-right");
+    if (zoom) {
+      var zr = zoom.getBoundingClientRect();
+      if (zr.width > 0) pad.right = Math.max(pad.right, Math.round(sr.right - zr.left + gap));
+    }
+    stage.querySelectorAll(".maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right").forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.height > 0) pad.bottom = Math.max(pad.bottom, Math.round(sr.bottom - r.top + gap));
+    });
+    var maxY = Math.round(sr.height * 0.45);
+    var maxX = Math.round(sr.width * 0.4);
+    pad.top = Math.min(pad.top, maxY);
+    pad.bottom = Math.min(pad.bottom, maxY);
+    pad.left = Math.min(pad.left, maxX);
+    pad.right = Math.min(pad.right, maxX);
+    return pad;
   }
 
   async function boot() {

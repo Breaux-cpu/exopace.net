@@ -76,3 +76,128 @@
   document.addEventListener("DOMContentLoaded", home);
   window.addEventListener("load", home);
 })();
+
+
+/* Instrument player for the page's <audio> elements. Same nodes the tuner,
+   scanner and decoder already pause, load, and attach to — only the chrome
+   is replaced. */
+(function () {
+  "use strict";
+  var PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>';
+  var PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
+  var VOL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm11.5 3a3.5 3.5 0 0 0-1.8-3.1v6.2A3.5 3.5 0 0 0 15.5 12zm1.8-7v2a6 6 0 0 1 0 10v2a8 8 0 0 0 0-14z"/></svg>';
+  var MUTE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.6 1.4 1.4-1.4 1.4 1.4 1.4-1.4 1.4 1.4-1.4 1.4 1.4 1.4-1.4 1.4-1.4-1.4-1.4 1.4-1.4-1.4 1.4-1.4-1.4-1.4z"/></svg>';
+
+  function fmt(t) {
+    if (!isFinite(t) || t < 0) return "0:00";
+    t = Math.floor(t);
+    var m = Math.floor(t / 60), s = t % 60;
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  function wrap(audio) {
+    if (audio.dataset.rgPlayer === "1") return;
+    audio.dataset.rgPlayer = "1";
+    audio.classList.add("rg-player-src");
+    audio.removeAttribute("controls");
+    audio.setAttribute("aria-hidden", "true");
+    audio.tabIndex = -1;
+
+    var ui = document.createElement("div");
+    ui.className = "rg-player";
+    ui.setAttribute("role", "group");
+    ui.setAttribute("aria-label", audio.getAttribute("aria-label") || "Audio player");
+    ui.innerHTML =
+      '<button type="button" class="rg-player-play" aria-label="Play" disabled>' + PLAY + "</button>" +
+      '<div class="rg-player-scrub">' +
+        '<span class="rg-player-time">0:00</span>' +
+        '<input type="range" class="rg-player-seek" min="0" max="1000" value="0" step="1" aria-label="Seek" disabled>' +
+        '<span class="rg-player-dur">0:00</span>' +
+      "</div>" +
+      '<div class="rg-player-volwrap">' +
+        '<button type="button" class="rg-player-mute" aria-label="Mute" aria-pressed="false">' + VOL + "</button>" +
+        '<input type="range" class="rg-player-vol" min="0" max="100" value="' + Math.round((audio.volume || 1) * 100) + '" step="1" aria-label="Volume">' +
+      "</div>";
+    audio.parentNode.insertBefore(ui, audio.nextSibling);
+
+    var play = ui.querySelector(".rg-player-play");
+    var seek = ui.querySelector(".rg-player-seek");
+    var time = ui.querySelector(".rg-player-time");
+    var dur = ui.querySelector(".rg-player-dur");
+    var mute = ui.querySelector(".rg-player-mute");
+    var vol = ui.querySelector(".rg-player-vol");
+    var seeking = false;
+
+    function hasSrc() {
+      return !!(audio.getAttribute("src") || (audio.currentSrc && audio.currentSrc !== audio.baseURI));
+    }
+    function duration() {
+      var d = audio.duration;
+      return isFinite(d) && d > 0 ? d : 0;
+    }
+    function sync() {
+      var d = duration();
+      var live = hasSrc() && !d;
+      var ready = hasSrc();
+      play.disabled = !ready;
+      play.innerHTML = audio.paused ? PLAY : PAUSE;
+      play.setAttribute("aria-label", audio.paused ? "Play" : "Pause");
+      time.textContent = fmt(audio.currentTime || 0);
+      dur.textContent = live ? "LIVE" : fmt(d);
+      seek.disabled = !ready || live;
+      if (!seeking) {
+        seek.value = !d ? 0 : String(Math.round((audio.currentTime / d) * 1000));
+      }
+      var muted = !!audio.muted || audio.volume === 0;
+      mute.innerHTML = muted ? MUTE : VOL;
+      mute.setAttribute("aria-label", muted ? "Unmute" : "Mute");
+      mute.setAttribute("aria-pressed", muted ? "true" : "false");
+      if (document.activeElement !== vol) vol.value = String(Math.round((muted ? 0 : audio.volume) * 100));
+    }
+
+    play.addEventListener("click", function () {
+      if (play.disabled) return;
+      if (audio.paused) audio.play().catch(function () { sync(); });
+      else audio.pause();
+    });
+    seek.addEventListener("pointerdown", function () { seeking = true; });
+    seek.addEventListener("pointerup", function () { seeking = false; });
+    seek.addEventListener("input", function () {
+      var d = duration();
+      if (!d) return;
+      audio.currentTime = (Number(seek.value) / 1000) * d;
+      time.textContent = fmt(audio.currentTime);
+    });
+    mute.addEventListener("click", function () {
+      audio.muted = !audio.muted;
+      sync();
+    });
+    vol.addEventListener("input", function () {
+      var n = Number(vol.value) / 100;
+      audio.volume = n;
+      if (n > 0) audio.muted = false;
+      sync();
+    });
+    ui.addEventListener("keydown", function (e) {
+      if (e.target === seek || e.target === vol) return;
+      var d = duration();
+      if (e.code === "Space" && e.target === play) return;
+      if (e.key === "ArrowRight" && d) { e.preventDefault(); audio.currentTime = Math.min(d, (audio.currentTime || 0) + 5); }
+      if (e.key === "ArrowLeft" && d) { e.preventDefault(); audio.currentTime = Math.max(0, (audio.currentTime || 0) - 5); }
+      if (e.key === "ArrowUp") { e.preventDefault(); audio.volume = Math.min(1, audio.volume + 0.05); audio.muted = false; }
+      if (e.key === "ArrowDown") { e.preventDefault(); audio.volume = Math.max(0, audio.volume - 0.05); }
+      sync();
+    });
+    ["play", "pause", "ended", "emptied", "loadedmetadata", "durationchange", "timeupdate", "volumechange", "canplay"].forEach(function (ev) {
+      audio.addEventListener(ev, sync);
+    });
+    new MutationObserver(sync).observe(audio, { attributes: true, attributeFilter: ["src"] });
+    sync();
+  }
+
+  function boot() {
+    document.querySelectorAll("audio").forEach(wrap);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();

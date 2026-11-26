@@ -30,3 +30,41 @@
     if (toggle) { toggle.setAttribute("aria-expanded", "false"); toggle.focus(); }
   });
 })();
+
+
+/* First paint of the two-pane watchlist: if a module tile would sit on the
+   clip edge, fade that sliver away so only complete items show. */
+(function () {
+  "use strict";
+  function settle() {
+    var sheet = document.getElementById("sn-sheet");
+    if (!sheet) return;
+    var wide = window.matchMedia("(min-width: 640px)").matches;
+    if (!wide) {
+      sheet.style.setProperty("--sn-fade-b", "0px");
+      return;
+    }
+    var cr = sheet.getBoundingClientRect();
+    var bottom = cr.bottom;
+    var fade = 0;
+    var nodes = sheet.querySelectorAll(".sn-waves > *, .sn-row, .sn-note, h2, button");
+    for (var i = 0; i < nodes.length; i++) {
+      var r = nodes[i].getBoundingClientRect();
+      if (r.height < 8) continue;
+      if (r.top < bottom - 2 && r.bottom > bottom + 1) {
+        fade = Math.max(fade, Math.ceil(bottom - r.top) + 2);
+      }
+    }
+    if (fade > cr.height * 0.4) fade = 28;
+    sheet.style.setProperty("--sn-fade-b", fade + "px");
+  }
+  function hook() {
+    settle();
+    window.addEventListener("resize", settle);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", settle);
+    var sheet = document.getElementById("sn-sheet");
+    if (sheet && window.ResizeObserver) new ResizeObserver(settle).observe(sheet);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hook);
+  else hook();
+})();
