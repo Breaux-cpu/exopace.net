@@ -780,6 +780,42 @@ nav.exo-tabs > a[data-ws] {
   }
 }
 
+/* Short landscape (915x412 and similar): the two-column hero and footer
+   ate the status rows. Compact them into the first paint, hide the plinth
+   and the repeating footer (the top nav already lists every surface). */
+@media (max-height: 500px) {
+  body:has(#sys-ble) .exo-hero {
+    padding: 8px 16px 8px;
+  }
+  body:has(#sys-ble) .exo-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 0 0 6px;
+  }
+  body:has(#sys-ble) .exo-kicker { margin: 0 0 2px; }
+  body:has(#sys-ble) .exo-display {
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    line-height: 1;
+    margin: 0;
+  }
+  body:has(#sys-ble) .exo-lead { display: none; }
+  body:has(#sys-ble) .exo-plinth { display: none; }
+  body:has(#sys-ble) .exo-slab-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  body:has(#sys-ble) .exo-slab.sys-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 6px 12px;
+    gap: 10px;
+  }
+  body:has(#sys-ble) .exo-slab:last-child { grid-column: 1 / -1; }
+  body:has(#sys-ble) .exo-foot { display: none; }
+}
+
 @media (max-width: 430px) {
   .exo-bar { padding-left: 10px; padding-right: 8px; gap: 8px; }
   .exo-brand {
