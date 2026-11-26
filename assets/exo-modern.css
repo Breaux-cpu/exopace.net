@@ -783,6 +783,20 @@ body.exo-stage > .sn-sheet {
   margin: 0 auto;
 }
 
+/* Opaque plate under title/lead so type never sits on bright chrome. */
+.exo-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 38rem;
+  margin: 0 0 28px;
+  padding: 18px 20px 20px;
+  border-radius: 16px;
+  background: rgba(4, 7, 13, 0.94);
+  box-shadow: 0 0 0 1px rgba(4, 7, 13, 0.8), 0 20px 48px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
 .exo-kicker {
   margin: 0 0 12px;
   color: var(--exo-cyan);
@@ -795,25 +809,30 @@ body.exo-stage > .sn-sheet {
 
 .exo-display {
   margin: 0 0 16px;
-  color: var(--exo-text);
+  color: #e8f4ff;
   font-family: var(--exo-sans);
   font-weight: 600;
   font-size: clamp(2.4rem, 6vw, 4.6rem);
   letter-spacing: -0.04em;
   line-height: 0.95;
-  background-image: linear-gradient(180deg, #f7fbff 0%, #c5d4de 52%, #7ee0ff 100%);
+  background-image: linear-gradient(180deg, #f7fbff 0%, #d5e4ee 52%, #9be8ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
 }
 
 .exo-lead {
   max-width: 36rem;
-  margin: 0 0 28px;
-  color: var(--exo-muted);
+  margin: 0;
+  color: #d7e0e4;
   font-size: 1.05rem;
   line-height: 1.55;
+}
+
+.exo-hero > .exo-slab-list,
+.exo-hero > .miss-jumps {
+  position: relative;
+  z-index: 1;
 }
 
 .exo-slab-list {
@@ -852,8 +871,7 @@ body.exo-stage > .sn-sheet {
   html, body {
     background-attachment: scroll;
   }
-  .exo-brand,
-  .exo-display {
+  .exo-brand {
     filter: none;
   }
 }

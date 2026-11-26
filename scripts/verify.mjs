@@ -121,7 +121,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v63"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v64"), "Radio SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(meshSw), "Radio SW does not precache app.js");
 assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
