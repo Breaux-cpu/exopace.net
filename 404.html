@@ -15,9 +15,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional"></noscript>
-    <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
+    <link rel="stylesheet" href="/assets/exo-tokens.css" />
+    <link rel="stylesheet" href="/assets/exo-modern.css?v=15" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=1" data-exo-layout="1" />
     <style>
-      html, body { margin: 0; min-height: 100%; color: var(--exo-cyan); }
+      html, body { margin: 0; min-height: 100dvh; color: var(--exo-cyan); }
       body { display: flex; flex-direction: column; }
       .miss-jumps a {
         display: flex; align-items: center; justify-content: center; min-height: 44px;
@@ -38,11 +40,15 @@
   </nav>
 </header>
 <div class="exo-pill" id="exo-pill" aria-live="polite">
-  <span id="exo-pill-clock">UTC — · JD —</span>
-  <span id="exo-pill-fix">NO FIX</span>
-  <span id="exo-pill-target">NO TARGET</span>
-  <button type="button" id="exo-pill-copy">COPY</button>
-  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+  <div class="exo-pill-status">
+    <span id="exo-pill-clock">UTC — · JD —</span>
+    <span id="exo-pill-fix">NO FIX</span>
+    <span id="exo-pill-target">NO TARGET</span>
+  </div>
+  <div class="exo-pill-actions">
+    <button type="button" class="exo-btn" id="exo-pill-copy">COPY</button>
+    <a class="exo-btn" id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+  </div>
 </div>
     <main class="miss exo-hero" id="exo-main">
       <div class="exo-hero-grid">
@@ -55,12 +61,12 @@
           <canvas id="exo-scene" class="exo-scene"></canvas>
         </div>
       </div>
-      <nav class="miss-jumps" aria-label="Open a surface">
-        <a href="/mission/">Mission</a>
-        <a href="/radio/">Radio</a>
-        <a href="/mesh/">Mesh</a>
-        <a href="/maps/">Field Maps</a>
-        <a href="/cameras/">Cameras</a>
+      <nav class="miss-jumps exo-cluster" aria-label="Open a surface">
+        <a class="exo-btn" href="/mission/">Mission</a>
+        <a class="exo-btn" href="/radio/">Radio</a>
+        <a class="exo-btn" href="/mesh/">Mesh</a>
+        <a class="exo-btn" href="/maps/">Field Maps</a>
+        <a class="exo-btn" href="/cameras/">Cameras</a>
       </nav>
     </main>
 <footer class="exo-foot">
@@ -79,6 +85,7 @@
     <script src="/assets/exo-bus.js"></script>
     <script src="/assets/exo-state.js"></script>
     <script src="/assets/exo-cmd.js?v=1"></script>
+    <script src="/assets/exo-layout.js?v=1"></script>
     <script src="/assets/exo-scene.js?v=3"></script>
   </body>
 </html>

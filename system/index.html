@@ -12,9 +12,10 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=15" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=1" data-exo-layout="1" />
   <style>
-    body { margin: 0; min-height: 100%; background: #04070D; color: #F0F6FC; }
+    body { margin: 0; min-height: 100dvh; background: #04070D; color: #F0F6FC; }
     body { display: flex; flex-direction: column; }
     a { color: #7EE0FF; }
   </style>
@@ -31,11 +32,15 @@
   </nav>
 </header>
 <div class="exo-pill" id="exo-pill" aria-live="polite">
-  <span id="exo-pill-clock">UTC — · JD —</span>
-  <span id="exo-pill-fix">NO FIX</span>
-  <span id="exo-pill-target">NO TARGET</span>
-  <button type="button" id="exo-pill-copy">COPY</button>
-  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+  <div class="exo-pill-status">
+    <span id="exo-pill-clock">UTC — · JD —</span>
+    <span id="exo-pill-fix">NO FIX</span>
+    <span id="exo-pill-target">NO TARGET</span>
+  </div>
+  <div class="exo-pill-actions">
+    <button type="button" class="exo-btn" id="exo-pill-copy">COPY</button>
+    <a class="exo-btn" id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+  </div>
 </div>
 <main id="exo-main" class="exo-hero">
   <div class="exo-hero-grid">
@@ -53,7 +58,7 @@
     <p class="sys-row exo-slab"><span class="sys-k">TILE CACHE</span><span id="sys-cache">STANDBY</span></p>
     <p class="sys-row exo-slab"><span class="sys-k">EDGE</span><span id="sys-health">STANDBY</span></p>
     <p class="sys-row exo-slab"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">SIGN IN</span><a href="https://cams.exopace.net/account">Sign in with Google</a></p>
+    <p class="sys-row exo-slab"><span class="sys-k">SIGN IN</span><a class="exo-btn" href="https://cams.exopace.net/account">Sign in with Google</a></p>
   </div>
 </main>
 <footer class="exo-foot">
@@ -71,6 +76,7 @@
 <script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
+<script src="/assets/exo-layout.js?v=1"></script>
 <script src="/assets/exo-scene.js?v=3"></script>
 <script>
 (function () {

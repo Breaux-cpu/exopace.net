@@ -20,4 +20,15 @@
   --exo-steel: #c5d4de;
   --exo-chrome: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.15));
   --exo-metal-edge: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.28);
+
+  /* Layout slots. Tests may override --exo-safe-*. */
+  --exo-sat: max(env(safe-area-inset-top, 0px), var(--exo-safe-top, 0px));
+  --exo-sab: max(env(safe-area-inset-bottom, 0px), var(--exo-safe-bottom, 0px));
+  --exo-sal: max(env(safe-area-inset-left, 0px), var(--exo-safe-left, 0px));
+  --exo-sar: max(env(safe-area-inset-right, 0px), var(--exo-safe-right, 0px));
+  --exo-bar-h: calc(52px + var(--exo-sat));
+  --exo-pill-h: 44px;
+  --exo-dock-h: 0px;
+  --exo-chrome-top: calc(var(--exo-bar-h) + var(--exo-pill-h));
+  --exo-ease: 150ms ease;
 }

@@ -1,4 +1,19 @@
 /* Keyboard jump list. Ctrl/Cmd+K, or / when focus is not in a field. */
+(function loadExoLayout() {
+  if (!document.querySelector("link[data-exo-layout]")) {
+    var l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = "/assets/exo-layout.css?v=1";
+    l.setAttribute("data-exo-layout", "1");
+    (document.head || document.documentElement).appendChild(l);
+  }
+  if (window.EXO_LAYOUT || document.querySelector("script[data-exo-layout]")) return;
+  var s = document.createElement("script");
+  s.src = "/assets/exo-layout.js?v=1";
+  s.async = true;
+  s.setAttribute("data-exo-layout", "1");
+  (document.head || document.documentElement).appendChild(s);
+})();
 (function () {
   var TABS = [
     ["Listen", "listen"], ["Band", "band"], ["Live", "watch"], ["Scan", "scan"],
