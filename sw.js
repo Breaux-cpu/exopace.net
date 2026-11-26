@@ -1,4 +1,4 @@
-const CACHE = "exopace-moc-v93";
+const CACHE = "exopace-moc-v94";
 // Icons + manifest only. Never pin in-place HUD (index.html / env / overlay) —
 // a stale SW precache is how guests first-painted ?v=11 after ?v=13 published.
 const ASSETS = [
@@ -11,7 +11,7 @@ const ASSETS = [
 ];
 // Shared chrome. Online always revalidates; the pathname copy is the offline fallback
 // for every ?v= the pages request.
-const SHELL = ["/assets/exo-modern.css", "/assets/exo-tokens.css", "/assets/exo-scene.js", "/assets/exo-tabs.js", "/assets/exo-cmd.js", "/assets/exo-sentinel.js", "/assets/exo-audio.js", "/assets/exo-link.js", "/assets/exo-orbit.js", "/assets/exo-bus.js", "/sentinel/rf/rf.css", "/sentinel/rf/matcher.js", "/sentinel/rf/scan.js", "/sentinel/rf/store.js", "/sentinel/rf/ui.js", "/sentinel/rf/presets/global.json"];
+const SHELL = ["/assets/exo-modern.css", "/assets/exo-tokens.css", "/assets/exo-scene.js", "/assets/exo-tabs.js", "/assets/exo-cmd.js", "/assets/exo-sentinel.js", "/assets/exo-audio.js", "/assets/exo-link.js", "/assets/exo-orbit.js", "/assets/exo-bus.js", "/assets/exo-layout.js", "/assets/exo-layout.css", "/assets/exo-home.css", "/assets/exo-home.js", "/assets/exo-home-scene.js", "/sentinel/rf/rf.css", "/sentinel/rf/matcher.js", "/sentinel/rf/scan.js", "/sentinel/rf/store.js", "/sentinel/rf/ui.js", "/sentinel/rf/presets/global.json"];
 
 function shellAsset(url) {
   return SHELL.indexOf(url.pathname) !== -1;
@@ -32,6 +32,9 @@ function noStore(url) {
     shellAsset(url) ||
     p === "/" ||
     p === "/index.html" ||
+    p === "/signin" ||
+    p === "/signin/" ||
+    p === "/signin/index.html" ||
     p === "/env.js" ||
     p === "/pwa-install.js" ||
     p === "/moc-phone.css" ||
@@ -110,7 +113,11 @@ self.addEventListener("fetch", (e) => {
           if (m) return m;
           if (shellAsset(url)) return caches.match(url.pathname).then((s) => s || offline());
           if (isNav(e.request) || url.pathname.startsWith("/lock/")) {
-            return caches.match("/index.html").then((i) => i || caches.match("/").then((j) => j || offline()));
+            // Mission routes fall back to the last Mission copy; everything else to the home page.
+            const mission = url.pathname.startsWith("/mission") || url.pathname.startsWith("/lock/");
+            const first = mission ? "/mission/" : "/";
+            const second = mission ? "/mission/index.html" : "/index.html";
+            return caches.match(first).then((i) => i || caches.match(second).then((j) => j || offline()));
           }
           return offline();
         }),

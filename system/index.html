@@ -13,7 +13,7 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
   <link rel="stylesheet" href="/assets/exo-modern.css?v=17" />
-  <link rel="stylesheet" href="/assets/exo-layout.css?v=6" data-exo-layout="1" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=7" data-exo-layout="1" />
   <style>
     body { margin: 0; min-height: 100dvh; background: #04070D; color: #F0F6FC; }
     body { display: flex; flex-direction: column; }
@@ -23,8 +23,9 @@
 <body class="exo-stage">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
-  <a class="exo-brand" href="/mission/">EXOPACE</a>
+  <a class="exo-brand" href="/" aria-label="EXOpace home">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
+    <a href="/">Home</a>
     <a href="/mission/">Mission</a>
     <a href="/radio/">Radio</a>
     <a href="/mesh/">Mesh</a>
@@ -61,11 +62,12 @@
     <p class="sys-row exo-slab"><span class="sys-k">TILE CACHE</span><span id="sys-cache">STANDBY</span></p>
     <p class="sys-row exo-slab"><span class="sys-k">EDGE</span><span id="sys-health">STANDBY</span></p>
     <p class="sys-row exo-slab"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">ACCOUNT</span><a class="exo-btn" id="sys-account" href="https://cams.exopace.net/account">Account (Google)</a></p>
+    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">ACCOUNT</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
   </div>
 </main>
 <footer class="exo-foot">
   <nav aria-label="All EXOpace surfaces">
+    <a href="/">Home</a>
     <a href="/mission/">Mission</a>
     <a href="/radio/">Radio</a>
     <a href="/mesh/">Mesh</a>
@@ -79,7 +81,7 @@
 <script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
-<script src="/assets/exo-layout.js?v=5"></script>
+<script src="/assets/exo-layout.js?v=6"></script>
 <script src="/assets/exo-scene.js?v=3"></script>
 <script>
 (function () {
@@ -95,23 +97,15 @@
   fetch("https://cams.exopace.net/api/health").then(function (res) { return res.json(); }).then(function (body) {
     health.textContent = body && body.ok && body.mongo ? "ONLINE · MONGO" : "DEGRADED";
   }).catch(function () { health.textContent = "OFFLINE"; });
-  /* /api/me exists but signed-out 401/OPTIONS currently omit CORS (unlike /media and /api/health).
-     When vq adds Access-Control-Allow-Origin: https://exopace.net + Allow-Credentials on GET/OPTIONS
-     /api/me, including 401, and a signed-in body such as { ok: true, signedIn: true }, this flips
-     to "Signed in · Account" without another site change. No email or token is required or read. */
+  /* Account state comes from the shared shell probe (cams /api/me, cached per session). */
   var account = document.getElementById("sys-account");
-  if (account) {
-    fetch("https://cams.exopace.net/api/me", { credentials: "include", cache: "no-store" }).then(function (res) {
-      return res.ok ? res.json() : null;
-    }).then(function (body) {
-      if (!body || typeof body !== "object") return;
-      var signed = body.ok === true || body.signedIn === true || body.authenticated === true
-        || typeof body.id === "string" || (body.user && typeof body.user === "object");
-      if (!signed) return;
-      account.textContent = "Signed in · Account";
-      var k = document.getElementById("sys-account-k");
-      if (k) k.textContent = "ACCOUNT";
-    }).catch(function () {});
+  function paintAccountRow(state) {
+    if (!account) return;
+    account.textContent = state === "in" ? "Signed in · Account" : state === "out" ? "Sign in" : "Account";
+  }
+  if (account && window.EXO_LAYOUT && window.EXO_LAYOUT.probeMe) {
+    window.EXO_LAYOUT.probeMe().then(paintAccountRow);
+    document.addEventListener("exo:me", function (e) { paintAccountRow(e.detail && e.detail.state); });
   }
   function paint(row) {
     if (!row || !row.label) { target.textContent = "NO TARGET"; return; }

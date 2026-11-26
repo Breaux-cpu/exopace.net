@@ -53,7 +53,8 @@ for (const rel of [
 }
 
 // --- first-paint: boot-void outside #root so React cannot wipe it ---
-const index = read("index.html");
+// Mission Control moved to /mission/ when / became the EXOpace home.
+const index = read("mission/index.html");
 assert(/<div id="boot-void"[^>]*>/.test(index), "index.html has #boot-void");
 assert(/<div id="root"[^>]*>\s*<\/div>/.test(index), "index.html #root is empty");
 assert(index.indexOf('id="boot-void"') < index.indexOf('id="root"'), "boot-void precedes #root");
@@ -114,16 +115,16 @@ const meshSw = read("mesh/sw.js");
 assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v93"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v94"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
-assert(read("index.html").includes("z-index: 200") && read("index.html").includes("transitionend"), "splash eats taps until fade hides it");
+assert(read("mission/index.html").includes("z-index: 200") && read("mission/index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v69"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v70"), "Radio SW cache bumped");
 const mapsSw = read("maps/sw.js");
-assert(mapsSw.includes("exopace-maps-v33"), "Maps SW cache bumped");
+assert(mapsSw.includes("exopace-maps-v34"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(meshSw), "Radio SW does not precache app.js");
 assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -141,8 +142,8 @@ assert(existsSync(join(root, "_headers")), "_headers present");
 const headers = read("_headers");
 assert(headers.includes("/moc-phone.css") && headers.includes("/assets/index-B5yAHF7-.js"), "in-place HUD files are no-cache");
 assert(headers.includes("/mesh/app.js"), "Mesh app.js is no-cache");
-assert(read("index.html").includes("moc-phone.css?v=69"), "index cache-busts moc-phone.css");
-assert(read("index.html").includes("index-B5yAHF7-.js?v=69"), "index cache-busts hashed MOC bundle");
+assert(read("mission/index.html").includes("moc-phone.css?v=69"), "index cache-busts moc-phone.css");
+assert(read("mission/index.html").includes("index-B5yAHF7-.js?v=69"), "index cache-busts hashed MOC bundle");
 assert(/@media \(max-width: 420px\)[\s\S]*html:has\(\.dossier button\)[\s\S]*display: none/.test(read("moc-phone.css")), "360 locked-ISS Ion credits leave COPY / CLEAR");
 assert(/@media \(max-width: 820px\)[\s\S]*\.dossier\s*\{[\s\S]*top:\s*calc\(164px/.test(read("moc-phone.css")), "phone SELECTION sits below wrapped RADIO");
 assert(read("moc-phone.css").includes("cesium-credit-textContainer") && read("moc-phone.css").includes("display: none"), "phone hides Ion Upgrade-for-commercial text");
@@ -424,7 +425,7 @@ assert(!moc.includes("/#facility") && !moc.includes('"/#facility"'), "MOC does n
 assert(moc.includes('{id:"facility",label:"FACILITY"}') && moc.includes(',"facility"]'), "FACILITY is a camstrip mode and a shareable cam= value");
 assert(moc.includes('u==="facility"') && moc.includes('Ie("FACILITY · EXOPACE GS")'), "FACILITY latch/toast goes through the camera-mode path");
 assert(moc.includes("function Qf()") && moc.includes('==="facility"&&history.replaceState'), "leftover #facility hash is stripped on URL sync");
-assert(read("index.html").includes('=== "facility"') && read("index.html").includes("history.replaceState"), "index.html strips leftover #facility without wiping the query");
+assert(read("mission/index.html").includes('=== "facility"') && read("mission/index.html").includes("history.replaceState"), "index.html strips leftover #facility without wiping the query");
 assert(read("README.md").includes("?cam=facility") && !read("README.md").includes("`#facility` flies"), "README documents cam=facility, not a #facility hash");
 {
   const block = moc.match(/function Qf\(\)\{location\.hash\.replace\("#",""\)\.toLowerCase\(\)==="facility"&&history\.replaceState\(null,"",location\.pathname\+location\.search\)}function bo\(a,u,o\)\{const t=o\?\?Ww\(Ko\.rate\?\?1\);const q=new URLSearchParams\(location\.search\);a\?q\.set\("lock",a\):q\.delete\("lock"\);q\.set\("cam",u\);q\.set\("t",t\);history\.replaceState\(null,"",`\/\?\$\{q\.toString\(\)\}`\)}const Ip=\["moc","free","follow","satcam","cinematic","facility"\];function Op\(\)\{const o=new URLSearchParams\(location\.search\),raw=o\.get\("cam"\),h=\(raw\|\|"follow"\)\.toLowerCase\(\);let id=o\.get\("lock"\);if\(!id\)\{const u=location\.pathname\.match\(\/\\\/lock\\\/\(\[\^\/\?\]\+\)\/\);id=u\?decodeURIComponent\(u\[1\]\):null\}return\{id,cam:Ip\.includes\(h\)\?h:"follow",t:o\.get\("t"\)\|\|"live",hasCam:!!raw,hasT:o\.has\("t"\)\}\}/);
@@ -570,7 +571,7 @@ assert(moc.includes('V.hasCam&&(V.cam==="follow"||V.cam==="satcam")') && moc.inc
 assert(moc.includes('V.hasCam&&V.cam!=="follow"&&V.cam!=="satcam"'), "onViewport does not latch FOLLOW / SAT-CAM before a lock exists");
 assert(moc.includes('bo(a.selected()?.id||null,"moc")'), "⌂ MOC writes cam=moc on the share URL");
 assert(moc.includes('bo(w?w.id:null,"cinematic")') && moc.includes('bo(w?w.id:null,a.rig.mode,Ww(o))'), "CINE and timebar write cam/t even with no lock");
-assert(read("index.html").includes("\\/lock\\/") && read("index.html").includes('q.set("lock"'), "index.html rewrites legacy /lock/ to root query");
+assert(read("mission/index.html").includes("\\/lock\\/") && read("mission/index.html").includes('q.set("lock"'), "index.html rewrites legacy /lock/ to root query");
 assert(moc.includes("lock ISS · layer radio · quality PERF"), "palette placeholder matches real commands");
 assert(moc.includes('placeholder:"SAT NAME / NORAD"') && !moc.includes("SAT NAME / NORAD  ·  / palette"), "phone search placeholder is SAT NAME / NORAD with no clipped / palette");
 assert(moc.includes("exoAllowDemo"), "MOC demo helper (prod still false)");
@@ -661,7 +662,7 @@ assert(/\.timebar \.btn\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 tim
 assert(/\.timebar \.btn\s*\{[^}]*min-width:\s*44px/.test(desktopHud), "1280 timebar 10× width is ≥44");
 assert(/#exo-install\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 INSTALL APP tap is ≥44");
 assert(/\.search input\s*\{[^}]*min-height:\s*44px/.test(desktopHud), "1280 SAT NAME / NORAD tap is ≥44");
-assert(read("index.html").includes("min-height: 44px"), "inline INSTALL APP first-paint is ≥44");
+assert(read("mission/index.html").includes("min-height: 44px"), "inline INSTALL APP first-paint is ≥44");
 assert(read("moc-phone.css").includes(".zoom .btn") && /min-height:\s*44px/.test(read("moc-phone.css")), "phone HUD zoom taps are ≥44");
 assert(read("moc-phone.css").includes("html:has(.layers.open) .zoom") && read("moc-phone.css").includes("html:has(.station) .zoom"), "phone zoom hides while LAYERS or STATION is open");
 assert(read("moc-phone.css").includes("a.radio-link.btn") && read("moc-phone.css").includes("min-width: 44px"), "phone RADIO link tap is ≥44");
@@ -743,6 +744,42 @@ assert(read("tle/README.md").includes("2026-09-03") && read("tle/README.md").inc
 assert(read("assets/index-B5yAHF7-.js").includes("celestrak\\.org") && read("assets/index-B5yAHF7-.js").includes('?"LIVE":"CACHED"'), "MOC labels same-origin TLE CACHED not LIVE");
 assert(read("_redirects").includes("/tle/*"), "_redirects keeps /tle/ as real files");
 assert(read("sw.js").includes("/tle/"), "MOC SW skips /tle/ so the snapshot is not pinned");
+
+
+// --- home (/) and sign-in (/signin/) ---
+{
+  const home = read("index.html");
+  const signin = read("signin/index.html");
+  const redirHome = read("_redirects");
+  const layoutJs = read("assets/exo-layout.js");
+  assert(!redirHome.split("\n").some((l) => /^\/\s+\/mission\//.test(l.trim())), "_redirects no longer sends / to /mission/");
+  assert(!home.includes("boot-void") && !home.includes("index-B5yAHF7-"), "home is not Mission Control");
+  assert(home.includes("<title>EXOpace — Home</title>") && home.includes("EXO<span>pace</span>"), "home title + EXOpace wordmark");
+  assert(/location\.replace\("\/mission\/" \+ location\.search/.test(home) && home.includes("(lock|cam|t)="), "home hands old /?lock=&cam=&t= links to /mission/");
+  for (const css of ["exo-tokens.css", "exo-modern.css", "exo-layout.css", "exo-home.css"]) assert(home.includes(css) && signin.includes(css), `home + signin load ${css}`);
+  assert(home.includes("exo-layout.js") && signin.includes("exo-layout.js"), "home + signin load exo-layout.js");
+  assert(home.includes('class="exo-bar"') && home.includes('class="exo-pill"') && home.includes("exo-pill-actions"), "home has the shared bar and phone dock");
+  assert(signin.includes('class="exo-bar"') && signin.includes('class="exo-pill"') && signin.includes("exo-pill-actions"), "signin has the shared bar and phone dock");
+  for (const [href, label] of [["/mission/", "Mission"], ["/radio/", "Radio"], ["/mesh/", "Mesh"], ["/maps/", "Field Maps"], ["https://cams.exopace.net/map", "Cameras"], ["/sentinel/", "Sentinel"], ["/system/", "System"]]) {
+    assert(new RegExp('class="hm-card[^"]*" href="' + href.replace(/[/.]/g, "\\$&") + '"[\\s\\S]*?<span class="t">' + label + "</span>").test(home), `home entry card ${label} → ${href}`);
+  }
+  assert(home.includes('id="hm-install"') && read("assets/exo-home.js").includes("beforeinstallprompt"), "home INSTALL APP control");
+  assert(read("assets/exo-home.js").includes("cams.exopace.net/api/health") && !/\b\d+\s+(cameras|nodes|satellites|users)\b/i.test(home), "home status reads cams /api/health and invents no counts");
+  assert(!/inter[",\s]/i.test(read("assets/exo-home.css")) && !/family=Inter/.test(home), "home uses no Inter font");
+  assert(!/star(field|s)\b/i.test(read("assets/exo-home-scene.js").replace(/No stars, no starfield/g, "")), "home scene draws no stars or starfield");
+  assert(layoutJs.includes('{ href: "/", label: "Home"') && !/label: "Mission", match: \/\^\\\/\$/.test(layoutJs), "nav lists Home first and Mission no longer owns /");
+  assert(layoutJs.includes("https://cams.exopace.net/api/me") && layoutJs.includes('credentials: "include"') && layoutJs.includes("sessionStorage"), "top bar probes cams /api/me with credentials, cached for the session");
+  assert(layoutJs.includes('link.href = "/signin/"'), "top bar account indicator links to /signin/");
+  assert(signin.includes("https://cams.exopace.net/account?next=https%3A%2F%2Fexopace.net%2Fsignin%2F") && signin.includes("Sign in with Google"), "signin sends Google sign-in to cams with next=/signin/");
+  assert(signin.includes("Can't reach cams") && signin.includes('id="si-retry"'), "signin handles a failed probe with Retry");
+  assert(signin.includes('id="si-in"') && signin.includes("Sign out") && signin.includes('href="https://cams.exopace.net/account"'), "signin signed-in state has Account + Sign out");
+  assert(signin.includes("probeMe({ fresh: true })"), "signin always re-probes after Google returns");
+  assert(read("system/index.html").includes('id="sys-account" href="/signin/"'), "System account control points to /signin/");
+  assert(redirHome.includes("/signin         /signin/ 301"), "_redirects folds /signin to /signin/");
+  const four = read("404.html");
+  assert(four.includes('href="/"') && four.includes('href="/signin/"'), "404 deck offers Home and Sign in");
+  assert(read("sw.js").includes('p === "/signin/"'), "MOC SW no-stores /signin/");
+}
 
 if (fail.length) {
   console.error("FAIL");

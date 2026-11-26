@@ -4,7 +4,9 @@ One brand. Two surfaces. One protocol.
 
 | Surface | URL | What |
 |---------|-----|------|
-| **MOC** | https://exopace.net/mission/ | Planetary / orbital mission control (Cesium). `https://exopace.net/` redirects here. |
+| **MOC** | https://exopace.net/mission/ | Planetary / orbital mission control (Cesium). |
+| **Home** | https://exopace.net/ | EXOpace home: entry cards for every surface, live status from real sources, install. Old `/?lock=…&cam=…&t=…` links hand off to `/mission/`. |
+| **Sign in** | https://exopace.net/signin/ | Google sign-in runs on cams.exopace.net; this page and the top-bar chip probe `cams.exopace.net/api/me` (cached per session). |
 | **Radio** | https://exopace.net/radio/ | Installable field radio PWA |
 | **Field maps** | https://exopace.net/maps/ | MGRS letter sheets, print, and ATAK KMZ |
 | **SDR** | `SDR.md` | Memphis RF sensor surface: decoder matrix + live view |
@@ -46,7 +48,7 @@ Demo mode (Earth + Memphis mesh) is a **DEV** thing only. Prod env locks it out.
 - **ULTRA** — title-card stills: full Rayleigh+Mie, clouds, bloom, milky way
 - **PERF** — mid Android / thermal: fewer stars, no clouds, no bloom
 
-`/` redirects to `/mission/` (302). `/mission/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
+`/` is the EXOpace home; root deep links (`/?lock=…`) are handed to `/mission/` by `index.html`. `/mission/` opens the command palette: `lock ISS`, `lock Hubble`, `layer radio`, `run cinematic`, `quality PERF`, `facility`, `time live`, `recage station`.
 
 Time: **LIVE · HOLD · 10× · 60×**. Deep link: `/?lock=25544&cam=follow&t=live`. A valid lock restore (cold-open `?lock=` or leftover `/lock/:id`) paints the same dossier NEXT AOS/LOS line as a SAT NAME lock, from the sim clock. Lockless cams (CINE, FACILITY, FLY/`free`, ⌂ MOC/`moc`) and time modes write `/?cam=…&t=…` with no lock and restore on a cold load. `/?cam=facility` flies to EXOPACE GS. Leftover `#facility` hashes are ignored and stripped. FOLLOW / SAT-CAM still need a target: a lockless tap or `/?cam=follow` / `/?cam=satcam` toasts `NO LOCK`, drops `cam`, and keeps a valid `t`. CLEAR LOCK drops only `lock` when the painted cam is lockless-valid (e.g. `/?cam=cinematic&t=hold`); FOLLOW / SAT-CAM fall back to ⌂ MOC. An empty globe click uses that same CLEAR LOCK path so a miss-click cannot leave a lying `?lock=`. STATION next-pass rows lock like search: `?lock=<norad>&cam=follow&t=…` from ⌂ MOC (an already-latched camera stays).
 
@@ -69,7 +71,7 @@ No Meshtastic lock-in.
 
 ```
 python3 -m http.server 4173
-# /     redirects to /mission/
+# /     EXOpace home (old /?lock=… links hand off to /mission/)
 # MOC   http://127.0.0.1:4173/mission/
 # Radio http://127.0.0.1:4173/radio/
 # lock  http://127.0.0.1:4173/mission/?lock=25544&cam=follow&t=live
@@ -80,7 +82,7 @@ python3 -m http.server 4173
 # legacy /lock/25544 serves mission/index.html with status 200
 ```
 
-Deep links need the host `_redirects` (Cloudflare). `/` 302s to `/mission/`. `/lock/*` serves `mission/index.html` at status 200. A raw `http.server` will 404 bare `/lock/*` because it does not apply `_redirects`.
+Deep links need the host `_redirects` (Cloudflare). `/` serves the home page. `/lock/*` serves `mission/index.html` at status 200. A raw `http.server` will 404 bare `/lock/*` because it does not apply `_redirects`.
 
 ## Verify
 

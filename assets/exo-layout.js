@@ -33,7 +33,7 @@
       injectLink(assetUrl("exo-tokens.css"), "data-exo-tokens");
     }
     if (!hasStylesheet("exo-layout.css") && !document.querySelector("link[data-exo-layout], style[data-exo-layout]")) {
-      injectLink(assetUrl("exo-layout.css?v=6"), "data-exo-layout");
+      injectLink(assetUrl("exo-layout.css?v=7"), "data-exo-layout");
     }
   }
 
@@ -163,7 +163,8 @@
 
 
   var SITES = [
-    { href: "/mission/", label: "Mission", match: /^\/$|^\/index\.html$|^\/mission\/|^\/lock\// },
+    { href: "/", label: "Home", match: /^\/$|^\/index\.html$/ },
+    { href: "/mission/", label: "Mission", match: /^\/mission\/|^\/lock\// },
     { href: "/radio/", label: "Radio", match: /^\/radio\// },
     { href: "/mesh/", label: "Mesh", match: /^\/mesh\// },
     { href: "/maps/", label: "Field Maps", match: /^\/maps\// },
@@ -184,6 +185,91 @@
     return nav;
   }
 
+  /* Signed-in probe. The sign-in itself lives on cams (Google). One answer per
+     browser session: sessionStorage keeps it so every page does not re-ask.
+     States: "in" | "out" | "error". Never reads an email or token. */
+  var ME_URL = "https://cams.exopace.net/api/me";
+  var ME_KEY = "exo-me-v1";
+  var mePending = null;
+
+  function readMe() {
+    try {
+      var raw = sessionStorage.getItem(ME_KEY);
+      if (!raw) return null;
+      var row = JSON.parse(raw);
+      return row && (row.state === "in" || row.state === "out") ? row : null;
+    } catch (e) { return null; }
+  }
+
+  function writeMe(state) {
+    try {
+      if (state === "in" || state === "out") sessionStorage.setItem(ME_KEY, JSON.stringify({ state: state, at: Date.now() }));
+      else sessionStorage.removeItem(ME_KEY);
+    } catch (e) {}
+  }
+
+  function probeMe(opts) {
+    var fresh = !!(opts && opts.fresh);
+    if (!fresh) {
+      var cached = readMe();
+      if (cached) return Promise.resolve(cached.state);
+      if (mePending) return mePending;
+    }
+    var ctrl = typeof AbortController === "function" ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
+    mePending = fetch(ME_URL, { credentials: "include", cache: "no-store", mode: "cors", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (res) {
+        if (res.status === 401 || res.status === 403) return "out";
+        if (!res.ok) return "error";
+        return res.json().then(function (body) {
+          if (!body || typeof body !== "object" || typeof body.signedIn !== "boolean") return "error";
+          return body.signedIn ? "in" : "out";
+        }, function () { return "error"; });
+      }, function () { return "error"; })
+      .then(function (state) {
+        clearTimeout(timer);
+        mePending = null;
+        writeMe(state);
+        paintAccount(state);
+        try { document.dispatchEvent(new CustomEvent("exo:me", { detail: { state: state } })); } catch (e) {}
+        return state;
+      });
+    return mePending;
+  }
+
+  function ensureAccount() {
+    var bar = document.querySelector("header.exo-bar");
+    if (!bar) return null;
+    var link = bar.querySelector("a.exo-acct");
+    if (!link) {
+      link = document.createElement("a");
+      link.className = "exo-acct";
+      link.href = "/signin/";
+      link.setAttribute("data-state", "checking");
+      link.innerHTML = '<span class="exo-acct-dot" aria-hidden="true"></span><span class="exo-acct-label">Account</span>';
+      bar.appendChild(link);
+    }
+    if (/^\/signin\//.test(location.pathname || "")) link.setAttribute("aria-current", "page");
+    return link;
+  }
+
+  function paintAccount(state) {
+    var link = document.querySelector("header.exo-bar a.exo-acct");
+    if (!link) return;
+    var label = link.querySelector(".exo-acct-label");
+    var text = state === "in" ? "Signed in" : state === "out" ? "Sign in" : state === "error" ? "Account" : "Account";
+    link.setAttribute("data-state", state || "checking");
+    link.setAttribute("aria-label", state === "in" ? "Signed in. Open account" : state === "out" ? "Sign in" : "Account status");
+    if (label) label.textContent = text;
+  }
+
+  function initAccount() {
+    if (!ensureAccount()) return;
+    var cached = readMe();
+    paintAccount(cached ? cached.state : "checking");
+    if (!cached) probeMe();
+  }
+
   function openHashSheet() {
     var id = (location.hash || "").replace(/^#/, "");
     if (!id) return;
@@ -196,6 +282,7 @@
   function init() {
     ensureStyles();
     ensureSites();
+    initAccount();
     wrapPill(document);
     observeDock();
     publishDockHeight();
@@ -208,6 +295,9 @@
   global.EXO_LAYOUT = {
     sites: SITES,
     ensureSites: ensureSites,
+    probeMe: probeMe,
+    readMe: readMe,
+    paintAccount: paintAccount,
     wrapPill: wrapPill,
     openSheet: openSheet,
     closeSheet: closeSheet,
