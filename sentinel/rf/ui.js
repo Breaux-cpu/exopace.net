@@ -65,9 +65,10 @@ function paintCaps() {
   els.caps.replaceChildren();
   for (const row of report.rows) {
     const card = document.createElement("article");
-    card.className = "rf-cap";
+    card.className = "exo-slab rf-cap";
     card.dataset.state = row.state;
-    const h = document.createElement("h2");
+    const h = document.createElement("span");
+    h.className = "exo-k";
     h.textContent = row.title;
     const p = document.createElement("p");
     p.textContent = row.detail;
@@ -80,34 +81,23 @@ function paintFilters() {
   if (!els.filters) return;
   const enabled = enabledCategories();
   const present = new Set(rows.flatMap((row) => (row.hits || []).map((hit) => hit.category)));
-  const wrap = document.createElement("div");
-  const all = document.createElement("label");
-  const allInput = document.createElement("input");
-  allInput.type = "radio";
-  allInput.name = "rf-cat";
-  allInput.value = "all";
-  allInput.checked = categoryFilter === "all";
-  all.append(allInput, document.createTextNode("ALL"));
-  wrap.append(all);
-  for (const id of Object.keys(CATEGORIES)) {
-    if (!enabled[id] && !present.has(id)) continue;
-    const label = document.createElement("label");
-    const input = document.createElement("input");
-    input.type = "radio";
-    input.name = "rf-cat";
-    input.value = id;
-    input.checked = categoryFilter === id;
-    label.append(input, document.createTextNode(CATEGORIES[id].tag));
-    wrap.append(label);
-  }
-  els.filters.replaceChildren(wrap);
-  els.filters.onchange = (event) => {
-    const target = event.target;
-    if (target && target.value) {
-      categoryFilter = target.value;
+  const cats = [["all", "All"], ...Object.keys(CATEGORIES)
+    .filter((id) => enabled[id] || present.has(id))
+    .map((id) => [id, CATEGORIES[id].tag])];
+  els.filters.replaceChildren();
+  for (const [id, label] of cats) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.cat = id;
+    btn.setAttribute("aria-pressed", categoryFilter === id ? "true" : "false");
+    btn.textContent = label;
+    btn.addEventListener("click", () => {
+      categoryFilter = id;
+      paintFilters();
       paintDevices();
-    }
-  };
+    });
+    els.filters.append(btn);
+  }
 }
 
 function paintDevices() {
@@ -291,7 +281,7 @@ async function onSerial() {
 paintCaps();
 setBusy(false);
 if (!report.cap.requestLEScan && els.start) {
-  els.start.textContent = report.cap.requestDevice ? "PICK BLE DEVICE" : "BLE UNAVAILABLE";
+  els.start.textContent = report.cap.requestDevice ? "Pick a device" : "Bluetooth unavailable";
   if (!report.cap.requestDevice) els.start.disabled = true;
 }
 if (els.start) els.start.addEventListener("click", onStart);

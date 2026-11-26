@@ -3,74 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#04070d" />
+  <meta name="theme-color" content="#04070D" />
+  <meta name="color-scheme" content="dark" />
   <meta name="description" content="EXOpace Sentinel. RF scan for body cams, plate readers, trackers, drones and glasses, plus watchlists and geofences against live air, sea, camera, and cached TLE feeds." />
-  <title>EXOpace — Sentinel</title>
+  <title>SENTINEL · EXOpace</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=13" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
   <link rel="stylesheet" href="rf/rf.css" />
-  <style>
-    :root {
-      --sn-void: #04070d;
-      --sn-glass: rgba(10, 18, 30, 0.72);
-      --sn-cyan: #7ee0ff;
-      --sn-amber: #ffb84d;
-      --sn-text: #f0f6fc;
-      --sn-dim: #9fb0b4;
-      --sn-line: rgba(126, 224, 255, 0.18);
-    }
-    body { margin: 0; color: var(--sn-text); }
-    .sn-main { padding: 12px 12px calc(52vh + env(safe-area-inset-bottom)); }
-    .sn-status { margin: 0 0 10px; min-height: 44px; display: flex; align-items: center; color: var(--sn-amber); letter-spacing: 0.08em; font-size: 13px; font-variant-numeric: tabular-nums; }
-    .sn-tabs { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 0 0 10px; }
-    .sn-tabs button, .sn-sheet button, .sn-sheet input, .sn-sheet select {
-      min-height: 44px; min-width: 44px; box-sizing: border-box;
-    }
-    .sn-tabs button {
-      scroll-snap-align: start; flex: 0 0 auto; padding: 0 14px;
-    }
-    .sn-tabs button[aria-selected="true"] { color: var(--sn-void); background: var(--sn-cyan); border-color: var(--sn-cyan); }
-    .sn-card {
-      margin: 0 0 8px; padding: 12px;
-    }
-    .sn-card h2 { margin: 0 0 6px; font-size: 13px; letter-spacing: 0.12em; color: var(--sn-cyan); }
-    .sn-card p { margin: 0; color: var(--sn-dim); font-size: 13px; line-height: 1.45; font-variant-numeric: tabular-nums; }
-    .sn-sheet {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-      max-height: 48vh; overflow: auto; padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
-      background: var(--sn-glass); border-top: 1px solid var(--sn-line);
-      backdrop-filter: blur(18px) saturate(160%);
-    }
-    .sn-sheet h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.16em; color: var(--sn-cyan); }
-    .sn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-    .sn-row > * { flex: 1 1 120px; }
-    .sn-sheet input, .sn-sheet select {
-      width: 100%; padding: 0 10px;
-    }
-    .sn-sheet button {
-      padding: 0 14px; color: var(--sn-amber);
-    }
-    .sn-note { margin: 0 0 8px; color: var(--sn-dim); font-size: 12px; line-height: 1.4; }
-
-    .sn-sheet-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    #sn-sheet-toggle {
-      display: flex; align-items: center; justify-content: space-between;
-      width: 100%; margin: 0 0 8px; padding: 0 14px; color: var(--sn-cyan);
-      letter-spacing: 0.16em; font-size: 11px;
-    }
-    #sn-sheet-toggle::after { content: "OPEN"; color: var(--sn-amber); }
-    .sn-sheet[data-open="true"] #sn-sheet-toggle::after { content: "CLOSE"; }
-    .sn-sheet[data-open="false"] { max-height: none; }
-    .sn-sheet[data-open="false"] #sn-sheet-body { display: none; }
-    @media (min-width: 900px) {
-      .sn-main { max-width: 880px; margin: 0 auto; padding-bottom: calc(52vh + 24px); }
-      .sn-sheet { left: 50%; width: min(880px, 100%); transform: translateX(-50%); border-radius: 16px 16px 0 0; }
-    }
-  </style>
 </head>
 <body class="exo-stage">
-<canvas id="exo-scene" class="exo-scene" aria-hidden="true"></canvas>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -89,43 +35,47 @@
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
 <main class="sn-main" id="exo-main">
+  <header class="sn-hero">
+    <p class="exo-kicker">RF scan · local signatures</p>
+    <h1 class="exo-display" id="rf-title">Sentinel</h1>
+    <p class="exo-lead">It listens only. Detections stay on this device. A row appears after this browser hears a real BLE advertisement or a labeled report from connected hardware — nothing is invented.</p>
+  </header>
 
   <section class="rf-deck" id="rf-deck" aria-labelledby="rf-title">
-    <h1 id="rf-title">RF SCAN</h1>
-    <p class="rf-lede">EXOpace port of RF Sentinel signatures. It listens only. Detections stay on this device. A row appears only after this browser hears a real BLE advertisement or a labeled report from connected hardware. Nothing is simulated.</p>
     <div class="rf-actions">
-      <button type="button" id="rf-start" data-primary="true">START BLE SCAN</button>
-      <button type="button" id="rf-pick">PICK ANOTHER DEVICE</button>
-      <button type="button" id="rf-serial">CONNECT ESP32 / USB</button>
-      <button type="button" id="rf-stop">STOP</button>
+      <button type="button" id="rf-start" class="rf-cta" data-primary="true">Start BLE scan</button>
+      <button type="button" id="rf-pick" class="rf-ghost">Pick a device</button>
+      <button type="button" id="rf-serial" class="rf-ghost">Connect ESP32 / USB</button>
+      <button type="button" id="rf-stop" class="rf-ghost">Stop</button>
     </div>
-    <p class="rf-status" id="rf-status">STANDBY</p>
+    <p class="rf-status" id="rf-status">Standby</p>
     <div class="rf-alerts" id="rf-alerts" aria-live="assertive"></div>
     <div class="rf-list-head">
-      <h2>LIVE DEVICES · <span id="rf-count">0</span></h2>
+      <p class="exo-kicker">Live devices · <span id="rf-count">0</span></p>
     </div>
-    <fieldset class="rf-filters" id="rf-filters">
-      <legend>CATEGORY</legend>
-    </fieldset>
+    <div class="rf-filters" id="rf-filters" role="toolbar" aria-label="Category filters"></div>
     <div class="rf-devices" id="rf-devices"></div>
     <div class="rf-list-actions">
-      <button type="button" id="rf-export-json">EXPORT JSON</button>
-      <button type="button" id="rf-export-csv">EXPORT CSV</button>
-      <button type="button" id="rf-clear">CLEAR LOCAL LOG</button>
+      <button type="button" id="rf-export-json" class="rf-ghost">Export JSON</button>
+      <button type="button" id="rf-export-csv" class="rf-ghost">Export CSV</button>
+      <button type="button" id="rf-clear" class="rf-ghost">Clear local log</button>
     </div>
+    <p class="exo-kicker rf-section-kicker">Capability</p>
     <div class="rf-caps" id="rf-caps" aria-label="RF scan capabilities"></div>
+    <p class="exo-kicker rf-section-kicker">Needs hardware</p>
     <div class="rf-hardware" aria-label="Features that need hardware or the Android app">
-      <article class="rf-hw">
-        <h2>WIFI SCANNING</h2>
-        <p>A browser cannot see nearby WiFi networks, Flock <code>Flock-</code> SSIDs, or probe requests. Connect an ESP32 running OUI-Spy, Marauder, or GhostESP over USB in Chrome or Edge, or use the RF Sentinel Android app.</p>
+      <article class="exo-slab rf-hw">
+        <span class="exo-k">WiFi scanning</span>
+        <p>A browser cannot see nearby WiFi networks, Flock SSIDs, or probe requests. Connect an ESP32 running OUI-Spy, Marauder, or GhostESP over USB in Chrome or Edge, or use the RF Sentinel Android app.</p>
       </article>
-      <article class="rf-hw">
-        <h2>CELL TOWERS AND GPS JAMMING</h2>
+      <article class="exo-slab rf-hw">
+        <span class="exo-k">Cell towers and GPS jamming</span>
         <p>IMSI-catcher signs and GNSS jamming checks need phone radios and sensors. This page will not invent those readings. Use the RF Sentinel Android app.</p>
       </article>
     </div>
     <p class="rf-credit">Detection signatures ported from <a href="https://github.com/CIS-C0/RFSentinel">RF Sentinel</a> (CIS-C0), licensed under GPL-3.0. Source and credits: <a href="rf/NOTICE">NOTICE</a> · <a href="rf/LICENSE">LICENSE</a>.</p>
   </section>
+
   <p class="sn-status" id="sn-status">STANDBY</p>
   <div class="sn-tabs" role="tablist" aria-label="Sentinel lanes">
     <button type="button" role="tab" data-lane="all" aria-selected="true">ALL</button>
@@ -140,9 +90,9 @@
   <div id="sn-feed"></div>
 </main>
 <section class="sn-sheet" id="sn-sheet" aria-label="Watchlist controls" data-open="false">
-  <button type="button" id="sn-sheet-toggle" aria-expanded="false" aria-controls="sn-sheet-body">WATCHLIST</button>
+  <button type="button" id="sn-sheet-toggle" aria-expanded="false" aria-controls="sn-sheet-body">Watchlist</button>
   <div id="sn-sheet-body">
-  <h2 class="sn-sheet-visually-hidden">WATCHLIST</h2>
+  <h2 class="sn-sheet-visually-hidden">Watchlist</h2>
   <div class="sn-row">
     <select id="sn-kind" aria-label="Watch kind">
       <option value="norad">NORAD</option>
@@ -154,7 +104,7 @@
     <input id="sn-value" aria-label="Watch value" placeholder="25544" autocomplete="off" />
     <button type="button" id="sn-add">ARM</button>
   </div>
-  <h2>GEOFENCE</h2>
+  <h2>Geofence</h2>
   <div class="sn-row">
     <input id="sn-fname" aria-label="Geofence name" placeholder="name" autocomplete="off" />
     <input id="sn-flat" aria-label="Geofence latitude" inputmode="decimal" placeholder="lat" />
@@ -218,6 +168,5 @@
 <script src="/assets/exo-brief-ai.js"></script>
 <script src="/assets/exo-replay-sandbox.js"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>
-<script src="/assets/exo-scene.js?v=1"></script>
 </body>
 </html>

@@ -513,7 +513,7 @@ body:has(#decode) .exo-clock {
     color: #ffb84d !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button) {
+  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a, .leaflet-bar a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.cesium-button):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle) {
     box-sizing: border-box !important;
     min-height: 44px !important;
     border-radius: 10px !important;
@@ -530,19 +530,58 @@ body:has(#decode) .exo-clock {
     transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):hover {
+  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn, .miss-jumps a):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):hover {
     color: #7ee0ff !important;
     border-color: rgba(126, 224, 255, 0.24) !important;
   }
 
-  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):active {
+  html body:not(:has(#boot-void)) :is(button, a.btn, a.b, a.exo-btn, a.fm-btn):not(nav.exo-tabs > button):not(.exo-cmd__item):not(.rf-filters button):not(.sn-tabs button):not(#sn-sheet-toggle):active {
     color: #ffb84d !important;
   }
 
   html body .sn-tabs button[aria-selected="true"] {
-    color: #04070d !important;
-    background-color: #7ee0ff !important;
-    border-color: #7ee0ff !important;
+    color: #f0f6fc !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: inset 0 -1px 0 #7ee0ff !important;
+  }
+
+  html body:not(:has(#boot-void)) .rf-filters button,
+  html body:not(:has(#boot-void)) .sn-tabs button,
+  html body:not(:has(#boot-void)) #sn-sheet-toggle {
+    min-height: 36px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: #9fb0b4 !important;
+    font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    padding: 0 10px !important;
+  }
+  html body:not(:has(#boot-void)) .rf-filters button[aria-pressed="true"],
+  html body:not(:has(#boot-void)) .sn-tabs button[aria-selected="true"] {
+    color: #f0f6fc !important;
+    box-shadow: inset 0 -1px 0 #7ee0ff !important;
+  }
+  html body:not(:has(#boot-void)) .rf-filters button:hover,
+  html body:not(:has(#boot-void)) .sn-tabs button:hover,
+  html body:not(:has(#boot-void)) #sn-sheet-toggle:hover {
+    color: #f0f6fc !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  @media (max-width: 800px) {
+    html body:not(:has(#boot-void)) .rf-filters button {
+      min-height: 32px !important;
+      padding: 0 8px !important;
+    }
   }
 
   html body:not(:has(#boot-void)) :is(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel, .exo-slab) {
@@ -688,6 +727,43 @@ nav.exo-tabs > a[data-ws] {
 }
 
 
+
+/* Make the top nav fit when it can, and fade/scroll obviously when it cannot. */
+.exo-sites {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 20px), transparent 100%);
+}
+.exo-sites::after {
+  content: "";
+  flex: 0 0 28px;
+  height: 1px;
+}
+@media (min-width: 720px) {
+  .exo-sites {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .exo-sites::after { flex-basis: 0; content: none; }
+}
+@media (max-width: 430px) {
+  .exo-bar { padding-left: 10px; padding-right: 8px; gap: 8px; }
+  .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 0;
+    padding-right: 6px;
+    font-size: 0.72rem;
+  }
+  .exo-sites {
+    gap: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .exo-sites::after { flex-basis: 0; content: none; }
+  .exo-sites a {
+    padding: 0 5px;
+    font-size: 12px;
+  }
+}
 /* —— Hard-coded 2026 shell: framed studio artifact, typographic deck. No starfields. —— */
 .exo-scene {
   position: absolute;
@@ -1043,6 +1119,26 @@ main.miss.exo-hero,
     letter-spacing: 0.1em;
     margin-right: 4px;
     padding-right: 8px;
+  }
+}
+
+@media (max-width: 430px) {
+  .exo-bar { padding-left: 10px; padding-right: 8px; gap: 8px; }
+  .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 0;
+    padding-right: 6px;
+    font-size: 0.72rem;
+  }
+  .exo-sites {
+    gap: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .exo-sites::after { flex-basis: 0; content: none; }
+  .exo-sites a {
+    padding: 0 5px;
+    font-size: 12px;
   }
 }
 
