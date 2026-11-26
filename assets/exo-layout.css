@@ -424,19 +424,23 @@ body:has(#composer) {
    must sit in-flow so the clock/MGRS can scroll instead of painting under them. */
 body:has(#composer) .exo-pill,
 body:has(.fm-body) .exo-pill {
-  display: flex;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
-  gap: 8px;
+  column-gap: 8px;
+  overflow: hidden;
 }
 body:has(#composer) .exo-pill-status,
 body:has(.fm-body) .exo-pill-status {
+  grid-column: 1;
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
 }
 body:has(#composer) .exo-pill-actions,
 body:has(.fm-body) .exo-pill-actions {
-  position: static !important;
+  grid-column: 2;
+  position: relative !important;
   inset: auto !important;
   flex: 0 0 auto !important;
   width: auto !important;
@@ -446,6 +450,7 @@ body:has(.fm-body) .exo-pill-actions {
   background: transparent !important;
   border: 0 !important;
   gap: 6px;
+  z-index: 1;
 }
 body:has(#composer) .exo-pill-actions > *,
 body:has(.fm-body) .exo-pill-actions > * {

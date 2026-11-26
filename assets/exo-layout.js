@@ -33,7 +33,7 @@
       injectLink(assetUrl("exo-tokens.css"), "data-exo-tokens");
     }
     if (!hasStylesheet("exo-layout.css") && !document.querySelector("link[data-exo-layout], style[data-exo-layout]")) {
-      injectLink(assetUrl("exo-layout.css?v=4"), "data-exo-layout");
+      injectLink(assetUrl("exo-layout.css?v=5"), "data-exo-layout");
     }
   }
 
