@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#03060b" />
+    <meta name="theme-color" content="#04070d" />
     <meta name="color-scheme" content="dark" />
     <title>EXOpace — 404</title>
     <meta name="description" content="No such route on EXOpace." />
@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-    <link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
+    <link rel="stylesheet" href="/assets/exo-modern.css?v=10" />
     <style>
       html, body { margin: 0; min-height: 100%; color: var(--exo-cyan); }
       body { display: flex; flex-direction: column; }
@@ -36,7 +36,8 @@
       .miss-jumps a:focus-visible { outline: 2px solid var(--exo-amber); outline-offset: 2px; }
     </style>
   </head>
-  <body>
+  <body class="exo-stage">
+<canvas id="exo-scene" class="exo-scene" aria-hidden="true"></canvas>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -54,9 +55,10 @@
   <button type="button" id="exo-pill-copy">COPY</button>
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
-    <main class="miss" id="exo-main">
-      <b>EXOpace</b>
-      404 · NO SUCH ROUTE
+    <main class="miss exo-hero" id="exo-main">
+      <p class="exo-kicker">404 · NO SUCH ROUTE</p>
+      <h1 class="exo-display">404</h1>
+      <p class="exo-lead">That path is not a surface on EXOpace. Open a live deck below.</p>
       <nav class="miss-jumps" aria-label="Open a surface">
         <a href="/mission/">Mission</a>
         <a href="/radio/">Radio</a>
@@ -65,9 +67,22 @@
         <a href="/cameras/">Cameras</a>
       </nav>
     </main>
+<footer class="exo-foot">
+  <nav aria-label="All EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/">System</a>
+  </nav>
+  <p>EXOpace · field radio and mission control</p>
+</footer>
     <script src="/maps/mgrs.js"></script>
     <script src="/assets/exo-bus.js"></script>
     <script src="/assets/exo-state.js"></script>
     <script src="/assets/exo-cmd.js?v=1"></script>
+    <script src="/assets/exo-scene.js?v=1"></script>
   </body>
 </html>

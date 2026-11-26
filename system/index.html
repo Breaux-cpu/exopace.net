@@ -4,18 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#04070D" />
+  <meta name="color-scheme" content="dark" />
   <title>SYSTEM · EXOpace</title>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=8" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
+  <link rel="stylesheet" href="/assets/exo-tokens.css" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=10" />
   <style>
-    body { margin: 0; background: #04070D; color: #F0F6FC; }
-    main { padding: 16px; max-width: 720px; }
-    h1 { margin: 8px 0 12px; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 14px; letter-spacing: 0.16em; color: #FFB84D; font-weight: 500; }
-    .sys-row { display: flex; justify-content: space-between; gap: 12px; min-height: 44px; align-items: center; border-bottom: 1px solid rgba(126, 224, 255, 0.25); font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 13px; }
-    .sys-k { color: #FFB84D; }
+    body { margin: 0; min-height: 100%; background: #04070D; color: #F0F6FC; }
+    body { display: flex; flex-direction: column; }
     a { color: #7EE0FF; }
   </style>
 </head>
-<body>
+<body class="exo-stage">
+<canvas id="exo-scene" class="exo-scene" aria-hidden="true"></canvas>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -33,17 +38,34 @@
   <button type="button" id="exo-pill-copy">COPY</button>
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
-<main id="exo-main">
-  <h1>SYSTEM</h1>
-  <p class="sys-row"><span class="sys-k">BLE</span><span id="sys-ble">STANDBY</span></p>
-  <p class="sys-row"><span class="sys-k">TILE CACHE</span><span id="sys-cache">STANDBY</span></p>
-  <p class="sys-row"><span class="sys-k">EDGE</span><span id="sys-health">STANDBY</span></p>
-  <p class="sys-row"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
-  <p class="sys-row"><span class="sys-k">SIGN IN</span><a href="https://cams.exopace.net/account">Sign in with Google</a></p>
+<main id="exo-main" class="exo-hero">
+  <p class="exo-kicker">Hardware · cache · edge</p>
+  <h1 class="exo-display">SYSTEM</h1>
+  <p class="exo-lead">Live status for this browser, the tile cache, and the EXOpace edge. Nothing here is invented.</p>
+  <div class="exo-slab-list">
+    <p class="sys-row exo-slab"><span class="sys-k">BLE</span><span id="sys-ble">STANDBY</span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">TILE CACHE</span><span id="sys-cache">STANDBY</span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">EDGE</span><span id="sys-health">STANDBY</span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">SIGN IN</span><a href="https://cams.exopace.net/account">Sign in with Google</a></p>
+  </div>
 </main>
+<footer class="exo-foot">
+  <nav aria-label="All EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/" aria-current="page">System</a>
+  </nav>
+  <p>EXOpace · field radio and mission control</p>
+</footer>
 <script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
+<script src="/assets/exo-scene.js?v=1"></script>
 <script>
 (function () {
   var ble = document.getElementById("sys-ble");
