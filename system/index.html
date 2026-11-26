@@ -9,10 +9,10 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" /></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=11" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=13" />
   <style>
     body { margin: 0; min-height: 100%; background: #04070D; color: #F0F6FC; }
     body { display: flex; flex-direction: column; }
@@ -20,7 +20,6 @@
   </style>
 </head>
 <body class="exo-stage">
-<canvas id="exo-scene" class="exo-scene" aria-hidden="true"></canvas>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -39,10 +38,15 @@
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
 <main id="exo-main" class="exo-hero">
-  <div class="exo-hero-copy">
-    <p class="exo-kicker">Hardware · cache · edge</p>
-    <h1 class="exo-display">SYSTEM</h1>
-    <p class="exo-lead">Live status for this browser, the tile cache, and the EXOpace edge. Nothing here is invented.</p>
+  <div class="exo-hero-grid">
+    <div class="exo-hero-copy">
+      <p class="exo-kicker">Hardware · cache · edge</p>
+      <h1 class="exo-display">SYSTEM</h1>
+      <p class="exo-lead">Live status for this browser, the tile cache, and the EXOpace edge. Nothing here is invented.</p>
+    </div>
+    <div class="exo-plinth" aria-hidden="true">
+      <canvas id="exo-scene" class="exo-scene"></canvas>
+    </div>
   </div>
   <div class="exo-slab-list">
     <p class="sys-row exo-slab"><span class="sys-k">BLE</span><span id="sys-ble">STANDBY</span></p>
@@ -67,7 +71,7 @@
 <script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
-<script src="/assets/exo-scene.js?v=1"></script>
+<script src="/assets/exo-scene.js?v=3"></script>
 <script>
 (function () {
   var ble = document.getElementById("sys-ble");

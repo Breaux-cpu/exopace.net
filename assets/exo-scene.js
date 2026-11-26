@@ -1,19 +1,18 @@
-/* EXOpace studio scene: one chrome artifact + glass ring.
+/* EXOpace studio scene: one chrome body in a gimbal, framed in a plinth.
    No stars, starfields, galaxies, or space-dust particles.
-   Skips itself on reduced-motion, missing WebGL, or when another
-   WebGL app already owns the page (Cesium / MapLibre / mesh globe). */
+   Skips itself on reduced-motion, missing WebGL, app canvases, or Sentinel. */
 (function () {
   "use strict";
 
   var THREE_SRC = "/mesh/three.min.js";
   var canvas = document.getElementById("exo-scene");
   if (!canvas) return;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    canvas.replaceWith(fallback());
+  if (document.querySelector(".sn-main, #decode, .fm-body, .cam-stage, #composer, #boot-void, #cesiumContainer, .cesium-widget, .maplibregl-map, #map, #globe, canvas.webgl")) {
+    canvas.remove();
     return;
   }
-  if (document.querySelector("#boot-void, #cesiumContainer, .cesium-widget, .maplibregl-map, #map, #globe, canvas.webgl")) {
-    canvas.remove();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    canvas.replaceWith(fallback());
     return;
   }
 
@@ -30,6 +29,12 @@
     var el = document.createElement("div");
     el.className = "exo-scene-fallback";
     el.setAttribute("aria-hidden", "true");
+    var body = document.createElement("div");
+    body.className = "exo-fallback-body";
+    var ring = document.createElement("div");
+    ring.className = "exo-fallback-ring";
+    el.appendChild(body);
+    el.appendChild(ring);
     return el;
   }
 
@@ -65,64 +70,64 @@
     if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
     else if (renderer.outputEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
     if (THREE.ACESFilmicToneMapping) renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
+    renderer.toneMappingExposure = 1.05;
     if (renderer.physicallyCorrectLights !== undefined) renderer.physicallyCorrectLights = true;
 
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
-    camera.position.set(0, 0.15, 4.35);
+    var camera = new THREE.PerspectiveCamera(36, 1, 0.1, 40);
+    camera.position.set(0, 0.04, 6.6);
 
     var env = bakeStudio(THREE, renderer);
     if (env) scene.environment = env;
 
     var group = new THREE.Group();
+    group.scale.setScalar(0.86);
     scene.add(group);
 
-    var detail = mobile ? 16 : 36;
-    var geo = new THREE.IcosahedronGeometry(1.12, detail);
-    var mat = new THREE.MeshPhysicalMaterial({
-      color: 0xc9d6de,
-      metalness: 1,
-      roughness: 0.1,
-      envMapIntensity: 1.55,
-      clearcoat: 0.65,
-      clearcoatRoughness: 0.12,
-    });
-    hookDisplace(THREE, mat);
-    var orb = new THREE.Mesh(geo, mat);
-    group.add(orb);
-
-    var ringGeo = new THREE.TorusGeometry(1.62, 0.045, mobile ? 12 : 24, mobile ? 80 : 180);
-    var ringMatOpts = {
-      color: 0xb9d8e6,
-      metalness: 0.85,
-      roughness: 0.08,
-      envMapIntensity: 1.3,
-    };
-    if ("transmission" in new THREE.MeshPhysicalMaterial()) {
-      ringMatOpts.transmission = 0.86;
-      ringMatOpts.thickness = 0.55;
-      ringMatOpts.ior = 1.42;
-      ringMatOpts.transparent = true;
-      ringMatOpts.opacity = 1;
-    }
-    var ring = new THREE.Mesh(ringGeo, new THREE.MeshPhysicalMaterial(ringMatOpts));
-    ring.rotation.x = Math.PI / 2.35;
-    group.add(ring);
-
-    var disc = new THREE.Mesh(
-      new THREE.CircleGeometry(2.4, 64),
-      new THREE.MeshBasicMaterial({ color: 0x7ee0ff, transparent: true, opacity: 0.045, depthWrite: false })
+    var body = new THREE.Mesh(
+      new THREE.SphereGeometry(1.02, mobile ? 32 : 64, mobile ? 24 : 48),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xd5e0e6,
+        metalness: 1,
+        roughness: 0.08,
+        envMapIntensity: 1.45,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.08,
+      })
     );
-    disc.position.z = -1.4;
-    group.add(disc);
+    group.add(body);
 
-    scene.add(new THREE.AmbientLight(0x6f7f8a, 0.35));
-    var key = new THREE.DirectionalLight(0x7ee0ff, 1.4);
-    key.position.set(3.2, 2.6, 2.4);
+    var ringMat = new THREE.MeshPhysicalMaterial({
+      color: 0xc5d8e2,
+      metalness: 0.95,
+      roughness: 0.12,
+      envMapIntensity: 1.25,
+    });
+    var ringA = new THREE.Mesh(new THREE.TorusGeometry(1.48, 0.028, mobile ? 10 : 16, mobile ? 80 : 160), ringMat);
+    ringA.rotation.x = Math.PI / 2.15;
+    group.add(ringA);
+    var ringB = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.018, mobile ? 10 : 16, mobile ? 80 : 160), ringMat.clone());
+    ringB.rotation.x = Math.PI / 1.55;
+    ringB.rotation.y = 0.55;
+    group.add(ringB);
+
+    var shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(1.35, 48),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.38, depthWrite: false })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = -1.35;
+    group.add(shadow);
+
+    scene.add(new THREE.AmbientLight(0x7a8a94, 0.28));
+    var key = new THREE.DirectionalLight(0xf2fbff, 1.55);
+    key.position.set(2.8, 3.2, 3.4);
     scene.add(key);
-    var rim = new THREE.DirectionalLight(0xffb84d, 0.85);
-    rim.position.set(-3.4, -1.2, 1.2);
+    var fill = new THREE.DirectionalLight(0x7ee0ff, 0.55);
+    fill.position.set(-3.2, 0.6, 2.0);
+    scene.add(fill);
+    var rim = new THREE.DirectionalLight(0xffb84d, 0.7);
+    rim.position.set(-1.6, -2.4, 1.6);
     scene.add(rim);
 
     var pointer = { x: 0, y: 0 };
@@ -131,19 +136,31 @@
     var last = performance.now();
     var running = true;
 
+    function frameSize() {
+      var r = canvas.getBoundingClientRect();
+      var w = Math.max(1, Math.round(r.width) || canvas.clientWidth || 1);
+      var h = Math.max(1, Math.round(r.height) || canvas.clientHeight || 1);
+      return { w: w, h: h, r: r };
+    }
+
     function resize() {
-      var w = canvas.clientWidth || window.innerWidth;
-      var h = canvas.clientHeight || window.innerHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / Math.max(1, h);
+      var s = frameSize();
+      renderer.setSize(s.w, s.h, false);
+      camera.aspect = s.w / s.h;
       camera.updateProjectionMatrix();
     }
     resize();
     window.addEventListener("resize", resize, { passive: true });
+    if (typeof ResizeObserver === "function") {
+      var ro = new ResizeObserver(resize);
+      ro.observe(canvas.parentElement || canvas);
+    }
 
     window.addEventListener("pointermove", function (e) {
-      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+      var s = frameSize();
+      if (s.r.width < 1) return;
+      pointer.x = ((e.clientX - s.r.left) / s.r.width) * 2 - 1;
+      pointer.y = ((e.clientY - s.r.top) / s.r.height) * 2 - 1;
     }, { passive: true });
 
     window.addEventListener("scroll", function () {
@@ -163,13 +180,12 @@
       var dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       var t = now * 0.001;
-      if (mat.userData && mat.userData.uTime) mat.userData.uTime.value = t;
-      group.rotation.y += dt * 0.22 + pointer.x * dt * 0.35;
-      group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, pointer.y * 0.28 + scroll * 0.6, 0.06);
-      ring.rotation.z = t * 0.18 + scroll * 1.2;
-      orb.rotation.y = t * 0.12;
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, pointer.x * 0.22, 0.06);
-      camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0.15 - pointer.y * 0.16, 0.06);
+      group.rotation.y += dt * 0.18 + pointer.x * dt * 0.28;
+      group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, pointer.y * 0.22 + scroll * 0.35, 0.06);
+      ringA.rotation.z = t * 0.14;
+      ringB.rotation.z = -t * 0.1;
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, pointer.x * 0.18, 0.06);
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0.08 - pointer.y * 0.12, 0.06);
       camera.lookAt(0, 0, 0);
       renderer.render(scene, camera);
       raf = requestAnimationFrame(tick);
@@ -177,29 +193,10 @@
     raf = requestAnimationFrame(tick);
   }
 
-  function hookDisplace(THREE, mat) {
-    mat.userData.uTime = { value: 0 };
-    mat.onBeforeCompile = function (shader) {
-      shader.uniforms.uTime = mat.userData.uTime;
-      shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", "#include <common>\nuniform float uTime;")
-        .replace(
-          "#include <begin_vertex>",
-          [
-            "#include <begin_vertex>",
-            "vec3 nrm = normalize(position);",
-            "float n = sin(dot(nrm, vec3(1.7, 2.2, 1.1)) * 3.2 + uTime * 0.7);",
-            "n += 0.5 * sin(dot(nrm, vec3(2.4, 0.6, 1.8)) * 5.1 - uTime * 0.45);",
-            "transformed += nrm * n * 0.13;",
-          ].join("\n")
-        );
-    };
-  }
-
   function bakeStudio(THREE, renderer) {
     try {
       var studio = new THREE.Scene();
-      studio.background = new THREE.Color(0x070b12);
+      studio.background = new THREE.Color(0x0a0e14);
       function panel(color, w, h, pos, rot) {
         var m = new THREE.Mesh(
           new THREE.PlaneGeometry(w, h),
@@ -210,14 +207,14 @@
         studio.add(m);
       }
       // Colored softboxes only — no sky dome, no stars.
-      panel(0x7ee0ff, 8, 8, new THREE.Vector3(-5.5, 2.2, 1.2), { y: Math.PI / 2 });
-      panel(0xe8f4ff, 6, 4, new THREE.Vector3(5.2, 1.6, 0.4), { y: -Math.PI / 2 });
-      panel(0xffb84d, 5, 3, new THREE.Vector3(2.4, -3.4, 2.0), { x: Math.PI / 2 });
-      panel(0xf6fbff, 7, 4, new THREE.Vector3(0, 5.0, 0.2), { x: -Math.PI / 2 });
-      panel(0x1a2630, 10, 10, new THREE.Vector3(0, 0, -6), null);
-      panel(0x9ad8ea, 1.4, 8, new THREE.Vector3(0.6, 1.0, 5.4), { y: Math.PI });
+      panel(0xf4fbff, 6, 4, new THREE.Vector3(4.6, 2.4, 1.2), { y: -Math.PI / 2 });
+      panel(0x7ee0ff, 5, 6, new THREE.Vector3(-5.0, 1.4, 0.8), { y: Math.PI / 2 });
+      panel(0xffb84d, 4, 2.4, new THREE.Vector3(1.6, -3.2, 1.8), { x: Math.PI / 2 });
+      panel(0xffffff, 6, 3, new THREE.Vector3(0, 5.0, 0.4), { x: -Math.PI / 2 });
+      panel(0x151c24, 10, 10, new THREE.Vector3(0, 0, -6), null);
+      panel(0xd7e8f0, 1.1, 6, new THREE.Vector3(0.4, 1.2, 5.2), { y: Math.PI });
       var pmrem = new THREE.PMREMGenerator(renderer);
-      var tex = pmrem.fromScene(studio, 0.04).texture;
+      var tex = pmrem.fromScene(studio, 0.05).texture;
       pmrem.dispose();
       return tex;
     } catch (err) {

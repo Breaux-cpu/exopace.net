@@ -3,10 +3,8 @@ html,
 body {
   background-color: #04070d;
   background-image:
-    radial-gradient(90% 70% at 78% 28%, rgba(126, 224, 255, 0.14), transparent 58%),
-    radial-gradient(70% 55% at 8% 92%, rgba(255, 184, 77, 0.1), transparent 52%),
-    radial-gradient(50% 40% at 50% 0%, rgba(198, 216, 226, 0.07), transparent 60%),
-    linear-gradient(180deg, #071019 0%, #04070d 42%, #05080f 100%);
+    radial-gradient(70% 50% at 100% 0%, rgba(126, 224, 255, 0.05), transparent 58%),
+    linear-gradient(180deg, #060a10 0%, #04070d 38%, #04070d 100%);
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
@@ -97,13 +95,11 @@ button.b,
   min-height: var(--exo-bar-h);
   margin: 0;
   padding: calc(6px + env(safe-area-inset-top)) 12px 6px;
-  background:
-    linear-gradient(180deg, rgba(232, 244, 250, 0.1), rgba(8, 14, 22, 0.55) 38%, rgba(4, 7, 13, 0.82)),
-    rgba(6, 10, 16, 0.72);
-  border-bottom: 1px solid rgba(198, 216, 226, 0.22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 40px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  background: rgba(4, 7, 13, 0.9);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
   color: var(--exo-text);
   font-family: var(--exo-sans);
   font-size: var(--exo-text-sm);
@@ -117,20 +113,23 @@ button.b,
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  margin-right: 8px;
+  padding: 0 12px 0 0;
+  border: 0;
+  border-right: 1px solid rgba(198, 216, 226, 0.16);
+  border-radius: 0;
   color: var(--exo-amber);
   font-family: var(--exo-mono);
   font-weight: 600;
   font-size: 0.8125rem;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.16em;
   text-decoration: none;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background-image: linear-gradient(180deg, #fff6e4 0%, #ffb84d 48%, #c4842a 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 12px rgba(255, 184, 77, 0.28));
+  background: none;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: var(--exo-amber);
+  filter: none;
 }
 
 .exo-sites {
@@ -183,12 +182,19 @@ button.b,
   text-transform: none;
 }
 
-.exo-sites a:hover,
+.exo-sites a:hover {
+  color: var(--exo-text);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
 .exo-sites a[aria-current="page"] {
-  color: var(--exo-cyan);
-  border-color: rgba(198, 216, 226, 0.55);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(126, 224, 255, 0.06));
-  box-shadow: var(--exo-metal-edge);
+  color: var(--exo-text);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--exo-cyan);
+  border-radius: 0;
 }
 
 .exo-sites a:focus-visible,
@@ -484,15 +490,15 @@ body:has(#decode) .exo-clock {
     min-height: 44px !important;
     border-radius: 10px !important;
     border: 1px solid rgba(126, 224, 255, 0.24) !important;
-    background-color: rgba(10, 18, 30, 0.72) !important;
+    background-color: rgba(8, 14, 22, 0.92) !important;
     background-image: none !important;
     color: #f0f6fc !important;
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 13px !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
-    box-shadow: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
@@ -512,15 +518,15 @@ body:has(#decode) .exo-clock {
     min-height: 44px !important;
     border-radius: 10px !important;
     border: 1px solid rgba(126, 224, 255, 0.24) !important;
-    background-color: rgba(10, 18, 30, 0.72) !important;
+    background-color: rgba(8, 14, 22, 0.92) !important;
     background-image: none !important;
     color: #f0f6fc !important;
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 13px !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
-    box-shadow: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     transition: color 150ms, border-color 150ms, background-color 150ms !important;
   }
 
@@ -541,12 +547,12 @@ body:has(#decode) .exo-clock {
 
   html body:not(:has(#boot-void)) :is(.card, .exo-card, .exo-panel, .sn-card, .fm-dock, .sheet, .w, .exo-cmd__panel, .exo-slab) {
     border-radius: 16px !important;
-    background-color: rgba(8, 14, 22, 0.62) !important;
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(126, 224, 255, 0.03) 36%, rgba(0, 0, 0, 0.18)) !important;
-    border: 1px solid rgba(198, 216, 226, 0.2) !important;
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(0, 0, 0, 0.35), 0 16px 40px rgba(0, 0, 0, 0.28) !important;
+    background-color: rgba(7, 12, 18, 0.86) !important;
+    background-image: none !important;
+    border: 1px solid rgba(198, 216, 226, 0.14) !important;
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.28) !important;
   }
 
   html body:not(:has(#boot-void)) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="color"]) {
@@ -682,9 +688,9 @@ nav.exo-tabs > a[data-ws] {
 }
 
 
-/* —— Hard-coded 2026 shell: studio chrome, glass, 3D stage. No starfields. —— */
+/* —— Hard-coded 2026 shell: framed studio artifact, typographic deck. No starfields. —— */
 .exo-scene {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   width: 100%;
@@ -713,31 +719,101 @@ body.exo-stage > .sn-sheet {
   z-index: 40;
 }
 
+/* Sentinel / app pages must not wear the artifact as wallpaper. */
+body:has(.sn-main) > canvas.exo-scene,
+body:has(.sn-main) > .exo-scene-fallback,
+body:has(#decode) > canvas.exo-scene,
+body:has(.fm-body) > canvas.exo-scene,
+body:has(.cam-stage) > canvas.exo-scene,
+body:has(#composer) > canvas.exo-scene,
+body:has(#boot-void) > canvas.exo-scene {
+  display: none !important;
+}
+
 .exo-scene-fallback {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background: #070b12;
+}
+
+.exo-plinth {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  aspect-ratio: 1 / 1;
+  justify-self: end;
+  overflow: hidden;
+  border-radius: 16px;
   background:
-    radial-gradient(50% 45% at 62% 38%, rgba(180, 210, 220, 0.16), transparent 58%),
-    radial-gradient(40% 36% at 30% 70%, rgba(126, 224, 255, 0.1), transparent 60%),
-    radial-gradient(28% 24% at 78% 72%, rgba(255, 184, 77, 0.1), transparent 62%);
+    radial-gradient(120% 80% at 35% 20%, rgba(186, 214, 226, 0.1), transparent 42%),
+    radial-gradient(80% 60% at 80% 90%, rgba(255, 184, 77, 0.08), transparent 50%),
+    #070b12;
+  border: 1px solid rgba(198, 216, 226, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    0 40px 80px rgba(0, 0, 0, 0.45);
+}
+
+.exo-plinth .exo-scene,
+.exo-plinth .exo-scene-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* CSS stand-in when WebGL or motion is off: a still chrome body in the same frame. */
+.exo-plinth .exo-scene-fallback {
+  background:
+    radial-gradient(ellipse 70% 30% at 50% 82%, rgba(0, 0, 0, 0.55), transparent 70%),
+    #070b12;
+  perspective: 720px;
+}
+.exo-fallback-body {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 44%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #ffffff 0 3%, #d7e4ee 16%, #7c909c 40%, #1c262e 64%, #0a0e12 80%);
+  box-shadow:
+    0 28px 36px rgba(0, 0, 0, 0.5),
+    inset -14px -18px 28px rgba(0, 0, 0, 0.35),
+    inset 8px 10px 18px rgba(255, 255, 255, 0.12);
+}
+.exo-fallback-ring {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 70%;
+  aspect-ratio: 2.6 / 1;
+  transform: translate(-50%, -50%) rotateX(66deg);
+  border: 3px solid rgba(210, 226, 234, 0.7);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
 }
 
 .exo-foot {
   margin-top: auto;
-  padding: 22px 16px calc(22px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(198, 216, 226, 0.16);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(4, 7, 13, 0.7));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(198, 216, 226, 0.1);
+  background: transparent;
+  box-shadow: none;
 }
 
 .exo-foot nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  max-width: 960px;
+  gap: 4px 8px;
+  max-width: 1180px;
   margin: 0 auto;
 }
 
@@ -747,12 +823,13 @@ body.exo-stage > .sn-sheet {
   justify-content: center;
   min-height: 44px;
   min-width: 44px;
-  padding: 0 14px;
+  padding: 0 12px;
   color: var(--exo-muted);
-  font-family: var(--exo-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--exo-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
   text-decoration: none;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -760,72 +837,82 @@ body.exo-stage > .sn-sheet {
 
 .exo-foot a:hover,
 .exo-foot a[aria-current="page"] {
-  color: var(--exo-cyan);
-  border-color: rgba(198, 216, 226, 0.35);
+  color: var(--exo-text);
+  border-color: transparent;
 }
 
 .exo-foot p {
-  max-width: 960px;
-  margin: 10px auto 0;
+  max-width: 1180px;
+  margin: 8px auto 0;
   color: var(--exo-muted);
-  font-family: var(--exo-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-family: var(--exo-sans);
+  font-size: 12px;
+  letter-spacing: 0.02em;
 }
 
 .exo-hero {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: calc(100svh - var(--exo-bar-h) - 52px);
-  padding: 28px 16px 48px;
-  max-width: 860px;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1180px;
   margin: 0 auto;
+  padding: 48px 28px 72px;
+  min-height: calc(100svh - var(--exo-bar-h) - 52px);
 }
 
-/* Opaque plate under title/lead so type never sits on bright chrome. */
+.exo-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: 48px 64px;
+  align-items: center;
+  margin: 0 0 48px;
+}
+
 .exo-hero-copy {
   position: relative;
   z-index: 1;
-  max-width: 38rem;
-  margin: 0 0 28px;
-  padding: 18px 20px 20px;
-  border-radius: 16px;
-  background: rgba(4, 7, 13, 0.94);
-  box-shadow: 0 0 0 1px rgba(4, 7, 13, 0.8), 0 20px 48px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  max-width: 36rem;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .exo-kicker {
-  margin: 0 0 12px;
+  margin: 0 0 18px;
   color: var(--exo-cyan);
   font-family: var(--exo-mono);
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
 .exo-display {
-  margin: 0 0 16px;
-  color: #e8f4ff;
+  margin: 0 0 20px;
+  color: #f4f8fb;
   font-family: var(--exo-sans);
-  font-weight: 600;
-  font-size: clamp(2.4rem, 6vw, 4.6rem);
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-  background-image: linear-gradient(180deg, #f7fbff 0%, #d5e4ee 52%, #9be8ff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-weight: 300;
+  font-size: clamp(4rem, 10vw, 7.4rem);
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+  background: none;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: #f4f8fb;
 }
 
 .exo-lead {
-  max-width: 36rem;
+  max-width: 28rem;
   margin: 0;
-  color: #d7e0e4;
-  font-size: 1.05rem;
+  color: #c3d0d6;
+  font-family: var(--exo-sans);
+  font-size: 1.125rem;
+  font-weight: 400;
   line-height: 1.55;
 }
 
@@ -837,34 +924,126 @@ body.exo-stage > .sn-sheet {
 
 .exo-slab-list {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .exo-slab {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  min-height: 52px;
-  padding: 12px 16px;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 104px;
+  padding: 20px 22px;
   font-family: var(--exo-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--exo-text);
 }
 
 .exo-slab .sys-k,
 .exo-k {
-  color: var(--exo-amber);
-  letter-spacing: 0.12em;
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.exo-slab a {
+  color: var(--exo-cyan);
+  text-decoration: none;
+}
+
+.exo-slab a:hover {
+  color: var(--exo-text);
+}
+
+.exo-slab:last-child {
+  grid-column: 1 / -1;
+}
+
+main.miss.exo-hero,
+.miss.exo-hero {
+  display: block;
+  align-items: stretch;
+  justify-content: flex-start;
+  letter-spacing: normal;
+  font-size: inherit;
+  text-align: left;
+  padding: 48px 28px 72px;
+}
+
+.miss-jumps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: none;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
 }
 
 .exo-pill {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(4, 7, 13, 0.82));
-  border-bottom: 1px solid rgba(198, 216, 226, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(4, 7, 13, 0.82);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.1);
+  box-shadow: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@media (max-width: 800px) {
+  .exo-hero,
+  main.miss.exo-hero,
+  .miss.exo-hero {
+    padding: 28px 16px 56px;
+    min-height: calc(100svh - var(--exo-bar-h) - 52px);
+  }
+
+  .exo-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin: 0 0 28px;
+  }
+
+  .exo-plinth {
+    max-width: none;
+    justify-self: stretch;
+    aspect-ratio: 16 / 11;
+  }
+
+  .exo-display {
+    font-size: clamp(3.4rem, 18vw, 5.2rem);
+  }
+
+  .exo-slab-list,
+  .miss-jumps {
+    grid-template-columns: 1fr;
+  }
+
+  .miss-jumps {
+    grid-template-columns: 1fr 1fr;
+  }
+  .miss-jumps a:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .exo-slab {
+    min-height: 88px;
+    padding: 16px 18px;
+  }
+
+  .exo-sites a {
+    padding: 0 8px;
+  }
+  .exo-brand {
+    letter-spacing: 0.1em;
+    margin-right: 4px;
+    padding-right: 8px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -874,4 +1053,113 @@ body.exo-stage > .sn-sheet {
   .exo-brand {
     filter: none;
   }
+}
+
+/* —— App decks: HUD chrome around existing canvases. Positions stay intact. —— */
+body:has(#decode) #decode {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+body:has(#decode) #decode > header h1,
+body:has(#decode) header:not(.exo-bar) h1 {
+  font-family: var(--exo-sans);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
+body:has(#decode) #decode h2,
+body:has(#decode) .card h2 {
+  font-family: var(--exo-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exo-muted);
+}
+
+body:has(#decode) audio#au,
+body:has(#decode) audio {
+  width: 100%;
+  margin-top: 10px;
+  accent-color: #7ee0ff;
+  color-scheme: dark;
+  background: #060b14;
+  border-radius: 10px;
+}
+
+body:has(#decode) #listen input,
+body:has(#decode) .card input[inputmode="decimal"] {
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+body:has(#decode) nav.exo-tabs {
+  padding: 6px 0 10px;
+}
+
+body:has(.fm-body) .fm-top {
+  background: rgba(4, 7, 13, 0.92);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body:has(.fm-body) .fm-dock h2 {
+  font-family: var(--exo-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exo-muted);
+}
+
+body:has(.fm-body) .fm-dock p,
+body:has(.fm-body) .fm-note {
+  color: var(--exo-muted);
+  font-family: var(--exo-sans);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+body:has(.fm-body) .fm-stage {
+  background: #070b10;
+  box-shadow: inset 1px 0 0 rgba(198, 216, 226, 0.1);
+}
+
+body:has(.cam-stage) .cam-status {
+  background: rgba(4, 7, 13, 0.92);
+  border-bottom: 1px solid rgba(198, 216, 226, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body:has(.cam-stage) .cam-stage {
+  background: #070b10;
+}
+
+body:has(#composer) #composer {
+  background: transparent;
+}
+
+body:has(#composer) .exo-comms + * {
+  /* keep mesh typography on the void, not a smear */
+}
+
+body:has(#boot-void) .hud .dossier,
+body:has(#boot-void) .hud .station,
+body:has(#boot-void) .hud .timebar {
+  background: rgba(6, 10, 16, 0.8);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid rgba(198, 216, 226, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+body:has(#boot-void) .hud .dossier,
+body:has(#boot-void) .hud .station {
+  border-radius: 16px;
 }

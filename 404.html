@@ -13,22 +13,12 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=optional"></noscript>
-    <link rel="stylesheet" href="/assets/exo-modern.css?v=11" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional"></noscript>
+    <link rel="stylesheet" href="/assets/exo-modern.css?v=13" />
     <style>
       html, body { margin: 0; min-height: 100%; color: var(--exo-cyan); }
       body { display: flex; flex-direction: column; }
-      .miss {
-        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        letter-spacing: 0.2em; font-size: 12px; text-align: center;
-        padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
-      }
-      .miss b { color: var(--exo-amber); letter-spacing: 0.34em; font-size: 13px; margin-bottom: 16px; }
-      .miss-jumps {
-        display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 10px; width: min(640px, 100%); margin-top: 28px; letter-spacing: 0.08em;
-      }
       .miss-jumps a {
         display: flex; align-items: center; justify-content: center; min-height: 44px;
         padding: 12px 14px; text-decoration: none;
@@ -37,7 +27,6 @@
     </style>
   </head>
   <body class="exo-stage">
-<canvas id="exo-scene" class="exo-scene" aria-hidden="true"></canvas>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -56,10 +45,15 @@
   <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
 </div>
     <main class="miss exo-hero" id="exo-main">
-      <div class="exo-hero-copy">
-      <p class="exo-kicker">404 · NO SUCH ROUTE</p>
-      <h1 class="exo-display">404</h1>
-      <p class="exo-lead">That path is not a surface on EXOpace. Open a live deck below.</p>
+      <div class="exo-hero-grid">
+        <div class="exo-hero-copy">
+          <p class="exo-kicker">404 · NO SUCH ROUTE</p>
+          <h1 class="exo-display">404</h1>
+          <p class="exo-lead">That path is not a surface on EXOpace. Open a live deck below.</p>
+        </div>
+        <div class="exo-plinth" aria-hidden="true">
+          <canvas id="exo-scene" class="exo-scene"></canvas>
+        </div>
       </div>
       <nav class="miss-jumps" aria-label="Open a surface">
         <a href="/mission/">Mission</a>
@@ -85,6 +79,6 @@
     <script src="/assets/exo-bus.js"></script>
     <script src="/assets/exo-state.js"></script>
     <script src="/assets/exo-cmd.js?v=1"></script>
-    <script src="/assets/exo-scene.js?v=1"></script>
+    <script src="/assets/exo-scene.js?v=3"></script>
   </body>
 </html>
