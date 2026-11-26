@@ -458,6 +458,26 @@ body:has(.fm-body) .exo-pill-actions > * {
   width: auto !important;
 }
 
+/* Short landscape collapses the generic pill to 0 and parks COPY/JUMP in a
+   bottom dock. Maps keeps those actions in the ticker, so leave the ticker
+   standing or they paint over System, GO, and Zoom in. */
+@media (max-height: 500px) {
+  body:has(.fm-body) { --exo-pill-h: 44px; }
+  body:has(.fm-body):not(:has(#composer)) {
+    --exo-dock-h: 0px;
+    padding-bottom: var(--exo-sab, 0px);
+  }
+  body:has(.fm-body):not(:has(#composer)) .exo-pill {
+    height: var(--exo-pill-h);
+    min-height: var(--exo-pill-h);
+    max-height: var(--exo-pill-h);
+    overflow: hidden;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--exo-line);
+    background: rgba(4, 7, 13, 0.82);
+  }
+}
+
 /* Footer sits above the phone action dock so typographic pages can scroll
    the last rows (System status, 404 jumps) into view. */
 @media (max-width: 719px) and (min-height: 501px) {

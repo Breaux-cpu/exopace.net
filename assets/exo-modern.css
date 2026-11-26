@@ -745,6 +745,41 @@ nav.exo-tabs > a[data-ws] {
   }
   .exo-sites::after { flex-basis: 0; content: none; }
 }
+/* System status must fit on a phone first paint: compact rows, short plinth, no lead. */
+@media (max-width: 719px) {
+  body:has(#sys-ble) .exo-hero {
+    padding: 10px 16px 12px;
+  }
+  body:has(#sys-ble) .exo-hero-grid {
+    gap: 8px;
+    margin: 0 0 8px;
+  }
+  body:has(#sys-ble) .exo-kicker { margin: 0 0 2px; }
+  body:has(#sys-ble) .exo-display {
+    font-size: clamp(2rem, 10vw, 2.6rem);
+    line-height: 1;
+    margin: 0;
+  }
+  body:has(#sys-ble) .exo-lead { display: none; }
+  body:has(#sys-ble) .exo-plinth {
+    max-height: 80px;
+    aspect-ratio: 16 / 5;
+  }
+  body:has(#sys-ble) .exo-slab-list { gap: 6px; }
+  body:has(#sys-ble) .exo-slab.sys-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 6px 12px;
+    gap: 12px;
+  }
+  body:has(#sys-ble) .exo-slab.sys-row .exo-btn {
+    flex: none;
+    margin: 0;
+  }
+}
+
 @media (max-width: 430px) {
   .exo-bar { padding-left: 10px; padding-right: 8px; gap: 8px; }
   .exo-brand {

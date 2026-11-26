@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-layout.css?v=5" data-exo-layout="1" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=6" data-exo-layout="1" />
   <script src="/assets/exo-layout.js?v=5"></script>
   <style>
     :root { color-scheme: dark; }
@@ -175,9 +175,22 @@
       .cam-sheet { flex: 0 0 auto; }
       .cam-sheet .exo-sheet-body { overflow: visible; }
     }
+
+    #cam-toast {
+      position: fixed; z-index: 10000; left: 50%; top: calc(12px + var(--exo-sat, env(safe-area-inset-top, 0px)));
+      transform: translateX(-50%);
+      max-width: min(92vw, 360px); padding: 10px 16px; border-radius: 12px;
+      background: rgba(6, 10, 16, 0.94); color: #e8f0f4;
+      border: 1px solid rgba(126, 224, 255, 0.4);
+      font: 600 12px/1.2 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.12em;
+      text-transform: uppercase; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+    }
+    #cam-toast[hidden] { display: none; }
   </style>
 </head>
 <body data-cam-state="loading">
+<div id="cam-toast" role="status" aria-live="polite" hidden></div>
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -269,6 +282,17 @@
       setTimeout(function () { if (Date.now() >= flashUntil) countEl.textContent = baseCount; }, 2600);
     }
 
+    var toastUntil = 0;
+    function toast(t) {
+      flash(t);
+      var el = document.getElementById("cam-toast");
+      if (!el) return;
+      el.textContent = t;
+      el.hidden = false;
+      toastUntil = Date.now() + 2500;
+      setTimeout(function () { if (Date.now() >= toastUntil) el.hidden = true; }, 2600);
+    }
+
     /* Keep an open camera clear of the thumb bar and the map credits: measure them. */
     function popPad() {
       const phone = matchMedia("(max-width: 719px) and (min-height: 501px)").matches;
@@ -307,6 +331,8 @@
     function stopPlayer() {
       if (!player) return;
       clearTimeout(player.timer);
+      if (player.hangTimer) clearTimeout(player.hangTimer);
+      if (player.objectUrl) { try { URL.revokeObjectURL(player.objectUrl); } catch (err) {} player.objectUrl = ""; }
       if (player.hls) { try { player.hls.destroy(); } catch (err) {} }
       if (player.video) { try { player.video.pause(); player.video.removeAttribute("src"); player.video.load(); } catch (err) {} }
       player.dead = true;
@@ -319,6 +345,11 @@
       msg.innerHTML = "<b>" + esc(title) + "</b>" + (text ? "<span>" + esc(text) + "</span>" : "") + (extra || "");
     }
 
+    const PLAY_WAIT_MS = 8000;
+    function notAnswering(box, detail) {
+      say(box, "error", "NOT ANSWERING", detail || "This camera did not start in time.", '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
+    }
+
     function stillLoop(box, me, src, every) {
       let img = box.querySelector("img");
       if (!img) {
@@ -327,21 +358,60 @@
         img.decoding = "async";
         box.insertBefore(img, box.firstChild);
       }
-      const tick = function () {
+      const tick = async function () {
         if (me.dead) return;
-        const url = new URL(src);
-        url.searchParams.set("t", String(Date.now()));
-        img.onload = function () {
+        let href = String(src || "");
+        try {
+          const url = new URL(href, location.href);
+          url.searchParams.set("t", String(Date.now()));
+          href = url.href;
+        } catch (err) {
+          notAnswering(box, "This camera has no picture to show.");
+          return;
+        }
+        if (me.hangTimer) clearTimeout(me.hangTimer);
+        me.hangTimer = setTimeout(function () { if (!me.dead) notAnswering(box, "This camera did not return a picture in time."); }, PLAY_WAIT_MS);
+        const shown = function () {
           if (me.dead) return;
+          if (me.hangTimer) clearTimeout(me.hangTimer);
           box.dataset.state = "playing";
           box.querySelector(".cam-live").textContent = "STILL · EVERY " + (every >= 60 ? Math.round(every / 60) + " MIN" : every + " S");
           me.timer = setTimeout(tick, Math.max(10, every) * 1000);
         };
-        img.onerror = function () {
+        const failPic = function () {
           if (me.dead) return;
-          say(box, "error", "NO PICTURE", "The camera's publisher did not return an image just now.", '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
+          if (me.hangTimer) clearTimeout(me.hangTimer);
+          notAnswering(box, "The camera's publisher did not return a picture in time.");
         };
-        img.src = url.href;
+        const camsHost = href.indexOf(CAMS + "/") === 0;
+        if (!camsHost) {
+          img.onload = shown;
+          img.onerror = failPic;
+          img.src = href;
+          return;
+        }
+        try {
+          const ctl = new AbortController();
+          const stop = setTimeout(function () { ctl.abort(); }, PLAY_WAIT_MS);
+          const res = await fetch(href, { credentials: "include", cache: "no-store", signal: ctl.signal });
+          clearTimeout(stop);
+          if (me.dead) return;
+          const type = (res.headers.get("content-type") || "").toLowerCase();
+          if (!res.ok || (type && type.indexOf("image/") !== 0 && type.indexOf("octet-stream") < 0)) {
+            failPic();
+            return;
+          }
+          const blob = await res.blob();
+          if (me.dead) return;
+          if (me.objectUrl) { try { URL.revokeObjectURL(me.objectUrl); } catch (err) {} }
+          me.objectUrl = URL.createObjectURL(blob);
+          img.onload = shown;
+          img.onerror = failPic;
+          img.src = me.objectUrl;
+        } catch (err) {
+          if (me.dead) return;
+          failPic();
+        }
       };
       tick();
     }
@@ -363,12 +433,24 @@
       video.setAttribute("playsinline", "");
       box.insertBefore(video, box.firstChild);
       me.video = video;
-      video.addEventListener("playing", function () { if (!me.dead) { box.dataset.state = "playing"; box.querySelector(".cam-live").textContent = "LIVE"; } });
-      const fail = function (why) { if (!me.dead) say(box, "error", "STREAM DID NOT PLAY", why, '<button type="button" class="exo-btn cam-retry-one">RETRY</button>'); };
+      const fail = function (why) {
+        if (me.hangTimer) clearTimeout(me.hangTimer);
+        if (!me.dead) say(box, "error", "NOT ANSWERING", why, '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
+      };
+      video.addEventListener("playing", function () {
+        if (me.dead) return;
+        if (me.hangTimer) clearTimeout(me.hangTimer);
+        box.dataset.state = "playing";
+        box.querySelector(".cam-live").textContent = "LIVE";
+      });
+      if (me.hangTimer) clearTimeout(me.hangTimer);
+      me.hangTimer = setTimeout(function () {
+        if (!me.dead && box.dataset.state === "loading") fail("This camera is not answering. Try again.");
+      }, PLAY_WAIT_MS);
       const Hls = window.MediaSource || window.ManagedMediaSource ? await loadHlsLib().catch(function () { return null; }) : null;
       if (me.dead) return;
       if (Hls && Hls.isSupported()) {
-        const hls = new Hls({ xhrSetup: function (xhr) { xhr.withCredentials = true; }, lowLatencyMode: false, maxBufferLength: 10 });
+        const hls = new Hls({ xhrSetup: function (xhr) { xhr.withCredentials = true; }, lowLatencyMode: false, maxBufferLength: 10, manifestLoadingTimeOut: PLAY_WAIT_MS, manifestLoadingMaxRetry: 1, levelLoadingTimeOut: PLAY_WAIT_MS });
         me.hls = hls;
         hls.on(Hls.Events.ERROR, function (_e, data) { if (data && data.fatal) fail("The publisher's stream answered with an error (" + (data.response && data.response.code ? "HTTP " + data.response.code : data.details) + ")."); });
         hls.loadSource(src);
@@ -404,10 +486,18 @@
       let body = null;
       try { body = await res.json(); } catch (err) {}
       if (me.dead) return;
-      const path = body && typeof body.play_path === "string" && body.play_path.startsWith("/api/cameras/") ? body.play_path : "";
-      if (!path) { say(box, "error", "NO PICTURE", "This camera has no picture to show."); return; }
-      if (/\/hls$/.test(path)) playHls(box, me, CAMS + path);
-      else stillLoop(box, me, CAMS + path, Number(props.refresh_s) || 60);
+      const raw = body && typeof body === "object"
+        ? [body.play_path, body.url, body.href, body.src, body.path].find(function (x) { return typeof x === "string" && x; }) || ""
+        : "";
+      let src = "";
+      if (/^https:\/\/cams\.exopace\.net\//i.test(raw)) src = raw;
+      else if (raw.indexOf("/api/cameras/") === 0) src = CAMS + raw;
+      if (!src) { say(box, "error", "NO PICTURE", "This camera has no picture to show."); return; }
+      const kind = String((body && (body.type || body.kind || body.format || body.media)) || "");
+      const hls = /\/hls\/?(\?|$)/i.test(src) || /\.m3u8(\?|$)/i.test(src)
+        || (/hls|mpegurl|stream/i.test(kind) && !/image|jpeg|jpg|png|still/i.test(kind));
+      if (hls) playHls(box, me, src);
+      else stillLoop(box, me, src, Number(props.refresh_s) || 60);
     }
 
     function startPlayer(marker, root) {
@@ -518,7 +608,17 @@
         html += '<div class="cam-player" data-state="loading"><div class="cam-msg" role="status"><b>LOADING</b></div><span class="cam-live">LIVE</span>' + credit + "</div>";
 
         let acts = "";
-        if (play.type === "cams") acts += '<a class="exo-btn" href="' + esc(CAMS + "/map") + '" target="_blank" rel="noopener">OPEN IN CAMS</a>';
+        if (play.type === "cams") {
+          let camsHref = CAMS + "/map";
+          const q = [];
+          if (id) q.push("camera=" + encodeURIComponent(id));
+          if (coords && Number.isFinite(Number(coords[1])) && Number.isFinite(Number(coords[0]))) {
+            q.push("lat=" + Number(coords[1]).toFixed(5));
+            q.push("lon=" + Number(coords[0]).toFixed(5));
+          }
+          if (q.length) camsHref += "?" + q.join("&");
+          acts += '<a class="exo-btn" href="' + esc(camsHref) + '" target="_blank" rel="noopener">OPEN IN CAMS</a>';
+        }
         if (id) acts += '<button type="button" class="exo-btn cam-copy" data-id="' + esc(id) + '">COPY LINK</button>';
         if (acts) html += '<div class="cam-pop-actions">' + acts + "</div>";
         marker.bindPopup(html, { autoPanPaddingTopLeft: pad.tl, autoPanPaddingBottomRight: pad.br, maxWidth: 280 });
@@ -615,17 +715,17 @@
     async function copyLink() {
       const marker = markers[cursor] || markers.find((m) => m.isPopupOpen && m.isPopupOpen());
       const id = marker && marker.camId;
-      if (!id) { flash("PICK A CAMERA"); return; }
+      if (!id) { toast("PICK A CAMERA"); return; }
       const text = shareUrl(marker);
       try {
-        if (navigator.share && matchMedia("(pointer: coarse)").matches) { await navigator.share({ title: marker.camName, url: text }); flash("SHARED"); return; }
+        if (navigator.share && matchMedia("(pointer: coarse)").matches) { await navigator.share({ title: marker.camName, url: text }); toast("SHARED"); return; }
       } catch (err) { if (err && err.name === "AbortError") return; }
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
         else throw new Error("no clipboard");
-        flash("LINK COPIED");
+        toast("LINK COPIED");
       } catch (err) {
-        flash("COPY FAILED");
+        toast("COPY FAILED");
       }
     }
 

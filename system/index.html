@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=optional" /></noscript>
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=15" />
-  <link rel="stylesheet" href="/assets/exo-layout.css?v=5" data-exo-layout="1" />
+  <link rel="stylesheet" href="/assets/exo-modern.css?v=16" />
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=6" data-exo-layout="1" />
   <style>
     body { margin: 0; min-height: 100dvh; background: #04070D; color: #F0F6FC; }
     body { display: flex; flex-direction: column; }
@@ -61,7 +61,7 @@
     <p class="sys-row exo-slab"><span class="sys-k">TILE CACHE</span><span id="sys-cache">STANDBY</span></p>
     <p class="sys-row exo-slab"><span class="sys-k">EDGE</span><span id="sys-health">STANDBY</span></p>
     <p class="sys-row exo-slab"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">SIGN IN</span><a class="exo-btn" href="https://cams.exopace.net/account">Sign in with Google</a></p>
+    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">ACCOUNT</span><a class="exo-btn" id="sys-account" href="https://cams.exopace.net/account">Account (Google)</a></p>
   </div>
 </main>
 <footer class="exo-foot">
@@ -95,6 +95,24 @@
   fetch("https://cams.exopace.net/api/health").then(function (res) { return res.json(); }).then(function (body) {
     health.textContent = body && body.ok && body.mongo ? "ONLINE · MONGO" : "DEGRADED";
   }).catch(function () { health.textContent = "OFFLINE"; });
+  /* /api/me exists but signed-out 401/OPTIONS currently omit CORS (unlike /media and /api/health).
+     When vq adds Access-Control-Allow-Origin: https://exopace.net + Allow-Credentials on GET/OPTIONS
+     /api/me, including 401, and a signed-in body such as { ok: true, signedIn: true }, this flips
+     to "Signed in · Account" without another site change. No email or token is required or read. */
+  var account = document.getElementById("sys-account");
+  if (account) {
+    fetch("https://cams.exopace.net/api/me", { credentials: "include", cache: "no-store" }).then(function (res) {
+      return res.ok ? res.json() : null;
+    }).then(function (body) {
+      if (!body || typeof body !== "object") return;
+      var signed = body.ok === true || body.signedIn === true || body.authenticated === true
+        || typeof body.id === "string" || (body.user && typeof body.user === "object");
+      if (!signed) return;
+      account.textContent = "Signed in · Account";
+      var k = document.getElementById("sys-account-k");
+      if (k) k.textContent = "ACCOUNT";
+    }).catch(function () {});
+  }
   function paint(row) {
     if (!row || !row.label) { target.textContent = "NO TARGET"; return; }
     target.textContent = row.label + (row.norad ? " · " + row.norad : "");
