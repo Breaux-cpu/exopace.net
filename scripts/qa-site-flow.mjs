@@ -4,6 +4,7 @@
  */
 import fs from "node:fs";
 import http from "node:http";
+import https from "node:https";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -75,16 +76,25 @@ function classifyHref(raw, baseUrl) {
   return { kind: "internal", href: url.href, path: url.pathname, hash: url.hash, url };
 }
 
-function get(url) {
+function get(url, hops = 0) {
   return new Promise((resolve, reject) => {
-    const req = http.get(url, { timeout: 15000 }, (res) => {
+    let parsed;
+    try { parsed = new URL(url); } catch (err) { reject(err); return; }
+    const lib = parsed.protocol === "https:" ? https : http;
+    const req = lib.get(url, { timeout: 15000 }, (res) => {
+      const status = res.statusCode || 0;
+      if (status >= 300 && status < 400 && res.headers.location && hops < 5) {
+        res.resume();
+        get(new URL(res.headers.location, url).href, hops + 1).then(resolve, reject);
+        return;
+      }
       const chunks = [];
       res.on("data", (c) => chunks.push(c));
       res.on("end", () => resolve({
-        status: res.statusCode || 0,
+        status,
         headers: res.headers,
         body: Buffer.concat(chunks).toString("utf8"),
-        finalUrl: res.headers.location ? new URL(res.headers.location, url).href : url,
+        finalUrl: url,
       }));
     });
     req.on("error", reject);

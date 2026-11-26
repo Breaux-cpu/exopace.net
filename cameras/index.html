@@ -221,7 +221,10 @@
       <div class="cam-empty" id="cam-empty" role="status">
         <b id="cam-empty-title">NO CAMERAS IN VIEW</b>
         <span id="cam-empty-text">Pan or zoom out to look somewhere else.</span>
-        <div><button class="exo-btn" type="button" id="cam-retry">RETRY</button></div>
+        <div>
+          <button class="exo-btn" type="button" id="cam-retry">RETRY</button>
+          <button class="exo-btn" type="button" id="cam-search-all" hidden>SEARCH ALL</button>
+        </div>
       </div>
       <div class="cam-actions" role="toolbar" aria-label="Camera controls">
         <button class="exo-btn" type="button" id="locate">LOCATE</button>
@@ -252,15 +255,16 @@
     const listEl = document.getElementById("cam-list");
     const listNote = document.getElementById("cam-list-note");
     const LIST_MAX = 150;
-    const map = L.map("map", { zoomControl: false, worldCopyJump: true }).setView([39.5, -98.3], 4);
+    const map = L.map("map", { zoomControl: false, worldCopyJump: true, maxZoom: 16 }).setView([39.5, -98.3], 4);
     L.control.zoom({ position: "topright" }).addTo(map);
-    // CARTO basemaps now return "API key required" tiles. Esri's dark canvas is keyless with attribution.
+    // CARTO basemaps now return "API key required" tiles. Esri's dark canvas is keyless
+    // with attribution, but past zoom 16 it answers with a blank light-gray tile (HTTP 200).
     const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
     L.tileLayer(ESRI + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Esri, HERE, Garmin, &copy; OpenStreetMap contributors",
-      maxNativeZoom: 16, maxZoom: 19
+      maxNativeZoom: 16, maxZoom: 16
     }).addTo(map);
-    L.tileLayer(ESRI + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 16, maxZoom: 19 }).addTo(map);
+    L.tileLayer(ESRI + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 16, maxZoom: 16 }).addTo(map);
     const layer = L.layerGroup().addTo(map);
     let timer = 0;
     let seq = 0;
@@ -630,8 +634,10 @@
       const clipped = features.length >= 800;
       drawnCount = shown.length + (q ? " / " + features.length : "") + " IN VIEW" + (clipped ? " · ZOOM FOR MORE" : "");
       setCount(drawnCount);
+      const searchAllBtn = document.getElementById("cam-search-all");
+      if (searchAllBtn) searchAllBtn.hidden = !(q && !shown.length && features.length);
       if (!features.length) setState("empty", "NO CAMERAS IN VIEW", "The camera feed has no cameras here. Pan or zoom out to look somewhere else.");
-      else if (!shown.length) setState("empty", "NO MATCHES", "No camera in this view matches “" + q + "”.");
+      else if (!shown.length) setState("empty", "NO MATCHES", "No camera in this view matches “" + q + "”. Zoom in, or search all.");
       else setState("ready");
       if (keepId) {
         const again = markers.find((m) => m.camId === keepId);
@@ -656,9 +662,23 @@
       }
     }
 
-    async function load() {
+    /* Leaflet with worldCopyJump can report longitudes like 270 (same as -90).
+       Wrap them so the catalogue is queried for the place on screen, not an inverted box. */
+    function mapBbox() {
       const b = map.getBounds();
-      const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].map((n) => n.toFixed(4)).join(",");
+      let w = b.getWest(), s = b.getSouth(), e = b.getEast(), n = b.getNorth();
+      const span = e - w;
+      const wrap = function (lon) { while (lon > 180) lon -= 360; while (lon < -180) lon += 360; return lon; };
+      w = wrap(w); e = wrap(e);
+      if (span >= 359) { w = -180; e = 180; }
+      else if (w > e) { w = -180; e = 180; }
+      const padX = Math.max(Math.abs(e - w) * 0.02, 0.002);
+      const padY = Math.max((n - s) * 0.02, 0.002);
+      return [w - padX, Math.max(-90, s - padY), e + padX, Math.min(90, n + padY)].map((n) => n.toFixed(4)).join(",");
+    }
+
+    async function load() {
+      const bbox = mapBbox();
       const mine = ++seq;
       setCount("LOADING");
       try {
@@ -760,6 +780,13 @@
       }, function () { flash("LOCATION DENIED"); }, { timeout: 10000 });
     });
     document.getElementById("cam-q").addEventListener("input", function () { flashUntil = 0; draw(); });
+    document.getElementById("cam-q").addEventListener("keydown", function (event) {
+      if (event.key !== "Enter") return;
+      const q = (document.getElementById("cam-q").value || "").trim();
+      if (!q) return;
+      const searchAllBtn = document.getElementById("cam-search-all");
+      if (searchAllBtn && !searchAllBtn.hidden) { event.preventDefault(); searchCatalogue(q); }
+    });
     document.getElementById("cam-prev").addEventListener("click", function () { cycle(-1); });
     document.getElementById("cam-next").addEventListener("click", function () { cycle(1); });
     document.getElementById("cam-share").addEventListener("click", copyLink);
@@ -774,6 +801,67 @@
       if (document.visibilityState === "visible") retrySigninPlayers();
     });
     document.getElementById("cam-retry").addEventListener("click", load);
+    document.getElementById("cam-search-all").addEventListener("click", function () {
+      const q = (document.getElementById("cam-q").value || "").trim();
+      if (q) searchCatalogue(q);
+    });
+
+    async function searchCatalogue(q) {
+      setCount("SEARCHING");
+      try {
+        const res = await fetch("/api/cameras.geojson?q=" + encodeURIComponent(q) + "&max=50");
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        const hits = Array.isArray(data.features) ? data.features : [];
+        if (!hits.length) {
+          const searchAllBtn = document.getElementById("cam-search-all");
+          if (searchAllBtn) searchAllBtn.hidden = true;
+          setState("empty", "NO MATCHES", "No camera in the catalogue matches “" + q + "”.");
+          setCount("0 MATCHES");
+          return;
+        }
+        const pts = [];
+        for (let i = 0; i < hits.length; i++) {
+          const c = hits[i] && hits[i].geometry && hits[i].geometry.coordinates;
+          if (c && Number.isFinite(Number(c[1])) && Number.isFinite(Number(c[0]))) pts.push([Number(c[1]), Number(c[0])]);
+        }
+        if (!pts.length) { setState("empty", "NO MATCHES", "No camera in the catalogue matches “" + q + "”."); return; }
+        map.fitBounds(L.latLngBounds(pts).pad(0.25), { maxZoom: 13, animate: true });
+      } catch (err) {
+        setCount("FEED OFFLINE");
+        setState("error", "CAMERA FEED UNREACHABLE", "The camera list did not answer. Nothing is shown rather than a guess.");
+      }
+    }
+
+    function coordsFromRecord(data) {
+      if (!data || typeof data !== "object") return null;
+      const c = data.camera || data.properties || data;
+      const geo = (data.geometry && data.geometry.coordinates) || (c.geometry && c.geometry.coordinates) || c.coordinates;
+      const lat = Number(c.lat != null ? c.lat : (geo && geo[1]));
+      const lon = Number(c.lon != null ? c.lon : c.lng != null ? c.lng : (geo && geo[0]));
+      return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? [lat, lon] : null;
+    }
+
+    async function lookupCamCoords(id) {
+      try {
+        const res = await fetch("/api/cameras.geojson?id=" + encodeURIComponent(id) + "&max=5");
+        if (res.ok) {
+          const data = await res.json();
+          const feats = Array.isArray(data.features) ? data.features : [];
+          const hit = feats.find((f) => f && f.properties && f.properties.id === id) || feats[0];
+          const at = hit && coordsFromRecord(hit);
+          if (at) return at;
+        }
+      } catch (err) {}
+      try {
+        const res = await fetch(CAMS + "/api/cameras/" + encodeURIComponent(id), { credentials: "include" });
+        if (res.ok) {
+          const at = coordsFromRecord(await res.json());
+          if (at) return at;
+        }
+      } catch (err) {}
+      return null;
+    }
     listEl.addEventListener("click", function (event) {
       const b = event.target.closest("button[data-i]");
       if (!b) return;
@@ -811,9 +899,19 @@
       if (event.key === "]" || event.key === "n") { event.preventDefault(); cycle(1); }
       else if (event.key === "[" || event.key === "p") { event.preventDefault(); cycle(-1); }
     });
-    const startAt = camAt();
-    if (startAt) map.setView(startAt, 13);
-    load();
+    (async function startFromHash() {
+      const id = camHash();
+      let at = camAt();
+      if (id && !at) {
+        at = await lookupCamCoords(id);
+        if (at) {
+          const next = "cam=" + encodeURIComponent(id) + "&at=" + at[0].toFixed(5) + "," + at[1].toFixed(5);
+          if ((location.hash || "").replace(/^#/, "") !== next) history.replaceState(null, "", "#" + next);
+        }
+      }
+      if (at) map.setView(at, 13);
+      load();
+    })();
   </script>
   <script src="/maps/mgrs.js"></script>
   <script src="/assets/exo-bus.js"></script>

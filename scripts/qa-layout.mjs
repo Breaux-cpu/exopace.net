@@ -152,6 +152,17 @@ async function openPath(page, base, meta) {
     if (window.EXO_LAYOUT && window.EXO_LAYOUT.publishDockHeight) window.EXO_LAYOUT.publishDockHeight();
   }).catch(() => {});
   await new Promise((r) => setTimeout(r, 250));
+  if (meta.boot) {
+    // Wait until compact Mission chrome is parked in the sheet so overlap
+    // is measured at rest, not while FLY/CINE still sit on the globe.
+    await page.waitForFunction(() => {
+      const compact = window.matchMedia("(max-width: 1099px), (max-height: 500px)").matches;
+      const strip = document.querySelector(".hud .camstrip, #mi-sheet .camstrip");
+      if (!compact) return !!strip || !!document.querySelector(".hud");
+      return !!(strip && strip.closest("#mi-sheet"));
+    }, { timeout: 8000 }).catch(() => {});
+    await new Promise((r) => setTimeout(r, 300));
+  }
 }
 
 async function checkOverlap(page) {

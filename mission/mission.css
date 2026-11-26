@@ -240,6 +240,11 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
    ===================================================================== */
 @media (max-width: 1099px), (max-height: 500px) {
   :root { --mi-thumb: 60px; }
+  /* Until mission.js parks these into #mi-sheet, keep them off the globe
+     so they cannot cover credits, the thumb bar, or each other on first paint. */
+  .hud .camstrip, .hud .timebar, .hud .layers, #exo-traffic, #exo-locate {
+    display: none !important;
+  }
   /* Thumb bar */
   #mi-thumb {
     position: absolute; z-index: 12;
@@ -301,10 +306,10 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
     background: rgba(14, 34, 44, 0.95) !important; border-color: rgba(126, 224, 255, 0.42) !important; color: var(--mi-cyan) !important;
   }
   #mi-sheet .timebar {
-    display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 3px !important;
+    display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px !important; padding: 3px !important;
     background: rgba(10, 18, 28, 0.9) !important;
   }
-  #mi-sheet .timebar .btn { min-width: 0 !important; padding: 0 !important; }
+  #mi-sheet .timebar .btn { min-width: 0 !important; padding: 0 !important; box-sizing: border-box; }
   #mi-sheet #exo-traffic { display: block !important; }
   #mi-sheet #exo-traffic-row { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px !important; padding: 0 !important; -webkit-mask-image: none !important; mask-image: none !important; overflow: visible !important; }
   #mi-sheet #exo-sea-caption { display: none !important; }
@@ -327,7 +332,7 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
     --mi-row1: var(--mi-g);
     --mi-row2: calc(var(--mi-g) + var(--mi-t) + var(--mi-s));
     --mi-b1: var(--mi-g);
-    --mi-b2: calc(var(--mi-b1) + var(--mi-thumb) + var(--mi-s));       /* just above the thumb bar */
+    --mi-b2: calc(var(--mi-b1) + var(--mi-thumb) + var(--mi-s) + 8px); /* clearance above the thumb bar */
     --mi-toast: calc(var(--mi-b2) + var(--mi-t) + 12px);
   }
   .hud .search { top: var(--mi-row1) !important; left: calc(var(--mi-g) + var(--mi-sl)) !important; right: calc(var(--mi-g) + 148px) !important; width: auto !important; }
@@ -357,7 +362,12 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
   body[data-mi-open] #exo-craft, body[data-mi-open] #exo-storm { display: none !important; }
   .hud:has(.station) .dossier { display: none !important; }
 
-  #globe .cesium-viewer-bottom { left: calc(var(--mi-g) + var(--mi-sl)) !important; bottom: var(--mi-b2) !important; }
+  #globe .cesium-viewer-bottom {
+    left: calc(var(--mi-g) + var(--mi-sl)) !important;
+    bottom: var(--mi-b2) !important;
+    width: auto;
+    max-width: calc(100% - (var(--mi-g) + var(--mi-sl)) - (var(--mi-g) + var(--mi-sr)) - 128px);
+  }
   #exo-install { left: auto !important; right: calc(var(--mi-g) + var(--mi-sr)) !important; transform: none !important; bottom: calc(var(--mi-b2) + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))) !important; }
   #exo-craft, #exo-storm { left: var(--mi-g) !important; right: var(--mi-g) !important; bottom: calc(var(--mi-b2) + var(--mi-t) + var(--mi-s)) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-b2) - var(--mi-t) - var(--mi-s)) !important; max-width: none !important; }
 }
