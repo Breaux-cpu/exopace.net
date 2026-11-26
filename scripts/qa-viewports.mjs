@@ -22,7 +22,7 @@ export const VIEWPORTS = [
 export const PAGES = [
   { name: "mission", path: "/mission/", boot: true },
   { name: "maps", path: "/maps/" },
-  { name: "cameras", path: "/cameras/" },
+  { name: "cameras", path: "/cameras/", allowRedirect: true, skipOverlap: true },
   { name: "radio", path: "/radio/" },
   { name: "mesh", path: "/mesh/" },
   { name: "sentinel", path: "/sentinel/" },

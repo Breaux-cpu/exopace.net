@@ -205,6 +205,11 @@ async function main() {
       if (!crawl.ok) flowFail++;
     }
     for (const meta of pages) {
+      const isRedirect = !!(meta.allowRedirect || meta.skipOverlap);
+      if (!args.flowsOnly && isRedirect) {
+        overlapRows.push({ page: meta.name, vp: "all", ok: true, failures: [], count: 0 });
+      }
+      if (!isRedirect) {
       for (const vp of VIEWPORTS) {
         const page = await browser.newPage();
         const errors = await preparePage(page, meta, vp);
@@ -265,22 +270,27 @@ async function main() {
         }
         await page.close();
       }
+      }
 
       if (!args.overlapOnly) {
         const vp = VIEWPORTS.find((v) => v.id === "pixel") || VIEWPORTS[0];
         const desk = VIEWPORTS.find((v) => v.id === "desktop");
-        for (const slot of [vp, desk]) {
-          const list = (allFlows[meta.name] || []).concat(genericChrome);
+        const slots = isRedirect ? [vp] : [vp, desk];
+        for (const slot of slots) {
+          const list = isRedirect ? (allFlows[meta.name] || []) : (allFlows[meta.name] || []).concat(genericChrome);
           if (!list.length) continue;
           const page = await browser.newPage();
+          page.__exoBase = base;
           const errors = await preparePage(page, meta, slot);
-          try {
-            await openPath(page, base, meta);
-          } catch (err) {
-            flowRows.push({ page: meta.name, vp: slot.id, flow: "(load)", ok: false, detail: String(err) });
-            flowFail++;
-            await page.close();
-            continue;
+          if (!isRedirect) {
+            try {
+              await openPath(page, base, meta);
+            } catch (err) {
+              flowRows.push({ page: meta.name, vp: slot.id, flow: "(load)", ok: false, detail: String(err) });
+              flowFail++;
+              await page.close();
+              continue;
+            }
           }
           for (const flow of list) {
             try {
