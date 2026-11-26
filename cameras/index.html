@@ -464,12 +464,12 @@
       markCurrent();
     }
 
-    let drawnKey = "";
+    let drawnKey = "", drawnCount = "";
     function draw() {
       // Autopan and small drags re-read the same cameras; keep the open player instead of rebuilding it.
       const qNow = (document.getElementById("cam-q").value || "").trim().toLowerCase();
       const key = qNow + "|" + features.map((f) => (f && f.properties && f.properties.id) || "").join(",");
-      if (key === drawnKey && markers.length) return;
+      if (key === drawnKey && markers.length) { setCount(drawnCount); return; }
       drawnKey = key;
       const prev = markers[cursor] || markers.find((m) => m.isPopupOpen && m.isPopupOpen());
       const keepId = prev ? prev.camId : "";
@@ -520,7 +520,8 @@
       }
       if (keep && markers.indexOf(keep) < 0) markers.push(keep);
       const clipped = features.length >= 800;
-      setCount(shown.length + (q ? " / " + features.length : "") + " IN VIEW" + (clipped ? " · ZOOM FOR MORE" : ""));
+      drawnCount = shown.length + (q ? " / " + features.length : "") + " IN VIEW" + (clipped ? " · ZOOM FOR MORE" : "");
+      setCount(drawnCount);
       if (!features.length) setState("empty", "NO CAMERAS IN VIEW", "The camera feed has no cameras here. Pan or zoom out to look somewhere else.");
       else if (!shown.length) setState("empty", "NO MATCHES", "No camera in this view matches “" + q + "”.");
       else setState("ready");

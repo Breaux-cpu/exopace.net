@@ -38,11 +38,16 @@ async function wire(page) {
 async function goTo(page, at) {
   await wire(page);
   const url = new URL(page.url());
+  url.search = "";  // earlier flows leave ?target=… from the shell bus; start each check clean
   url.hash = at ? "cam=pick&at=" + at : "";
   await page.goto(url.href, { waitUntil: "domcontentloaded" });
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.body.dataset.camState && document.body.dataset.camState !== "loading", { timeout: 30000 });
-  await sleep(600);
+  // A deployed catalogue answers slower; wait out the follow-up read after the first pan.
+  for (let settled = 0, i = 0; settled < 2 && i < 40; i++) {
+    await sleep(700);
+    settled = /^\d+/.test(await text(page, "#count").catch(() => "")) ? settled + 1 : 0;
+  }
 }
 
 /** Open the first camera with NEXT and wait for its player to settle. */
@@ -152,7 +157,8 @@ export const flows = {
       name: "search filters by name and shows NO MATCHES honestly",
       test: async (page) => {
         await goTo(page, HONGKONG);
-        const total = (await text(page, "#count")).match(/^(\d+)/);
+        let total = null, seen = "";
+        for (let i = 0; i < 30 && !total; i++) { seen = await text(page, "#count").catch(() => ""); total = seen.match(/^(\d+)/); if (!total) await sleep(500); }
         await page.click("#cam-q", { clickCount: 3 });
         await page.type("#cam-q", "road");
         const some = await text(page, "#count");
@@ -163,7 +169,7 @@ export const flows = {
         await page.click("#cam-q", { clickCount: 3 });
         await page.keyboard.press("Backspace");
         const back = await text(page, "#count");
-        return { ok: !!total && /^\d+ \/ \d+/.test(some) && none === "NO MATCHES" && card && /IN VIEW/.test(back), detail: `${some} → ${none} → ${back}` };
+        return { ok: !!total && /^\d+ \/ \d+/.test(some) && none === "NO MATCHES" && card && /IN VIEW/.test(back), detail: `${some} → ${none} → ${back}` + (total && card ? "" : ` · start ${JSON.stringify(seen)} · card ${card}`) };
       },
     },
     {
