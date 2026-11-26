@@ -13,8 +13,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-layout.css?v=2" data-exo-layout="1" />
-  <script src="/assets/exo-layout.js?v=2"></script>
+  <link rel="stylesheet" href="/assets/exo-layout.css?v=3" data-exo-layout="1" />
+  <script src="/assets/exo-layout.js?v=3"></script>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -94,7 +94,21 @@
     .leaflet-popup-content { margin: 12px 14px; min-width: 200px; font: 14px/1.4 var(--exo-sans, system-ui, sans-serif); }
     .leaflet-popup-content strong { display: block; font-weight: 600; margin-bottom: 2px; padding-right: 28px; }
     .leaflet-popup-content .cam-src { color: var(--exo-muted, #9fb0b4); font: 11px/1.3 var(--exo-mono, monospace); letter-spacing: 0.08em; }
-    .leaflet-popup-content img { display: block; width: 100%; max-width: 260px; margin-top: 10px; border-radius: 10px; }
+    .leaflet-popup-content img, .leaflet-popup-content video { display: block; width: 100%; max-width: 260px; margin-top: 10px; border-radius: 10px; background: #05080c; }
+    .cam-player { position: relative; width: 260px; max-width: 100%; aspect-ratio: 16 / 9; margin-top: 10px; border-radius: 10px; background: #05080c; border: 1px solid rgba(126, 224, 255, 0.16); overflow: hidden; }
+    .cam-player img, .cam-player video { position: absolute; inset: 0; width: 100% !important; height: 100% !important; max-width: none !important; margin: 0 !important; object-fit: contain; border-radius: 0 !important; }
+    .cam-player[data-state="loading"] img, .cam-player[data-state="loading"] video { opacity: 0; }
+    .cam-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; text-align: center; font: 11px/1.35 var(--exo-mono, monospace); letter-spacing: 0.06em; color: var(--exo-muted, #9fb0b4); }
+    .cam-msg b { color: #ffb84d; font-weight: 600; letter-spacing: 0.12em; }
+    .cam-player[data-state="playing"] .cam-msg { display: none; }
+    .cam-player .cam-live { position: absolute; left: 8px; top: 8px; padding: 2px 6px; border-radius: 6px; background: rgba(5, 8, 12, 0.75); color: #7ee0ff; font: 600 10px/1.4 var(--exo-mono, monospace); letter-spacing: 0.1em; }
+    .cam-player:not([data-state="playing"]) .cam-live { display: none; }
+    .cam-player .cam-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 8px; background: rgba(5, 8, 12, 0.72); color: #c9d6dc; font: 9.5px/1.3 var(--exo-mono, monospace); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+    .cam-player:not([data-state="playing"]) .cam-credit { display: none; }
+    /* Phones pinch to zoom; while a camera is open its popup gets the top-right corner. */
+    @media (max-width: 719px) and (min-height: 501px) { .cam-stage:has(.leaflet-popup) #map .leaflet-control-zoom, .cam-stage:has(.leaflet-popup) .cam-find { visibility: hidden; } }
+    @media (max-height: 500px) { .cam-stage:has(.leaflet-popup) #map .leaflet-control-zoom { visibility: hidden; } }
+    @media (max-width: 719px) and (max-height: 700px) { .cam-player { aspect-ratio: 2 / 1; } .leaflet-popup-content .cam-pop-actions { margin-top: 8px; } }
     .leaflet-popup-content .cam-pop-actions { display: flex; gap: 8px; margin-top: 10px; }
     .leaflet-popup-content .cam-pop-actions > * { flex: 1 1 0; }
     .leaflet-container a.leaflet-popup-close-button { width: 44px; height: 44px; font: 22px/44px var(--exo-sans, system-ui); color: var(--exo-muted, #9fb0b4); top: 0; right: 0; }
@@ -106,7 +120,7 @@
       .cam-kicker { display: none; }
       .cam-empty { top: 68px; right: calc(68px + var(--exo-sar, 0px)); }
       .cam-actions {
-        bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + 12px);
+        bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px))) + 12px);
         grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px; gap: 6px;
         border-radius: 16px; border: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
         background: rgba(6, 10, 16, 0.9); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
@@ -114,9 +128,9 @@
       .cam-stage .cam-actions .exo-btn { border-color: transparent !important; background-color: transparent !important; box-shadow: none !important; font-size: 10.5px !important; letter-spacing: 0.06em !important; }
       .cam-stage .cam-actions .exo-btn[aria-expanded="true"] { color: var(--exo-cyan, #7ee0ff) !important; }
       #cam-list-toggle { display: inline-flex; }
-      body.exo-sheet-open .cam-actions, body.exo-sheet-open .cam-find, body.exo-sheet-open .cam-empty { visibility: hidden; }
+      body.exo-sheet-open .cam-actions, body.exo-sheet-open .cam-find, body.exo-sheet-open .cam-empty, body.exo-sheet-open #map .leaflet-control-zoom { visibility: hidden; }
       .leaflet-top { top: 68px; }
-      html body .leaflet-bottom { bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + 80px) !important; }
+      html body .leaflet-bottom { bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px))) + 80px) !important; }
       .cam-sheet .exo-sheet-panel { bottom: 0; }
       .cam-sheet .exo-sheet-body { padding-bottom: 8px; }
     }
@@ -125,7 +139,7 @@
     @media (min-width: 720px), (max-height: 500px) {
       .cam-rail {
         display: flex; flex-direction: column; gap: 12px; flex: 0 0 min(360px, 40vw); min-height: 0;
-        padding: 16px 16px calc(16px + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))));
+        padding: 16px 16px calc(16px + var(--exo-dock-real, calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px))));
         border-right: 1px solid var(--exo-line, rgba(186, 214, 226, 0.14));
         background: rgba(5, 9, 15, 0.92); overflow: hidden;
       }
@@ -148,7 +162,7 @@
       .cam-sheet .exo-sheet-title { color: var(--exo-muted, #9fb0b4); font-size: 11px; }
     }
     @media (max-height: 500px) {
-      .cam-rail { flex-basis: min(300px, 42vw); padding: 10px 12px calc(10px + var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)))); gap: 8px; overflow: auto; }
+      .cam-rail { flex-basis: min(300px, 42vw); padding: 10px 12px calc(10px + var(--exo-dock-real, calc(var(--exo-dock-h, 0px) + var(--exo-sab, 0px)))); gap: 8px; overflow: auto; }
       .cam-kicker { display: none; }
       .cam-find { flex-wrap: wrap; }
       .cam-find input { flex-basis: 100%; }
@@ -162,10 +176,13 @@
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
   <nav class="exo-sites" aria-label="EXOpace surfaces">
-    <a href="https://cams.exopace.net/map">LIVE MAP</a>
-    <a href="/radio/">COMMS &amp; RF</a>
-    <a href="/sentinel/">SENTINEL</a>
-    <a href="/system/">SYSTEM</a>
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/" aria-current="page">Cameras</a>
+    <a href="/sentinel/">Sentinel</a>
+    <a href="/system/">System</a>
   </nav>
 </header>
 <div class="exo-pill" id="exo-pill" aria-live="polite">
@@ -246,9 +263,17 @@
       setTimeout(function () { if (Date.now() >= flashUntil) countEl.textContent = baseCount; }, 2600);
     }
 
+    /* Keep an open camera clear of the thumb bar and the map credits: measure them. */
     function popPad() {
       const phone = matchMedia("(max-width: 719px) and (min-height: 501px)").matches;
-      return phone ? { tl: [16, 80], br: [16, 150] } : { tl: [24, 24], br: [24, 24] };
+      if (!phone) return { tl: [24, 24], br: [24, 24] };
+      const m = document.getElementById("map").getBoundingClientRect();
+      let low = m.bottom - 150;
+      for (const sel of [".leaflet-control-attribution", ".cam-actions"]) {
+        const el = document.querySelector(sel);
+        if (el && el.offsetParent !== null) low = Math.min(low, el.getBoundingClientRect().top);
+      }
+      return { tl: [12, 12], br: [12, Math.max(24, Math.round(m.bottom - low + 10))] };
     }
 
     function setState(state, title, text) {
@@ -265,11 +290,132 @@
       return "";
     }
 
-    function mediaKind(url) {
-      const path = new URL(url).pathname.toLowerCase();
-      if (/\.(m3u8|mpd|mp4|webm|mov)$/.test(path) || path.includes(".stream")) return "stream";
-      if (/\.(jpe?g|png|gif|webp|bmp|avif)$/.test(path)) return "image";
-      return "link";
+    /* ---------- playback ----------
+       image: a public HTTPS still (Digitraffic, HK Transport Dept) refreshed on its own cadence.
+       cams:  plays through cams.exopace.net with the visitor's cams sign-in. exopace.net and
+              cams.exopace.net are the same site, so the cams session cookie rides along on a
+              credentialed request; signed out, cams answers 401 and we say how to sign in. */
+    const CAMS = "https://cams.exopace.net";
+    let player = null;
+
+    function stopPlayer() {
+      if (!player) return;
+      clearTimeout(player.timer);
+      if (player.hls) { try { player.hls.destroy(); } catch (err) {} }
+      if (player.video) { try { player.video.pause(); player.video.removeAttribute("src"); player.video.load(); } catch (err) {} }
+      player.dead = true;
+      player = null;
+    }
+
+    function say(box, state, title, text, extra) {
+      box.dataset.state = state;
+      const msg = box.querySelector(".cam-msg");
+      msg.innerHTML = "<b>" + esc(title) + "</b>" + (text ? "<span>" + esc(text) + "</span>" : "") + (extra || "");
+    }
+
+    function stillLoop(box, me, src, every) {
+      let img = box.querySelector("img");
+      if (!img) {
+        img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        box.insertBefore(img, box.firstChild);
+      }
+      const tick = function () {
+        if (me.dead) return;
+        const url = new URL(src);
+        url.searchParams.set("t", String(Date.now()));
+        img.onload = function () {
+          if (me.dead) return;
+          box.dataset.state = "playing";
+          box.querySelector(".cam-live").textContent = "STILL · EVERY " + (every >= 60 ? Math.round(every / 60) + " MIN" : every + " S");
+          me.timer = setTimeout(tick, Math.max(10, every) * 1000);
+        };
+        img.onerror = function () {
+          if (me.dead) return;
+          say(box, "error", "NO PICTURE", "The camera's publisher did not return an image just now.", '<button type="button" class="exo-btn cam-retry-one">RETRY</button>');
+        };
+        img.src = url.href;
+      };
+      tick();
+    }
+
+    function loadHlsLib() {
+      if (window.Hls) return Promise.resolve(window.Hls);
+      return new Promise(function (resolve, reject) {
+        const s = document.createElement("script");
+        s.src = "/cameras/vendor/hls.light.min.js";
+        s.onload = function () { resolve(window.Hls); };
+        s.onerror = function () { reject(new Error("hls.js did not load")); };
+        document.head.appendChild(s);
+      });
+    }
+
+    async function playHls(box, me, src) {
+      const video = document.createElement("video");
+      video.muted = true; video.playsInline = true; video.autoplay = true; video.controls = true;
+      video.setAttribute("playsinline", "");
+      box.insertBefore(video, box.firstChild);
+      me.video = video;
+      video.addEventListener("playing", function () { if (!me.dead) { box.dataset.state = "playing"; box.querySelector(".cam-live").textContent = "LIVE"; } });
+      const fail = function (why) { if (!me.dead) say(box, "error", "STREAM DID NOT PLAY", why, '<button type="button" class="exo-btn cam-retry-one">RETRY</button>'); };
+      const Hls = window.MediaSource || window.ManagedMediaSource ? await loadHlsLib().catch(function () { return null; }) : null;
+      if (me.dead) return;
+      if (Hls && Hls.isSupported()) {
+        const hls = new Hls({ xhrSetup: function (xhr) { xhr.withCredentials = true; }, lowLatencyMode: false, maxBufferLength: 10 });
+        me.hls = hls;
+        hls.on(Hls.Events.ERROR, function (_e, data) { if (data && data.fatal) fail("The publisher's stream answered with an error (" + (data.response && data.response.code ? "HTTP " + data.response.code : data.details) + ")."); });
+        hls.loadSource(src);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function () {}); });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+        video.addEventListener("error", function () { fail("The stream did not load."); });
+        video.play().catch(function () {});
+      } else fail("This browser cannot play HLS video.");
+    }
+
+    async function playCams(box, me, props) {
+      let res;
+      try {
+        const ctl = new AbortController();
+        const stop = setTimeout(function () { ctl.abort(); }, 12000);
+        res = await fetch(props.play.api + "/media", { credentials: "include", cache: "no-store", signal: ctl.signal });
+        clearTimeout(stop);
+      } catch (err) {
+        if (me.dead) return;
+        say(box, "error", "CAMS DID NOT ANSWER", location.hostname.endsWith("exopace.net") ? "cams.exopace.net is unreachable right now." : "Cams pictures play on exopace.net only; this preview host cannot use the cams sign-in.");
+        return;
+      }
+      if (me.dead) return;
+      if (res.status === 401 || res.status === 403) {
+        say(box, "signin", "SIGN IN TO PLAY", "This camera plays through EXOpace Cams, which needs a Google sign-in.", '<a class="exo-btn" href="' + CAMS + '/account?next=%2Fmap" target="_blank" rel="noopener">SIGN IN</a>');
+        return;
+      }
+      if (res.status === 404) { say(box, "error", "CAMERA GONE", "EXOpace Cams no longer lists this camera."); return; }
+      if (!res.ok) { say(box, "error", "CAMS ERROR", "EXOpace Cams answered HTTP " + res.status + ".", '<button type="button" class="exo-btn cam-retry-one">RETRY</button>'); return; }
+      let body = null;
+      try { body = await res.json(); } catch (err) {}
+      if (me.dead) return;
+      const path = body && typeof body.play_path === "string" && body.play_path.startsWith("/api/cameras/") ? body.play_path : "";
+      if (!path) { say(box, "error", "NO PICTURE", "This camera has no picture to show."); return; }
+      if (/\/hls$/.test(path)) playHls(box, me, CAMS + path);
+      else stillLoop(box, me, CAMS + path, Number(props.refresh_s) || 60);
+    }
+
+    function startPlayer(marker, root) {
+      stopPlayer();
+      const box = root && root.querySelector(".cam-player");
+      const props = marker && marker.camProps;
+      if (!box || !props) return;
+      for (const old of box.querySelectorAll("img, video")) old.remove();
+      const me = { dead: false, timer: 0, hls: null, video: null, marker: marker };
+      player = me;
+      say(box, "loading", "LOADING", "");
+      const play = props.play || {};
+      if (play.type === "image" && safeHttp(play.url).startsWith("https://")) stillLoop(box, me, play.url, Number(props.refresh_s) || 60);
+      else if (play.type === "cams" && String(play.api || "").startsWith(CAMS + "/api/cameras/")) playCams(box, me, props);
+      else say(box, "error", "NO PICTURE", "This camera has no playable source.");
     }
 
     function camHash() {
@@ -277,9 +423,22 @@
       return match ? decodeURIComponent(match[1]) : "";
     }
 
-    function shareUrl(id) {
+    function camAt() {
+      const match = (location.hash || "").match(/at=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+      if (!match) return null;
+      const lat = Number(match[1]), lon = Number(match[2]);
+      return Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? [lat, lon] : null;
+    }
+
+    /* The camera list is read by area, so a shared link carries where the camera is. */
+    function camFragment(marker) {
+      const ll = marker.getLatLng();
+      return "cam=" + encodeURIComponent(marker.camId) + "&at=" + ll.lat.toFixed(5) + "," + ll.lng.toFixed(5);
+    }
+
+    function shareUrl(marker) {
       const url = new URL(location.href);
-      url.hash = "cam=" + encodeURIComponent(id);
+      url.hash = camFragment(marker);
       return url.href;
     }
 
@@ -306,7 +465,13 @@
       markCurrent();
     }
 
+    let drawnKey = "", drawnCount = "";
     function draw() {
+      // Autopan and small drags re-read the same cameras; keep the open player instead of rebuilding it.
+      const qNow = (document.getElementById("cam-q").value || "").trim().toLowerCase();
+      const key = qNow + "|" + features.map((f) => (f && f.properties && f.properties.id) || "").join(",");
+      if (key === drawnKey && markers.length) { setCount(drawnCount); return; }
+      drawnKey = key;
       const prev = markers[cursor] || markers.find((m) => m.isPopupOpen && m.isPopupOpen());
       const keepId = prev ? prev.camId : "";
       const keepOpen = !!(prev && prev.isPopupOpen && prev.isPopupOpen());
@@ -316,9 +481,13 @@
         if (!q) return true;
         return ((props.name || "") + " " + (props.source || "")).toLowerCase().includes(q);
       });
-      layer.clearLayers();
+      // The open camera survives a re-read of the area, so its picture keeps playing.
+      const keep = keepOpen ? prev : null;
+      if (!keep) stopPlayer();
+      layer.eachLayer(function (l) { if (l !== keep) layer.removeLayer(l); });
       markers = [];
       cursor = -1;
+      const pad = popPad();
       for (let i = 0; i < shown.length; i++) {
         const f = shown[i];
         const coords = f && f.geometry && f.geometry.coordinates;
@@ -326,36 +495,34 @@
         const props = f.properties || {};
         const id = props.id ? String(props.id) : "";
         const name = props.name ? String(props.name) : "Camera";
+        if (keep && id === keepId) { markers.push(keep); continue; }
         const marker = L.circleMarker([coords[1], coords[0]], {
           radius: 6, color: "#7ee0ff", weight: 1.5, fillColor: "#ffb84d", fillOpacity: 0.95
         });
         marker.camId = id;
         marker.camName = name;
         marker.camSource = props.source ? String(props.source) : "";
-        const image = safeHttp(props.image || "");
-        const stream = safeHttp(props.stream || "");
-        let picture = "";
-        let watch = stream;
-        if (image) {
-          const kind = mediaKind(image);
-          if (kind === "image") picture = image;
-          else if (!watch) watch = image;
-        }
+        marker.camProps = props;
         let html = "<strong>" + esc(name) + "</strong>";
-        if (props.source) html += '<div class="cam-src">' + esc(String(props.source)) + "</div>";
-        if (picture) html += '<img alt="" src="' + esc(picture) + '" />';
+        const line = [props.source, props.place].filter(Boolean).map(String).join(" · ");
+        if (line) html += '<div class="cam-src">' + esc(line) + "</div>";
+        const play = props.play || {};
+        const credit = play.type === "image" && play.credit ? '<span class="cam-credit">© ' + esc(play.credit) + "</span>" : "";
+        html += '<div class="cam-player" data-state="loading"><div class="cam-msg" role="status"><b>LOADING</b></div><span class="cam-live">LIVE</span>' + credit + "</div>";
+
         let acts = "";
-        if (watch) acts += '<a class="exo-btn" href="' + esc(watch) + '" target="_blank" rel="noopener">STREAM</a>';
+        if (play.type === "cams") acts += '<a class="exo-btn" href="' + esc(CAMS + "/map") + '" target="_blank" rel="noopener">OPEN IN CAMS</a>';
         if (id) acts += '<button type="button" class="exo-btn cam-copy" data-id="' + esc(id) + '">COPY LINK</button>';
         if (acts) html += '<div class="cam-pop-actions">' + acts + "</div>";
-        const pad = popPad();
         marker.bindPopup(html, { autoPanPaddingTopLeft: pad.tl, autoPanPaddingBottomRight: pad.br, maxWidth: 280 });
-        marker.on("click", function () { cursor = markers.indexOf(marker); markCurrent(); publishCam(marker); });
+        marker.on("click", function () { openedHash = true; cursor = markers.indexOf(marker); markCurrent(); publishCam(marker); });
         marker.addTo(layer);
         markers.push(marker);
       }
+      if (keep && markers.indexOf(keep) < 0) markers.push(keep);
       const clipped = features.length >= 800;
-      setCount(shown.length + (q ? " / " + features.length : "") + " IN VIEW" + (clipped ? " · ZOOM FOR MORE" : ""));
+      drawnCount = shown.length + (q ? " / " + features.length : "") + " IN VIEW" + (clipped ? " · ZOOM FOR MORE" : "");
+      setCount(drawnCount);
       if (!features.length) setState("empty", "NO CAMERAS IN VIEW", "The camera feed has no cameras here. Pan or zoom out to look somewhere else.");
       else if (!shown.length) setState("empty", "NO MATCHES", "No camera in this view matches “" + q + "”.");
       else setState("ready");
@@ -363,14 +530,15 @@
         const again = markers.find((m) => m.camId === keepId);
         if (again) {
           cursor = markers.indexOf(again);
-          if (keepOpen) again.openPopup();
+          if (keepOpen && again !== keep) again.openPopup();
         }
       }
       drawList();
       const want = camHash();
       if (want && !openedHash) {
         const hit = markers.find((m) => m.camId === want);
-        if (hit) {
+        if (hit && hit.isPopupOpen()) openedHash = true;
+        else if (hit) {
           openedHash = true;
           cursor = markers.indexOf(hit);
           map.setView(hit.getLatLng(), Math.max(map.getZoom(), 12));
@@ -381,19 +549,6 @@
       }
     }
 
-    async function ensureHash(list) {
-      const want = camHash();
-      if (!want || list.some((f) => f && f.properties && String(f.properties.id) === want)) return list;
-      try {
-        const res = await fetch("/api/cameras.geojson?id=" + encodeURIComponent(want) + "&max=1");
-        if (!res.ok) return list;
-        const data = await res.json();
-        const extra = data && Array.isArray(data.features) ? data.features[0] : null;
-        if (extra) return list.concat([extra]);
-      } catch (err) {}
-      return list;
-    }
-
     async function load() {
       const b = map.getBounds();
       const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].map((n) => n.toFixed(4)).join(",");
@@ -401,16 +556,18 @@
       setCount("LOADING");
       try {
         const res = await fetch("/api/cameras.geojson?bbox=" + encodeURIComponent(bbox) + "&max=800");
-        if (!res.ok) throw new Error(String(res.status));
+        if (!res.ok) throw new Error(String(res.status));  // 502 = the cams catalogue is unreachable
         const data = await res.json();
         if (mine !== seq) return;
-        features = await ensureHash(Array.isArray(data.features) ? data.features : []);
+        features = Array.isArray(data.features) ? data.features : [];
         if (mine !== seq) return;
         draw();
       } catch (err) {
         if (mine !== seq) return;
         features = [];
         markers = [];
+        drawnKey = "";
+        stopPlayer();
         cursor = -1;
         layer.clearLayers();
         drawList();
@@ -423,7 +580,8 @@
       const marker = markers[i];
       if (!marker) return;
       cursor = i;
-      if (marker.camId) history.replaceState(null, "", "#cam=" + encodeURIComponent(marker.camId));
+      openedHash = true;  // the hash now records this pick; never reopen it over the playing popup
+      if (marker.camId) history.replaceState(null, "", "#" + camFragment(marker));
       map.setView(marker.getLatLng(), Math.max(map.getZoom(), 11));
       marker.openPopup();
       publishCam(marker);
@@ -451,7 +609,7 @@
       const marker = markers[cursor] || markers.find((m) => m.isPopupOpen && m.isPopupOpen());
       const id = marker && marker.camId;
       if (!id) { flash("PICK A CAMERA"); return; }
-      const text = shareUrl(id);
+      const text = shareUrl(marker);
       try {
         if (navigator.share && matchMedia("(pointer: coarse)").matches) { await navigator.share({ title: marker.camName, url: text }); flash("SHARED"); return; }
       } catch (err) { if (err && err.name === "AbortError") return; }
@@ -463,6 +621,25 @@
         flash("COPY FAILED");
       }
     }
+
+    /* Keep the whole popup clear of the attribution and the thumb bar; Leaflet's own autopan
+       runs before the popup settles and while the map is still moving. */
+    function fitPopup(popup) {
+      const el = popup && popup.getElement && popup.getElement();
+      if (!el || !map.hasLayer(popup)) return;
+      const m = map.getContainer().getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const pad = popPad();
+      const top = m.top + pad.tl[1], left = m.left + pad.tl[0];
+      const bottom = m.bottom - pad.br[1], right = m.right - pad.br[0];
+      let dx = 0, dy = 0;
+      if (r.bottom > bottom) dy = r.bottom - bottom;
+      if (r.top - dy < top) dy = r.top - top;
+      if (r.right > right) dx = r.right - right;
+      if (r.left - dx < left) dx = r.left - left;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) map.panBy([Math.round(dx), Math.round(dy)]);
+    }
+    map.on("popupopen", function (e) { setTimeout(function () { fitPopup(e.popup); }, 350); });
 
     map.on("moveend", function () {
       clearTimeout(timer);
@@ -486,8 +663,19 @@
       if (window.EXO_LAYOUT && matchMedia("(max-width: 719px) and (min-height: 501px)").matches) EXO_LAYOUT.closeSheet(document.getElementById("cam-sheet"));
       focusMarker(Number(b.dataset.i));
     });
+    map.on("popupclose", function (event) {
+      if (player && player.marker && player.marker.getPopup && player.marker.getPopup() === event.popup) stopPlayer();
+    });
     map.on("popupopen", function (event) {
       const root = event.popup.getElement();
+      const owner = markers.find((m) => m.getPopup && m.getPopup() === event.popup);
+      if (owner) startPlayer(owner, root);
+      if (root && !root.dataset.retryBound) {
+        root.dataset.retryBound = "1";
+        root.addEventListener("click", function (e) {
+          if (e.target.closest(".cam-retry-one")) { const m = markers.find((x) => x.getPopup && x.getPopup() === event.popup); if (m) startPlayer(m, root); }
+        });
+      }
       const btn = root && root.querySelector(".cam-copy");
       if (!btn) return;
       btn.addEventListener("click", function () {
@@ -506,6 +694,8 @@
       if (event.key === "]" || event.key === "n") { event.preventDefault(); cycle(1); }
       else if (event.key === "[" || event.key === "p") { event.preventDefault(); cycle(-1); }
     });
+    const startAt = camAt();
+    if (startAt) map.setView(startAt, 13);
     load();
   </script>
   <script src="/maps/mgrs.js"></script>

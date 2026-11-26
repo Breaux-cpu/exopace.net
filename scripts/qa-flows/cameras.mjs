@@ -1,15 +1,11 @@
-/** Cameras flows. The production feed is real-only; the last flows swap in a
- *  clearly labelled TEST FIXTURE response (never shipped) so popups, the list
- *  sheet, PREV/NEXT and SHARE can be exercised while the live feed is empty. */
+/** Cameras flows, on real data only.
+ *  Locally there are no Pages Functions, so /api/cameras.geojson is answered by
+ *  the real function code (functions/api/cameras.geojson.js) running in this
+ *  process against the live EXOpace Cams catalogue. Against a deployed preview
+ *  (--base https://…pages.dev) the deployed function answers instead.
+ *  One flow simulates the catalogue being down (HTTP 502) to check the error card. */
 import { collectOverlap } from "../qa-overlap.js";
-
-const FIXTURE = {
-  type: "FeatureCollection",
-  features: [
-    { type: "Feature", geometry: { type: "Point", coordinates: [-90.05, 35.15] }, properties: { id: "qa-fixture-a", name: "TEST FIXTURE A", source: "qa harness", image: "", stream: "" } },
-    { type: "Feature", geometry: { type: "Point", coordinates: [-97.74, 30.27] }, properties: { id: "qa-fixture-b", name: "TEST FIXTURE B", source: "qa harness", image: "", stream: "https://example.invalid/live.m3u8" } },
-  ],
-};
+import { onRequest as camerasGeojson } from "../../functions/api/cameras.geojson.js";
 
 const isPhone = (page) => page.evaluate(() => matchMedia("(max-width: 719px) and (min-height: 501px)").matches);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -20,30 +16,85 @@ async function overlapFree(page) {
   return r.failures.length ? r.failures.map((f) => f.type + ":" + f.a + (f.b ? "×" + f.b : "")).join("; ") : "";
 }
 
-async function useFixture(page) {
-  if (page.__camFixture) return;
-  page.__camFixture = true;
+/** Route the list through the real function when the page is served without Functions. */
+async function wire(page) {
+  if (page.__camWired) return;
+  page.__camWired = true;
+  page.__camMode = "live";
   try { await page.browserContext().overridePermissions(new URL(page.url()).origin, ["geolocation", "clipboard-read", "clipboard-write", "clipboard-sanitized-write"]); } catch (_) {}
+  const local = /^http:\/\/(127\.0\.0\.1|localhost)/.test(page.url());
   await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    if (req.url().includes("/api/cameras.geojson")) {
-      req.respond({ status: 200, contentType: "application/geo+json", body: JSON.stringify(FIXTURE) });
-    } else req.continue();
+  page.on("request", async (req) => {
+    if (!req.url().includes("/api/cameras.geojson")) return req.continue();
+    if (page.__camMode === "down") return req.respond({ status: 502, contentType: "application/geo+json", body: JSON.stringify({ type: "FeatureCollection", features: [], error: "CAMERA CATALOGUE UNREACHABLE" }) });
+    if (!local) return req.continue();
+    try {
+      const res = await camerasGeojson({ request: new Request(req.url()) });
+      req.respond({ status: res.status, contentType: "application/geo+json", body: await res.text() });
+    } catch (e) { req.respond({ status: 500, body: String(e) }); }
   });
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => /IN VIEW/.test(document.getElementById("count").textContent), { timeout: 15000 });
 }
+
+async function goTo(page, at) {
+  await wire(page);
+  const url = new URL(page.url());
+  url.search = "";  // earlier flows leave ?target=… from the shell bus; start each check clean
+  url.hash = at ? "cam=pick&at=" + at : "";
+  await page.goto(url.href, { waitUntil: "domcontentloaded" });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.body.dataset.camState && document.body.dataset.camState !== "loading", { timeout: 30000 });
+  // A deployed catalogue answers slower; wait out the follow-up read after the first pan.
+  for (let settled = 0, i = 0; settled < 2 && i < 40; i++) {
+    await sleep(700);
+    settled = /^\d+/.test(await text(page, "#count").catch(() => "")) ? settled + 1 : 0;
+  }
+}
+
+/** Open the first camera with NEXT and wait for its player to settle. */
+async function playFirst(page) {
+  await page.click("#cam-next");
+  await page.waitForSelector(".leaflet-popup .cam-player", { timeout: 10000 });
+  const state = await page.waitForFunction(() => { const x = document.querySelector(".leaflet-popup .cam-player"); return x && x.dataset.state !== "loading" ? x.dataset.state : false; }, { timeout: 30000 }).then((h) => h.jsonValue()).catch(() => "loading");
+  return page.evaluate((state) => {
+    const x = document.querySelector(".leaflet-popup .cam-player");
+    const img = x && x.querySelector("img");
+    const v = x && x.querySelector("video");
+    return { state, name: document.querySelector(".leaflet-popup strong").textContent, msg: x.querySelector(".cam-msg").innerText.replace(/\s+/g, " "), px: img ? img.naturalWidth + "×" + img.naturalHeight : v ? v.videoWidth + "×" + v.videoHeight : "", host: img ? new URL(img.currentSrc || img.src).host : "" };
+  }, state);
+}
+
+const FINLAND = "61.90088,26.11229";   // Digitraffic weathercam station C09535, public stills
+const HONGKONG = "22.2790,114.1800";   // HK Transport Department cameras, public stills
+const MEMPHIS = "35.1495,-90.0490";    // TDOT / Vision Environnement cameras that play through cams.exopace.net
 
 export const flows = {
   cameras: [
     {
-      name: "offline feed shows an honest error card",
+      name: "catalogue down: honest error card, no markers",
       test: async (page) => {
-        await page.waitForFunction(() => document.body.dataset.camState !== "loading", { timeout: 15000 });
+        await wire(page);
+        page.__camMode = "down";
+        await goTo(page, "");
         const state = await page.evaluate(() => document.body.dataset.camState);
         const card = await shown(page, "#cam-empty");
-        const markers = await page.$$eval(".leaflet-interactive", (els) => els.length);
-        return { ok: (state === "error" || state === "empty") && card && markers === 0, detail: `${state} · ${await text(page, "#cam-empty-title")} · count ${await text(page, "#count")} · ${markers} markers` };
+        const markers = await page.$$eval("path.leaflet-interactive", (els) => els.length);
+        await page.click("#cam-next");
+        const next = await text(page, "#count");
+        page.__camMode = "live";
+        return { ok: state === "error" && card && markers === 0 && /NO CAMERAS/.test(next), detail: `${state} · ${await text(page, "#cam-empty-title")} · NEXT says ${next}` };
+      },
+    },
+    {
+      name: "RETRY asks the catalogue again and real cameras load",
+      test: async (page) => {
+        let asked = 0;
+        const on = (r) => { if (r.url().includes("/api/cameras.geojson")) asked++; };
+        page.on("request", on);
+        await page.click("#cam-retry");
+        await page.waitForFunction(() => /IN VIEW/.test(document.getElementById("count").textContent), { timeout: 30000 }).catch(() => {});
+        page.off("request", on);
+        const n = await page.$$eval("path.leaflet-interactive", (els) => els.length);
+        return { ok: asked > 0 && n > 0, detail: `${asked} request(s) · ${n} markers · ${await text(page, "#count")}` };
       },
     },
     {
@@ -51,73 +102,48 @@ export const flows = {
       test: async (page) => {
         await page.waitForSelector(".leaflet-tile", { timeout: 15000 });
         const srcs = await page.$$eval(".leaflet-tile", (els) => els.map((e) => e.src));
-        const carto = srcs.some((s) => /cartocdn/.test(s));
-        return { ok: srcs.length > 0 && !carto, detail: srcs.length + " tiles · " + (srcs[0] || "").replace(/\/tile\/.*/, "") };
+        return { ok: srcs.length > 0 && !srcs.some((s) => /cartocdn/.test(s)), detail: srcs.length + " tiles · " + (srcs[0] || "").replace(/\/tile\/.*/, "") };
       },
     },
     {
-      name: "RETRY asks the feed again",
+      name: "PLAY: Finland Digitraffic camera shows a live still (no sign-in)",
       test: async (page) => {
-        let asked = 0;
-        const on = (r) => { if (r.url().includes("/api/cameras.geojson")) asked++; };
-        page.on("request", on);
-        await page.click("#cam-retry");
-        await sleep(800);
-        page.off("request", on);
-        return { ok: asked > 0, detail: asked + " request(s)" };
-      },
-    },
-    {
-      name: "NEXT with no cameras says so",
-      test: async (page) => {
-        await page.click("#cam-next");
-        const c = await text(page, "#count");
-        return { ok: /NO CAMERAS/.test(c), detail: c };
-      },
-    },
-    {
-      name: "LOCATE centres on the device position",
-      test: async (page) => {
-        const ctx = page.browserContext();
-        await ctx.overridePermissions(new URL(page.url()).origin, ["geolocation"]);
-        await page.setGeolocation({ latitude: 35.15, longitude: -90.05 });
-        await page.click("#locate");
-        const ok = await page.waitForFunction(() => document.querySelector('.leaflet-tile[src*="/tile/10/"]'), { timeout: 10000 }).then(() => true, () => false);
-        return { ok, detail: ok ? "zoom 10 tiles requested" : await text(page, "#count") };
-      },
-    },
-    {
-      name: "fixture: markers + count render (TEST FIXTURE data)",
-      test: async (page) => {
-        await useFixture(page);
-        await page.evaluate(() => { history.replaceState(null, "", location.pathname); });
-        const n = await page.$$eval("path.leaflet-interactive", (els) => els.length);
-        const c = await text(page, "#count");
-        return { ok: n === 2 && /2 IN VIEW/.test(c) && !(await shown(page, "#cam-empty")), detail: `${n} markers · ${c}` };
-      },
-    },
-    {
-      name: "fixture: NEXT opens a popup that stays clear of controls",
-      test: async (page) => {
-        await page.click("#cam-next");
-        await page.waitForSelector(".leaflet-popup", { timeout: 5000 });
-        await sleep(600);
-        const name = await text(page, ".leaflet-popup-content strong");
+        await goTo(page, FINLAND);
+        const r = await playFirst(page);
         const clash = await overlapFree(page);
-        return { ok: /TEST FIXTURE/.test(name) && !clash, detail: name + (clash ? " · " + clash : " · no overlap") };
+        return { ok: r.state === "playing" && /digitraffic/.test(r.host) && !clash, detail: `${r.name} · ${r.state} ${r.px} from ${r.host}` + (clash ? " · " + clash : "") };
       },
     },
     {
-      name: "fixture: SHARE copies or shares the camera link",
+      name: "PLAY: Hong Kong Transport Dept camera shows a live still (no sign-in)",
+      test: async (page) => {
+        await goTo(page, HONGKONG);
+        const r = await playFirst(page);
+        return { ok: r.state === "playing" && /data\.one\.gov\.hk/.test(r.host), detail: `${r.name} · ${r.state} ${r.px} from ${r.host}` };
+      },
+    },
+    {
+      name: "cams-only camera explains sign-in instead of a raw HTTP error",
+      test: async (page) => {
+        await goTo(page, MEMPHIS);
+        const r = await playFirst(page);
+        const clash = await overlapFree(page);
+        const honest = r.state === "signin" ? /SIGN IN TO PLAY/.test(r.msg) : r.state === "error" && /CAMS/.test(r.msg);
+        return { ok: honest && !/^HTTP \d+$/.test(r.msg) && !clash, untestable: "playing these needs JB's Google sign-in on cams.exopace.net; signed out the page must say so", detail: `${r.name} · ${r.state}: ${r.msg}` + (clash ? " · " + clash : "") };
+      },
+    },
+    {
+      name: "SHARE copies or shares a camera link with its position",
       test: async (page) => {
         await page.click("#cam-share");
         await sleep(400);
         const c = await text(page, "#count");
-        return { ok: /COPIED|SHARED|COPY FAILED/.test(c), untestable: /FAILED/.test(c) ? "clipboard blocked headlessly" : "", detail: c };
+        const hash = await page.evaluate(() => location.hash);
+        return { ok: /COPIED|SHARED|COPY FAILED/.test(c) && /cam=.+&at=-?\d/.test(hash), untestable: /FAILED/.test(c) ? "clipboard blocked headlessly" : "", detail: c + " · " + hash.slice(0, 60) };
       },
     },
     {
-      name: "fixture: popup COPY LINK button works",
+      name: "popup COPY LINK button works",
       test: async (page) => {
         const btn = await page.$(".leaflet-popup .cam-copy");
         if (!btn) return { ok: false, detail: "no COPY LINK in popup" };
@@ -128,43 +154,43 @@ export const flows = {
       },
     },
     {
-      name: "fixture: search filters and shows NO MATCHES honestly",
+      name: "search filters by name and shows NO MATCHES honestly",
       test: async (page) => {
+        await goTo(page, HONGKONG);
+        let total = null, seen = "";
+        for (let i = 0; i < 30 && !total; i++) { seen = await text(page, "#count").catch(() => ""); total = seen.match(/^(\d+)/); if (!total) await sleep(500); }
         await page.click("#cam-q", { clickCount: 3 });
-        await page.type("#cam-q", "fixture b");
-        const one = await text(page, "#count");
+        await page.type("#cam-q", "road");
+        const some = await text(page, "#count");
         await page.click("#cam-q", { clickCount: 3 });
-        await page.type("#cam-q", "zzzz");
+        await page.type("#cam-q", "zzzzqqq");
         const none = await text(page, "#cam-empty-title");
         const card = await shown(page, "#cam-empty");
         await page.click("#cam-q", { clickCount: 3 });
         await page.keyboard.press("Backspace");
         const back = await text(page, "#count");
-        return { ok: /^1 \/ 2/.test(one) && none === "NO MATCHES" && card && /^2 IN VIEW/.test(back), detail: `${one} → ${none} → ${back}` };
+        return { ok: !!total && /^\d+ \/ \d+/.test(some) && none === "NO MATCHES" && card && /IN VIEW/.test(back), detail: `${some} → ${none} → ${back}` + (total && card ? "" : ` · start ${JSON.stringify(seen)} · card ${card}`) };
       },
     },
     {
-      name: "fixture: camera list (sheet on phone, rail on wide) opens a camera",
+      name: "camera list (sheet on phone, rail on wide) opens and plays a camera",
       test: async (page) => {
         const phone = await isPhone(page);
+        let clash = "";
         if (phone) {
           await page.click("#cam-list-toggle");
           await sleep(300);
           const open = await page.$eval("#cam-sheet", (el) => el.getAttribute("data-open") === "true");
-          const clash = await overlapFree(page);
+          clash = await overlapFree(page);
           if (!open) return { ok: false, detail: "sheet did not open" };
-          await page.click("#cam-list li:nth-child(2) button");
-          await sleep(500);
-          const closed = await page.$eval("#cam-sheet", (el) => el.getAttribute("data-open") !== "true");
-          const name = await text(page, ".leaflet-popup-content strong").catch(() => "");
-          return { ok: closed && name === "TEST FIXTURE B" && !clash, detail: `sheet open→closed · popup ${name}` + (clash ? " · " + clash : "") };
         }
-        const visible = await shown(page, "#cam-list");
-        await page.click("#cam-list li:nth-child(1) button");
+        const want = await text(page, "#cam-list li:nth-child(2) button");
+        await page.click("#cam-list li:nth-child(2) button");
         await sleep(500);
         const name = await text(page, ".leaflet-popup-content strong").catch(() => "");
-        const cur = await page.$eval("#cam-list li:nth-child(1) button", (b) => b.getAttribute("aria-current"));
-        return { ok: visible && name === "TEST FIXTURE A" && cur === "true", detail: `rail list · popup ${name} · current ${cur}` };
+        const closed = phone ? await page.$eval("#cam-sheet", (el) => el.getAttribute("data-open") !== "true") : true;
+        const st = await page.waitForFunction(() => { const x = document.querySelector(".leaflet-popup .cam-player"); return x && x.dataset.state !== "loading" ? x.dataset.state : false; }, { timeout: 20000 }).then((h) => h.jsonValue()).catch(() => "loading");
+        return { ok: closed && want.startsWith(name) && st === "playing" && !clash, detail: `${phone ? "sheet" : "rail"} → ${name} · ${st}` + (clash ? " · " + clash : "") };
       },
     },
     {
@@ -177,7 +203,16 @@ export const flows = {
         await page.keyboard.press("[");
         await sleep(400);
         const b = await text(page, ".leaflet-popup-content strong").catch(() => "");
-        return { ok: /TEST FIXTURE/.test(a) && /TEST FIXTURE/.test(b) && a !== b, detail: `${a} → ${b}` };
+        return { ok: !!a && !!b && a !== b, detail: `${a} → ${b}` };
+      },
+    },
+    {
+      name: "LOCATE centres on the device position",
+      test: async (page) => {
+        await page.setGeolocation({ latitude: 35.15, longitude: -90.05 });
+        await page.click("#locate");
+        const ok = await page.waitForFunction(() => document.querySelector('.leaflet-tile[src*="/tile/10/"]'), { timeout: 10000 }).then(() => true, () => false);
+        return { ok, untestable: "position is emulated", detail: ok ? "zoom 10 tiles requested" : await text(page, "#count") };
       },
     },
   ],
