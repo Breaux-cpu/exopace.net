@@ -167,7 +167,7 @@
     { href: "/radio/", label: "Radio", match: /^\/radio\// },
     { href: "/mesh/", label: "Mesh", match: /^\/mesh\// },
     { href: "/maps/", label: "Field Maps", match: /^\/maps\// },
-    { href: "/cameras/", label: "Cameras", match: /^\/cameras\// },
+    { href: "https://cams.exopace.net/map", label: "Cameras", match: /$^/ },
     { href: "/sentinel/", label: "Sentinel", match: /^\/sentinel\// },
     { href: "/system/", label: "System", match: /^\/system\// }
   ];

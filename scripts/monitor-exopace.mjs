@@ -18,7 +18,7 @@ const ROUTES = [
   [SITE, "/radio/", "/radio/"],
   [SITE, "/mesh/", "/mesh/"],
   [SITE, "/maps/", "/maps/"],
-  [SITE, "/cameras/", "/cameras/"],
+  [SITE, "/cameras/", "/map"],
   [SITE, "/sentinel/", "/sentinel/"],
   [SITE, "/system/", "/system/"],
 ].concat(LOCAL ? [] : [[SITE, "/404", "/404"]]).concat([

@@ -81,7 +81,7 @@ export const flows = {
       name: "jump cluster links to live decks",
       test: async (page) => {
         const hrefs = await page.$$eval(".miss-jumps a", (els) => els.map((a) => a.getAttribute("href")));
-        const need = ["/mission/", "/radio/", "/mesh/", "/maps/", "/cameras/", "/sentinel/", "/system/"];
+        const need = ["/mission/", "/radio/", "/mesh/", "/maps/", "https://cams.exopace.net/map", "/sentinel/", "/system/"];
         const missing = need.filter((n) => !hrefs.includes(n));
         return { ok: missing.length === 0, detail: hrefs.join(" ") };
       }
@@ -102,12 +102,16 @@ export const flows = {
     {
       name: "redirects to cameras or offers the cameras link",
       test: async (page) => {
-        // Meta refresh may already have fired; accept either landing.
+        // Meta refresh may already have fired; /cameras/ then JS-bounces to cams.
+        const start = page.__exoBase ? page.__exoBase + "/maintenance/" : page.url();
+        if (!/\/maintenance\/?/.test(page.url()) && page.__exoBase) {
+          await page.goto(start, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => {});
+        }
         await new Promise((r) => setTimeout(r, 800));
         const url = page.url();
-        if (/\/cameras\/?/.test(url)) return { ok: true, detail: "redirected " + url };
-        const href = await page.$eval('a[href="/cameras/"]', (a) => a.getAttribute("href")).catch(() => null);
-        return { ok: href === "/cameras/", detail: "link " + href + " at " + url };
+        if (/cams\.exopace\.net\/map/.test(url) || /\/cameras\/?/.test(url)) return { ok: true, detail: "redirected " + url };
+        const href = await page.$eval('a[href="/cameras/"], a[href="https://cams.exopace.net/map"]', (a) => a.getAttribute("href")).catch(() => null);
+        return { ok: href === "/cameras/" || href === "https://cams.exopace.net/map", detail: "link " + href + " at " + url };
       }
     }
   ]

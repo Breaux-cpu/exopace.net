@@ -114,7 +114,7 @@ const meshSw = read("mesh/sw.js");
 assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v93"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v94"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -132,6 +132,18 @@ assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radi
 const redir = read("_redirects");
 assert(redir.includes("/mesh/*") && redir.includes("/radio/*") && redir.includes("/FIRMWARE.md"), "_redirects keeps mesh + radio + firmware");
 assert(redir.includes("/lock/*") && redir.includes("/index.html"), "_redirects SPA-falls legacy /lock/* to index.html");
+assert(redir.includes("/maintenance") && redir.includes("/cameras/"), "_redirects keeps /maintenance bouncing to /cameras/");
+
+// --- /cameras/ is a bounce to cams.exopace.net (hash survives; _redirects cannot see it) ---
+const camPage = read("cameras/index.html");
+assert(camPage.includes("location.replace") && camPage.includes("https://cams.exopace.net/map"), "/cameras/ replaces to cams map");
+assert(/<noscript/i.test(camPage) && camPage.includes("https://cams.exopace.net/map"), "/cameras/ has a noscript cams link");
+assert(camPage.includes("camera=") && camPage.includes("&lat=") && camPage.includes("&lon=") && camPage.includes("&z=13"), "/cameras/ maps #cam and at= to the cams query");
+assert(!existsSync(join(root, "cameras/vendor/hls.light.min.js")), "removed unused cameras hls vendor");
+assert(read("assets/exo-layout.js").includes('href: "https://cams.exopace.net/map"') && read("assets/exo-layout.js").includes('label: "Cameras"'), "nav Cameras goes to cams map");
+assert(read("404.html").includes('href="https://cams.exopace.net/map">Cameras') && read("system/index.html").includes('href="https://cams.exopace.net/map">Cameras'), "404 and System Cameras links go to cams map");
+assert(read("system/index.html").includes("https://cams.exopace.net/account"), "System account link still points at cams /account");
+
 assert(!redir.split("\n").some((l) => l.trim() === "/*              /index.html 200" || l.trim().startsWith("/* ")), "_redirects has no SPA catch-all");
 for (const route of ["/about", "/mission", "/ops", "/login", "/app"]) {
   assert(redir.includes(`${route} `) && /404/.test(redir.split("\n").find((l) => l.includes(route)) || ""), `_redirects 404 ${route}`);
