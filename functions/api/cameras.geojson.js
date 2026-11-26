@@ -50,12 +50,28 @@ function directStill(id) {
   return null;
 }
 
+function wrapLon(lon) {
+  while (lon > 180) lon -= 360;
+  while (lon < -180) lon += 360;
+  return lon;
+}
+
 function boxOf(raw) {
   const parts = String(raw || "").split(",").map(Number);
   if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) return null;
-  const [w, s, e, n] = parts;
+  let [w, s, e, n] = parts;
   if (s < -90 || n > 90 || s >= n) return null;
-  return [Math.max(-180, w), s, Math.min(180, e), n].map((v) => Math.round(v * 1e5) / 1e5);
+  s = Math.max(-90, s);
+  n = Math.min(90, n);
+  if (s >= n) return null;
+  const span = e - w;
+  w = wrapLon(w);
+  e = wrapLon(e);
+  // A view of the whole world, or a wrapped copy (lon 270 = -90) of a local
+  // area, must not become an inverted box that the catalogue treats as empty.
+  if (span >= 359) { w = -180; e = 180; }
+  else if (w > e) return null;
+  return [w, s, e, n].map((v) => Math.round(v * 1e5) / 1e5);
 }
 
 function toFeature(cam) {
@@ -93,8 +109,14 @@ export async function onRequest(context) {
   };
   const incoming = new URL(context.request.url);
   const box = boxOf(incoming.searchParams.get("bbox"));
-  // Single-camera lookups need a cams sign-in; never answer one with an arbitrary camera.
-  if (!box && incoming.searchParams.get("id")) return Response.json({ type: "FeatureCollection", features: [] }, { headers });
+  const wantId = (incoming.searchParams.get("id") || "").trim();
+  // The public cams list has no by-id filter. An id without a bbox or name
+  // search would otherwise return a random page of the catalogue; answer empty
+  // and let the page look the camera up from a bbox, a q=, or a signed-in
+  // GET to cams /api/cameras/:id.
+  if (wantId && !box && !(incoming.searchParams.get("q") || "").trim()) {
+    return Response.json({ type: "FeatureCollection", features: [] }, { headers });
+  }
   const asked = Number(incoming.searchParams.get("max") || 800);
   const limit = Number.isFinite(asked) ? Math.min(Math.max(Math.floor(asked), 1), 2000) : 800;
   const query = new URL(CAMS + "/api/cameras");
@@ -120,6 +142,10 @@ export async function onRequest(context) {
   for (const cam of rows) {
     const f = toFeature(cam);
     if (f) features.push(f);
+  }
+  if (wantId) {
+    const only = features.filter((f) => f.id === wantId);
+    return Response.json({ type: "FeatureCollection", features: only, source: "cams.exopace.net" }, { headers });
   }
   return Response.json({ type: "FeatureCollection", features, source: "cams.exopace.net" }, { headers });
 }

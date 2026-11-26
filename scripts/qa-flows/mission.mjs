@@ -99,9 +99,21 @@ export const flows = {
         const arm = await page.evaluateHandle(() => [...document.querySelectorAll(".station .btn")].find((b) => /^ARM /.test(b.textContent.trim())) || null);
         if (!arm.asElement()) return { ok: true, skip: "no pass to arm" };
         const hit = await arm.asElement().evaluate((b) => { b.scrollIntoView({ block: "center" }); const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return e === b || b.contains(e) ? "" : "covered by " + (e && (e.id || e.className || e.tagName)); });
+        // The ARM toast auto-clears at 1800ms; Cesium click() can outlast that,
+        // so record text as it appears and treat a seen "RF CHAIN OFFLINE" as success.
+        await page.evaluate(() => {
+          const el = document.getElementById("exo-toast");
+          window.__exoToastSeen = (el && el.textContent) || "";
+          if (!el || el.__exoToastWatch) return;
+          el.__exoToastWatch = true;
+          new MutationObserver(() => {
+            const s = (el.textContent || "").trim();
+            if (s) window.__exoToastSeen = s;
+          }).observe(el, { characterData: true, childList: true, subtree: true, attributes: true });
+        });
         await arm.asElement().click();
-        await page.waitForFunction(() => /\S/.test((document.getElementById("exo-toast") || {}).textContent || ""), { timeout: 3000 }).catch(() => {});
-        const toast = await page.$eval("#exo-toast", (t) => t.textContent).catch(() => "");
+        await page.waitForFunction(() => /\S/.test(window.__exoToastSeen || (document.getElementById("exo-toast") || {}).textContent || ""), { timeout: 8000 }).catch(() => {});
+        const toast = await page.evaluate(() => window.__exoToastSeen || (document.getElementById("exo-toast") && document.getElementById("exo-toast").textContent) || "").catch(() => "");
         if (await page.$(".hud .station")) await toggleStation(page);
         if (hit) return { ok: false, detail: "ARM " + hit + " · toast " + toast };
         return { ok: /RF CHAIN OFFLINE/.test(toast), detail: "toast " + toast };
