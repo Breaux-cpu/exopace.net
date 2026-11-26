@@ -248,18 +248,18 @@ document.querySelectorAll(".sn-tabs button").forEach((btn) => {
 document.getElementById("sn-add").addEventListener("click", async () => {
   const kind = document.getElementById("sn-kind").value;
   const value = document.getElementById("sn-value").value.trim();
-  if (!validWatch(kind, value)) { say("Standby"); return; }
+  if (!validWatch(kind, value)) { say("ENTER A VALID " + (document.getElementById("sn-kind").selectedOptions[0] || {}).textContent); return; }
   await putRow("watches", { id: id(), kind, value, armed: true });
   evaluate();
 });
 
 document.getElementById("sn-fence").addEventListener("click", async () => {
-  const lat = Number(document.getElementById("sn-flat").value);
-  const lon = Number(document.getElementById("sn-flon").value);
-  const radiusM = Number(document.getElementById("sn-frad").value);
+  const raw = ["sn-flat", "sn-flon", "sn-frad"].map((k) => document.getElementById(k).value.trim());
+  const [lat, lon, radiusM] = raw.map(Number);
   const name = document.getElementById("sn-fname").value.trim() || "FENCE";
-  if (!Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(radiusM) || radiusM <= 0) {
-    say("NO FIX");
+  if (raw.some((v) => v === "") || !Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(radiusM)
+    || Math.abs(lat) > 90 || Math.abs(lon) > 180 || radiusM <= 0) {
+    say("ENTER LAT, LON AND RADIUS");
     return;
   }
   const gate = await decide("noul", { name });

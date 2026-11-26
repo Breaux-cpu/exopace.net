@@ -15,8 +15,11 @@
   <link rel="stylesheet" href="/assets/exo-tokens.css" />
   <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
   <link rel="stylesheet" href="rf/rf.css" />
+<link rel="stylesheet" href="/assets/exo-layout.css?v=1" data-exo-layout="1">
+<script src="/assets/exo-layout.js?v=1" data-exo-layout="1"></script>
+<link rel="stylesheet" href="sentinel-deck.css?v=1" />
 </head>
-<body class="exo-stage">
+<body class="exo-stage sn-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
   <a class="exo-brand" href="/mission/">EXOPACE</a>
@@ -41,11 +44,12 @@
     <p class="exo-lead">It listens only. Detections stay on this device. A row appears after this browser hears a real BLE advertisement or a labeled report from connected hardware — nothing is invented.</p>
   </header>
 
+  <div class="sn-grid">
   <section class="rf-deck" id="rf-deck" aria-labelledby="rf-title">
     <div class="rf-actions">
       <button type="button" id="rf-start" class="rf-cta" data-primary="true">Start BLE scan</button>
       <button type="button" id="rf-pick" class="rf-ghost">Pick a device</button>
-      <button type="button" id="rf-serial" class="rf-ghost">Connect ESP32 / USB</button>
+      <button type="button" id="rf-serial" class="rf-ghost" aria-label="Connect ESP32 over USB">ESP32 · USB</button>
       <button type="button" id="rf-stop" class="rf-ghost">Stop</button>
     </div>
     <p class="rf-status" id="rf-status">Standby</p>
@@ -76,6 +80,8 @@
     <p class="rf-credit">Detection signatures ported from <a href="https://github.com/CIS-C0/RFSentinel">RF Sentinel</a> (CIS-C0), licensed under GPL-3.0. Source and credits: <a href="rf/NOTICE">NOTICE</a> · <a href="rf/LICENSE">LICENSE</a>.</p>
   </section>
 
+  <section class="sn-lanes" aria-labelledby="sn-lanes-title">
+  <p class="exo-kicker" id="sn-lanes-title">Watch lanes</p>
   <p class="sn-status" id="sn-status">STANDBY</p>
   <div class="sn-tabs" role="tablist" aria-label="Sentinel lanes">
     <button type="button" role="tab" data-lane="all" aria-selected="true">ALL</button>
@@ -88,9 +94,26 @@
     <button type="button" role="tab" data-lane="cameras">CAMERAS</button>
   </div>
   <div id="sn-feed"></div>
+  </section>
+  </div>
+<footer class="exo-foot">
+  <nav aria-label="All EXOpace surfaces">
+    <a href="/mission/">Mission</a>
+    <a href="/radio/">Radio</a>
+    <a href="/mesh/">Mesh</a>
+    <a href="/maps/">Field Maps</a>
+    <a href="/cameras/">Cameras</a>
+    <a href="/sentinel/" aria-current="page">Sentinel</a>
+    <a href="/system/">System</a>
+  </nav>
+  <p>EXOpace · field radio and mission control</p>
+</footer>
 </main>
 <section class="sn-sheet" id="sn-sheet" aria-label="Watchlist controls" data-open="false">
-  <button type="button" id="sn-sheet-toggle" aria-expanded="false" aria-controls="sn-sheet-body">Watchlist</button>
+  <div class="sn-dock">
+    <button type="button" id="sn-dock-scan" class="sn-dock-cta" data-proxy="rf-start">Start BLE scan</button>
+    <button type="button" id="sn-sheet-toggle" aria-expanded="false" aria-controls="sn-sheet-body">Watchlist</button>
+  </div>
   <div id="sn-sheet-body">
   <h2 class="sn-sheet-visually-hidden">Watchlist</h2>
   <div class="sn-row">
@@ -113,12 +136,15 @@
     <button type="button" id="sn-fence">ARM FENCE</button>
   </div>
   <p class="sn-note" id="sn-push">PUSH UNCONFIGURED</p>
+  <h2>Location and feeds</h2>
   <div class="sn-row">
     <button type="button" id="sn-fix">LOCATE</button>
     <button type="button" id="sn-refresh">REFRESH</button>
     <button type="button" id="sn-ble">BLE EXOPACE</button>
   </div>
   <p class="sn-note">RF Scan above can watch BLE in Chrome or Edge. A browser still cannot scan WiFi or cell on its own. Acks and detections stay on this device. Live watchlist rows come only from a feed that answered.</p>
+  <h2>Module status</h2>
+  <div class="sn-waves">
   <p class="exo-wave" id="exo-prop-sentinel">OFFLINE</p>
   <p class="exo-wave" id="exo-sitrep">NO OBSERVATIONS</p>
   <p class="exo-wave" id="exo-acoustic">NO SAMPLES</p>
@@ -129,19 +155,9 @@
   <p class="exo-wave" id="exo-replay">SANDBOX IDLE</p>
   <p class="exo-wave" id="exo-pass">NO PASS</p>
   </div>
+  </div>
 </section>
-<footer class="exo-foot">
-  <nav aria-label="All EXOpace surfaces">
-    <a href="/mission/">Mission</a>
-    <a href="/radio/">Radio</a>
-    <a href="/mesh/">Mesh</a>
-    <a href="/maps/">Field Maps</a>
-    <a href="/cameras/">Cameras</a>
-    <a href="/sentinel/" aria-current="page">Sentinel</a>
-    <a href="/system/">System</a>
-  </nav>
-  <p>EXOpace · field radio and mission control</p>
-</footer>
+
 <script>
   (function () {
     var sheet = document.getElementById("sn-sheet");
@@ -154,6 +170,7 @@
     });
   })();
 </script>
+<script src="sentinel-deck.js?v=1" defer></script>
 <script type="module" src="sentinel.js"></script>
 <script type="module" src="rf/ui.js"></script>
 <script src="/maps/mgrs.js"></script>
