@@ -16,7 +16,7 @@
   }
   if (window.EXO_LAYOUT || document.querySelector("script[data-exo-layout]")) return;
   var s = document.createElement("script");
-  s.src = "/assets/exo-layout.js?v=2";
+  s.src = "/assets/exo-layout.js?v=6";
   s.async = true;
   s.setAttribute("data-exo-layout", "1");
   (document.head || document.documentElement).appendChild(s);
@@ -34,7 +34,7 @@
     ["Radio", "/radio/"],
     ["Mesh", "/mesh/"],
     ["Field Maps", "/maps/"],
-    ["Cameras", "/cameras/"],
+    ["Cameras", "https://cams.exopace.net/map"],
     ["Sentinel", "/sentinel/"],
     ["Cams", "https://cams.exopace.net/"]
   ];

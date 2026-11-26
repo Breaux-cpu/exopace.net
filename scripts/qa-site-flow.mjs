@@ -16,9 +16,12 @@ export const PRIMARY = [
   { path: "/radio/", name: "Radio", title: "EXOpace — Radio", file: "radio/index.html" },
   { path: "/mesh/", name: "Mesh", title: "EXOpace — Mesh", file: "mesh/index.html" },
   { path: "/maps/", name: "Field Maps", title: "EXOpace — Field Maps", file: "maps/index.html" },
-  { path: "/cameras/", name: "Cameras", title: "EXOpace — Cameras", file: "cameras/index.html" },
   { path: "/sentinel/", name: "Sentinel", title: "EXOpace — Sentinel", file: "sentinel/index.html" },
   { path: "/system/", name: "System", title: "EXOpace — System", file: "system/index.html" },
+];
+
+export const OFF_ORIGIN = [
+  { path: "https://cams.exopace.net/map", name: "Cameras" },
 ];
 
 export const ALIASES = {
@@ -121,6 +124,7 @@ export async function crawlSite(base) {
     "index.html",
     "404.html",
     "signin/index.html",
+    "cameras/index.html",
     "maintenance/index.html",
     "maps/legend.html",
     "radio/unlock.html",
@@ -129,7 +133,7 @@ export async function crawlSite(base) {
     if (!allowedFiles.has(file)) problems.push("orphan page " + fileToUrl(file) + " (" + file + ")");
   }
 
-  const navNeed = PRIMARY.map((p) => ({ label: p.name, href: p.path }));
+  const navNeed = PRIMARY.map((p) => ({ label: p.name, href: p.path })).concat(OFF_ORIGIN.map((p) => ({ label: p.name, href: p.path })));
 
   for (const page of PRIMARY) {
     const url = new URL(page.path, base).href;
@@ -143,11 +147,7 @@ export async function crawlSite(base) {
       continue;
     }
     const title = (res.body.match(/<title>([^<]*)<\/title>/i) || [, ""])[1].trim();
-    // Cameras may still use the pre-redesign title until that branch lands; accept exact or historical.
-    const titleOk = title === page.title || (page.name === "Cameras" && title === "EXOpace — Cameras");
-    if (title && title !== page.title && page.name !== "Cameras") {
-      problems.push(page.path + " title “" + title + "” does not match nav label (“" + page.title + "”)");
-    } else if (!titleOk && page.name === "Cameras" && title !== "EXOpace — Cameras") {
+    if (title && title !== page.title) {
       problems.push(page.path + " title “" + title + "” does not match nav label (“" + page.title + "”)");
     }
 
@@ -163,13 +163,12 @@ export async function crawlSite(base) {
     // Main nav must list every primary surface with a matching label.
     const navChunk = (res.body.match(/<nav class="exo-sites"[^>]*>([\s\S]*?)<\/nav>/i) || [, ""])[1];
     if (!navChunk) {
-      // Cameras first paint may still have the old four-link nav; exo-layout.js rewrites it at runtime.
-      if (page.name !== "Cameras") problems.push(page.path + " is missing nav.exo-sites");
+      problems.push(page.path + " is missing nav.exo-sites");
     } else {
       for (const need of navNeed) {
-        const has = new RegExp("href=\"" + need.href.replace("/", "\\/") + "\"[^>]*>\\s*" + need.label.replace(/ /g, "\\s+") + "\\s*<", "i").test(navChunk)
+        const has = new RegExp("href=\"" + need.href.replaceAll("/", "\\/") + "\"[^>]*>\\s*" + need.label.replace(/ /g, "\\s+") + "\\s*<", "i").test(navChunk)
           || (navChunk.includes(need.href) && navChunk.includes(need.label));
-        if (!has && page.name !== "Cameras") {
+        if (!has) {
           problems.push(page.path + " nav is missing " + need.label + " (" + need.href + ")");
         }
       }
@@ -201,7 +200,7 @@ export async function crawlSite(base) {
   // 404 must offer a way back to every primary surface.
   try {
     const miss = await get(new URL("/404.html", base).href);
-    for (const p of PRIMARY) {
+    for (const p of PRIMARY.concat(OFF_ORIGIN)) {
       if (!miss.body.includes('href="' + p.path + '"')) {
         problems.push("/404.html is missing a back link to " + p.name + " (" + p.path + ")");
       }
@@ -227,7 +226,7 @@ export async function crawlSite(base) {
     problems,
     pages: PRIMARY.map((p) => p.path),
     detail: ok
-      ? PRIMARY.length + " surfaces · " + htmlFiles.length + " html files · aliases fold into parents"
+      ? "Home + 6 on-origin surfaces + Cameras on cams · " + htmlFiles.length + " html files · aliases fold into parents"
       : problems.slice(0, 8).join(" | ") + (problems.length > 8 ? " · +" + (problems.length - 8) + " more" : ""),
   };
 }

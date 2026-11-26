@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 const chrome = process.env.CHROME || "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const port = Number(process.env.AUDIT_PORT || 9347);
 const host = process.argv[2] || "http://127.0.0.1:4181";
-const pages = (process.argv[3] || "/radio/,/mesh/,/maps/,/cameras/,/sentinel/,/404,/radio/unlock.html,/maps/legend.html").split(",");
+const pages = (process.argv[3] || "/radio/,/mesh/,/maps/,/sentinel/,/404,/radio/unlock.html,/maps/legend.html").split(",");
 const viewports = [
   { w: 1440, h: 900, name: "1440x900" },
   { w: 390, h: 844, name: "390x844" },

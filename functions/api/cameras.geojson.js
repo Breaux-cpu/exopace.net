@@ -1,4 +1,4 @@
-/* /api/cameras.geojson — the camera list for /cameras and the Mission CAMERAS layer.
+/* /api/cameras.geojson — the camera list for the Mission CAMERAS layer.
  *
  * The old source (Supabase project ywnsnvjewoyhblaljnwf) no longer resolves, so
  * every request returned an empty list. The live catalogue now is EXOpace Cams
@@ -129,7 +129,7 @@ export async function onRequest(context) {
   if (feed === "live" || feed === "other") query.searchParams.set("feed", feed);
   let rows;
   try {
-    const res = await fetch(query, { headers: { accept: "application/json", "user-agent": "exopace.net cameras (+https://exopace.net/cameras/)" }, cf: { cacheTtl: 60, cacheEverything: true } });
+    const res = await fetch(query, { headers: { accept: "application/json", "user-agent": "exopace.net cameras (+https://exopace.net/mission/)" }, cf: { cacheTtl: 60, cacheEverything: true } });
     if (!res.ok) throw new Error("upstream " + res.status);
     const body = await res.json();
     rows = Array.isArray(body && body.cameras) ? body.cameras : null;

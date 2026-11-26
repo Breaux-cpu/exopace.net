@@ -28,7 +28,7 @@ export const ROUTES = {
   radio: "/radio/",
   maps: "/maps/",
   mesh: "/mesh/",
-  cameras: "/cameras/",
+  cameras: "https://cams.exopace.net/map",
   sentinel: "/sentinel/",
 };
 
