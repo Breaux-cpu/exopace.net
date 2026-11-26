@@ -98,12 +98,17 @@ html body.mx-page .big { color: var(--exo-text); font-weight: 400; }
 html body.mx-page main .btn,
 html body.mx-page #sheet .btn,
 html body.mx-page #navHud .btn,
-html body.mx-page #sosBanner .btn {
+html body.mx-page #sosBanner .btn,
+html body.mx-page #composer .btn,
+html body.mx-page #composer select {
   min-height: 44px !important;
   padding: 0 14px !important;
   font: 500 11px/1.2 var(--exo-mono) !important;
   letter-spacing: 0.12em !important;
   white-space: normal;
+  color: var(--exo-text, #f0f6fc) !important;
+  background: rgba(8, 14, 22, 0.94) !important;
+  border: 1px solid rgba(198, 216, 226, 0.22) !important;
 }
 html body.mx-page main .btn.primary { color: #04070d !important; background: #f4f8fb !important; border-color: #f4f8fb !important; }
 html body.mx-page main label.btn { display: flex; align-items: center; justify-content: center; cursor: pointer; }

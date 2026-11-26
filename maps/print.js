@@ -211,6 +211,11 @@
   }
 
   async function magDecl(lat, lon) {
+    /* NOAA now returns 400 "key parameter is missing or it is wrong" without a
+       key. Do not invent one; skip the unauthenticated fetch so the console
+       stays quiet and the HUD keeps MAG — CHART. */
+    var key = (root.EXO && (root.EXO.NOAA_KEY || root.EXO.noaaKey)) || "";
+    if (!key) return null;
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 1800);
     try {
@@ -220,7 +225,7 @@
         + "&model=WMM&startYear=" + now.getUTCFullYear()
         + "&startMonth=" + (now.getUTCMonth() + 1)
         + "&startDay=" + now.getUTCDate()
-        + "&resultFormat=json";
+        + "&resultFormat=json&key=" + encodeURIComponent(key);
       var res = await fetch(url, { signal: ctrl.signal });
       if (!res.ok) return null;
       var data = await res.json();

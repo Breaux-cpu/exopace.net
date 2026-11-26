@@ -94,7 +94,7 @@ button, a, input { font: inherit; }
 .fm-readout { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex-wrap: wrap; }
 .fm-readout strong { color: var(--fm-cyan); font: 600 13px/1.2 var(--fm-mono); letter-spacing: 0.04em; }
 .fm-readout span, .fm-north { color: var(--fm-mut); font: 500 10.5px/1.3 var(--fm-mono); letter-spacing: 0.06em; margin: 0; }
-.fm-actions { display: flex; gap: 8px; }
+.fm-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .fm-actions button {
   height: var(--fm-t); min-width: var(--fm-t); padding: 0 14px; border-radius: 12px;
   border: 1px solid var(--fm-line); background: var(--fm-glass-solid); color: var(--fm-ink);
@@ -106,6 +106,7 @@ button, a, input { font: inherit; }
   -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
 #fm-locate { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='6'/%3E%3Cpath d='M12 2v4M12 18v4M2 12h4M18 12h4'/%3E%3C/svg%3E"); }
 #fm-fit { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'/%3E%3C/svg%3E"); }
+#fm-legend { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 5h14M5 12h14M5 19h10'/%3E%3C/svg%3E"); }
 .fm-actions button:hover { border-color: var(--fm-line-2); }
 .fm-actions button:focus-visible, .fm-tabs button:focus-visible, .fm-grab:focus-visible { outline: 2px solid var(--fm-cyan); outline-offset: 2px; }
 
@@ -423,6 +424,9 @@ button, a, input { font: inherit; }
 #legend .lg-section { padding-top: 4px; border-top: 1px solid var(--fm-line); margin-top: 24px; }
 #legend .lg-section h3 { margin-top: 16px; }
 #legend .lg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+#legend .exo-sheet-body, #legend .lg-panel, #legend .lg-symbols {
+  padding-bottom: calc(28px + var(--exo-sab, 0px));
+}
 @media print {
   body:has(#legend[data-open="true"], #legend.is-open) header.exo-bar,
   body:has(#legend[data-open="true"], #legend.is-open) .exo-pill,
@@ -462,9 +466,13 @@ button, a, input { font: inherit; }
     width: auto !important;
     height: auto !important;
     min-height: var(--fm-t) !important;
-    padding-bottom: 0 !important;
+    padding: 0 !important;
     background: transparent !important;
     border: 0 !important;
+  }
+  body:has(.fm-body) .exo-pill-actions > * {
+    flex: 0 0 auto !important;
+    width: auto !important;
   }
 }
 body:has(.fm-body) > main#exo-main,
@@ -472,4 +480,31 @@ body:has(.fm-body) > main.fm-body {
   overflow: hidden !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
+}
+
+/* Phone dock tabs: seven labels cannot sit comfortably at 412px with 12px pad.
+   Tighten them, fade the trailing edge, and keep an end spacer so DEVICE can
+   scroll fully into view instead of sitting half off the dock. */
+@media (max-width: 719px) {
+  .fm-body .fm-tabs {
+    justify-content: flex-start !important;
+    gap: 0 !important;
+    padding-right: 20px !important;
+    scroll-padding-inline-end: 20px !important;
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 18px), transparent 100%);
+  }
+  .fm-body .fm-tabs::after {
+    content: "" !important;
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    pointer-events: none !important;
+  }
+  .fm-body .fm-tabs button {
+    padding: 0 7px !important;
+    letter-spacing: 0.05em !important;
+    font-size: 10px !important;
+  }
+  .fm-body .fm-tabs button[aria-selected="true"]::after { left: 6px !important; right: 6px !important; }
 }

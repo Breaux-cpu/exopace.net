@@ -414,6 +414,78 @@ body:has(#composer) {
   }
 }
 
+/* Comms workspace switch is redundant with the main nav on phones and
+   steals height from Maps. Mesh keeps its own strip (exo-comms--keep). */
+@media (max-width: 719px) {
+  .exo-comms:not(.exo-comms--keep) { display: none; }
+}
+
+/* When COPY/JUMP stay in the ticker (Maps peek-dock, Mesh composer), they
+   must sit in-flow so the clock/MGRS can scroll instead of painting under them. */
+body:has(#composer) .exo-pill,
+body:has(.fm-body) .exo-pill {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: 8px;
+  overflow: hidden;
+}
+body:has(#composer) .exo-pill-status,
+body:has(.fm-body) .exo-pill-status {
+  grid-column: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+}
+body:has(#composer) .exo-pill-actions,
+body:has(.fm-body) .exo-pill-actions {
+  grid-column: 2;
+  position: relative !important;
+  inset: auto !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  gap: 6px;
+  z-index: 1;
+}
+body:has(#composer) .exo-pill-actions > *,
+body:has(.fm-body) .exo-pill-actions > * {
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+/* Short landscape collapses the generic pill to 0 and parks COPY/JUMP in a
+   bottom dock. Maps keeps those actions in the ticker, so leave the ticker
+   standing or they paint over System, GO, and Zoom in. */
+@media (max-height: 500px) {
+  body:has(.fm-body) { --exo-pill-h: 44px; }
+  body:has(.fm-body):not(:has(#composer)) {
+    --exo-dock-h: 0px;
+    padding-bottom: var(--exo-sab, 0px);
+  }
+  body:has(.fm-body):not(:has(#composer)) .exo-pill {
+    height: var(--exo-pill-h);
+    min-height: var(--exo-pill-h);
+    max-height: var(--exo-pill-h);
+    overflow: hidden;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--exo-line);
+    background: rgba(4, 7, 13, 0.82);
+  }
+}
+
+/* Footer sits above the phone action dock so typographic pages can scroll
+   the last rows (System status, 404 jumps) into view. */
+@media (max-width: 719px) and (min-height: 501px) {
+  body:has(.exo-pill):not(:has(#composer)) .exo-foot {
+    padding-bottom: calc(12px + var(--exo-dock-real, calc(var(--exo-dock-h, 57px) + var(--exo-sab))));
+  }
+}
+
 /* Site row: seven surfaces, fade so a peek is obvious on phones. */
 @media (max-width: 719px) {
   html body .exo-sites {

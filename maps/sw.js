@@ -1,9 +1,9 @@
-const CACHE = "exopace-maps-v31";
+const CACHE = "exopace-maps-v33";
 const SHARED = ["/assets/exo-modern.css", "/assets/exo-tokens.css", "/assets/exo-tabs.js", "/assets/exo-cmd.js", "/assets/exo-link.js", "/assets/exo-bus.js"];
 const SHELL = [
   "/maps/",
   "/maps/index.html",
-  "/maps/maps.css?v=14",
+  "/maps/maps.css?v=16",
   "/maps/layout.js?v=1",
   "/maps/host.json",
   "/maps/mgrs.js?v=1",
@@ -11,7 +11,7 @@ const SHELL = [
   "/maps/sheets.js?v=10",
   "/maps/terrain.js?v=2",
   "/maps/style.js?v=5",
-  "/maps/print.js?v=6",
+  "/maps/print.js?v=7",
   "/maps/atak.js?v=3",
   "/maps/search.js?v=1",
   "/maps/garmin.js?v=2",

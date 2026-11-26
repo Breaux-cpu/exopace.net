@@ -19,51 +19,30 @@
     applyCesiumInsets();
   }
 
+  /* Never pad #globe: CSS padding shrinks the Cesium canvas (box-sizing) and at
+     phone widths can leave a ~30px-wide surface that paints black. HUD overlays
+     the full-size globe. Resize only after the host has a real box, and only
+     when that box or the viewer actually changes. */
+  var insetTimer = 0;
+  var lastGlobeBox = "";
+  var lastViewer = null;
   function applyCesiumInsets() {
     var v = window.EXOPACE_VIEWER;
     var globe = document.getElementById("globe");
     if (!globe) return;
     var gr = globe.getBoundingClientRect();
     if (gr.width < 40 || gr.height < 40) return;
-    var pad = { top: 0, right: 0, bottom: 0, left: 0 };
-    var nodes = document.querySelectorAll(".hud .search, .hud .dossier, .hud .station, .hud .zoom, #mi-thumb, .hud .tl, #exo-install, #globe .cesium-viewer-bottom");
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
-      if (!el.getClientRects().length) continue;
-      var cs = getComputedStyle(el);
-      if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity) === 0) continue;
-      var r = el.getBoundingClientRect();
-      if (r.width < 8 || r.height < 8) continue;
-      var ox = Math.max(0, Math.min(r.right, gr.right) - Math.max(r.left, gr.left));
-      var oy = Math.max(0, Math.min(r.bottom, gr.bottom) - Math.max(r.top, gr.top));
-      if (ox < 16 || oy < 16) continue;
-      var gap = 8;
-      var fromTop = r.top - gr.top;
-      var fromBottom = gr.bottom - r.bottom;
-      var fromLeft = r.left - gr.left;
-      var fromRight = gr.right - r.right;
-      if (r.height < gr.height * 0.55) {
-        if (fromTop <= fromBottom && fromTop + r.height < gr.height * 0.62) {
-          pad.top = Math.max(pad.top, Math.round(r.bottom - gr.top + gap));
-          continue;
-        }
-        if (fromBottom < fromTop && fromBottom + r.height < gr.height * 0.55) {
-          pad.bottom = Math.max(pad.bottom, Math.round(gr.bottom - r.top + gap));
-          continue;
-        }
-      }
-      if (fromLeft <= fromRight) pad.left = Math.max(pad.left, Math.round(r.right - gr.left + gap));
-      else pad.right = Math.max(pad.right, Math.round(gr.right - r.left + gap));
-    }
-    var maxX = Math.round(gr.width * 0.46);
-    var maxY = Math.round(gr.height * 0.42);
-    pad.left = Math.min(pad.left, maxX);
-    pad.right = Math.min(pad.right, maxX);
-    pad.top = Math.min(pad.top, maxY);
-    pad.bottom = Math.min(pad.bottom, maxY);
-    globe.style.boxSizing = "border-box";
-    globe.style.padding = pad.top + "px " + pad.right + "px " + pad.bottom + "px " + pad.left + "px";
+    globe.style.padding = "0px";
+    var key = Math.round(gr.width) + "x" + Math.round(gr.height);
+    if (key === lastGlobeBox && v === lastViewer) return;
+    lastGlobeBox = key;
+    lastViewer = v;
     if (v && typeof v.resize === "function") v.resize();
+    if (v && v.scene && typeof v.scene.requestRender === "function") v.scene.requestRender();
+  }
+  function scheduleCesiumInsets() {
+    if (insetTimer) clearTimeout(insetTimer);
+    insetTimer = setTimeout(applyCesiumInsets, 50);
   }
 
   sky();
@@ -195,7 +174,7 @@
       moved = false;
     }
     sync();
-    applyCesiumInsets();
+    scheduleCesiumInsets();
   }
 
   function start() {
@@ -209,11 +188,18 @@
     new MutationObserver(function () {
       if (PHONE.matches && moved) parkAll();
       sync();
-      applyCesiumInsets();
+      scheduleCesiumInsets();
     }).observe(hud, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    window.addEventListener("resize", applyCesiumInsets);
-    if (window.visualViewport) window.visualViewport.addEventListener("resize", applyCesiumInsets);
-    if (window.ResizeObserver) new ResizeObserver(applyCesiumInsets).observe(hud);
+    window.addEventListener("resize", scheduleCesiumInsets);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleCesiumInsets);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(scheduleCesiumInsets);
+      ro.observe(hud);
+      var globeEl = document.getElementById("globe");
+      if (globeEl) ro.observe(globeEl);
+      var rootEl = document.getElementById("root");
+      if (rootEl) ro.observe(rootEl);
+    }
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
