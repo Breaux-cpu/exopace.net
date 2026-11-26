@@ -104,6 +104,10 @@ function syncChatSend() {
   const up = radioUp();
   if (send) { send.hidden = !up; send.style.display = up ? "" : "none"; }
   if (composer) composer.hidden = !up;
+  const intro = $("meshIntro");
+  if (intro) intro.hidden = up;
+  const text = $("chatText");
+  if (text) { text.disabled = !up; text.placeholder = up ? "Message the mesh…" : "Connect a node to send messages"; }
   if (qtx) qtx.hidden = !up;
   if (empty) empty.textContent = up ? "MESH QUIET. TX or wait for a peer." : "MESH QUIET. Wait for a peer.";
 }
@@ -1874,7 +1878,9 @@ document.addEventListener("keydown", (e) => {
     const b = document.querySelector('nav button[data-s="' + tabs[+e.key - 1] + '"]');
     if (b) b.click();
   } else if (e.key === "Escape") {
-    if (S.sos) dismissSos();
+    const sheet = $("sheet");
+    if (sheet && sheet.classList.contains("show")) { const c = $("optCancel"); if (c) c.click(); else sheet.classList.remove("show"); }
+    else if (S.sos) dismissSos();
     else if (S.nodeSel) { S.nodeSel = null; renderNodes(); }
   }
 });
