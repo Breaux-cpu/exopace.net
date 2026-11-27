@@ -124,7 +124,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("mission/index.html").includes("z-index: 200") && read("mission/index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v73"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v74"), "Radio SW cache bumped");
 const mapsSw = read("maps/sw.js");
 assert(mapsSw.includes("exopace-maps-v37"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
@@ -230,13 +230,13 @@ assert(!meshApp.includes("join EXOpace-XXXX") && !meshApp.includes("Range CSV li
 assert(meshHtml.includes('id="rangeCard" hidden'), "Range logger starts hidden and only mounts on the node AP");
 assert(meshApp.includes("walk outside") && !meshApp.includes("run DEMO"), "map empty state has no Demo nudge");
 assert(!meshApp.includes("DEMO DISABLED IN PROD"), "prod Radio does not toast a Demo CTA");
-assert(meshHtml.includes("walk outside") && !/run DEMO/i.test(meshHtml), "MAP first paint has no Demo CTA");
+assert(meshHtml.includes("your node's GPS puts you on the globe") && !/run DEMO/i.test(meshHtml), "MAP first paint has no Demo CTA");
 assert(/#mapEmpty\{[^}]*right:132px/.test(meshHtml), "phone MAP empty-state parks off STATION/TRAIL");
-assert(meshHtml.includes("MESH QUIET. Power up a second node") && meshHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
+assert(meshHtml.includes("power up a second node — it announces itself") && meshHtml.includes("NO WAYPOINTS. Drop one from MAP"), "NET first-paints honest empty-states");
 assert(meshApp.includes("renderNodes();") && meshApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
 assert(meshApp.includes("function shareWay(w)") && meshApp.includes("send(P.makeWay({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind }))"), "waypoint SHARE broadcasts to the mesh");
 assert(meshApp.includes('btn.dataset.act === "share"') && meshApp.includes("shareWay(w)") && !meshApp.includes("sharePoint(w)"), "waypoint SHARE button calls shareWay, not the OS sheet");
-assert(meshHtml.includes("app.js?v=63") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
+assert(meshHtml.includes("app.js?v=64") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(meshHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(meshHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(meshApp.includes("exopace-radio-hide-install") && meshApp.includes("hideInstallHint"), "Radio HIDE persist stays");
@@ -299,8 +299,16 @@ assert(meshHtml.includes('id="chatSend" hidden') && meshApp.includes("function s
 assert(meshHtml.includes('id="qtx" hidden') && /#qtx\[hidden\]\{[^}]*display:none/.test(meshHtml), "CHAT qtx starts hidden while LINK DOWN");
 assert(meshApp.includes("qtx.hidden = !up"), "CHAT qtx hides with TX until the radio is up");
 assert(meshHtml.includes('id="composer" hidden') && /#composer\[hidden\]\{[^}]*display:none/.test(meshHtml), "CHAT composer starts hidden while LINK DOWN");
-assert(meshApp.includes("composer.hidden = !up") && meshApp.includes("Wait for a peer."), "CHAT composer and empty-state hide TX chrome while LINK DOWN");
-assert(meshHtml.includes("MESH QUIET. Wait for a peer.") && !meshHtml.includes("TX or wait for a peer."), "CHAT empty first-paint does not name hidden TX");
+assert(meshApp.includes("composer.hidden = !up") && meshApp.includes("MESH QUIET. TX or wait for a peer.") && meshApp.includes("NO NODE CONNECTED. Messages from your mesh"), "CHAT composer and empty-state hide TX chrome while LINK DOWN");
+assert(meshHtml.includes("NO NODE CONNECTED. Messages from your mesh show up here") && !meshHtml.includes("TX or wait for a peer."), "CHAT empty first-paint says no node is connected and does not name hidden TX");
+{
+  const meshApp = read("mesh/app.js");
+  assert(meshApp.includes("function fixHint()") && !meshApp.includes('toast("WAITING FOR FIX")'), "Mesh: fix-needing actions say a node is needed when none is linked");
+  assert(meshApp.includes('NO MESSAGES TO EXPORT') && meshApp.includes('NO WAYPOINTS OR TRAIL TO EXPORT'), "Mesh: empty exports say so instead of downloading an empty file");
+  assert(!meshApp.includes('"EXOpace Radio chat log') && !meshApp.includes('creator="EXOpace Radio"'), "Mesh exports are labelled Mesh, not Radio");
+  assert(meshHtml.includes("LINK BUDGET and press PROFILE") && !meshHtml.includes("nothing to show yet"), "Mesh intro points to what works without a node");
+  assert((meshHtml.match(/\/maps\/mgrs\.js/g) || []).length === 1, "Mesh loads mgrs.js once");
+}
 assert(!/text: "SOS " \+ \(m\.msg/.test(meshApp), "SOS handler does not glue SOS onto a qtx that is already SOS");
 
 // --- SDR web app at /radio/ (dj SDR) ---
