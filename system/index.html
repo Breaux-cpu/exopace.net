@@ -36,6 +36,8 @@
     .sys-acts a { display: inline-flex; align-items: center; min-height: 32px; }
     .sys-checked { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; color: #8fa3ad; font-size: 13px; }
     .sys-checked .exo-btn { min-height: 40px; }
+    /* Room for "Last checked 11:32:16 AM CST" from first paint, so Check again does not move. */
+    #sys-checked { display: inline-block; min-width: 14.5em; }
     @media (max-width: 719px) {
       body:has(#sys-ble) .exo-slab.sys-row { flex-wrap: wrap; row-gap: 2px; }
       body:has(#sys-ble) .sys-acts { flex-basis: 100%; font-size: 12px; }
@@ -79,9 +81,9 @@
   <div class="exo-slab-list">
     <p class="sys-row exo-slab"><span class="sys-k">EXOpace hardware (Bluetooth)</span><span class="sys-v" id="sys-ble">CHECKING…</span><span class="sys-acts"><a href="/mesh/">Pair a node on Mesh</a><a href="/sentinel/">Scan on Sentinel</a></span></p>
     <p class="sys-row exo-slab"><span class="sys-k">Offline storage</span><span class="sys-v" id="sys-cache">CHECKING…</span><span class="sys-acts"><a href="/maps/">Import offline maps in Field Maps</a></span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">Cameras server</span><span class="sys-v" id="sys-health">CHECKING…</span><span class="sys-acts"><a href="https://cams.exopace.net/map">Open Cameras</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Cameras server</span><span class="sys-v" id="sys-health">CHECKING · asking the cameras server, one moment…</span><span class="sys-acts"><a href="https://cams.exopace.net/map">Open Cameras</a></span></p>
     <p class="sys-row exo-slab"><span class="sys-k">Tracked target</span><span class="sys-v" id="sys-target">NONE YET</span><span class="sys-acts"><a href="/mission/">Pick one on Mission</a></span></p>
-    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">Account</span><span class="sys-v" id="sys-account-v">CHECKING…</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
+    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">Account</span><span class="sys-v" id="sys-account-v">CHECKING · asking the sign-in server</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
   </div>
 </main>
 <footer class="exo-foot">
@@ -153,7 +155,7 @@
         ? "SAVED FOR OFFLINE · " + saved.join(", ") + mapText
         : "NOTHING SAVED YET · Field Maps and Mesh save when opened" + mapText;
     }).catch(function () { cache.textContent = "NOT AVAILABLE in this browser"; }));
-    health.textContent = "CHECKING…";
+    health.textContent = "CHECKING · asking the cameras server, one moment…";
     var t0 = Date.now();
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl ? setTimeout(function () { ctl.abort(); }, 8000) : null;
