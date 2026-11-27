@@ -117,7 +117,7 @@ const meshSw = read("mesh/sw.js");
 assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v100"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v101"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -685,7 +685,7 @@ assert(/\.station \.btn\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css"))
 assert(/\.station \.passlist li\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone STATION next-pass rows are ≥44");
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.chip\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone FEED CELESTRAK CACHED chip is ≥44");
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.utc\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone UTC clock is ≥44");
-assert(index.includes('id="exo-toast"') && index.includes('showHudToast("NO LOCK")') && index.includes('SAT-CAM') && index.includes('t === "FOLLOW"') && !index.includes('t === "FLY"'), "SAT-CAM / FOLLOW without a lock share the same NO LOCK refusal; FLY is lockless-valid");
+assert(index.includes('id="exo-toast"') && index.includes('showHudToast("NO LOCK · SEARCH OR TAP A SATELLITE FIRST"') && index.includes('SAT-CAM') && index.includes('t === "FOLLOW"') && !index.includes('t === "FLY"'), "SAT-CAM / FOLLOW without a lock share the same NO LOCK refusal; FLY is lockless-valid");
 assert(index.includes('classList.remove("on")') && index.includes("function lockCamBtn") && index.includes("function dropDeadCam") && index.includes("q.delete(\"cam\")"), "SAT-CAM / FOLLOW stay off and strip cam when SELECTION is NO LOCK");
 assert(index.includes('RF CHAIN OFFLINE') && index.includes('chainOk("RADIO")') && index.includes('chainOk("ROTATOR")') && index.includes(".station .btn"), "STATION ARM refuses while radio/rotator are offline");
 assert(index.includes("function rfReady") && index.includes('t.indexOf("ARM ") === 0'), "STATION ARM still fires when radio and rotator are stok");
