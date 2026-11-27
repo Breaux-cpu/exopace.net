@@ -107,7 +107,9 @@
         padding: 7px 12px; border-radius: 4px; z-index: 80;
         pointer-events: none;
       }
+      #exo-toast { max-width: calc(100vw - 24px); text-align: center; line-height: 1.4; }
       #exo-toast[hidden] { display: none; }
+      .camstrip .btn.mi-needs-lock { opacity: 0.55; }
       /* Reserve the lock photo slot so the title and facts do not jump when it arrives. */
       .dossier { position: relative; padding-top: 144px; }
       .dossier img.lock-photo {
@@ -342,7 +344,7 @@
            lockless cams and must write ?cam=&t=. STATION ARM sets
            PASS_ARMED with no radio/rotator. */
         var toastTimer = null;
-        function showHudToast(msg) {
+        function showHudToast(msg, ms) {
           var t = document.getElementById("exo-toast");
           if (!t) return;
           t.textContent = msg;
@@ -351,7 +353,7 @@
           toastTimer = setTimeout(function () {
             t.hidden = true;
             t.textContent = "";
-          }, 1800);
+          }, ms || 1800);
         }
         function locked() {
           return !!document.querySelector(".dossier button");
@@ -388,7 +390,7 @@
           if (c !== "follow" && c !== "satcam") return;
           q.delete("cam");
           var s = q.toString();
-          history.replaceState(null, "", s ? "/?" + s : "/");
+          history.replaceState(null, "", location.pathname + (s ? "?" + s : "") + location.hash);
         }
         function refuse(e) {
           var cam = lockCamBtn(e.target);
@@ -398,7 +400,7 @@
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
             cam.classList.remove("on");
             dropDeadCam();
-            showHudToast("NO LOCK");
+            showHudToast("NO LOCK · SEARCH OR TAP A SATELLITE FIRST", 3200);
             return;
           }
           var arm = armBtn(e.target);
@@ -410,6 +412,16 @@
           }
         }
         document.addEventListener("click", refuse, true);
+        /* Show up front that FOLLOW / SAT-CAM need a lock. */
+        setInterval(function () {
+          var on = locked();
+          document.querySelectorAll(".camstrip .btn").forEach(function (b) {
+            var t = (b.textContent || "").replace(/\s+/g, " ").trim();
+            if (t !== "SAT-CAM" && t !== "FOLLOW") return;
+            b.classList.toggle("mi-needs-lock", !on);
+            b.title = on ? (t === "FOLLOW" ? "Camera follows the locked satellite" : "View from the locked satellite") : "Lock a satellite first (search or tap a dot)";
+          });
+        }, 1000);
       })();
       (function () {
         /* Bundle STATION .kv paints UTC/LOCAL from its own Date.now() interval
