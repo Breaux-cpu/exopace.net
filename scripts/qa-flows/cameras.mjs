@@ -57,11 +57,11 @@ export const flows = {
       }
     },
     {
-      name: "hash without coordinates falls back to /map",
+      name: "hash without coordinates still names the camera (cams looks it up by id)",
       test: async (page) => {
         const dest = await followRedirect(page, baseOf(page) + "/cameras/#cam=only-an-id");
         const u = mapUrl(dest);
-        const ok = !!u && u.origin + u.pathname === CAMS_MAP && ![...u.searchParams.keys()].length;
+        const ok = !!u && u.origin + u.pathname === CAMS_MAP && u.searchParams.get("camera") === "only-an-id" && !u.searchParams.has("lat");
         return { ok, detail: dest };
       }
     },
