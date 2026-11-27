@@ -288,8 +288,17 @@ if (els.start) els.start.addEventListener("click", onStart);
 if (els.pick) els.pick.addEventListener("click", onPick);
 if (els.stop) els.stop.addEventListener("click", onStop);
 if (els.serial) els.serial.addEventListener("click", onSerial);
-if (els.exportJson) els.exportJson.addEventListener("click", () => shareOrDownload("json").catch((err) => say(String(err.message || err))));
-if (els.exportCsv) els.exportCsv.addEventListener("click", () => shareOrDownload("csv").catch((err) => say(String(err.message || err))));
+async function exportLog(kind) {
+  const saved = await allDetections();
+  if (!saved.length) {
+    say("NOTHING TO EXPORT YET · NO DETECTIONS ON THIS DEVICE");
+    return;
+  }
+  await shareOrDownload(kind);
+  say(`EXPORTED ${saved.length} ${saved.length === 1 ? "DETECTION" : "DETECTIONS"} · ${kind.toUpperCase()}`);
+}
+if (els.exportJson) els.exportJson.addEventListener("click", () => exportLog("json").catch((err) => say(String(err.message || err))));
+if (els.exportCsv) els.exportCsv.addEventListener("click", () => exportLog("csv").catch((err) => say(String(err.message || err))));
 if (els.clear) {
   els.clear.addEventListener("click", async () => {
     await clearDetections();

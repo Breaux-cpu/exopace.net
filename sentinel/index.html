@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="rf/rf.css" />
 <link rel="stylesheet" href="/assets/exo-layout.css?v=7" data-exo-layout="1">
 <script src="/assets/exo-layout.js?v=6" data-exo-layout="1"></script>
-<link rel="stylesheet" href="sentinel-deck.css?v=6" />
+<link rel="stylesheet" href="sentinel-deck.css?v=7" />
 </head>
 <body class="exo-stage sn-page">
 <header class="exo-bar">
@@ -45,7 +45,13 @@
   <header class="sn-hero">
     <p class="exo-kicker">RF scan · local signatures</p>
     <h1 class="exo-display" id="rf-title">Sentinel</h1>
-    <p class="exo-lead">It listens only. Detections stay on this device. A row appears after this browser hears a real BLE advertisement or a labeled report from connected hardware — nothing is invented.</p>
+    <p class="exo-lead">Sentinel listens for surveillance and tracking gear near you. It only listens, and detections stay on this device.</p>
+    <ul class="sn-finds" aria-label="What Sentinel finds">
+      <li><b>Trackers</b> following you: AirTags, Tiles and similar tags away from their owner.</li>
+      <li><b>Surveillance gear</b>: police body cams, plate-reader cameras, drones, card skimmers.</li>
+      <li><b>Watched targets</b>: a satellite, aircraft or ship you add to the watchlist, or anything entering a geofence.</li>
+    </ul>
+    <p class="sn-needs">Bluetooth scanning works in Chrome or Edge (best on Android). WiFi and cell need an ESP32 over USB or the RF Sentinel Android app. Nothing is invented: a row appears only after a real signal.</p>
   </header>
 
   <div class="sn-grid">
@@ -68,18 +74,21 @@
       <button type="button" id="rf-export-csv" class="rf-ghost">Export CSV</button>
       <button type="button" id="rf-clear" class="rf-ghost">Clear local log</button>
     </div>
-    <p class="exo-kicker rf-section-kicker">Capability</p>
-    <div class="rf-caps" id="rf-caps" aria-label="RF scan capabilities"></div>
-    <p class="exo-kicker rf-section-kicker">Needs hardware</p>
-    <div class="rf-hardware" aria-label="Features that need hardware or the Android app">
-      <article class="exo-slab rf-hw">
-        <span class="exo-k">WiFi scanning</span>
-        <p>A browser cannot see nearby WiFi networks, Flock SSIDs, or probe requests. Connect an ESP32 running OUI-Spy, Marauder, or GhostESP over USB in Chrome or Edge, or use the RF Sentinel Android app.</p>
-      </article>
-      <article class="exo-slab rf-hw">
-        <span class="exo-k">Cell towers and GPS jamming</span>
-        <p>IMSI-catcher signs and GNSS jamming checks need phone radios and sensors. This page will not invent those readings. Use the RF Sentinel Android app.</p>
-      </article>
+    <button type="button" class="sn-fold" aria-expanded="false" aria-controls="sn-fold-caps">What works in this browser, and what needs hardware</button>
+    <div class="sn-fold-body" id="sn-fold-caps" hidden>
+      <p class="exo-kicker rf-section-kicker">Capability</p>
+      <div class="rf-caps" id="rf-caps" aria-label="RF scan capabilities"></div>
+      <p class="exo-kicker rf-section-kicker">Needs hardware</p>
+      <div class="rf-hardware" aria-label="Features that need hardware or the Android app">
+        <article class="exo-slab rf-hw">
+          <span class="exo-k">WiFi scanning</span>
+          <p>A browser cannot see nearby WiFi networks, Flock SSIDs, or probe requests. Connect an ESP32 running OUI-Spy, Marauder, or GhostESP over USB in Chrome or Edge, or use the RF Sentinel Android app.</p>
+        </article>
+        <article class="exo-slab rf-hw">
+          <span class="exo-k">Cell towers and GPS jamming</span>
+          <p>IMSI-catcher signs and GNSS jamming checks need phone radios and sensors. This page will not invent those readings. Use the RF Sentinel Android app.</p>
+        </article>
+      </div>
     </div>
     <p class="rf-credit">Detection signatures ported from <a href="https://github.com/CIS-C0/RFSentinel">RF Sentinel</a> (CIS-C0), licensed under GPL-3.0. Source and credits: <a href="rf/NOTICE">NOTICE</a> · <a href="rf/LICENSE">LICENSE</a>.</p>
   </section>
@@ -176,7 +185,15 @@
   })();
 </script>
 <script src="sentinel-deck.js?v=4" defer></script>
-<script type="module" src="sentinel.js"></script>
+<script type="module" src="sentinel.js?v=2"></script>
+<script>
+  document.querySelectorAll(".sn-fold").forEach((btn) => btn.addEventListener("click", () => {
+    const body = document.getElementById(btn.getAttribute("aria-controls"));
+    const open = btn.getAttribute("aria-expanded") !== "true";
+    btn.setAttribute("aria-expanded", String(open));
+    if (body) body.hidden = !open;
+  }));
+</script>
 <script type="module" src="rf/ui.js"></script>
 <script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
