@@ -25,15 +25,27 @@
       body:has(#sys-ble) .exo-plinth { max-width: 220px; }
     }
     .sys-row .sys-v { flex: 1 1 auto; }
+    /* The rows are <p>; drop the paragraph margin so every row and the check time fit the first screen. */
+    .exo-slab-list > p.sys-row { margin: 0; }
+    @media (min-width: 720px) {
+      .exo-slab-list > p.sys-row { min-height: 0; padding: 14px 18px; gap: 8px; }
+      body:has(#sys-ble) .exo-hero-grid { margin-bottom: 8px; }
+    }
+    .sys-checked { position: relative; z-index: 1; }
     .sys-acts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--exo-sans, system-ui, sans-serif); font-size: 13px; }
     .sys-acts a { display: inline-flex; align-items: center; min-height: 32px; }
-    .sys-checked { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 0; color: #8fa3ad; font-size: 13px; }
+    .sys-checked { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; color: #8fa3ad; font-size: 13px; }
     .sys-checked .exo-btn { min-height: 40px; }
     @media (max-width: 719px) {
       body:has(#sys-ble) .exo-slab.sys-row { flex-wrap: wrap; row-gap: 2px; }
       body:has(#sys-ble) .sys-acts { flex-basis: 100%; font-size: 12px; }
       body:has(#sys-ble) .sys-acts a { min-height: 28px; }
-      .sys-checked { margin: 8px 0 0; font-size: 12px; }
+      .sys-checked { margin: 0 0 8px; font-size: 12px; }
+    }
+    /* Narrow phones (folded 344 px): drop the decorative logo so all five rows fit the first screen. */
+    @media (max-width: 380px) {
+      body:has(#sys-ble) .exo-plinth { display: none; }
+      body:has(#sys-ble) .sys-acts a { min-height: 24px; }
     }
   </style>
 </head>
@@ -55,7 +67,7 @@
 <main id="exo-main" class="exo-hero">
   <div class="exo-hero-grid">
     <div class="exo-hero-copy">
-      <p class="exo-kicker">Hardware · cache · edge</p>
+      <p class="exo-kicker">Status · browser and servers</p>
       <h1 class="exo-display">SYSTEM</h1>
       <p class="exo-lead">What works right now in this browser, each with the next step. Nothing here is invented.</p>
     </div>
@@ -63,14 +75,14 @@
       <canvas id="exo-scene" class="exo-scene"></canvas>
     </div>
   </div>
+  <p class="sys-checked" aria-live="polite"><span id="sys-checked">Checking…</span> <button type="button" class="exo-btn" id="sys-recheck">Check again</button></p>
   <div class="exo-slab-list">
-    <p class="sys-row exo-slab"><span class="sys-k">EXOpace hardware (Bluetooth)</span><span class="sys-v" id="sys-ble">STANDBY</span><span class="sys-acts"><a href="/mesh/">Pair a node on Mesh</a><a href="/sentinel/">Scan on Sentinel</a></span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">Offline storage</span><span class="sys-v" id="sys-cache">STANDBY</span><span class="sys-acts"><a href="/maps/">Save map tiles in Field Maps</a></span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">Cameras server</span><span class="sys-v" id="sys-health">STANDBY</span><span class="sys-acts"><a href="https://cams.exopace.net/map">Open Cameras</a></span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">Tracked target</span><span class="sys-v" id="sys-target">NO TARGET</span><span class="sys-acts"><a href="/mission/">Pick one on Mission</a></span></p>
-    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">Account</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
+    <p class="sys-row exo-slab"><span class="sys-k">EXOpace hardware (Bluetooth)</span><span class="sys-v" id="sys-ble">CHECKING…</span><span class="sys-acts"><a href="/mesh/">Pair a node on Mesh</a><a href="/sentinel/">Scan on Sentinel</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Offline storage</span><span class="sys-v" id="sys-cache">CHECKING…</span><span class="sys-acts"><a href="/maps/">Import offline maps in Field Maps</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Cameras server</span><span class="sys-v" id="sys-health">CHECKING…</span><span class="sys-acts"><a href="https://cams.exopace.net/map">Open Cameras</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Tracked target</span><span class="sys-v" id="sys-target">NONE YET</span><span class="sys-acts"><a href="/mission/">Pick one on Mission</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">Account</span><span class="sys-v" id="sys-account-v">CHECKING…</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
   </div>
-  <p class="sys-checked"><span id="sys-checked">Checking…</span> <button type="button" class="exo-btn" id="sys-recheck">Check again</button></p>
 </main>
 <footer class="exo-foot">
   <nav aria-label="All EXOpace surfaces">
@@ -97,37 +109,83 @@
   var health = document.getElementById("sys-health");
   var target = document.getElementById("sys-target");
   var checked = document.getElementById("sys-checked");
-  function check() {
+  var recheck = document.getElementById("sys-recheck");
+  /* Which parts of EXOpace this browser has saved for offline use, by the service worker cache names. */
+  var PARTS = [["exopace-moc", "pages you visited"], ["exopace-maps", "Field Maps"], ["exopace-mesh", "Mesh"], ["exopace-dem", "elevation tiles"]];
+  function archives() {
+    /* Count imported offline map archives without creating the database when it does not exist. */
+    if (!window.indexedDB || !indexedDB.databases) return Promise.resolve(null);
+    return indexedDB.databases().then(function (dbs) {
+      if (!dbs.some(function (d) { return d.name === "exopace-pmtiles"; })) return 0;
+      return new Promise(function (resolve) {
+        var req = indexedDB.open("exopace-pmtiles");
+        req.onerror = function () { resolve(null); };
+        req.onsuccess = function () {
+          var db = req.result;
+          try {
+            var c = db.transaction("archives", "readonly").objectStore("archives").count();
+            c.onsuccess = function () { db.close(); resolve(c.result); };
+            c.onerror = function () { db.close(); resolve(null); };
+          } catch (err) { db.close(); resolve(null); }
+        };
+      });
+    }).catch(function () { return null; });
+  }
+  function uptime(s) {
+    if (!(s >= 0)) return "";
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    return " · running " + (h >= 48 ? Math.floor(h / 24) + " days" : h ? h + " h " + m + " min" : m + " min");
+  }
+  function check(again) {
     var pending = [];
+    if (again === true && window.EXO_LAYOUT && window.EXO_LAYOUT.probeMe) pending.push(window.EXO_LAYOUT.probeMe({ fresh: true }));
+    recheck.disabled = true;
+    checked.textContent = "Checking…";
     ble.textContent = navigator.bluetooth && navigator.bluetooth.requestDevice
-      ? "NOT PAIRED · this browser can pair over Bluetooth"
-      : "STANDBY · this browser cannot pair EXOpace hardware (use Chrome or Edge)";
+      ? "READY · this browser can pair; nothing paired yet"
+      : "NOT AVAILABLE · Bluetooth needs Chrome or Edge";
     if (!("caches" in window)) cache.textContent = "NOT AVAILABLE in this browser";
-    else pending.push(caches.keys().then(function (keys) {
-      cache.textContent = keys.length ? keys.length + (keys.length === 1 ? " saved store" : " saved stores") + " on this device" : "EMPTY · nothing saved for offline use yet";
+    else pending.push(Promise.all([caches.keys(), archives()]).then(function (got) {
+      var names = got[0] || [], maps = got[1];
+      var saved = PARTS.filter(function (p) { return names.some(function (n) { return String(n).indexOf(p[0]) === 0; }); }).map(function (p) { return p[1]; });
+      var mapText = maps ? " · " + maps + (maps === 1 ? " offline map" : " offline maps") : "";
+      cache.textContent = saved.length
+        ? "SAVED FOR OFFLINE · " + saved.join(", ") + mapText
+        : "NOTHING SAVED YET · Field Maps and Mesh save when opened" + mapText;
     }).catch(function () { cache.textContent = "NOT AVAILABLE in this browser"; }));
     health.textContent = "CHECKING…";
-    pending.push(fetch("https://cams.exopace.net/api/health", { cache: "no-store" }).then(function (res) { return res.json(); }).then(function (body) {
-      health.textContent = body && body.ok && body.mongo ? "ONLINE" : body && body.ok ? "DEGRADED · camera database not responding" : "DEGRADED";
-    }).catch(function () { health.textContent = "UNREACHABLE"; }));
+    var t0 = Date.now();
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function () { ctl.abort(); }, 8000) : null;
+    pending.push(fetch("https://cams.exopace.net/api/health", { cache: "no-store", signal: ctl ? ctl.signal : undefined }).then(function (res) { return res.json(); }).then(function (body) {
+      var ms = Date.now() - t0;
+      health.textContent = body && body.ok && body.mongo ? "ONLINE · answered in " + ms + " ms" + uptime(body.uptime_s)
+        : body && body.ok ? "PARTLY DOWN · the camera list is not responding; the map may be empty"
+        : "PARTLY DOWN · the server answered but reported a problem";
+    }).catch(function () { health.textContent = "NOT REACHABLE · cameras may not load; try again soon"; })
+      .then(function () { if (timer) clearTimeout(timer); }));
     Promise.all(pending).then(function () {
       checked.textContent = "Last checked " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit", timeZoneName: "short" });
+      recheck.disabled = false;
     });
   }
   check();
-  document.getElementById("sys-recheck").addEventListener("click", check);
+  recheck.addEventListener("click", function () { check(true); });
   /* Account state comes from the shared shell probe (cams /api/me, cached per session). */
   var account = document.getElementById("sys-account");
+  var accountV = document.getElementById("sys-account-v");
   function paintAccountRow(state) {
     if (!account) return;
+    if (accountV) accountV.textContent = state === "in" ? "SIGNED IN" : state === "out" ? "SIGNED OUT · sign in for camera video" : "UNKNOWN · sign-in server did not answer";
     account.textContent = state === "in" ? "Signed in · Account" : state === "out" ? "Sign in" : "Account";
   }
   if (account && window.EXO_LAYOUT && window.EXO_LAYOUT.probeMe) {
-    window.EXO_LAYOUT.probeMe().then(paintAccountRow);
+    window.EXO_LAYOUT.probeMe().then(paintAccountRow, function () { paintAccountRow(""); });
     document.addEventListener("exo:me", function (e) { paintAccountRow(e.detail && e.detail.state); });
   }
+  else paintAccountRow("");
   function paint(row) {
-    if (!row || !row.label) { target.textContent = "NO TARGET"; return; }
+    if (!row || !row.label) { target.textContent = "NONE YET"; return; }
     target.textContent = row.label + (row.norad ? " · " + row.norad : "");
   }
   paint(window.EXO && window.EXO.bus && window.EXO.bus.get());

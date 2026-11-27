@@ -53,11 +53,11 @@ export const flows = {
       test: async (page) => {
         await page.waitForFunction(() => {
           const ble = document.getElementById("sys-ble");
-          return ble && /STANDBY|OFFLINE|ONLINE/.test(ble.textContent);
+          return ble && /STANDBY|OFFLINE|ONLINE|NOT AVAILABLE|READY/.test(ble.textContent);
         }, { timeout: 8000 });
         const rows = await page.$$eval(".sys-row", (els) => els.map((el) => el.textContent.replace(/\\s+/g, " ").trim()));
         const hardware = rows.find((r) => /Bluetooth|EXOpace hardware|BLE/i.test(r)) || "";
-        const ok = /cannot pair|STANDBY|OFFLINE/i.test(hardware);
+        const ok = /cannot pair|cannot use Bluetooth|can pair|STANDBY|OFFLINE/i.test(hardware);
         return { ok, detail: rows.join(" || ") };
       }
     },
