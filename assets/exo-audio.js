@@ -59,7 +59,7 @@
     host.innerHTML = ''
       + '<div class="exo-au">'
       + '<div class="exo-au__row"><select data-dev aria-label="Audio input"><option value="">Default input</option></select>'
-      + '<button type="button" data-act="arm">ARM</button><button type="button" data-act="stop">STOP</button></div>'
+      + '<button type="button" data-act="arm">ARM</button><button type="button" data-act="stop" disabled>STOP</button></div>'
       + '<div class="exo-au__row"><label class="exo-au__num">FLOOR <input data-floor type="range" min="-120" max="-30" value="-90" aria-label="dB floor"></label>'
       + '<span data-floor-n class="exo-au__num">-90 dB</span>'
       + '<label class="exo-au__num">CW <input data-cw type="number" min="200" max="3000" value="700" aria-label="CW tone Hz"> Hz</label></div>'
@@ -77,7 +77,7 @@
       if (btn.getAttribute("data-act") === "arm") start().catch(function (err) {
         pushLog("AUDIO", err && err.name === "NotAllowedError" ? "PERMISSION DENIED" : "INPUT UNAVAILABLE");
       });
-      if (btn.getAttribute("data-act") === "stop") stop();
+      if (btn.getAttribute("data-act") === "stop") { stop(); pushLog("AUDIO", "STOPPED"); }
     });
   }
 
@@ -283,12 +283,20 @@
         var tone = Number(host.querySelector("[data-cw]").value) || 700;
         if (worklet) worklet.port.postMessage({ cw: tone });
         pushLog("AUDIO", "LIVE");
+        stopBtn(true);
       });
     });
   }
 
+  /* STOP only does something while an input is live. */
+  function stopBtn(on) {
+    var b = host && host.querySelector('[data-act="stop"]');
+    if (b) b.disabled = !on;
+  }
+
   function stop() {
     running = false;
+    stopBtn(false);
     if (raf) root.cancelAnimationFrame(raf);
     raf = 0;
     if (worklet) { worklet.disconnect(); worklet = null; }
