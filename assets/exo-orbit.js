@@ -186,9 +186,15 @@ function mount() {
   }
 
   let sharedKey = "";
+  // Only publish a page-wide target after the user acts on this card (Predict,
+  // Locate, or edits a field). Opening /radio/ alone must not lock ISS or
+  // rewrite the URL.
+  let userActed = false;
+  root.addEventListener("input", () => { userActed = true; });
+  root.addEventListener("click", (e) => { if (e.target && e.target.closest && e.target.closest("button, a")) userActed = true; });
   function shareTarget(row, here) {
     const bus = window.EXO && window.EXO.bus;
-    if (!bus || !row || !here) return;
+    if (!bus || !row || !here || !userActed) return;
     const down = mhzFor(row);
     const key = row.norad + "|" + (down || "");
     if (key === sharedKey) return;
