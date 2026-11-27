@@ -298,12 +298,12 @@ nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);back
       <button class="btn" data-qtx="Need relay">Need relay</button>
       <button class="btn primary" data-qtx="SOS" data-sos="1" title="Type a reason in the message box first to attach it">SOS</button>
     </div>
-    <div class="row mx-tools mx-chattools">
+    <div class="row mx-tools mx-chattools" hidden>
       <button class="btn" id="btnExportChat">EXPORT CHAT</button>
       <button class="btn" id="btnClearChat">CLEAR</button>
       <button class="btn" id="btnTz">TIME UTC</button>
     </div>
-    <input id="chatSearch" class="wayName" placeholder="Search by name or sender" aria-label="Search by name or sender" style="margin-bottom:8px">
+    <input id="chatSearch" hidden class="wayName" placeholder="Search by name or sender" aria-label="Search by name or sender" style="margin-bottom:8px">
     <div id="chatLog"></div>
     <div id="composer">
       <select id="chatTo" aria-label="Send to"><option value="*">ALL</option></select>
@@ -580,7 +580,7 @@ Peers appear when their nodes report position.</div>
   });
 })();
 </script>
-<script src="app.js?v=64"></script>
+<script src="app.js?v=65"></script>
 <script src="/assets/exo-webserial.js"></script>
 <script>
 (function () {

@@ -124,7 +124,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("mission/index.html").includes("z-index: 200") && read("mission/index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v74"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v75"), "Radio SW cache bumped");
 const mapsSw = read("maps/sw.js");
 assert(mapsSw.includes("exopace-maps-v37"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
@@ -236,7 +236,7 @@ assert(meshHtml.includes("power up a second node — it announces itself") && me
 assert(meshApp.includes("renderNodes();") && meshApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
 assert(meshApp.includes("function shareWay(w)") && meshApp.includes("send(P.makeWay({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind }))"), "waypoint SHARE broadcasts to the mesh");
 assert(meshApp.includes('btn.dataset.act === "share"') && meshApp.includes("shareWay(w)") && !meshApp.includes("sharePoint(w)"), "waypoint SHARE button calls shareWay, not the OS sheet");
-assert(meshHtml.includes("app.js?v=64") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
+assert(meshHtml.includes("app.js?v=65") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(meshHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(meshHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(meshApp.includes("exopace-radio-hide-install") && meshApp.includes("hideInstallHint"), "Radio HIDE persist stays");
