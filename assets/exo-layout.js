@@ -182,7 +182,36 @@
       var cur = s.match.test(path) ? ' aria-current="page"' : "";
       return '<a href="' + s.href + '"' + cur + ">" + s.label + "</a>";
     }).join("");
+    hintSites(nav);
     return nav;
+  }
+
+  /* Phones: bring the current surface into view and mark which edges have
+     more links, so the clipped nav reads as scrollable (exo-modern.css). */
+  function hintSites(nav) {
+    if (nav._exoHint) return;
+    nav._exoHint = true;
+    function edges() {
+      var more = nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4;
+      nav.classList.toggle("exo-sites-more", more);
+      nav.classList.toggle("exo-sites-start", nav.scrollLeft > 4);
+    }
+    function centre() {
+      var cur = nav.querySelector('[aria-current="page"]');
+      if (cur && nav.scrollWidth > nav.clientWidth + 4) {
+        var box = nav.getBoundingClientRect();
+        var row = cur.getBoundingClientRect();
+        if (row.right > box.right - 24 || row.left < box.left) {
+          nav.scrollLeft += row.left - box.left - (box.width - row.width) / 2;
+        }
+      }
+      edges();
+    }
+    nav.addEventListener("scroll", edges, { passive: true });
+    global.addEventListener("resize", edges);
+    if (document.readyState === "complete") centre();
+    else global.addEventListener("load", centre);
+    edges();
   }
 
   /* Signed-in probe. The sign-in itself lives on cams (Google). One answer per

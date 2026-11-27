@@ -745,6 +745,21 @@ nav.exo-tabs > a[data-ws] {
   }
   .exo-sites::after { flex-basis: 0; content: none; }
 }
+/* exo-layout.js marks the edges that hide more surfaces; fade those edges wider. */
+@media (max-width: 719px) {
+  .exo-sites.exo-sites-more {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 48px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 48px), transparent 100%);
+  }
+  .exo-sites.exo-sites-start.exo-sites-more {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 48px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 48px), transparent 100%);
+  }
+  .exo-sites.exo-sites-start:not(.exo-sites-more) {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px);
+    mask-image: linear-gradient(90deg, transparent 0, #000 28px);
+  }
+}
 /* System status must fit on a phone first paint: compact rows, short plinth, no lead. */
 @media (max-width: 719px) {
   body:has(#sys-ble) .exo-hero {
