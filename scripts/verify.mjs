@@ -124,7 +124,7 @@ assert(read("mission/index.html").includes("z-index: 200") && read("mission/inde
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
 assert(meshSw.includes("exopace-mesh-v70"), "Radio SW cache bumped");
 const mapsSw = read("maps/sw.js");
-assert(mapsSw.includes("exopace-maps-v34"), "Maps SW cache bumped");
+assert(mapsSw.includes("exopace-maps-v35"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(meshSw), "Radio SW does not precache app.js");
 assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");

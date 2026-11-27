@@ -508,3 +508,8 @@ body:has(.fm-body) > main.fm-body {
   }
   .fm-body .fm-tabs button[aria-selected="true"]::after { left: 6px !important; right: 6px !important; }
 }
+
+/* Audit fix: one plain line on what Field Maps is for, under the search. */
+.fm-purpose { margin: 2px 0 0; max-width: 34ch; color: var(--fm-ink); font: 400 12px/1.35 var(--fm-sans); letter-spacing: 0; opacity: 0.86; }
+@media (max-width: 719px) { .fm-purpose { font-size: 11px; max-width: none; } }
+@media (max-height: 500px) { .fm-purpose { display: none; } }
