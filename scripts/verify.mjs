@@ -687,8 +687,17 @@ assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.chip\s*\{[^}]*min-height:\s
 assert(/@media \(max-width: 820px\)[\s\S]*\.tl span\.utc\s*\{[^}]*min-height:\s*44px/.test(read("moc-phone.css")), "phone UTC clock is ≥44");
 assert(index.includes('id="exo-toast"') && index.includes('showHudToast("NO LOCK · SEARCH OR TAP A SATELLITE FIRST"') && index.includes('SAT-CAM') && index.includes('t === "FOLLOW"') && !index.includes('t === "FLY"'), "SAT-CAM / FOLLOW without a lock share the same NO LOCK refusal; FLY is lockless-valid");
 assert(index.includes('classList.remove("on")') && index.includes("function lockCamBtn") && index.includes("function dropDeadCam") && index.includes("q.delete(\"cam\")"), "SAT-CAM / FOLLOW stay off and strip cam when SELECTION is NO LOCK");
-assert(index.includes('RF CHAIN OFFLINE') && index.includes('chainOk("RADIO")') && index.includes('chainOk("ROTATOR")') && index.includes(".station .btn"), "STATION ARM refuses while radio/rotator are offline");
+assert(index.includes('ARM NEEDS THE STATION RADIO AND ROTATOR') && index.includes('chainOk("RADIO")') && index.includes('chainOk("ROTATOR")') && index.includes(".station .btn"), "STATION ARM refuses while radio/rotator are offline");
 assert(index.includes("function rfReady") && index.includes('t.indexOf("ARM ") === 0'), "STATION ARM still fires when radio and rotator are stok");
+assert(index.includes('class="exo-pill-status" tabindex="0"') && index.includes('id="exo-pill-target" aria-live="polite"') && !index.includes('id="exo-pill" aria-live'), "Mission status strip is keyboard-reachable and only the target is announced");
+assert(index.includes("C.SkyBox.prototype.update = function () { return undefined; }"), "Mission never fetches the hidden skybox textures");
+assert(index.includes("function syncLock") && index.includes('st.publish({ kind: "satellite"'), "Mission lock reaches the status strip");
+assert(read("mission/mission.css").includes(".hud .dossier:has(img.lock-photo), .hud .dossier:has(.lock-note) { padding-top: 188px !important; }"), "Lock card reserves the photo and note slot");
+{
+  const st = read("assets/exo-state.js");
+  assert(/function num\(value\) \{\s*if \(value == null \|\| value === ""\) return null;/.test(st) && st.includes("function phantom(row)"), "exo-state: an empty address bar is no fix, not 0°,0°");
+  assert(/function num\(value\) \{\s*if \(value == null \|\| value === ""\) return null;/.test(read("assets/exo-bus.js")), "exo-bus: missing lat/lon stay null");
+}
 assert(index.includes("#exo-toast") && read("moc-phone.css").includes("#exo-toast"), "refusal toast lives outside #root so React cannot wipe it");
 assert(index.includes("function syncStationClock") && index.includes('kvSpan("UTC")') && index.includes(".tl span.utc"), "STATION UTC mirrors the header sim clock under HOLD");
 assert(index.includes("new MutationObserver(syncStationClock)") && index.includes("headerUtcDate"), "STATION clock resyncs when the header UTC ticks or freezes");
