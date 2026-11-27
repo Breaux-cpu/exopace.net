@@ -4,6 +4,9 @@
   "short_name": "EXOpace",
   "start_url": "/",
   "scope": "/",
+  "scope_extensions": [
+    { "type": "origin", "origin": "https://cams.exopace.net" }
+  ],
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#03060b",
