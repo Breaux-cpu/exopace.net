@@ -234,7 +234,7 @@ assert(meshHtml.includes("MESH QUIET. Power up a second node") && meshHtml.inclu
 assert(meshApp.includes("renderNodes();") && meshApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
 assert(meshApp.includes("function shareWay(w)") && meshApp.includes("send(P.makeWay({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind }))"), "waypoint SHARE broadcasts to the mesh");
 assert(meshApp.includes('btn.dataset.act === "share"') && meshApp.includes("shareWay(w)") && !meshApp.includes("sharePoint(w)"), "waypoint SHARE button calls shareWay, not the OS sheet");
-assert(meshHtml.includes("app.js?v=62") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
+assert(meshHtml.includes("app.js?v=63") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(meshHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(meshHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(meshApp.includes("exopace-radio-hide-install") && meshApp.includes("hideInstallHint"), "Radio HIDE persist stays");

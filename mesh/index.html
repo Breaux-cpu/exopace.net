@@ -543,7 +543,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
 <div id="sheet">
   <div class="sheet">
     <h3>Link</h3>
-    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>On the node AP, open http://192.168.4.1. This site is not the radio.</span></button>
+    <button class="opt" id="optWifi"><b>Wi-Fi</b><span>Join the node's own Wi-Fi (EXOpace-XXXX) in your phone's settings, then open http://192.168.4.1. The node serves that page; this site can't reach it over Wi-Fi.</span></button>
     <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
     <button class="opt" id="optUsb" data-usb-node-connect><b>CONNECT USB NODE</b><span id="usbHint">Chrome / Edge — Heltec V4 at 115200. Same track, way, rf, and sos lines.</span></button>
     <p data-usb-node-status>NO USB DEVICE · CLICK CONNECT USB</p>
@@ -587,7 +587,7 @@ MESH QUIET — peer dots appear when nodes report position.</div>
   });
 })();
 </script>
-<script src="app.js?v=62"></script>
+<script src="app.js?v=63"></script>
 <script src="/assets/exo-webserial.js"></script>
 <script>
 (function () {

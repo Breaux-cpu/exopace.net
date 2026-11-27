@@ -279,7 +279,7 @@ $("optCancel").onclick = () => showSheet(false);
 $("sheet").onclick = (e) => { if (e.target.id === "sheet") showSheet(false); };
 $("optWifi").onclick = () => {
   showSheet(false);
-  if (location.protocol === "https:") { toast("JOIN EXOpace-XXXX · OPEN 192.168.4.1"); return; }
+  if (location.protocol === "https:") { toast("JOIN THE NODE WI-FI EXOpace-XXXX, THEN OPEN 192.168.4.1"); return; }
   connectWifi();
 };
 $("optBle").onclick = () => { if ($("optBle").disabled) return; showSheet(false); connectBle(); };
