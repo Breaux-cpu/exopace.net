@@ -28,7 +28,7 @@
       var up = body && body.ok === true;
       var full = up && !!body.mongo;
       chip("hm-st-cams", full ? "ok" : "warn", full ? "Cams online" : "Cams degraded");
-      cell("hm-lv-cams", full ? "ok" : "warn", full ? "ONLINE · MONGO" : "DEGRADED");
+      cell("hm-lv-cams", full ? "ok" : "warn", full ? "ONLINE" : "DEGRADED");
     })
     .catch(function () {
       clearTimeout(timer);
