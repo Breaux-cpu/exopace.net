@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "net.exopace.twa",
+      "sha256_cert_fingerprints": ["F0:BE:5B:E3:FF:69:3D:CB:9B:A2:00:1F:4A:34:53:CE:E9:A1:B3:B3:38:B7:AE:28:31:A6:D8:3F:60:01:E6:65"]
+    }
+  }
+]

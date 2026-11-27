@@ -234,6 +234,10 @@ body.exo-home > main {
 }
 .hm-sheet-panel h2 { margin: 0 0 10px; font: 400 1.3rem/1.2 var(--exo-sans); }
 .hm-sheet-panel ol { margin: 0 0 16px; padding-left: 1.2em; color: #c3d0d6; font: 400 14px/1.6 var(--exo-sans); }
+.hm-sheet-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.hm-sheet-row > * { flex: 1 1 160px; }
+.hm-sheet-panel { max-height: calc(100svh - 24px); overflow: auto; }
+.hm-sheet-panel li[data-here] { color: var(--exo-text); }
 .hm-sheet-panel p { margin: 0 0 14px; color: var(--exo-muted); font: 400 13px/1.5 var(--exo-sans); }
 
 /* —— Sign-in page —— */
@@ -308,7 +312,7 @@ body.exo-home > main {
   .hm-word { font-size: clamp(3.2rem, 17vw, 4.6rem); margin-bottom: 12px; text-shadow: 0 4px 30px rgba(4, 7, 13, 0.9); }
   .hm-lead { font-size: 1rem; margin-bottom: 18px; }
   .hm-cta { display: grid; grid-template-columns: 1fr 1fr; }
-  .hm-cta .hm-btn.is-primary { grid-column: 1 / -1; }
+  .hm-cta .hm-btn.is-primary, .hm-cta #hm-apk { grid-column: 1 / -1; }
   .hm-btn { padding: 0 12px; font-size: 12px; }
   .hm-sec { margin-top: 36px; }
   .hm-sec-head { flex-direction: column; align-items: start; gap: 6px; }
