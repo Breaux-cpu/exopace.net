@@ -57,7 +57,7 @@ export const flows = {
         }, { timeout: 8000 });
         const rows = await page.$$eval(".sys-row", (els) => els.map((el) => el.textContent.replace(/\\s+/g, " ").trim()));
         const hardware = rows.find((r) => /Bluetooth|EXOpace hardware|BLE/i.test(r)) || "";
-        const ok = /cannot pair|cannot use Bluetooth|can pair|STANDBY|OFFLINE/i.test(hardware);
+        const ok = /NOT AVAILABLE|READY|cannot pair|can pair|STANDBY|OFFLINE/i.test(hardware);
         return { ok, detail: rows.join(" || ") };
       }
     },
