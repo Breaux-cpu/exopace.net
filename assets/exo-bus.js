@@ -3,6 +3,7 @@
   var KEY = "exopace-target";
 
   function num(value) {
+    if (value == null || value === "") return null;
     var n = Number(value);
     return Number.isFinite(n) ? n : null;
   }

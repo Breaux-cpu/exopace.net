@@ -110,6 +110,8 @@
       #exo-toast { max-width: calc(100vw - 24px); text-align: center; line-height: 1.4; }
       #exo-toast[hidden] { display: none; }
       .camstrip .btn.mi-needs-lock { opacity: 0.55; }
+      /* Dashed, not faded: the label must keep full contrast. */
+      .station .btn.mi-needs-rf { border-style: dashed !important; }
       /* Reserve the lock photo slot so the title and facts do not jump when it arrives. */
       .dossier { position: relative; padding-top: 144px; }
       .dossier img.lock-photo {
@@ -164,7 +166,7 @@
     <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
     <link rel="stylesheet" href="/assets/exo-tokens.css" />
     <link rel="stylesheet" href="/assets/exo-layout.css?v=7" data-exo-layout="1" />
-    <link rel="stylesheet" href="/mission/mission.css?v=9" />
+    <link rel="stylesheet" href="/mission/mission.css?v=10" />
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -192,11 +194,11 @@
     <a href="/system/">System</a>
   </nav>
     </header>
-    <div class="exo-pill" id="exo-pill" aria-live="polite">
-      <div class="exo-pill-status">
+    <div class="exo-pill" id="exo-pill">
+      <div class="exo-pill-status" tabindex="0" role="group" aria-label="Clock, position and locked target">
         <span id="exo-pill-clock">UTC — · JD —</span>
         <span id="exo-pill-fix">NO FIX</span>
-        <span id="exo-pill-target">NO TARGET</span>
+        <span id="exo-pill-target" aria-live="polite">NO TARGET</span>
       </div>
       <div class="exo-pill-actions">
         <button type="button" class="exo-btn" id="exo-pill-copy">COPY</button>
@@ -239,6 +241,14 @@
           var s = document.createElement("script");
           s.src = "/cesium/Cesium.js?v=145";
           s.onload = function () {
+            /* mission.js hides the skybox and moon once the viewer exists, but by
+               then their first frame has fetched six star textures and the moon
+               map (~870 KB). They never show here, so never draw (or fetch) them. */
+            try {
+              var C = window.Cesium;
+              if (C && C.SkyBox && C.SkyBox.prototype) C.SkyBox.prototype.update = function () { return undefined; };
+              if (C && C.Moon && C.Moon.prototype) C.Moon.prototype.update = function () { return undefined; };
+            } catch (err) { /* keep the stock globe */ }
             var m = document.createElement("script");
             m.type = "module";
             m.crossOrigin = "anonymous";
@@ -411,12 +421,40 @@
             e.preventDefault();
             e.stopPropagation();
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-            showHudToast("RF CHAIN OFFLINE");
+            showHudToast("ARM NEEDS THE STATION RADIO AND ROTATOR · NONE CONNECTED", 3600);
           }
         }
         document.addEventListener("click", refuse, true);
-        /* Show up front that FOLLOW / SAT-CAM need a lock. */
+        /* The status strip only read the address bar at load, so a lock made
+           on the globe or the pass list never reached it. Mirror ?lock= and
+           the selection card's name into the shared target. */
+        var lastLock = null;
+        function syncLock() {
+          var st = window.EXO && window.EXO.state;
+          if (!st || typeof st.publish !== "function") return;
+          var lock = new URLSearchParams(location.search).get("lock") || "";
+          var h = lock ? document.querySelector(".dossier h3") : null;
+          var name = h ? (h.textContent || "").replace(/\s+/g, " ").trim() : "";
+          var sig = lock + "|" + name;
+          if (sig === lastLock) return;
+          lastLock = sig;
+          var cur = st.read && st.read();
+          if (lock) {
+            st.publish({ kind: "satellite", id: lock, label: name, norad: lock }, { fromUrl: true });
+          } else if (cur && (cur.kind === "satellite" || cur.norad)) {
+            st.publish({ kind: "none" }, { fromUrl: true });
+          }
+        }
+        /* Show up front that FOLLOW / SAT-CAM need a lock, and ARM the station gear. */
         setInterval(function () {
+          syncLock();
+          var rf = rfReady();
+          document.querySelectorAll(".station .btn").forEach(function (b) {
+            var t = (b.textContent || "").replace(/\s+/g, " ").trim();
+            if (t.indexOf("ARM ") !== 0) return;
+            b.classList.toggle("mi-needs-rf", !rf);
+            b.title = rf ? "Point the station radio and rotator at this pass" : "Needs the station radio and rotator (none connected)";
+          });
           var on = locked();
           document.querySelectorAll(".camstrip .btn").forEach(function (b) {
             var t = (b.textContent || "").replace(/\s+/g, " ").trim();
@@ -608,10 +646,10 @@
     <script src="/exo-weather.js?v=90" defer></script>
     <script src="/exo-traffic.js?v=92" defer></script>
     <script type="module" src="/assets/exo-feed.js?v=2"></script>
-  <script src="/mission/mission.js?v=7" defer></script>
+  <script src="/mission/mission.js?v=8" defer></script>
   <script src="/maps/mgrs.js"></script>
-  <script src="/assets/exo-bus.js"></script>
-  <script src="/assets/exo-state.js"></script>
+  <script src="/assets/exo-bus.js?v=2"></script>
+  <script src="/assets/exo-state.js?v=2"></script>
   <script src="/assets/exo-mavlink.js"></script>
   <script src="/assets/exo-astro-nav.js"></script>
   <script src="/assets/exo-rotator.js"></script>

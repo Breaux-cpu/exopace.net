@@ -123,7 +123,7 @@ export const flows = {
         if (!arm.asElement()) return { ok: true, skip: "no pass to arm" };
         const hit = await arm.asElement().evaluate((b) => { b.scrollIntoView({ block: "center" }); const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return e === b || b.contains(e) ? "" : "covered by " + (e && (e.id || e.className || e.tagName)); });
         // The ARM toast auto-clears at 1800ms; Cesium click() can outlast that,
-        // so record text as it appears and treat a seen "RF CHAIN OFFLINE" as success.
+        // so record text as it appears and treat a seen "ARM NEEDS THE STATION RADIO AND ROTATOR" toast as success.
         await page.evaluate(() => {
           const el = document.getElementById("exo-toast");
           window.__exoToastSeen = (el && el.textContent) || "";
@@ -139,7 +139,7 @@ export const flows = {
         const toast = await page.evaluate(() => window.__exoToastSeen || (document.getElementById("exo-toast") && document.getElementById("exo-toast").textContent) || "").catch(() => "");
         if (await page.$(".hud .station")) await toggleStation(page);
         if (hit) return { ok: false, detail: "ARM " + hit + " · toast " + toast };
-        return { ok: /RF CHAIN OFFLINE/.test(toast), detail: "toast " + toast };
+        return { ok: /ARM NEEDS THE STATION RADIO AND ROTATOR/.test(toast), detail: "toast " + toast };
       },
     },
     {

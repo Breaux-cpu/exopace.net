@@ -174,6 +174,10 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
 .hud .dossier .kv, .hud .station .kv { grid-template-columns: 96px 1fr; gap: 6px 10px; }
 /* Empty selection: a compact status card, not a photo frame with nothing in it. */
 .hud .dossier:not(:has(img.lock-photo)) { padding: 14px 16px !important; }
+/* The photo and Wikipedia note are absolutely placed in a 188px slot (index.html).
+   The panel padding above is !important, so reserve the slot here too or they
+   cover the name and the first facts. */
+.hud .dossier:has(img.lock-photo), .hud .dossier:has(.lock-note) { padding-top: 188px !important; }
 .hud .dossier:has(.empty) { padding: 12px 16px !important; }
 .hud .dossier img.lock-photo { border-radius: 10px !important; }
 .hud .dossier button.btn { margin-top: 10px !important; }
@@ -478,3 +482,5 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
 
 .station .mi-nohw { margin: 2px 0 6px; color: var(--mi-mut, #8fa3ad); font: 400 11.5px/1.4 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 0; text-transform: none; }
 .station .mi-nohw + .kv { display: none; }
+/* Wikipedia note: two whole lines, never a half-cut third line. */
+.hud .dossier .lock-note { display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; height: auto !important; max-height: 36px; }

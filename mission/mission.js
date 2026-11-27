@@ -235,6 +235,17 @@
       scheduleCesiumInsets();
     }).observe(hud, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
     setInterval(function () { noHardwareNote(); labelHelp(); }, 2000);
+    /* Phones: tapping a pass locks that satellite, but the STATION sheet stayed
+       over the globe, so nothing seemed to happen. Close it to show the lock. */
+    document.addEventListener("click", function (ev) {
+      if (!PHONE.matches || !ev.target.closest || !ev.target.closest(".station .passlist li")) return;
+      setTimeout(function () {
+        if (!stationOpen()) return;
+        var s = reactButton("STATION");
+        if (s) s.click();
+        setTimeout(sync, 50);
+      }, 250);
+    });
     window.addEventListener("resize", scheduleCesiumInsets);
     if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleCesiumInsets);
     if (window.ResizeObserver) {
