@@ -196,6 +196,31 @@
     } else if (!off && note) note.remove();
   }
 
+  /* Plain-language hover help for the short HUD labels (desktop pointer users). */
+  var HELP = {
+    "⌂ MOC": "Home view over the EXOpace ground station",
+    "FLY": "Free camera: drag to fly anywhere",
+    "FOLLOW": "Camera follows the locked satellite",
+    "SAT-CAM": "View from the locked satellite",
+    "CINE": "Slow cinematic camera",
+    "ATMO": "Atmosphere glow around the globe",
+    "ORBITS": "Orbit paths",
+    "LABELS": "Satellite name labels",
+    "HOLD": "Pause time",
+    "LIVE": "Back to the current time",
+    "10×": "Run time 10 times faster",
+    "60×": "Run time 60 times faster"
+  };
+  function labelHelp() {
+    if (!hud) return;
+    hud.querySelectorAll("button").forEach(function (b) {
+      if (b.title) return;
+      var t = b.textContent.replace(/\s+/g, " ").trim();
+      if (HELP[t]) b.title = HELP[t];
+      else if (/^ARM /.test(t)) b.title = "Point the ground-station radio and rotator at this satellite (needs that hardware)";
+    });
+  }
+
   function start() {
     hud = document.querySelector(".hud");
     if (!hud || !hud.querySelector(".camstrip")) { setTimeout(start, 300); return; }
@@ -209,7 +234,7 @@
       sync();
       scheduleCesiumInsets();
     }).observe(hud, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    setInterval(noHardwareNote, 2000);
+    setInterval(function () { noHardwareNote(); labelHelp(); }, 2000);
     window.addEventListener("resize", scheduleCesiumInsets);
     if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleCesiumInsets);
     if (window.ResizeObserver) {
