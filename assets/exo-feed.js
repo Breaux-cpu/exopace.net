@@ -22,8 +22,8 @@ export function catalogFeed(text, now = Date.now()) {
 export function feedLabel(state, age) {
   if (state === "ERROR" || age == null || !Number.isFinite(age)) return "FEED ERROR";
   // Say how old the orbit elements are instead of calling cached data LIVE.
-  const old = `${age.toFixed(1)} D OLD`;
-  return state === "STALE" ? `ORBITS STALE · ${old}` : `ORBITS ${old}`;
+  const old = age < 1 ? `${Math.max(1, Math.round(age * 24))} H OLD` : `${age.toFixed(1)} DAYS OLD`;
+  return state === "STALE" ? `ORBIT DATA STALE · ${old}` : `ORBIT DATA ${old}`;
 }
 
 function bare(text) {
@@ -31,7 +31,7 @@ function bare(text) {
 }
 
 function isFeedChip(text) {
-  return /^(FEED|ORBITS)\b/.test(bare(text));
+  return /^(FEED|ORBITS|ORBIT DATA)\b/.test(bare(text));
 }
 
 export function paintFeed(root, result) {
@@ -47,7 +47,7 @@ export function paintFeed(root, result) {
   }
   for (const node of root.querySelectorAll(".passlist .pt, span")) {
     const text = bare(node.textContent);
-    if (!/^AOS\b|^LOS T-/.test(text)) continue;
+    if (!/^AOS\b|^LOS T-|^rises in |^overhead · sets in |^Next pass /.test(text)) continue;
     const next = inexact ? text + MARK : text;
     if (node.textContent !== next) node.textContent = next;
   }

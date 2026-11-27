@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { catalogFeed, feedLabel, paintFeed } from "../assets/exo-feed.js";
 
-const now = Date.parse("2026-11-25T00:00:00Z");
+const now = Date.parse("2026-11-28T00:00:00Z");
 const stations = readFileSync(new URL("../tle/stations.txt", import.meta.url), "utf8");
 
 function node(text, className) {
@@ -32,7 +32,7 @@ test("the current ISS catalog is LIVE and shows its age", () => {
   const feed = catalogFeed(stations, now);
   assert.equal(feed.state, "LIVE");
   assert.ok(feed.age > 0 && feed.age <= 7);
-  assert.equal(feedLabel(feed.state, feed.age), `ORBITS ${feed.age.toFixed(1)} D OLD`);
+  assert.equal(feedLabel(feed.state, feed.age), feed.age < 1 ? `ORBIT DATA ${Math.max(1, Math.round(feed.age * 24))} H OLD` : `ORBIT DATA ${feed.age.toFixed(1)} DAYS OLD`);
 });
 
 test("an aged catalog is STALE and the pass is not exact", () => {
@@ -45,7 +45,7 @@ test("an aged catalog is STALE and the pass is not exact", () => {
   paintFeed(root([node("FEED CELESTRAK CACHED", "chip")], [pass, next]), feed);
   assert.equal(pass.textContent, "AOS T-02:10 · NOT EXACT");
   assert.match(next.textContent, / · NOT EXACT$/);
-  assert.match(feedLabel(feed.state, feed.age), /^ORBITS STALE · \d+\.\d D OLD$/);
+  assert.match(feedLabel(feed.state, feed.age), /^ORBIT DATA STALE · \d+\.\d DAYS OLD$/);
 });
 
 test("a missing or invalid catalog is ERROR", () => {

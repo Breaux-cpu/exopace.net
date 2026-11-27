@@ -155,7 +155,7 @@ export const flows = {
         const o = await overlap(page);
         const clear = await btn(page, ".dossier button", "CLEAR LOCK");
         if (clear.asElement()) { await clear.asElement().click(); await sleep(500); }
-        const empty = await page.$eval(".dossier", (d) => /NO LOCK/.test(d.textContent)).catch(() => false);
+        const empty = await page.$eval(".dossier", (d) => /NO LOCK|Nothing locked/.test(d.textContent)).catch(() => false);
         return { ok: locked && empty && !o, detail: `lock “${title}” → cleared ${empty}` + (o ? " overlap " + o : "") };
       },
     },

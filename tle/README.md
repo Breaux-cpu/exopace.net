@@ -1,6 +1,6 @@
 # TLE snapshot
 
-Pulled from Celestrak `gp.php` GROUP=stations|visual|weather FORMAT=tle on 2026-09-03.
+Pulled from Celestrak `gp.php` GROUP=stations|visual|weather FORMAT=tle on 2026-11-27 (refreshed by hand; no scheduled job exists).
 
 Guest browsers get 403 from celestrak.org. These files are the same catalogs, served same-origin. The MOC labels that **FEED CACHED** — not LIVE, not SYNTHETIC. Epoch in the file (e.g. ISS `26245`) is the age.
 
