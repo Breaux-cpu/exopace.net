@@ -83,7 +83,16 @@ function setPath(mode, up) {
   syncMapChrome();
 }
 function showSheet(on) { $("sheet").classList.toggle("show", !!on); }
+/* No node and no saved messages: export / clear / search have nothing to act on.
+   They start hidden in the HTML so first paint does not shift when they go. */
+function syncChatTools() {
+  const show = radioUp() || !!($("chatLog") && $("chatLog").children.length);
+  const tools = document.querySelector(".mx-chattools"), search = $("chatSearch");
+  if (tools) tools.hidden = !show;
+  if (search) search.hidden = !show;
+}
 function syncChatEmpty() {
+  syncChatTools();
   const rows = [...$("chatLog").children];
   const q = $("chatSearch") ? $("chatSearch").value.trim() : "";
   const visible = rows.filter((el) => el.style.display !== "none").length;
@@ -110,11 +119,7 @@ function syncChatSend() {
   if (text) { text.disabled = !up; text.placeholder = up ? "Message the mesh…" : "Connect a node to send messages"; }
   if (qtx) qtx.hidden = !up;
   if (empty) empty.textContent = up ? "MESH QUIET. TX or wait for a peer." : "NO NODE CONNECTED. Messages from your mesh show up here once your node is linked.";
-  /* No node and no saved messages: export / clear / search have nothing to act on. */
-  const hasRows = !!($("chatLog") && $("chatLog").children.length);
-  const tools = document.querySelector(".mx-chattools"), search = $("chatSearch");
-  if (tools) tools.hidden = !up && !hasRows;
-  if (search) search.hidden = !up && !hasRows;
+  syncChatTools();
 }
 
 function closeWifi() {
