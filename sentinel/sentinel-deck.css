@@ -327,3 +327,10 @@ html body.sn-page .sn-sheet .sn-row select { min-height: 44px !important; box-si
   body.sn-page .sn-finds { font-size: 0.9rem; margin: 10px 0 8px; }
   body.sn-page .sn-needs { font-size: 0.84rem; }
 }
+
+/* Watchlist buttons match the deck's ghost buttons (the grey default read as disabled). */
+html body.sn-page .sn-sheet .sn-row button { color: var(--exo-text) !important; background: transparent !important; border: 1px solid rgba(198, 216, 226, 0.22) !important; border-radius: 10px !important; box-shadow: none !important; font: 500 12px/1.2 var(--exo-mono) !important; letter-spacing: 0.08em; }
+html body.sn-page .sn-sheet .sn-row button:hover { color: var(--exo-cyan) !important; border-color: rgba(126, 224, 255, 0.4) !important; }
+body.sn-page .sn-mod { display: grid; gap: 4px; min-width: 0; }
+body.sn-page .sn-mod > span { color: var(--exo-muted); font: 500 10px/1 var(--exo-mono); letter-spacing: 0.14em; text-transform: uppercase; }
+body.sn-page .sn-sheet .sn-fold { margin-top: 14px; font-size: 0.85rem; }
