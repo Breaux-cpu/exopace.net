@@ -224,7 +224,7 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
 }
 #globe .cesium-widget-credits { display: flex !important; align-items: center; gap: 8px; position: static !important; }
 #globe .cesium-credit-logoContainer { display: inline-flex !important; align-items: center; }
-#globe .cesium-credit-logoContainer img { height: 18px !important; width: auto !important; max-width: 100% !important; opacity: .7; }
+#globe .cesium-credit-logoContainer img { height: 18px !important; width: auto !important; max-width: 100% !important; object-fit: contain; opacity: .7; }
 #globe .cesium-credit-textContainer { display: none !important; }
 #globe a.cesium-credit-expand-link { display: inline-flex !important; align-items: center; min-height: var(--mi-t); color: var(--mi-mut) !important; font: 500 10px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .08em; text-decoration: none; pointer-events: auto; }
 
@@ -500,3 +500,7 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
   .hud .dossier img.lock-photo, .hud .dossier .lock-note { display: none !important; }
   .hud .dossier { max-height: 46% !important; overflow: auto !important; }
 }
+/* Legible text: the panels' facts and empty-state help read at 12px, not 11px. */
+.hud .empty, .hud .kv { font-size: 12px !important; }
+#mi-thumb button { font-size: 12px !important; }
+#mi-thumb button small { font-size: 10.5px !important; }
