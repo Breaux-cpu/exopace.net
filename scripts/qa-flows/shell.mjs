@@ -56,8 +56,8 @@ export const flows = {
           return ble && /STANDBY|OFFLINE|ONLINE/.test(ble.textContent);
         }, { timeout: 8000 });
         const rows = await page.$$eval(".sys-row", (els) => els.map((el) => el.textContent.replace(/\\s+/g, " ").trim()));
-        const ble = rows.find((r) => /BLE/.test(r)) || "";
-        const ok = /cannot pair|STANDBY|OFFLINE/i.test(ble);
+        const hardware = rows.find((r) => /Bluetooth|EXOpace hardware|BLE/i.test(r)) || "";
+        const ok = /cannot pair|STANDBY|OFFLINE/i.test(hardware);
         return { ok, detail: rows.join(" || ") };
       }
     },

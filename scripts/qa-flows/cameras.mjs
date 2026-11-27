@@ -1,4 +1,4 @@
-/** /cameras/ is a bounce page: map #cam=&at= to cams.exopace.net, else /map. */
+/** /cameras/ is a bounce page: map #cam= (and optional &at=) to cams.exopace.net. */
 import http from "node:http";
 import https from "node:https";
 
@@ -57,11 +57,14 @@ export const flows = {
       }
     },
     {
-      name: "hash without coordinates falls back to /map",
+      name: "hash without coordinates still opens the camera",
       test: async (page) => {
         const dest = await followRedirect(page, baseOf(page) + "/cameras/#cam=only-an-id");
         const u = mapUrl(dest);
-        const ok = !!u && u.origin + u.pathname === CAMS_MAP && ![...u.searchParams.keys()].length;
+        const ok = !!u && u.origin + u.pathname === CAMS_MAP
+          && u.searchParams.get("camera") === "only-an-id"
+          && !u.searchParams.has("lat")
+          && !u.searchParams.has("lon");
         return { ok, detail: dest };
       }
     },
