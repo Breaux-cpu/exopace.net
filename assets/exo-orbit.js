@@ -113,7 +113,7 @@ function drawSky(canvas, points, now) {
   ctx.fillText("N", cx - 4, cy - r - 6);
   if (!points || !points.length) {
     ctx.fillStyle = TOKENS.dim;
-    ctx.fillText("NO ARC", 12, h - 12);
+    ctx.fillText("No pass to draw", 12, h - 12);
   } else {
   ctx.strokeStyle = TOKENS.cyan;
   ctx.beginPath();
@@ -135,6 +135,37 @@ function drawSky(canvas, points, now) {
     ctx.arc(cx + Math.cos(az) * rr, cy + Math.sin(az) * rr, 4, 0, Math.PI * 2);
     ctx.fill();
   }
+}
+
+const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+function compass(az) { return COMPASS[Math.round((((az % 360) + 360) % 360) / 45) % 8]; }
+function tleAgeDays(row, nowMs) {
+  const yy = parseInt(row.l1.slice(18, 20), 10);
+  const doy = parseFloat(row.l1.slice(20, 32));
+  if (!Number.isFinite(yy) || !Number.isFinite(doy)) return null;
+  const year = yy < 57 ? 2000 + yy : 1900 + yy;
+  const epoch = Date.UTC(year, 0, 1) + (doy - 1) * 86400000;
+  return (nowMs - epoch) / 86400000;
+}
+function ageText(days) {
+  if (days == null) return "orbit data age unknown";
+  if (days < 1) return "orbit data " + Math.max(1, Math.round(days * 24)) + " h old";
+  return "orbit data " + days.toFixed(1) + " days old" + (days > 7 ? " (older than a week, times may be off by minutes)" : "");
+}
+function localTime(ms, withDay) {
+  const d = new Date(ms);
+  const t = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  if (!withDay) return t;
+  const today = new Date();
+  const same = d.toDateString() === today.toDateString();
+  const tomorrow = new Date(today.getTime() + 86400000).toDateString() === d.toDateString();
+  return (same ? "Today " : tomorrow ? "Tomorrow " : d.toLocaleDateString(undefined, { weekday: "short" }) + " ") + t;
+}
+function zoneName() {
+  try {
+    const part = new Intl.DateTimeFormat(undefined, { timeZoneName: "short" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName");
+    return part ? part.value : "local time";
+  } catch (err) { return "local time"; }
 }
 
 function mount() {
@@ -163,7 +194,7 @@ function mount() {
     if (catalog.length) return;
     const loaded = await loadCatalog();
     catalog = loaded.all;
-    if (!catalog.length) setStatus(loaded.notes.join(" · ") || "TLE UNREACHABLE");
+    if (!catalog.length) setStatus("Couldn't load satellite orbit data. Check your connection, then press Show passes again.");
   }
 
   function readObs() {
@@ -213,20 +244,23 @@ function mount() {
   function tick() {
     const here = readObs();
     const row = selected();
-    if (!here) { if (live) live.textContent = "NO FIX"; return; }
-    if (!row) { if (live) live.textContent = "NOT IN CACHED TLE"; return; }
+    if (!here) { if (live) live.textContent = "Enter your latitude and longitude."; return; }
+    if (!row) { if (live) live.textContent = catalog.length ? "—" : "Waiting for orbit data…"; return; }
     let satrec;
     try { satrec = twoline2satrec(row.l1, row.l2); }
-    catch (err) { if (live) live.textContent = "TLE REJECTED"; return; }
+    catch (err) { if (live) live.textContent = "This satellite's orbit data is damaged. Try another satellite."; return; }
     const now = observe(satrec, new Date(), here);
-    if (!now) { if (live) live.textContent = "PROPAGATE FAILED"; return; }
+    if (!now) { if (live) live.textContent = "Couldn't compute this satellite's position right now."; return; }
     shareTarget(row, here);
     const down = mhzFor(row);
     const up = Number(upIn && upIn.value);
-    const rx = down ? (down * now.factor).toFixed(6) + " RX" : "RX —";
-    const tx = Number.isFinite(up) && up > 0 ? (up / now.factor).toFixed(6) + " TX" : "TX —";
+    const rx = down ? "listen on " + (down * now.factor).toFixed(4) + " MHz" : "";
+    const tx = Number.isFinite(up) && up > 0 ? "transmit on " + (up / now.factor).toFixed(4) + " MHz" : "";
+    const tune = [rx, tx].filter(Boolean).join(", ");
     if (live) {
-      live.textContent = "EL " + now.el.toFixed(1) + "°  AZ " + now.az.toFixed(0) + "°  " + rx + "  " + tx;
+      live.textContent = now.el >= 0
+        ? "Now: " + now.el.toFixed(0) + "° above the horizon toward the " + compass(now.az) + (tune ? ". Doppler-corrected: " + tune + "." : ".")
+        : "Now: below the horizon (" + now.el.toFixed(0) + "°), so it can't be heard yet. The list below shows when it rises.";
     }
     drawSky(canvas, arc, now);
   }
@@ -234,29 +268,40 @@ function mount() {
   async function predict() {
     await ensureCatalog();
     const here = readObs();
-    if (!here) { setStatus("NO FIX"); if (table) table.textContent = ""; return; }
+    if (!catalog.length) { if (table) table.textContent = ""; arc = []; drawSky(canvas, arc, null); return; }
     const row = selected();
-    if (!row) { setStatus("NOT IN CACHED TLE"); return; }
+    const board = document.getElementById("passes");
+    if (!row) {
+      const typed = (noradIn && noradIn.value || "").trim();
+      setStatus("Satellite " + (typed || "number") + " isn't in this site's orbit list (space stations, weather and bright satellites). Check the NORAD number; ISS is 25544.");
+      if (table) table.textContent = "";
+      arc = [];
+      drawSky(canvas, arc, null);
+      if (board) delete board.dataset.next;
+      return;
+    }
     let satrec;
     try { satrec = twoline2satrec(row.l1, row.l2); }
-    catch (err) { setStatus("TLE REJECTED"); return; }
+    catch (err) { setStatus("This satellite's orbit data is damaged. Try another satellite."); return; }
     const list = passes(satrec, here, Date.now(), 24);
-    setStatus(row.name + " · CACHED TLE · " + list.length + " PASSES");
+    const home = Math.abs(here.lat - HOME.lat) < 0.01 && Math.abs(here.lon - HOME.lon) < 0.01;
+    const place = home ? "Millington, TN (the EXOpace station). Press Use my location for your own" : "your location (" + here.lat.toFixed(2) + ", " + here.lon.toFixed(2) + ")";
+    setStatus(row.name + ": " + list.length + " pass" + (list.length === 1 ? "" : "es") + " higher than " + MIN_EL + "° in the next 24 hours, for " + place + ". Times in " + zoneName() + "; " + ageText(tleAgeDays(row, Date.now())) + ".");
     if (table) {
-      table.innerHTML = list.length ? list.map((pass) => {
-        const aos = new Date(pass.aos).toISOString().slice(11, 16) + "Z";
-        const los = pass.los ? new Date(pass.los).toISOString().slice(11, 16) + "Z" : "OPEN";
-        return "<div>" + aos + " → " + los + " · MAX " + pass.maxEl.toFixed(0) + "°</div>";
-      }).join("") : "NO PASS ≥10° IN 24 H";
+      table.innerHTML = list.length ? "<ol>" + list.map((pass) => {
+        const aos = localTime(pass.aos, true);
+        const los = pass.los ? localTime(pass.los, false) : "still up at the end of the window";
+        return "<li>" + aos + " to " + los + ", highest " + pass.maxEl.toFixed(0) + "° above the horizon</li>";
+      }).join("") + "</ol>" : "No passes higher than " + MIN_EL + "° in the next 24 hours. Try another satellite or come back tomorrow.";
     }
     arc = list[0] ? list[0].points : [];
     drawSky(canvas, arc, null);
-    const board = document.getElementById("passes");
     if (board) {
-      if (!list.length) board.textContent = row.name + " QUIET ABOVE 10°";
+      if (!list.length) { board.textContent = row.name + " quiet above 10°"; delete board.dataset.next; }
       else {
-        const aos = new Date(list[0].aos).toISOString().slice(11, 16) + "Z";
-        board.textContent = row.name + " AOS " + aos + " max " + list[0].maxEl.toFixed(0) + "°";
+        const short = row.name.replace(/\s*\(.*\)\s*$/, "").trim();
+        board.textContent = row.name + " next pass " + localTime(list[0].aos, true);
+        board.dataset.next = "Next " + short + " pass " + localTime(list[0].aos, true) + ", up to " + list[0].maxEl.toFixed(0) + "°";
       }
     }
     const lock = root.querySelector("[data-lock]");
@@ -264,18 +309,21 @@ function mount() {
   }
 
   root.querySelector("[data-locate]")?.addEventListener("click", () => {
-    if (!navigator.geolocation) { setStatus("NO FIX"); return; }
+    if (!navigator.geolocation) { setStatus("This browser can't share your location. Type your latitude and longitude, then press Show passes."); return; }
+    setStatus("Finding your location…");
     navigator.geolocation.getCurrentPosition((pos) => {
       if (latIn) latIn.value = pos.coords.latitude.toFixed(5);
       if (lonIn) lonIn.value = pos.coords.longitude.toFixed(5);
-      setStatus("GPS FIX");
+      setStatus("Location found. Working out passes…");
       predict();
-    }, () => setStatus("NO FIX"), { enableHighAccuracy: true, timeout: 8000 });
+    }, (err) => setStatus((err && err.code === 1
+      ? "Location is blocked for this site. Allow location in the address bar"
+      : "Couldn't get a location fix") + ", or type your latitude and longitude and press Show passes."), { enableHighAccuracy: true, timeout: 8000 });
   });
   root.querySelector("[data-predict]")?.addEventListener("click", predict);
   timer = window.setInterval(tick, 1000);
   window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
-  setStatus("MILLINGTON · CACHED TLE");
+  setStatus("Loading satellite orbit data…");
   predict();
 }
 

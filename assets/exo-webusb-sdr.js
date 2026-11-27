@@ -7,7 +7,13 @@
   var MIN_HZ = 24000000;
   var MAX_HZ = 1766000000;
   var RATE = 2048000;
-  var IDLE = "NO USB DEVICE · CLICK CONNECT USB";
+  var IDLE = "No receiver connected. Plug in a USB SDR, then press Connect USB SDR.";
+  var NO_USB = "This browser can't open USB devices. Use Chrome or Edge on a computer or an Android phone. Without a receiver you can still use the Audio input decoder and Passes.";
+  function openHelp(err) {
+    var name = err && err.name;
+    if (name === "SecurityError") return "The browser blocked USB access here. Allow USB devices for this site in the browser's site settings, then press Connect USB SDR again.";
+    return "Couldn't open the receiver. Close any other SDR app using it, unplug and replug it, then press Connect USB SDR. On Windows the dongle needs the WinUSB driver (install it once with Zadig)." + (err && err.message ? " Detail: " + err.message : "");
+  }
   var GAINS = [0, 9, 14, 27, 37, 77, 87, 125, 144, 157, 166, 197, 207, 229, 254, 280, 297, 328, 338, 364, 372, 386, 402, 421, 434, 439, 445, 480, 496];
   var INIT = [
     0x83, 0x32, 0x75, 0xc0, 0x40, 0xd6, 0x6c, 0xf5, 0x63, 0x75, 0x68,
@@ -466,7 +472,7 @@
       if (msg.pcm) pushPcm(msg.pcm);
       var mhz = (freqHz / 1e6).toFixed(3);
       var gain = gainTenth == null ? "Auto" : (gainTenth / 10).toFixed(1) + " dB";
-      paint("USB SDR · " + mhz + " MHz · " + mode + " · " + gain);
+      paint("Receiving · " + mhz + " MHz · " + mode + " · gain " + gain);
     };
     worker.postMessage({ type: "config", mode: mode, sampleRate: RATE });
   }
@@ -492,25 +498,26 @@
     device = null;
     paint(IDLE);
     var buttons = typeof document !== "undefined" ? document.querySelectorAll(".exo-usb-connect") : [];
-    for (var i = 0; i < buttons.length; i++) buttons[i].textContent = "CONNECT USB SDR";
+    for (var i = 0; i < buttons.length; i++) buttons[i].textContent = "Connect USB SDR";
   }
 
   async function openDevice() {
     if (!root.navigator || !navigator.usb) {
-      paint(IDLE);
-      fallback("This browser has no WebUSB. Chrome or Edge on a computer can open the dongle. Mic and line-in still work.");
+      paint("USB receivers don't work in this browser.");
+      fallback(NO_USB);
       return;
     }
     ensureAudio();
     startWorker();
-    paint("WAITING FOR USB DEVICE");
+    paint("Pick your USB SDR in the browser's list (often shown as RTL2838).");
     var picked;
     try {
       picked = await navigator.usb.requestDevice({
         filters: PRODUCTS.map(function (productId) { return { vendorId: VENDOR, productId: productId }; })
       });
     } catch (err) {
-      paint(IDLE);
+      paint(err && err.name === "SecurityError" ? openHelp(err)
+        : "No receiver chosen. Plug the dongle in, press Connect USB SDR and pick it from the list. Nothing listed? Try another USB port or cable.");
       return;
     }
     try {
@@ -538,14 +545,14 @@
       await resetBuffer();
       running = true;
       var buttons = document.querySelectorAll(".exo-usb-connect");
-      for (var i = 0; i < buttons.length; i++) buttons[i].textContent = "DISCONNECT USB SDR";
+      for (var i = 0; i < buttons.length; i++) buttons[i].textContent = "Disconnect USB SDR";
       readLoop().catch(function (err) {
         running = false;
-        paint(err && err.message ? err.message : "USB read stopped");
+        paint("The receiver stopped sending (unplugged?). Plug it back in and press Connect USB SDR.");
       });
     } catch (err) {
       await closeDevice();
-      paint(err && err.message ? err.message : "USB open failed");
+      paint(openHelp(err));
     }
   }
 
@@ -584,7 +591,7 @@
       await setGain(gainTenth);
       await repeater(false);
     } catch (err) {
-      paint(err && err.message ? err.message : "Tune failed");
+      paint("Couldn't retune the receiver. Try again, or disconnect and reconnect it.");
     }
   }
 
@@ -612,8 +619,8 @@
       });
     }
     if (!root.navigator || !navigator.usb) {
-      paint(IDLE);
-      fallback("This browser has no WebUSB. Chrome or Edge on a computer can open the dongle. Mic and line-in still work.");
+      paint("USB receivers don't work in this browser.");
+      fallback(NO_USB);
       for (var d = 0; d < buttons.length; d++) buttons[d].disabled = true;
     } else {
       paint(IDLE);

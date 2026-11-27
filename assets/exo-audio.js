@@ -28,7 +28,8 @@
       + ".exo-au button{letter-spacing:.06em;cursor:pointer}"
       + ".exo-au__num{font-variant-numeric:tabular-nums;font-feature-settings:\"tnum\" 1;color:#FFB84D}"
       + ".exo-au__log{max-height:160px;overflow:auto;margin:8px 0 0;padding:8px;background:rgba(4,7,13,.72);border:1px solid rgba(126,224,255,.22);border-radius:12px;backdrop-filter:blur(16px);color:#e7f4ef;font:12px/1.45 \"IBM Plex Mono\",ui-monospace,monospace}"
-      + ".exo-au__log b{color:#FFB84D;font-weight:600}";
+      + ".exo-au__log b{color:#FFB84D;font-weight:600}"
+      + ".exo-au__lead{margin:0 0 8px;color:#9fb0b4;font:13px/1.5 system-ui,sans-serif}";
     document.head.appendChild(style);
   }
 
@@ -39,11 +40,11 @@
   }
 
   function pushLog(kind, text) {
-    var line = new Date().toISOString().slice(11, 19) + "Z  " + kind + "  " + text;
-    logLines.unshift(line);
+    var t = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" });
+    logLines.unshift({ t: t, text: (kind ? kind + "  " : "") + text });
     logLines = logLines.slice(0, 40);
     var el = host && host.querySelector("[data-log]");
-    if (el) el.innerHTML = logLines.map(function (row) { return "<div><b>" + esc(row.slice(0, 9)) + "</b> " + esc(row.slice(10)) + "</div>"; }).join("");
+    if (el) el.innerHTML = logLines.map(function (row) { return "<div><b>" + esc(row.t) + "</b> " + esc(row.text) + "</div>"; }).join("");
   }
 
   function color(t) {
@@ -58,14 +59,15 @@
   function shell() {
     host.innerHTML = ''
       + '<div class="exo-au">'
+      + '<p class="exo-au__lead">Feed in sound from a scanner, ham radio or receiver (microphone, line-in or a USB audio cable). It draws the audio spectrum and decodes Morse code (CW) and phone touch-tones (DTMF). Audio never leaves this device.</p>'
       + '<div class="exo-au__row"><select data-dev aria-label="Audio input"><option value="">Default input</option></select>'
-      + '<button type="button" data-act="arm">ARM</button><button type="button" data-act="stop" disabled>STOP</button></div>'
-      + '<div class="exo-au__row"><label class="exo-au__num">FLOOR <input data-floor type="range" min="-120" max="-30" value="-90" aria-label="dB floor"></label>'
+      + '<button type="button" data-act="arm">Start</button><button type="button" data-act="stop" disabled>Stop</button></div>'
+      + '<div class="exo-au__row"><label class="exo-au__num">Noise floor <input data-floor type="range" min="-120" max="-30" value="-90"></label>'
       + '<span data-floor-n class="exo-au__num">-90 dB</span>'
-      + '<label class="exo-au__num">CW <input data-cw type="number" min="200" max="3000" value="700" aria-label="CW tone Hz"> Hz</label></div>'
-      + '<canvas data-spec width="640" height="140"></canvas>'
-      + '<canvas data-fall width="640" height="180" style="margin-top:8px"></canvas>'
-      + '<div class="exo-au__log" data-log><div>ARM a mic, line-in, or USB radio. Decode log stays on this device.</div></div>'
+      + '<label class="exo-au__num">Morse tone <input data-cw type="number" min="200" max="3000" value="700"> Hz</label></div>'
+      + '<canvas data-spec width="640" height="140" role="img" aria-label="Audio spectrum (blank until you press Start)"></canvas>'
+      + '<canvas data-fall width="640" height="180" style="margin-top:8px" role="img" aria-label="Audio waterfall (blank until you press Start)"></canvas>'
+      + '<div class="exo-au__log" data-log role="log" aria-label="Decoder log" tabindex="0"><div>Press Start and allow the microphone. Decoded Morse and touch-tones appear here.</div></div>'
       + '</div>';
     host.querySelector("[data-floor]").addEventListener("input", function (event) {
       host.querySelector("[data-floor-n]").textContent = event.target.value + " dB";
@@ -75,9 +77,11 @@
       var btn = event.target.closest("button");
       if (!btn) return;
       if (btn.getAttribute("data-act") === "arm") start().catch(function (err) {
-        pushLog("AUDIO", err && err.name === "NotAllowedError" ? "PERMISSION DENIED" : "INPUT UNAVAILABLE");
+        pushLog("", err && (err.name === "NotAllowedError" || err.name === "SecurityError")
+          ? "Microphone blocked. Allow the microphone for this site (icon in the address bar), then press Start."
+          : "No microphone or line-in found. Plug one in or pick another input in the list, then press Start.");
       });
-      if (btn.getAttribute("data-act") === "stop") { stop(); pushLog("AUDIO", "STOPPED"); }
+      if (btn.getAttribute("data-act") === "stop") { stop(); pushLog("", "Stopped. Press Start to listen again."); }
     });
   }
 
@@ -155,7 +159,7 @@
       };
     }).catch(function () {
       URL.revokeObjectURL(url);
-      pushLog("AUDIO", "TONE WORKLET IDLE — SPECTRUM STILL LIVE");
+      pushLog("", "Morse and touch-tone decoding isn't available in this browser; the spectrum still works.");
     });
   }
 
@@ -256,7 +260,7 @@
     stop();
     var AC = root.AudioContext || root.webkitAudioContext;
     if (!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      pushLog("AUDIO", "THIS BROWSER HAS NO AUDIO INPUT");
+      pushLog("", "This browser can't read audio inputs. Try a current Chrome, Edge, Firefox or Safari.");
       return Promise.resolve();
     }
     var deviceId = host.querySelector("[data-dev]").value;
@@ -282,7 +286,7 @@
       return fillDevices().then(function () { return attachWorklet(source); }).then(function () {
         var tone = Number(host.querySelector("[data-cw]").value) || 700;
         if (worklet) worklet.port.postMessage({ cw: tone });
-        pushLog("AUDIO", "LIVE");
+        pushLog("", "Listening. Decoded Morse and touch-tones will appear here.");
         stopBtn(true);
       });
     });
