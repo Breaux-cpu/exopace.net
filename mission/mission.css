@@ -475,3 +475,6 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
     min-width: 0 !important;
   }
 }
+
+.station .mi-nohw { margin: 2px 0 6px; color: var(--mi-mut, #8fa3ad); font: 400 11.5px/1.4 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 0; text-transform: none; }
+.station .mi-nohw + .kv { display: none; }

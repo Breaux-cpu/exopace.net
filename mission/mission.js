@@ -177,6 +177,25 @@
     scheduleCesiumInsets();
   }
 
+  /* One plain line instead of a column of red OFFLINE rows when no ground
+     station gear answers. The rows stay underneath for operators. */
+  function noHardwareNote() {
+    var station = hud && hud.querySelector(".station");
+    if (!station) return;
+    var head = Array.prototype.find.call(station.querySelectorAll("h3"), function (h) { return /^RF CHAIN/.test(h.textContent); });
+    if (!head) return;
+    var kv = head.nextElementSibling && head.nextElementSibling.classList.contains("mi-nohw") ? head.nextElementSibling.nextElementSibling : head.nextElementSibling;
+    if (!kv) return;
+    var spans = kv.querySelectorAll("span");
+    var off = spans.length > 0 && Array.prototype.every.call(spans, function (sp) { return sp.classList.contains("stoff") && !/PROBING/.test(sp.textContent); });
+    var note = station.querySelector(".mi-nohw");
+    if (off && !note) {
+      note = el("p", { "class": "mi-nohw" });
+      note.textContent = "No ground-station hardware connected. Passes are computed for EXOpace GS (Memphis) and work without it; radio, rotator and mesh need that gear.";
+      head.after(note);
+    } else if (!off && note) note.remove();
+  }
+
   function start() {
     hud = document.querySelector(".hud");
     if (!hud || !hud.querySelector(".camstrip")) { setTimeout(start, 300); return; }
@@ -190,6 +209,7 @@
       sync();
       scheduleCesiumInsets();
     }).observe(hud, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    setInterval(noHardwareNote, 2000);
     window.addEventListener("resize", scheduleCesiumInsets);
     if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleCesiumInsets);
     if (window.ResizeObserver) {
