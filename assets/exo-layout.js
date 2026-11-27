@@ -355,7 +355,7 @@
   function missionLockActive() {
     try {
       var row = global.EXO && global.EXO.bus && typeof global.EXO.bus.get === "function" && global.EXO.bus.get();
-      if (row && (row.label || row.norad || (row.kind && row.kind !== "none"))) return true;
+      if (row && (row.norad || row.label || row.kind === "satellite" || row.kind === "target")) return true;
     } catch (e) {}
     var badge = document.getElementById("exo-pill-target");
     if (!badge) return false;
