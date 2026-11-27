@@ -70,8 +70,19 @@
       if (n.tagName === "SCRIPT" || n.id === "toast" || n.id === "rg-dock" || n.id === "rg-scroll") return;
       if (n.matches(".exo-wave, .exo-wave-btn, #exo-radar-map")) { card.appendChild(n); moved = true; }
     });
-    if (moved) card.hidden = false;
+    if (moved) card.dataset.filled = "1";
+    sync();
   }
+  /* The instrument readouts only mean something with a receiver attached;
+     keep the card out of the way until the USB SDR is connected. */
+  function sync() {
+    var card = document.getElementById("rg-modules");
+    var st = document.querySelector("#watch .exo-usb-status");
+    if (!card) return;
+    var live = !!st && !/NO USB DEVICE|NO WEBUSB|UNSUPPORTED|DISCONNECTED|ERROR/i.test(st.textContent || "");
+    card.hidden = !(card.dataset.filled && live);
+  }
+  setInterval(sync, 1500);
   new MutationObserver(home).observe(document.body, { childList: true });
   document.addEventListener("DOMContentLoaded", home);
   window.addEventListener("load", home);

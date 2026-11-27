@@ -208,7 +208,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <link rel="stylesheet" href="../assets/exo-tokens.css">
 <link rel="stylesheet" href="../assets/exo-layout.css?v=7" data-exo-layout="1">
 <script src="../assets/exo-layout.js?v=8" data-exo-layout="1"></script>
-<link rel="stylesheet" href="radio-deck.css?v=6">
+<link rel="stylesheet" href="radio-deck.css?v=7">
 </head><body class="rg-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
@@ -233,29 +233,29 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <nav class="exo-comms exo-comms--keep rg-ws" aria-label="Comms workspaces">
   <a href="/radio/?tab=listen" data-ws="monitor" data-tab="listen" aria-current="page">MONITOR</a>
   <a href="/radio/?tab=decode" data-ws="passes" data-tab="decode">PASSES</a>
-  <a href="/radio/?tab=ble" data-ws="mesh" data-tab="ble">MESH</a>
-  <a href="/radio/?tab=sentinel" data-ws="vault" data-tab="sentinel">VAULT</a>
+  <a href="/mesh/">MESH</a>
+  <a href="/radio/?tab=sentinel" data-ws="vault" data-tab="sentinel">SENTINEL</a>
 </nav>
 <nav class="exo-tabs" aria-label="Radio tools">
  <button data-t="listen" data-ws="monitor" class="on">Listen</button>
  <button data-t="band" data-ws="retired" hidden>Band</button>
  <button data-t="watch" data-ws="monitor">Live</button>
  <button data-t="scan" data-ws="retired" hidden>Scan</button>
- <button data-t="maps" data-ws="vault" hidden>Maps</button>
+ <button data-t="maps" data-ws="retired" hidden>Maps</button>
  <button data-t="replay" data-ws="retired" hidden>Replays</button>
- <button data-t="decode" data-ws="passes" hidden>Decode</button>
- <button data-t="devices" data-ws="vault" hidden>Devices</button>
- <button data-t="events" data-ws="vault" hidden>Events</button>
- <button data-t="clips" data-ws="vault" hidden>Clips</button>
+ <button data-t="decode" data-ws="passes" hidden>Passes</button>
+ <button data-t="devices" data-ws="retired" hidden>Devices</button>
+ <button data-t="events" data-ws="retired" hidden>Events</button>
+ <button data-t="clips" data-ws="retired" hidden>Clips</button>
  <button data-t="voice" data-ws="retired" hidden>Voice</button>
- <button data-t="ble" data-ws="mesh" hidden>Bluetooth</button>
- <button data-t="wifi" data-ws="mesh" hidden>WiFi</button>
- <button data-t="camera" data-ws="vault" hidden>Cam</button>
+ <button data-t="ble" data-ws="retired" hidden>Bluetooth</button>
+ <button data-t="wifi" data-ws="retired" hidden>WiFi</button>
+ <button data-t="camera" data-ws="retired" hidden>Cam</button>
  <button data-t="sentinel" data-ws="vault" hidden>Sentinel</button>
- <button data-t="weekly" data-ws="vault" hidden>Weekly</button>
- <a href="/maps/#exo-link" data-ws="mesh" hidden>Fresnel</a>
- <a href="/maps/#exo-link" data-ws="vault" hidden>AES-GCM</a>
- <button data-t="tools" data-ws="vault" hidden>Tools</button>
+ <button data-t="weekly" data-ws="retired" hidden>Weekly</button>
+ <a href="/maps/#exo-link" data-ws="retired" hidden>Fresnel</a>
+ <a href="/maps/#exo-link" data-ws="retired" hidden>AES-GCM</a>
+ <button data-t="tools" data-ws="retired" hidden>Tools</button>
 </nav>
 </aside><main id="exo-main">
 
@@ -458,6 +458,32 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   </div>
   <button type="button" class="b exo-usb-connect" style="margin-top:8px">CONNECT USB SDR</button>
  </div>
+ <div class="card" id="exo-orbit">
+  <h2>Pass and Doppler</h2>
+  <p data-orbit-status class="muted">STANDBY · NO FIX</p>
+  <div class="grid" style="margin-top:9px">
+   <input data-norad inputmode="numeric" aria-label="NORAD catalog number" value="25544">
+   <input data-mhz inputmode="decimal" aria-label="Downlink megahertz" value="145.800">
+  </div>
+  <div class="grid" style="margin-top:7px">
+   <input data-up inputmode="decimal" aria-label="Uplink megahertz" value="144.490">
+   <input data-lat inputmode="decimal" aria-label="Latitude" value="35.3418">
+  </div>
+  <div class="grid" style="margin-top:7px">
+   <input data-lon inputmode="decimal" aria-label="Longitude" value="-89.8970">
+  </div>
+  <div class="grid" style="margin-top:9px">
+   <button class="b" type="button" data-locate style="min-height:44px">Locate</button>
+   <button class="b alt" type="button" data-predict style="min-height:44px">Passes</button>
+  </div>
+  <p data-orbit-live class="muted" style="margin-top:8px">NO FIX</p>
+  <div data-orbit-table class="muted" style="margin-top:6px"></div>
+  <canvas width="240" height="240" style="width:min(240px,100%);height:auto;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
+  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Lock on mission</a>
+ </div>
+ <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-4">Retired network decoders (no longer available)</button>
+ <div class="rg-fold-body" id="rg-fold-4" hidden>
+ <p class="muted rg-fold-note">These decoders ran on a home SDR server that is no longer online. With a USB SDR, use Live → Connect USB SDR; for passes, use Pass and Doppler above.</p>
  <div class="card"><h2>Decoder</h2>
   <select id="jobkind">
    <option value="adsb">Aircraft (ADS-B 1090)</option>
@@ -506,31 +532,9 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
     the pass is up — or set <span class="pill">SDR_AUTOSAT=1</span> (e.g. <span class="pill">meteor,iss</span>)
     to start a pass automatically.</div>
    <div id="passes" style="margin-top:8px"><div class="muted">loading…</div></div></div>
- <div class="card" id="exo-orbit">
-  <h2>Pass and Doppler</h2>
-  <p data-orbit-status class="muted">STANDBY · NO FIX</p>
-  <div class="grid" style="margin-top:9px">
-   <input data-norad inputmode="numeric" aria-label="NORAD catalog number" value="25544">
-   <input data-mhz inputmode="decimal" aria-label="Downlink megahertz" value="145.800">
-  </div>
-  <div class="grid" style="margin-top:7px">
-   <input data-up inputmode="decimal" aria-label="Uplink megahertz" value="144.490">
-   <input data-lat inputmode="decimal" aria-label="Latitude" value="35.3418">
-  </div>
-  <div class="grid" style="margin-top:7px">
-   <input data-lon inputmode="decimal" aria-label="Longitude" value="-89.8970">
-  </div>
-  <div class="grid" style="margin-top:9px">
-   <button class="b" type="button" data-locate style="min-height:44px">Locate</button>
-   <button class="b alt" type="button" data-predict style="min-height:44px">Passes</button>
-  </div>
-  <p data-orbit-live class="muted" style="margin-top:8px">NO FIX</p>
-  <div data-orbit-table class="muted" style="margin-top:6px"></div>
-  <canvas width="240" height="240" style="width:min(240px,100%);height:auto;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
-  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Lock on mission</a>
- </div>
   <div class="card"><h2>Aircraft</h2><div id="acl"><div class="muted">start the ADS-B decoder</div></div></div>
  <div class="card"><h2>Live output</h2><pre id="joblines">—</pre></div>
+ </div></div>
 </section>
 
 <section id="devices">
@@ -696,13 +700,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="muted" style="margin-top:9px;font-size:12px">Every match shows its evidence, source
    and a confidence tier: weak, probable or strong.</div>
  </div>
- <div class="card"><h2>Your host</h2>
-  <div id="sentstat" class="muted">The phone app scans on its own.</div>
-  <div class="muted" style="margin-top:8px;font-size:12px">Optional live peek at the Bluetooth
-   observer on your own SDR host. The phone app does not need it.</div>
- </div>
  <div class="card"><h2>Download</h2>
-  <a class="b" href="https://github.com/Breaux-cpu/exopace.net/releases/download/exopace-android-v0.1.0/EXOpace-v0.1.0-release.apk" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">EXOpace app (.apk)</a>
+  <a class="b" href="https://github.com/Breaux-cpu/exopace.net/releases/download/android-v1.0.0/EXOpace-android-v1.0.0.apk" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">EXOpace app (.apk)</a>
   <div class="muted" style="margin-top:9px;font-size:12px">Globe, mission, radio, mesh, and sentinel. Android 8.0 or newer. ARM phones.</div>
   <a class="b" href="https://github.com/Breaux-cpu/exopace.net/releases/download/sentinel-v2.21.1/EXOpace-Sentinel-v2.21.1-release.apk" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:9px">Sentinel (.apk)</a>
   <div class="muted" style="margin-top:9px;font-size:12px">Android 8.0+ &middot; 64-bit ARM &middot;
@@ -717,7 +716,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <button type="button" class="rg-primary" id="rg-primary" hidden>Listen</button>
 
 </div>
-<script src="radio-deck.js?v=4"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
+<script src="radio-deck.js?v=5"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
 const RETIRED="No network receiver on this site. Use Live → Connect USB SDR.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
@@ -731,7 +730,9 @@ function toast(m){const t=el('toast');if(!t)return;t.textContent=m;t.classList.a
  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
 
 function showTab(name){
- const b=document.querySelector(`nav.exo-tabs button[data-t="${name}"]`);
+ let b=document.querySelector(`nav.exo-tabs button[data-t="${name}"]`);
+ /* Old links to retired host-only tabs land on Listen instead of a dead panel. */
+ if(b&&b.dataset.ws==='retired'){name='listen';b=document.querySelector('nav.exo-tabs button[data-t="listen"]');}
  if(!b||!el(name))return;
  const ws=b.dataset.ws||'';
  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
@@ -760,7 +761,7 @@ document.querySelectorAll('.exo-comms a[data-tab]').forEach(a=>a.addEventListene
  e.preventDefault();
  showTab(a.dataset.tab);
 }));
-const RADIO_TABS=['listen','watch','decode','ble','wifi','sentinel','maps','devices','events','clips','camera','weekly','tools'];
+const RADIO_TABS=['listen','watch','decode','sentinel'];
 document.addEventListener('keydown',e=>{
  if(document.documentElement.dataset.exoCmd==='open')return;
  const t=e.target;
