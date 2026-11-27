@@ -454,7 +454,7 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
   #exo-locate { right: calc(var(--mi-g) + 180px + var(--mi-s)) !important; bottom: calc(var(--mi-b1) + 3px) !important; }
   #globe .cesium-viewer-bottom { right: var(--mi-g) !important; bottom: calc(var(--mi-b1) + 3px) !important; width: 180px; }
   #exo-traffic { left: var(--mi-g) !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g)) !important; bottom: var(--mi-b2) !important; }
-  #exo-legend { white-space: nowrap !important; }
+  #exo-legend { white-space: normal !important; max-width: 470px; }
   #exo-craft, #exo-storm { left: auto !important; right: calc(var(--mi-g) + var(--mi-t) + 6px + var(--mi-g)) !important; bottom: var(--mi-top-of-stack) !important; max-height: calc(100% - var(--mi-row2) - var(--mi-top-of-stack)) !important; }
 }
 /* Between 1100 and ~1360 the time capsule centred would meet the camera rail. */
@@ -465,3 +465,16 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
 @media (prefers-reduced-motion: reduce) {
   .hud .btn, #exo-locate { transition: none; }
 }
+
+/* Desktop: while STATION is open, the globe gets the space right of the layer
+   column + STATION panel instead of sitting underneath it. */
+@media (min-width: 1100px) and (min-height: 501px) {
+  main#exo-main:has(.hud .station) #globe {
+    left: calc(16px + 132px + 16px + 340px + 16px) !important;
+    width: calc(100% - (16px + 132px + 16px + 340px + 16px)) !important;
+    min-width: 0 !important;
+  }
+}
+
+.station .mi-nohw { margin: 2px 0 6px; color: var(--mi-mut, #8fa3ad); font: 400 11.5px/1.4 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 0; text-transform: none; }
+.station .mi-nohw + .kv { display: none; }

@@ -11,7 +11,7 @@ const statusEl = document.getElementById("sn-status");
 const feedEl = document.getElementById("sn-feed");
 let lane = "all";
 let fix = null;
-let ble = "Limited Service";
+let ble = "EXOPACE NODE NOT PAIRED";
 let busy = false;
 
 function say(text) { if (statusEl) statusEl.textContent = text; }
@@ -86,7 +86,15 @@ async function loadTle() {
       notes.push("Unavailable");
     }
   }
-  return { birds, notes };
+  // The three lists share a few satellites; count each NORAD id once (Mission does too).
+  const seen = new Set();
+  const unique = birds.filter((bird) => {
+    const norad = String(bird.l1 || "").slice(2, 7).trim();
+    if (!norad || seen.has(norad)) return !norad;
+    seen.add(norad);
+    return true;
+  });
+  return { birds: unique, notes };
 }
 
 function card(title, body, extra) {
@@ -147,13 +155,13 @@ async function evaluate() {
   else notes.push({ lane: "air", title: "AIR", body: aircraft.length ? aircraft.length + " TRACKS" : "QUIET" });
 
   if (sea.error) notes.push({ lane: "sea", title: "SEA", body: "Unavailable" });
-  else notes.push({ lane: "sea", title: "SEA", body: ships.length ? ships.length + " SHIPS · " + (sea.data.region || "SEA") : "QUIET" });
+  else notes.push({ lane: "sea", title: "SEA", body: ships.length ? ships.length + " SHIPS · " + (sea.data.region ? String(sea.data.region).toUpperCase() + " SEA ONLY · FINNISH DIGITRAFFIC AIS" : "SEA") : "QUIET" });
 
   const ages = tle.birds.map((bird) => epochAgeDays(bird.l1)).filter((age) => age != null);
   const catalogAge = ages.length ? Math.min(...ages) : null;
   const catalogState = tle.notes.length && !tle.birds.length ? "ERROR" : feedState(catalogAge);
   if (!tle.birds.length) notes.push({ lane: "orbital", title: "ORBITAL", body: catalogState });
-  else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " " + catalogState + (fix ? "" : " · NO FIX") });
+  else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " OBJECTS" + (catalogState === "LIVE" ? "" : " · " + catalogState) + (catalogAge != null ? " · ELEMENTS " + catalogAge.toFixed(1) + " D OLD" : "") + (fix ? "" : " · NO FIX") });
 
   notes.push({ lane: "rf", title: "RF", body: "BLE SCAN IS IN RF SCAN ABOVE · WIFI AND CELL NEED HARDWARE · " + ble });
   notes.push({ lane: "geofences", title: "GEOFENCES", body: fences.length ? fences.length + " ARMED" : "Standby" });
@@ -230,7 +238,8 @@ async function evaluate() {
 
   hits.sort((a, b) => rankText(b.body + " " + b.title) - rankText(a.body + " " + a.title));
   const activeCount = hits.length;
-  say(activeCount ? activeCount + " HITS" : "QUIET");
+  const checked = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  say((activeCount ? activeCount + " HITS" : "QUIET") + " · CHECKED " + checked);
   show(hits, notes);
   busy = false;
 }
@@ -282,7 +291,7 @@ document.getElementById("sn-refresh").addEventListener("click", evaluate);
 
 document.getElementById("sn-ble").addEventListener("click", async () => {
   if (!navigator.bluetooth || !navigator.bluetooth.requestDevice) {
-    ble = "Limited Service";
+    ble = "THIS BROWSER CANNOT PAIR BLUETOOTH";
     say(ble);
     return;
   }

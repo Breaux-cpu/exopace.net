@@ -28,7 +28,7 @@
       var up = body && body.ok === true;
       var full = up && !!body.mongo;
       chip("hm-st-cams", full ? "ok" : "warn", full ? "Cams online" : "Cams degraded");
-      cell("hm-lv-cams", full ? "ok" : "warn", full ? "ONLINE · MONGO" : "DEGRADED");
+      cell("hm-lv-cams", full ? "ok" : "warn", full ? "ONLINE" : "DEGRADED");
     })
     .catch(function () {
       clearTimeout(timer);
@@ -119,8 +119,5 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !sheet.hidden) closeSheet(); });
   }
 
-  // Offline shell + installability. Same worker Mission registers.
-  if ("serviceWorker" in navigator && location.protocol === "https:") {
-    navigator.serviceWorker.register("/sw.js").catch(function () {});
-  }
+  // Service worker registration and update checks live in exo-layout.js.
 })();

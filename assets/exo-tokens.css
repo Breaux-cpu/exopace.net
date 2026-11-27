@@ -27,7 +27,7 @@
   --exo-sal: max(env(safe-area-inset-left, 0px), var(--exo-safe-left, 0px));
   --exo-sar: max(env(safe-area-inset-right, 0px), var(--exo-safe-right, 0px));
   --exo-bar-h: calc(52px + var(--exo-sat));
-  --exo-pill-h: 44px;
+  --exo-pill-h: 0px;
   --exo-dock-h: 0px;
   --exo-chrome-top: calc(var(--exo-bar-h) + var(--exo-pill-h));
   --exo-ease: 150ms ease;

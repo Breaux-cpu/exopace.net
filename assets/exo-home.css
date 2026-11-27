@@ -346,3 +346,9 @@ body.exo-home > main {
   .hm-card, .hm-btn, .hm-stage canvas { transition: none; }
   .hm-card:hover { transform: none; }
 }
+
+/* Audit fix: say up front which decks need your own hardware. */
+.hm-needs { max-width: 32rem; margin: -14px 0 22px; color: var(--exo-muted, #8fa3ad); font: 400 0.9rem/1.5 var(--exo-sans); }
+@media (max-width: 719px) { .hm-needs { margin: -8px 0 16px; font-size: 0.84rem; } }
+@media (max-height: 500px) { .hm-needs { display: none; } }
+.si-panel[data-wait="true"] { visibility: hidden; }

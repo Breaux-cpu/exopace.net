@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var PRIMARY = {
-    listen: "#livebtn",
+    listen: "#rg-hero-connect",
     band: "#band button[onclick^='quickScan']",
     watch: "#watch .exo-usb-connect",
     scan: "#scan button[onclick^='scanStart']",

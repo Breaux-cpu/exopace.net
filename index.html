@@ -16,7 +16,7 @@
   <meta name="description" content="EXOpace: mission control, field radio, mesh, field maps, cameras, RF sentinel and system status. One brand, one protocol." />
   <link rel="canonical" href="https://exopace.net/" />
   <meta property="og:title" content="EXOpace" />
-  <meta property="og:description" content="One brand. Two surfaces. One protocol." />
+  <meta property="og:description" content="Seven decks, one shell: satellites, radio, mesh, maps, cameras and RF scanning from real data." />
   <meta property="og:image" content="https://exopace.net/og.png" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -47,24 +47,14 @@
     <a href="/system/">System</a>
   </nav>
 </header>
-<div class="exo-pill" id="exo-pill" aria-live="polite">
-  <div class="exo-pill-status">
-    <span id="exo-pill-clock">UTC — · JD —</span>
-    <span id="exo-pill-fix">NO FIX</span>
-    <span id="exo-pill-target">NO TARGET</span>
-  </div>
-  <div class="exo-pill-actions">
-    <button type="button" class="exo-btn" id="exo-pill-copy">COPY</button>
-    <a class="exo-btn" id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
-  </div>
-</div>
 <main id="exo-main">
   <div class="hm">
     <section class="hm-hero" aria-labelledby="hm-title">
       <div class="hm-copy">
         <p class="hm-k">Mission control · field radio · <b>one protocol</b></p>
         <h1 class="hm-word" id="hm-title">EXO<span>pace</span></h1>
-        <p class="hm-lead"><strong>One brand. Two surfaces. One protocol.</strong> <span class="hm-lead-more">Orbital mission control, a field radio that runs in the browser, mesh nodes, maps and cameras, all on one shell.</span></p>
+        <p class="hm-lead"><strong>Seven decks. One shell. Real data only.</strong> <span class="hm-lead-more">For radio operators, mesh users and anyone tracking satellites, aircraft and ships: mission control, a browser field radio, mesh nodes, maps, cameras and an RF scanner.</span></p>
+        <p class="hm-needs">Mission, Field Maps and Cameras work in any browser. Radio needs a USB SDR, Mesh a LoRa node, and Sentinel Bluetooth in Chrome or Edge.</p>
         <div class="hm-cta">
           <a class="hm-btn is-primary" href="/mission/">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-25 12 12)"/></svg>
@@ -162,7 +152,7 @@
         <p>Read from real sources only. Blank means the source did not answer.</p>
       </div>
       <div class="hm-live">
-        <div><span class="k">Cams edge</span><span class="v" id="hm-lv-cams">CHECKING</span><span class="src">cams.exopace.net/api/health</span></div>
+        <div><span class="k">Cameras server</span><span class="v" id="hm-lv-cams">CHECKING</span><span class="src">cams.exopace.net/api/health</span></div>
         <div><span class="k">Account</span><span class="v" id="hm-lv-acct">CHECKING</span><span class="src">cams.exopace.net/api/me</span></div>
         <div><span class="k">This browser</span><span class="v" id="hm-lv-net">—</span><span class="src">navigator.onLine</span></div>
         <div><span class="k">Clock</span><span class="v" id="hm-lv-utc">—</span><span class="src">this device · UTC</span></div>
@@ -204,7 +194,7 @@
 <script src="/maps/mgrs.js"></script>
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
-<script src="/assets/exo-layout.js?v=6"></script>
+<script src="/assets/exo-layout.js?v=8"></script>
 <script src="/assets/exo-home-scene.js?v=1"></script>
 <script src="/assets/exo-home.js?v=1"></script>
 <script src="/pwa-install.js?v=2"></script>

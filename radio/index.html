@@ -68,8 +68,8 @@ table{width:100%;border-collapse:collapse}
 .label-sm{font-size:11px;color:var(--muted);margin:9px 0 4px;letter-spacing:.4px;text-transform:uppercase}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);z-index:50;
  background:#0f2438;border:1px solid #1f6ebd;color:#dff3ff;padding:10px 16px;border-radius:10px;
- font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%}
-.toast.show{transform:translateX(-50%);opacity:1}
+ font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%;pointer-events:none}
+.toast.show{transform:translateX(-50%);opacity:1;pointer-events:auto}
 
 button.b{min-height:44px}
 input, select, textarea, button { min-height: 44px; }
@@ -207,8 +207,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </style>
 <link rel="stylesheet" href="../assets/exo-tokens.css">
 <link rel="stylesheet" href="../assets/exo-layout.css?v=7" data-exo-layout="1">
-<script src="../assets/exo-layout.js?v=6" data-exo-layout="1"></script>
-<link rel="stylesheet" href="radio-deck.css?v=5">
+<script src="../assets/exo-layout.js?v=8" data-exo-layout="1"></script>
+<link rel="stylesheet" href="radio-deck.css?v=6">
 </head><body class="rg-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
@@ -224,17 +224,10 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
     <a href="/system/">System</a>
   </nav>
 </header>
-<div class="exo-pill" id="exo-pill" aria-live="polite">
-  <span id="exo-pill-clock">UTC — · JD —</span>
-  <span id="exo-pill-fix">NO FIX</span>
-  <span id="exo-pill-target">NO TARGET</span>
-  <button type="button" id="exo-pill-copy">COPY</button>
-  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
-</div>
 
 <div class="rg-scroll" id="rg-scroll">
 <aside class="rg-rail" aria-label="Radio workspaces and tools">
-<header class="rg-head"><p class="rg-kicker">Comms &amp; RF</p><h1>Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No radio receiver on this site.</div>
+<header class="rg-head"><p class="rg-kicker">Comms &amp; RF</p><h1>Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No receiver connected. Plug in a USB SDR to listen.</div>
 <p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
 </header>
 <nav class="exo-comms exo-comms--keep rg-ws" aria-label="Comms workspaces">
@@ -245,16 +238,16 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </nav>
 <nav class="exo-tabs" aria-label="Radio tools">
  <button data-t="listen" data-ws="monitor" class="on">Listen</button>
- <button data-t="band" data-ws="monitor">Band</button>
+ <button data-t="band" data-ws="retired" hidden>Band</button>
  <button data-t="watch" data-ws="monitor">Live</button>
- <button data-t="scan" data-ws="monitor">Scan</button>
+ <button data-t="scan" data-ws="retired" hidden>Scan</button>
  <button data-t="maps" data-ws="vault" hidden>Maps</button>
- <button data-t="replay" data-ws="monitor">Replays</button>
+ <button data-t="replay" data-ws="retired" hidden>Replays</button>
  <button data-t="decode" data-ws="passes" hidden>Decode</button>
  <button data-t="devices" data-ws="vault" hidden>Devices</button>
  <button data-t="events" data-ws="vault" hidden>Events</button>
  <button data-t="clips" data-ws="vault" hidden>Clips</button>
- <button data-t="voice" data-ws="monitor">Voice</button>
+ <button data-t="voice" data-ws="retired" hidden>Voice</button>
  <button data-t="ble" data-ws="mesh" hidden>Bluetooth</button>
  <button data-t="wifi" data-ws="mesh" hidden>WiFi</button>
  <button data-t="camera" data-ws="vault" hidden>Cam</button>
@@ -267,6 +260,19 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </aside><main id="exo-main">
 
 <section id="listen" class="on">
+ <div class="card rg-hero" id="rg-hero">
+  <h2>Needs a USB SDR receiver</h2>
+  <p class="rg-hero-lead">Radio turns this browser into a receiver. It needs your own RTL-SDR–type USB dongle (RTL2832U) plugged into this device, in Chrome or Edge on a computer or an Android phone with USB-C/OTG. This site has no receiver of its own and streams nothing.</p>
+  <button type="button" class="b" id="rg-hero-connect">Connect USB SDR</button>
+  <p class="rg-hero-sub">No receiver? You can still:</p>
+  <ul class="rg-hero-list">
+   <li><a href="/radio/?tab=watch#watch" data-goto="watch">Decode audio from a scanner or radio</a> through your microphone or line-in (Live → Audio input decoder).</li>
+   <li><a href="/radio/?tab=decode#decode" data-goto="decode">Predict satellite passes and Doppler</a> for your location (Passes).</li>
+   <li><a href="/mission/">See what is overhead now</a> on Mission, or plan on <a href="/maps/">Field Maps</a>.</li>
+  </ul>
+ </div>
+ <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-1">Retired network receiver (no longer available)</button>
+ <div class="rg-fold-body" id="rg-fold-1" hidden>
  <div class="card"><h2>Tune</h2>
   <div class="rg-tune"><input id="freq" value="162.475M" inputmode="decimal" aria-label="Frequency"></div>
   <div id="np" class="muted" style="margin-top:9px">stopped</div>
@@ -297,9 +303,12 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    <button class="b alt" style="width:84px" onclick="addBm()">Save</button></div>
   <div class="presets" id="bm"></div>
  </div>
+ </div></div>
+ <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-2">Advanced: your own SDR bridge</button>
+ <div class="rg-fold-body" id="rg-fold-2" hidden>
  <div class="card" id="exo-sdr">
-  <h2>Archived relay</h2>
-  <p class="muted">Optional headless relay in scripts/sdr-bridge. The direct path is CONNECT USB SDR on Live and Decode.</p>
+  <h2>Self-hosted SDR bridge</h2>
+  <p class="muted">For people running their own EXOpace SDR bridge on another computer. Enter its address and token to stream from it. Most people should use Connect USB SDR above instead.</p>
   <p id="exo-sdr-status">BRIDGE OFFLINE · NO RF SAMPLES</p>
   <p id="exo-sdr-meter">S —</p>
   <p id="exo-rf-note">NO RF SAMPLES</p>
@@ -315,8 +324,9 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
    <input id="exo-sdr-token" type="password" placeholder="bridge token" autocomplete="off">
    <button type="button" class="b" id="exo-sdr-connect">Connect</button>
   </div>
-  <a href="/maps/#exo-df" style="display:inline-block;min-height:24px;line-height:24px">Plot bearing on map</a>
+  <a href="/maps/#exo-df" style="display:inline-block;min-height:44px;line-height:44px">Plot bearing on map</a>
  </div>
+ </div></div>
 </section>
 
 <section id="band">
@@ -341,9 +351,9 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <canvas id="qcv" height="220" style="height:110px;margin-top:10px"></canvas>
   <div id="qsout" style="margin-top:9px"></div></div>
  <div class="card"><h2>Full-band survey &amp; signal discovery</h2>
-  <div class="muted">One rtl_power pass grids the whole 24 MHz – 1.7 GHz range and flags every
+  <div class="muted">One pass sweeps the whole 24 MHz – 1.7 GHz range and flags every
    signal it finds, strongest first. It fills in as the sweep advances (a full pass takes a few
-   minutes) and holds the dongle until it's done or you stop it. Tap any discovery to listen.</div>
+   minutes) and holds the receiver until it's done or you stop it. Tap any discovery to listen.</div>
   <div class="grid3" style="margin-top:10px">
    <input id="ws1" value="24M" inputmode="decimal">
    <input id="ws2" value="1700M" inputmode="decimal">
@@ -364,16 +374,18 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <p class="exo-usb-status">NO USB DEVICE · CLICK CONNECT USB</p>
   <p class="exo-usb-fallback muted" hidden></p>
   <canvas class="exo-usb-wf" width="640" height="140"></canvas>
-  <div class="grid3" style="margin-top:8px">
+  <div class="grid3 rg-usb-labels" style="margin-top:8px" aria-hidden="true"><span>Frequency (MHz)</span><span>Mode</span><span>Gain</span></div>
+  <div class="grid3" style="margin-top:4px">
    <input class="exo-usb-mhz" value="162.550" inputmode="decimal" aria-label="Center frequency MHz">
    <select class="exo-usb-mode" aria-label="Demodulator"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB</option></select>
    <select class="exo-usb-gain" aria-label="Tuner gain"><option value="auto">Auto</option></select>
   </div>
   <button type="button" class="b exo-usb-connect" style="margin-top:8px">CONNECT USB SDR</button>
  </div>
+ <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-3">Retired network waterfall (no longer available)</button>
+ <div class="rg-fold-body" id="rg-fold-3" hidden>
  <div class="card"><h2>Live waterfall</h2>
-  <div class="muted">Direct USB is the card above. This sweep is the archived host path. Browse a whole band and tap a signal to listen. This locks
-   the dongle (any listen/decode pauses), so stop it when you're done.</div>
+  <div class="muted">This band sweep ran on the retired EXOpace network receiver and no longer works. The USB SDR card above shows a live waterfall from your own receiver.</div>
   <div class="grid3" style="margin:10px 0 8px">
    <input id="wffrom" value="100M" inputmode="decimal">
    <input id="wfto" value="102M" inputmode="decimal">
@@ -389,6 +401,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <canvas id="lwf" height="340" style="height:200px;margin-top:10px;cursor:crosshair"></canvas>
   <div class="muted" id="lwfm" style="margin-top:6px">not running — pick a range and Start.</div>
   <div id="lwfpeaks" style="margin-top:8px"></div></div>
+ </div></div>
  <div class="card rg-audio"><h2>Audio input decoder</h2><div id="exo-audio"></div></div>
  <div class="card" id="rg-modules" hidden><h2>Instruments</h2></div>
 </section>
@@ -637,8 +650,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <div class="card"><h2>Raw IQ capture</h2>
   <div class="grid3"><input id="iqf" value="433.92M"><input id="iqs" value="10">
    <button class="b" onclick="iq()">Record</button></div>
-  <div class="muted" id="iqout" style="margin-top:8px">frequency · seconds — find the recording
-   under Replays in the Listen page favorites, or in ~/sdr-captures.</div></div>
+  <div class="muted" id="iqout" style="margin-top:8px">Frequency and seconds. Needs a connected receiver.</div></div>
  <div class="card"><h2>Usage</h2><div id="usage"></div></div>
  <div class="card"><h2>Tasks</h2><div id="tasks"></div></div>
  <div class="card"><h2>Capabilities</h2><div id="caps"></div></div>
@@ -646,8 +658,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 
 <section id="replay">
  <div class="card"><h2>IQ recordings</h2>
-  <div class="muted">Full-rate captures from Tools → Raw IQ capture. Rendered as a waterfall
-   on this board from the raw bytes — nothing is sent anywhere.</div>
+  <div class="muted">Full-rate IQ recordings saved by a receiver, drawn as a waterfall from the
+   raw bytes in this browser — nothing is sent anywhere.</div>
   <div id="replist" style="margin-top:9px"></div></div>
  <div class="card" id="replayview" style="display:none"><h2>Replay</h2>
   <div class="grid3">
@@ -705,9 +717,9 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <button type="button" class="rg-primary" id="rg-primary" hidden>Listen</button>
 
 </div>
-<script src="radio-deck.js?v=3"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
+<script src="radio-deck.js?v=4"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
-const RETIRED="No radio receiver on this site.";
+const RETIRED="No network receiver on this site. Use Live → Connect USB SDR.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
 const el=id=>document.getElementById(id);
 const rows=a=>a.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')||'<div class="muted">nothing yet</div>';
@@ -740,12 +752,15 @@ function showTab(name){
  if(name!=='camera')camStopView();
 }
 document.querySelectorAll('nav.exo-tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+(function(){const hc=el('rg-hero-connect');if(hc)hc.addEventListener('click',()=>{showTab('watch');const c=document.querySelector('#watch .exo-usb-connect');if(c){c.scrollIntoView({block:'center'});c.click();}});
+document.querySelectorAll('.rg-fold').forEach(b=>b.addEventListener('click',()=>{const body=el(b.getAttribute('aria-controls'));if(!body)return;const open=body.hidden;body.hidden=!open;b.setAttribute('aria-expanded',String(open));}));
+document.querySelectorAll('#rg-hero [data-goto]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showTab(a.dataset.goto);}));})();
 document.querySelectorAll('.exo-comms a[data-tab]').forEach(a=>a.addEventListener('click',e=>{
  if(location.pathname.indexOf('/radio')<0)return;
  e.preventDefault();
  showTab(a.dataset.tab);
 }));
-const RADIO_TABS=['listen','band','watch','scan','maps','replay','decode','devices','events','clips','voice','ble','wifi','camera','sentinel','weekly','tools'];
+const RADIO_TABS=['listen','watch','decode','ble','wifi','sentinel','maps','devices','events','clips','camera','weekly','tools'];
 document.addEventListener('keydown',e=>{
  if(document.documentElement.dataset.exoCmd==='open')return;
  const t=e.target;
@@ -1332,7 +1347,7 @@ function loadReplays(){api('/api/replays').then(list=>{
  el('replist').innerHTML=list.length?list.map(x=>
   `<div class="row"><span class="k f">${x.mhz}<br><span class="muted">${x.rate/1e6} Msps · ${x.mb} MB · ${x.when}</span></span>
    <span class="v"><button class="pill" onclick="viewReplay('${x.name}')">view</button></span></div>`).join('')
-  :'<div class="muted">no IQ recordings yet — make one under Tools.</div>';});}
+  :'<div class="muted">No IQ recordings on this device.</div>';});}
 function viewReplay(n){api('/api/replay?n='+encodeURIComponent(n)).then(d=>{
  if(d.error){toast(d.error);return;}
  rpData=d;rpData._name=n;el('replayview').style.display='block';
@@ -1384,7 +1399,7 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <script src="../assets/exo-voice-codec2.js"></script>
 <script src="../assets/exo-link-qos.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
-<script type="module" src="../assets/exo-orbit.js"></script>
+<script type="module" src="../assets/exo-orbit.js?v=2"></script>
 <script type="module" src="../assets/exo-audio.js"></script>
 <section id="exo-apt" class="exo-wave">NO USB DEVICE</section>
 <section id="exo-prop" class="exo-wave">OFFLINE</section>

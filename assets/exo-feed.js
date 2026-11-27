@@ -21,18 +21,24 @@ export function catalogFeed(text, now = Date.now()) {
 
 export function feedLabel(state, age) {
   if (state === "ERROR" || age == null || !Number.isFinite(age)) return "FEED ERROR";
-  return `FEED ${state} · ${age.toFixed(1)} D`;
+  // Say how old the orbit elements are instead of calling cached data LIVE.
+  const old = `${age.toFixed(1)} D OLD`;
+  return state === "STALE" ? `ORBITS STALE · ${old}` : `ORBITS ${old}`;
 }
 
 function bare(text) {
   return String(text || "").replace(/ · NOT EXACT$/, "");
 }
 
+function isFeedChip(text) {
+  return /^(FEED|ORBITS)\b/.test(bare(text));
+}
+
 export function paintFeed(root, result) {
   const label = feedLabel(result.state, result.age);
   const inexact = result.state === "STALE" || result.state === "ERROR";
   for (const node of root.querySelectorAll("span.chip")) {
-    if (!bare(node.textContent).startsWith("FEED")) continue;
+    if (!isFeedChip(node.textContent)) continue;
     if (node.textContent !== label) node.textContent = label;
     if (node.classList) {
       if (result.state === "ERROR") node.classList.add("err");

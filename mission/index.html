@@ -157,6 +157,12 @@
         .dossier { width: min(380px, 42vw); }
       }
     </style>
+    <!-- Shell + Mission CSS load in <head> so the header, status strip and HUD
+         do not shift after first paint (desktop CLS). -->
+    <link rel="stylesheet" href="/assets/exo-modern.css?v=14" />
+    <link rel="stylesheet" href="/assets/exo-tokens.css" />
+    <link rel="stylesheet" href="/assets/exo-layout.css?v=7" data-exo-layout="1" />
+    <link rel="stylesheet" href="/mission/mission.css?v=9" />
   </head>
   <body>
     <!-- Outside #root: React createRoot wipes #root and used to kill first-paint. -->
@@ -185,11 +191,14 @@
   </nav>
     </header>
     <div class="exo-pill" id="exo-pill" aria-live="polite">
-      <span id="exo-pill-clock">UTC — · JD —</span>
-      <span id="exo-pill-fix">NO FIX</span>
-      <span id="exo-pill-target">NO TARGET</span>
-      <button type="button" id="exo-pill-copy">COPY</button>
-      <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+      <div class="exo-pill-status">
+        <span id="exo-pill-clock">UTC — · JD —</span>
+        <span id="exo-pill-fix">NO FIX</span>
+        <span id="exo-pill-target">NO TARGET</span>
+      </div>
+      <div class="exo-pill-actions">
+        <button type="button" class="exo-btn" id="exo-pill-copy">COPY</button>
+      </div>
     </div>
     <main id="exo-main"><div id="root" inert></div></main>
     <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
@@ -585,21 +594,16 @@
     <p id="exo-astro" class="exo-wave">NO FIX</p>
     <p id="exo-rotator-mission" class="exo-wave">NO USB DEVICE</p>
     <script src="/exo-weather.js?v=90" defer></script>
-    <script src="/exo-traffic.js?v=91" defer></script>
-    <script type="module" src="/assets/exo-feed.js"></script>
-  <link rel="stylesheet" href="/assets/exo-modern.css?v=14" media="print" onload="this.media='all';this.onload=null" />
-  <noscript><link rel="stylesheet" href="/assets/exo-modern.css?v=14" /></noscript>
-  <link rel="stylesheet" href="/assets/exo-tokens.css" />
-  <link rel="stylesheet" href="/assets/exo-layout.css?v=7" data-exo-layout="1" />
-  <link rel="stylesheet" href="/mission/mission.css?v=8" />
-  <script src="/mission/mission.js?v=5" defer></script>
+    <script src="/exo-traffic.js?v=92" defer></script>
+    <script type="module" src="/assets/exo-feed.js?v=2"></script>
+  <script src="/mission/mission.js?v=7" defer></script>
   <script src="/maps/mgrs.js"></script>
   <script src="/assets/exo-bus.js"></script>
   <script src="/assets/exo-state.js"></script>
   <script src="/assets/exo-mavlink.js"></script>
   <script src="/assets/exo-astro-nav.js"></script>
   <script src="/assets/exo-rotator.js"></script>
-  <script src="/assets/exo-layout.js?v=6" data-exo-layout="1"></script>
+  <script src="/assets/exo-layout.js?v=8" data-exo-layout="1"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

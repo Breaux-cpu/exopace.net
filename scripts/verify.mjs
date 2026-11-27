@@ -117,16 +117,16 @@ const meshSw = read("mesh/sw.js");
 assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v96"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v100"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("mission/index.html").includes("z-index: 200") && read("mission/index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v71"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v72"), "Radio SW cache bumped");
 const mapsSw = read("maps/sw.js");
-assert(mapsSw.includes("exopace-maps-v34"), "Maps SW cache bumped");
+assert(mapsSw.includes("exopace-maps-v35"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"app\.js"/.test(meshSw), "Radio SW does not precache app.js");
 assert(!meshSw.includes("e.respondWith") || meshSw.includes("url.origin"), "Radio SW does not intercept foreign hosts");
@@ -236,7 +236,7 @@ assert(meshHtml.includes("MESH QUIET. Power up a second node") && meshHtml.inclu
 assert(meshApp.includes("renderNodes();") && meshApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
 assert(meshApp.includes("function shareWay(w)") && meshApp.includes("send(P.makeWay({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind }))"), "waypoint SHARE broadcasts to the mesh");
 assert(meshApp.includes('btn.dataset.act === "share"') && meshApp.includes("shareWay(w)") && !meshApp.includes("sharePoint(w)"), "waypoint SHARE button calls shareWay, not the OS sheet");
-assert(meshHtml.includes("app.js?v=62") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
+assert(meshHtml.includes("app.js?v=63") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(meshHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(meshHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(meshApp.includes("exopace-radio-hide-install") && meshApp.includes("hideInstallHint"), "Radio HIDE persist stays");
@@ -772,8 +772,17 @@ assert(read("sw.js").includes("/tle/"), "MOC SW skips /tle/ so the snapshot is n
   assert(/location\.replace\("\/mission\/" \+ location\.search/.test(home) && home.includes("(lock|cam|t)="), "home hands old /?lock=&cam=&t= links to /mission/");
   for (const css of ["exo-tokens.css", "exo-modern.css", "exo-layout.css", "exo-home.css"]) assert(home.includes(css) && signin.includes(css), `home + signin load ${css}`);
   assert(home.includes("exo-layout.js") && signin.includes("exo-layout.js"), "home + signin load exo-layout.js");
-  assert(home.includes('class="exo-bar"') && home.includes('class="exo-pill"') && home.includes("exo-pill-actions"), "home has the shared bar and phone dock");
-  assert(signin.includes('class="exo-bar"') && signin.includes('class="exo-pill"') && signin.includes("exo-pill-actions"), "signin has the shared bar and phone dock");
+  assert(home.includes('class="exo-bar"') && !home.includes('id="exo-pill"') && !home.includes("exo-pill-actions"), "home has the shared bar and no status pill");
+  assert(signin.includes('class="exo-bar"') && !signin.includes('id="exo-pill"') && !signin.includes("exo-pill-actions"), "signin has the shared bar and no status pill");
+  for (const rel of ["index.html", "signin/index.html", "system/index.html", "sentinel/index.html", "mesh/index.html", "radio/index.html", "maps/index.html", "404.html"]) {
+    assert(!read(rel).includes('id="exo-pill"') && !read(rel).includes("exo-pill-jump"), rel + " has no status pill");
+  }
+  const mission = read("mission/index.html");
+  assert(mission.includes('id="exo-pill"') && mission.includes("exo-pill-clock") && mission.includes("exo-pill-target") && mission.includes("exo-pill-fix"), "Mission keeps the clock, fix, and target readout");
+  assert(!mission.includes("exo-pill-jump"), "Mission has no JUMP link");
+  assert(mission.includes('id="exo-pill-copy"'), "Mission keeps COPY so a lock can be copied as UTC, fix, and target");
+  assert(layoutJs.includes("initServiceWorker") && layoutJs.includes(".update()") && layoutJs.includes("controllerchange"), "shared shell checks for a new service worker and reloads or toasts");
+  assert(read("sw.js").includes("skipWaiting") && read("sw.js").includes("clients.claim"), "new service worker takes over immediately");
   for (const [href, label] of [["/mission/", "Mission"], ["/radio/", "Radio"], ["/mesh/", "Mesh"], ["/maps/", "Field Maps"], ["https://cams.exopace.net/map", "Cameras"], ["/sentinel/", "Sentinel"], ["/system/", "System"]]) {
     assert(new RegExp('class="hm-card[^"]*" href="' + href.replace(/[/.]/g, "\\$&") + '"[\\s\\S]*?<span class="t">' + label + "</span>").test(home), `home entry card ${label} → ${href}`);
   }
