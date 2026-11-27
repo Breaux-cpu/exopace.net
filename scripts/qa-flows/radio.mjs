@@ -78,18 +78,16 @@ const radio = [
     },
   },
   {
-    name: "retired network receiver folds away and still reports honestly",
+    name: "retired network tools are not offered (no fold, no 'no longer available' text)",
     test: async (page) => {
-      await tap(page, '.rg-ws a[data-tab="listen"]');
-      await tap(page, "#listen .rg-fold[aria-controls='rg-fold-1']");
-      await page.$eval("#bmname", (el) => { el.value = ""; });
-      await tap(page, "#listen button[onclick^='addBm']");
-      const t = await textOf(page, "#toast");
-      await tap(page, "#livebtn");
-      await wait(200);
-      const np = await textOf(page, "#np");
-      await tap(page, "#listen .rg-fold[aria-controls='rg-fold-1']");
-      return { ok: /Name the frequency first/.test(t) && /No (radio|network) receiver/.test(np), detail: t + " · " + np };
+      const r = await page.evaluate(() => {
+        const visible = (el) => !!(el && el.offsetParent);
+        const folds = Array.from(document.querySelectorAll(".rg-fold")).filter(visible).map((b) => b.textContent.trim());
+        const dead = /no longer available/i.test(document.body.innerText);
+        const hidden = [1, 3, 4].every((i) => { const f = document.getElementById("rg-fold-" + i); return f && f.hidden && !visible(f); });
+        return { folds, dead, hidden };
+      });
+      return { ok: !r.folds.length && !r.dead && r.hidden, detail: (r.folds.join(",") || "no folds") + (r.dead ? " · dead text visible" : "") };
     },
   },
   {

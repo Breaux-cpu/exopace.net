@@ -208,7 +208,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <link rel="stylesheet" href="../assets/exo-tokens.css">
 <link rel="stylesheet" href="../assets/exo-layout.css?v=7" data-exo-layout="1">
 <script src="../assets/exo-layout.js?v=8" data-exo-layout="1"></script>
-<link rel="stylesheet" href="radio-deck.css?v=7">
+<link rel="stylesheet" href="radio-deck.css?v=8">
 </head><body class="rg-page">
 <header class="exo-bar">
   <a class="exo-skip" href="#exo-main">Skip to content</a>
@@ -227,8 +227,8 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 
 <div class="rg-scroll" id="rg-scroll">
 <aside class="rg-rail" aria-label="Radio workspaces and tools">
-<header class="rg-head"><p class="rg-kicker">Comms &amp; RF</p><h1>Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No receiver connected. Plug in a USB SDR to listen.</div>
-<p class="exo-clock" id="exo-clock">UTC — · LOCAL — · JD — · NO PASS DATA</p>
+<header class="rg-head"><p class="rg-kicker">Comms &amp; RF</p><h1>Radio <a class="fieldmaps" href="/maps/">Field maps</a></h1><div class="sub" id="sub">No receiver connected. Plug a USB SDR into this device, then press Connect USB SDR.</div>
+<p class="exo-clock" id="exo-clock">Local time — · UTC —</p>
 </header>
 <nav class="exo-comms exo-comms--keep rg-ws" aria-label="Comms workspaces">
   <a href="/radio/?tab=listen" data-ws="monitor" data-tab="listen" aria-current="page">MONITOR</a>
@@ -237,9 +237,9 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <a href="/radio/?tab=sentinel" data-ws="vault" data-tab="sentinel">SENTINEL</a>
 </nav>
 <nav class="exo-tabs" aria-label="Radio tools">
- <button data-t="listen" data-ws="monitor" class="on">Listen</button>
+ <button data-t="listen" data-ws="monitor" class="on">Start here</button>
  <button data-t="band" data-ws="retired" hidden>Band</button>
- <button data-t="watch" data-ws="monitor">Live</button>
+ <button data-t="watch" data-ws="monitor">Receiver</button>
  <button data-t="scan" data-ws="retired" hidden>Scan</button>
  <button data-t="maps" data-ws="retired" hidden>Maps</button>
  <button data-t="replay" data-ws="retired" hidden>Replays</button>
@@ -262,16 +262,23 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <section id="listen" class="on">
  <div class="card rg-hero" id="rg-hero">
   <h2>Needs a USB SDR receiver</h2>
-  <p class="rg-hero-lead">Radio turns this browser into a receiver. It needs your own RTL-SDR–type USB dongle (RTL2832U) plugged into this device, in Chrome or Edge on a computer or an Android phone with USB-C/OTG. This site has no receiver of its own and streams nothing.</p>
+  <p class="rg-hero-lead">Radio turns this browser into a radio receiver. To listen live you need your own RTL-SDR USB dongle (RTL2832U chip, about $30) plugged into this device, using Chrome or Edge on a computer or an Android phone (USB-C or OTG adapter). This site has no receiver of its own and streams nothing.</p>
+  <ol class="rg-steps">
+   <li>Plug the dongle and its antenna into this device.</li>
+   <li>Press <b>Connect USB SDR</b> and pick the dongle (often listed as RTL2838) in the browser&rsquo;s list.</li>
+   <li>Set a frequency, for example 162.550 MHz NOAA weather radio, and listen.</li>
+  </ol>
   <button type="button" class="b" id="rg-hero-connect">Connect USB SDR</button>
+  <p class="rg-hero-note">Not listed or won&rsquo;t open? On Windows, install the free WinUSB driver for the dongle once (Zadig). Close other SDR apps that are using it.</p>
+  <p class="rg-hero-trust">Receive-only: nothing is transmitted, and sound and settings stay on this device.</p>
   <p class="rg-hero-sub">No receiver? You can still:</p>
   <ul class="rg-hero-list">
-   <li><a href="/radio/?tab=watch#watch" data-goto="watch">Decode audio from a scanner or radio</a> through your microphone or line-in (Live → Audio input decoder).</li>
+   <li><a href="/radio/?tab=watch#watch" data-goto="watch">Decode audio from a scanner or radio</a> through your microphone or line-in (Receiver tab, Audio input decoder).</li>
    <li><a href="/radio/?tab=decode#decode" data-goto="decode">Predict satellite passes and Doppler</a> for your location (Passes).</li>
    <li><a href="/mission/">See what is overhead now</a> on Mission, or plan on <a href="/maps/">Field Maps</a>.</li>
   </ul>
  </div>
- <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-1">Retired network receiver (no longer available)</button>
+ <div class="rg-retired" hidden>
  <div class="rg-fold-body" id="rg-fold-1" hidden>
  <div class="card"><h2>Tune</h2>
   <div class="rg-tune"><input id="freq" value="162.475M" inputmode="decimal" aria-label="Frequency"></div>
@@ -304,7 +311,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
   <div class="presets" id="bm"></div>
  </div>
  </div></div>
- <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-2">Advanced: your own SDR bridge</button>
+ <div class="rg-retired" id="rg-bridge" hidden><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-2">Advanced: your own SDR bridge</button>
  <div class="rg-fold-body" id="rg-fold-2" hidden>
  <div class="card" id="exo-sdr">
   <h2>Self-hosted SDR bridge</h2>
@@ -371,18 +378,18 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <section id="watch">
  <div class="card exo-usb">
   <h2>USB SDR</h2>
-  <p class="exo-usb-status">NO USB DEVICE · CLICK CONNECT USB</p>
+  <p class="exo-usb-status" role="status">No receiver connected. Plug in a USB SDR, then press Connect USB SDR.</p>
   <p class="exo-usb-fallback muted" hidden></p>
-  <canvas class="exo-usb-wf" width="640" height="140"></canvas>
-  <div class="grid3 rg-usb-labels" style="margin-top:8px" aria-hidden="true"><span>Frequency (MHz)</span><span>Mode</span><span>Gain</span></div>
-  <div class="grid3" style="margin-top:4px">
-   <input class="exo-usb-mhz" value="162.550" inputmode="decimal" aria-label="Center frequency MHz">
-   <select class="exo-usb-mode" aria-label="Demodulator"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB</option></select>
-   <select class="exo-usb-gain" aria-label="Tuner gain"><option value="auto">Auto</option></select>
+  <canvas class="exo-usb-wf" width="640" height="140" role="img" aria-label="Waterfall from your USB SDR (blank until a receiver is connected)"></canvas>
+  <div class="grid3 rg-fields" style="margin-top:8px">
+   <label class="rg-field" for="usb-mhz-live"><span>Frequency (MHz)</span><input id="usb-mhz-live" class="exo-usb-mhz" value="162.550" inputmode="decimal"></label>
+   <label class="rg-field" for="usb-mode-live"><span>Mode</span><select id="usb-mode-live" class="exo-usb-mode"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB (SSB)</option></select></label>
+   <label class="rg-field" for="usb-gain-live"><span>Gain</span><select id="usb-gain-live" class="exo-usb-gain"><option value="auto">Auto</option></select></label>
   </div>
-  <button type="button" class="b exo-usb-connect" style="margin-top:8px">CONNECT USB SDR</button>
+  <p class="muted rg-field-hint">FM for weather radio and most voice, AM for aircraft, USB for single-sideband ham. Leave gain on Auto to start.</p>
+  <button type="button" class="b exo-usb-connect" style="margin-top:8px">Connect USB SDR</button>
  </div>
- <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-3">Retired network waterfall (no longer available)</button>
+ <div class="rg-retired" hidden>
  <div class="rg-fold-body" id="rg-fold-3" hidden>
  <div class="card"><h2>Live waterfall</h2>
   <div class="muted">This band sweep ran on the retired EXOpace network receiver and no longer works. The USB SDR card above shows a live waterfall from your own receiver.</div>
@@ -448,40 +455,42 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 <section id="decode">
  <div class="card exo-usb">
   <h2>USB SDR</h2>
-  <p class="exo-usb-status">NO USB DEVICE · CLICK CONNECT USB</p>
+  <p class="exo-usb-status" role="status">No receiver connected. Plug in a USB SDR, then press Connect USB SDR.</p>
   <p class="exo-usb-fallback muted" hidden></p>
-  <canvas class="exo-usb-wf" width="640" height="140"></canvas>
-  <div class="grid3" style="margin-top:8px">
-   <input class="exo-usb-mhz" value="162.550" inputmode="decimal" aria-label="Center frequency MHz">
-   <select class="exo-usb-mode" aria-label="Demodulator"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB</option></select>
-   <select class="exo-usb-gain" aria-label="Tuner gain"><option value="auto">Auto</option></select>
+  <canvas class="exo-usb-wf" width="640" height="140" role="img" aria-label="Waterfall from your USB SDR (blank until a receiver is connected)"></canvas>
+  <div class="grid3 rg-fields" style="margin-top:8px">
+   <label class="rg-field" for="usb-mhz-pass"><span>Frequency (MHz)</span><input id="usb-mhz-pass" class="exo-usb-mhz" value="162.550" inputmode="decimal"></label>
+   <label class="rg-field" for="usb-mode-pass"><span>Mode</span><select id="usb-mode-pass" class="exo-usb-mode"><option value="FM">FM</option><option value="AM">AM</option><option value="USB">USB (SSB)</option></select></label>
+   <label class="rg-field" for="usb-gain-pass"><span>Gain</span><select id="usb-gain-pass" class="exo-usb-gain"><option value="auto">Auto</option></select></label>
   </div>
-  <button type="button" class="b exo-usb-connect" style="margin-top:8px">CONNECT USB SDR</button>
+  <p class="muted rg-field-hint">FM for weather radio and most voice, AM for aircraft, USB for single-sideband ham. Leave gain on Auto to start.</p>
+  <button type="button" class="b exo-usb-connect" style="margin-top:8px">Connect USB SDR</button>
  </div>
  <div class="card" id="exo-orbit">
   <h2>Pass and Doppler</h2>
-  <p data-orbit-status class="muted">STANDBY · NO FIX</p>
+  <p class="muted rg-orbit-lead">When a satellite will be overhead and what frequency to tune as it moves (Doppler shift). Works without a receiver.</p>
+  <p data-orbit-status class="rg-orbit-status" role="status">Loading satellite orbit data…</p>
+  <div class="grid rg-fields" style="margin-top:9px">
+   <label class="rg-field" for="orb-norad"><span>Satellite number (NORAD, ISS is 25544)</span><input id="orb-norad" data-norad inputmode="numeric" value="25544"></label>
+   <label class="rg-field" for="orb-down"><span>Listen frequency (MHz)</span><input id="orb-down" data-mhz inputmode="decimal" value="145.800"></label>
+  </div>
+  <div class="grid rg-fields" style="margin-top:7px">
+   <label class="rg-field" for="orb-up"><span>Transmit frequency (MHz, licensed hams)</span><input id="orb-up" data-up inputmode="decimal" value="144.490"></label>
+   <label class="rg-field" for="orb-lat"><span>Your latitude</span><input id="orb-lat" data-lat inputmode="decimal" value="35.3418"></label>
+  </div>
+  <div class="grid rg-fields" style="margin-top:7px">
+   <label class="rg-field" for="orb-lon"><span>Your longitude</span><input id="orb-lon" data-lon inputmode="decimal" value="-89.8970"></label>
+  </div>
   <div class="grid" style="margin-top:9px">
-   <input data-norad inputmode="numeric" aria-label="NORAD catalog number" value="25544">
-   <input data-mhz inputmode="decimal" aria-label="Downlink megahertz" value="145.800">
+   <button class="b" type="button" data-locate style="min-height:44px">Use my location</button>
+   <button class="b alt" type="button" data-predict style="min-height:44px">Show passes</button>
   </div>
-  <div class="grid" style="margin-top:7px">
-   <input data-up inputmode="decimal" aria-label="Uplink megahertz" value="144.490">
-   <input data-lat inputmode="decimal" aria-label="Latitude" value="35.3418">
-  </div>
-  <div class="grid" style="margin-top:7px">
-   <input data-lon inputmode="decimal" aria-label="Longitude" value="-89.8970">
-  </div>
-  <div class="grid" style="margin-top:9px">
-   <button class="b" type="button" data-locate style="min-height:44px">Locate</button>
-   <button class="b alt" type="button" data-predict style="min-height:44px">Passes</button>
-  </div>
-  <p data-orbit-live class="muted" style="margin-top:8px">NO FIX</p>
-  <div data-orbit-table class="muted" style="margin-top:6px"></div>
-  <canvas width="240" height="240" style="width:min(240px,100%);height:auto;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
-  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Lock on mission</a>
+  <p data-orbit-live class="muted" style="margin-top:8px" aria-live="off">—</p>
+  <div data-orbit-table class="rg-orbit-table" style="margin-top:6px"></div>
+  <canvas width="240" height="240" role="img" aria-label="Sky plot: the next pass drawn from the horizon (outer ring) to overhead (center), north at top" style="width:min(240px,100%);height:auto;margin-top:8px;background:#04070d;border-radius:8px"></canvas>
+  <a data-lock class="b" href="/mission/?lock=25544&amp;cam=follow" style="display:block;text-align:center;text-decoration:none;margin-top:9px;min-height:44px">Show this satellite on Mission</a>
  </div>
- <div class="rg-retired"><button type="button" class="rg-fold" aria-expanded="false" aria-controls="rg-fold-4">Retired network decoders (no longer available)</button>
+ <div class="rg-retired" hidden>
  <div class="rg-fold-body" id="rg-fold-4" hidden>
  <p class="muted rg-fold-note">These decoders ran on a home SDR server that is no longer online. With a USB SDR, use Live → Connect USB SDR; for passes, use Pass and Doppler above.</p>
  <div class="card"><h2>Decoder</h2>
@@ -716,9 +725,9 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <button type="button" class="rg-primary" id="rg-primary" hidden>Listen</button>
 
 </div>
-<script src="radio-deck.js?v=5"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
+<script src="radio-deck.js?v=6"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
-const RETIRED="No network receiver on this site. Use Live → Connect USB SDR.";
+const RETIRED="No network receiver on this site. Use Receiver → Connect USB SDR.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
 const el=id=>document.getElementById(id);
 const rows=a=>a.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')||'<div class="muted">nothing yet</div>';
@@ -754,6 +763,7 @@ function showTab(name){
 }
 document.querySelectorAll('nav.exo-tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 (function(){const hc=el('rg-hero-connect');if(hc)hc.addEventListener('click',()=>{showTab('watch');const c=document.querySelector('#watch .exo-usb-connect');if(c){c.scrollIntoView({block:'center'});c.click();}});
+(function(){const br=el('rg-bridge');if(br&&new URLSearchParams(location.search).has('bridge'))br.hidden=false;})();
 document.querySelectorAll('.rg-fold').forEach(b=>b.addEventListener('click',()=>{const body=el(b.getAttribute('aria-controls'));if(!body)return;const open=body.hidden;body.hidden=!open;b.setAttribute('aria-expanded',String(open));}));
 document.querySelectorAll('#rg-hero [data-goto]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showTab(a.dataset.goto);}));})();
 document.querySelectorAll('.exo-comms a[data-tab]').forEach(a=>a.addEventListener('click',e=>{
@@ -778,17 +788,12 @@ document.addEventListener('keydown',e=>{
 function tickClock(){
  const node=el('exo-clock');if(!node)return;
  const now=new Date();
- const utc=now.toISOString().slice(0,19).replace('T',' ');
- const local=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
- const jd=(now.getTime()/86400000+2440587.5).toFixed(5);
- let pass='NO PASS DATA';
+ const utc=now.toISOString().slice(11,16);
+ const local=now.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
  const box=el('passes');
- const raw=box?(box.textContent||'').trim():'';
- if(raw&&!/loading|no passes|error/i.test(raw)){
-  const hit=raw.match(/\d{1,2}:\d{2}[^.]{0,48}/);
-  if(hit)pass=hit[0];
- }
- node.textContent='UTC '+utc+' · LOCAL '+local+' · JD '+jd+' · '+pass;
+ const next=box&&box.dataset.next?' · '+box.dataset.next:'';
+ const txt='Local time '+local+' · UTC '+utc+next;
+ if(node.textContent!==txt)node.textContent=txt;
 }
 tickClock();setInterval(tickClock,1000);
 (function(){const want=new URLSearchParams(location.search).get('tab')||location.hash.replace('#','');
@@ -891,7 +896,7 @@ function smSet(lvl){
 }
 
 function loadStatus(){api('/api/status').then(s=>{
- if(!s||s.error){el('sub').textContent=RETIRED;return;}
+ if(!s||s.error)return;
  el('sub').innerHTML=`${s.host} · agent <span class="${s.agent=='active'?'ok':'bad'}">${s.agent}</span>`
   +` · p25 <span class="${s.p25?'ok':'bad'}">${s.p25?'on':'off'}</span>`
   +` · ${s.counts.sweeps} sweeps · ${s.counts.events} events`;
@@ -926,7 +931,7 @@ function loadStatus(){api('/api/status').then(s=>{
   el('band').innerHTML=bands.map(t=>
    `<option value="${t.name}"${t.enabled?'':' style="color:#66809a"'}>${t.name}${t.enabled?'':' — not monitored'}</option>`).join('');
   if(cur)el('band').value=cur;}
-}).catch(()=>el('sub').textContent=RETIRED);}
+}).catch(()=>{});}
 
 function scannerHTML(sc){
  return rows([['status',sc.running?'<span class="ok">scanning</span>':'<span class="bad">stopped</span>'],
@@ -1387,7 +1392,7 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <script src="../assets/exo-state.js"></script>
 <script src="../assets/exo-rf-db.js"></script>
 <script src="../assets/exo-sdr-client.js"></script>
-<script src="../assets/exo-webusb-sdr.js"></script>
+<script src="../assets/exo-webusb-sdr.js?v=2"></script>
 <script src="../assets/exo-playbook.js"></script>
 <script src="../assets/exo-apt-decoder.js"></script>
 <script src="../assets/exo-prop.js"></script>
@@ -1400,8 +1405,8 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <script src="../assets/exo-voice-codec2.js"></script>
 <script src="../assets/exo-link-qos.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
-<script type="module" src="../assets/exo-orbit.js?v=2"></script>
-<script type="module" src="../assets/exo-audio.js?v=2"></script>
+<script type="module" src="../assets/exo-orbit.js?v=3"></script>
+<script type="module" src="../assets/exo-audio.js?v=3"></script>
 <section id="exo-apt" class="exo-wave">NO USB DEVICE</section>
 <section id="exo-prop" class="exo-wave">OFFLINE</section>
 <section id="exo-pip" class="exo-wave">PIP UNSUPPORTED</section>

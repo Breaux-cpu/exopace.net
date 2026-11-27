@@ -212,3 +212,18 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })();
+
+/* The header line mirrors the receiver state in plain words, so it never claims
+   "no receiver" while a USB SDR is streaming. */
+(function () {
+  "use strict";
+  var sub = document.getElementById("sub");
+  var st = document.querySelector("#watch .exo-usb-status");
+  if (!sub || !st || !window.MutationObserver) return;
+  var IDLE = sub.textContent;
+  function sync() {
+    var t = (st.textContent || "").trim();
+    sub.textContent = /^Receiving/.test(t) ? "USB SDR connected. " + t + "." : IDLE;
+  }
+  new MutationObserver(sync).observe(st, { childList: true, characterData: true, subtree: true });
+})();

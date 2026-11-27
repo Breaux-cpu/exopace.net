@@ -581,3 +581,19 @@ html body.rg-page .rg-usb-labels span { font: 500 10px/1.2 var(--exo-mono, "IBM 
 
 /* Sentinel tab: the WATCH/FENCE/QUEUE/ACK counters belong to the Sentinel page. */
 body.rg-page #sentinel #exo-sentinel { display: none; }
+
+/* Excellent pass: plain setup steps, visible field labels, readable status lines */
+html body.rg-page .rg-steps { margin: 0 0 14px; padding-left: 20px; color: var(--exo-text, #f0f6fc); font-size: 14px; line-height: 1.55; }
+html body.rg-page .rg-steps li { margin: 0 0 4px; }
+html body.rg-page .rg-hero-note { margin: 10px 0 0; color: var(--exo-muted, #9fb0b4); font-size: 13px; line-height: 1.5; }
+html body.rg-page .rg-hero-trust { margin: 8px 0 0; color: #7ee0ff; font-size: 13px; line-height: 1.5; }
+html body.rg-page .rg-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; margin: 0; }
+html body.rg-page .rg-field > span { color: var(--exo-muted, #9fb0b4); font: 500 12px/1.3 var(--exo-sans, system-ui, sans-serif); letter-spacing: 0; text-transform: none; }
+html body.rg-page .rg-field > input, html body.rg-page .rg-field > select { width: 100%; }
+html body.rg-page .exo-usb-status, html body.rg-page .rg-orbit-status { color: var(--exo-text, #f0f6fc); font: 400 14px/1.5 var(--exo-sans, system-ui, sans-serif); letter-spacing: 0; text-transform: none; }
+html body.rg-page .exo-usb-fallback { font-size: 13px; line-height: 1.5; }
+html body.rg-page .rg-orbit-lead { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
+html body.rg-page .rg-orbit-table { color: var(--exo-text, #f0f6fc); font-size: 13px; line-height: 1.6; }
+html body.rg-page .rg-orbit-table ol { margin: 0; padding-left: 20px; }
+html body.rg-page [data-orbit-live] { font-size: 13px; line-height: 1.5; }
+html body.rg-page .rg-field-hint { margin: 6px 0 0; font-size: 12px; line-height: 1.5; }
