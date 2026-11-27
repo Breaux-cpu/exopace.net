@@ -6,8 +6,15 @@
   try { channel = new BroadcastChannel("exopace-target"); } catch (err) { channel = null; }
 
   function num(value) {
+    if (value == null || value === "") return null;
     var n = Number(value);
     return Number.isFinite(n) ? n : null;
+  }
+
+  /* Before this fix an empty address bar published a "fix" at 0°,0°
+     (Number(null) is 0). Treat that stored row as no target. */
+  function phantom(row) {
+    return row && row.kind === "fix" && !row.label && !row.norad && Number(row.lat) === 0 && Number(row.lon) === 0;
   }
 
   function mgrsOf(lat, lon) {
@@ -24,6 +31,10 @@
       var raw = localStorage.getItem(KEY);
       if (!raw) return null;
       var row = JSON.parse(raw);
+      if (phantom(row)) {
+        localStorage.removeItem(KEY);
+        return null;
+      }
       return row && typeof row === "object" ? row : null;
     } catch (err) {
       return null;
