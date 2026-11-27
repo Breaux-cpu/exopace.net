@@ -1758,7 +1758,7 @@ function syncInstallHint() {
   }
   const inst = $("btnInst2");
   if (inst) {
-    const show = !!deferredPrompt && !isStandalone();
+    const show = !isStandalone();
     inst.hidden = !show;
     inst.style.display = show ? "" : "none";
     inst.style.pointerEvents = show ? "" : "none";
@@ -1776,6 +1776,7 @@ $("btnInst2").onclick = tryInstall;
 $("btnHintHide").onclick = () => { hideInstallHint(true); };
 syncInstallHint();
 if (isiOS() && !isStandalone()) $("installTxt").textContent = "Safari: Share → Add to Home Screen.";
+if ((isiOS() || isStandalone()) && $("btnApk")) $("btnApk").style.display = "none";
 
 renderNodes();
 (async function restore() {
