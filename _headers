@@ -59,7 +59,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Cross-Origin-Opener-Policy: same-origin
-  Permissions-Policy: geolocation=(self), bluetooth=(self), serial=(self), camera=(), microphone=(self), payment=(), interest-cohort=()
+  Permissions-Policy: geolocation=(self), serial=(self), camera=(), microphone=(self), payment=(), interest-cohort=()
   Content-Security-Policy: frame-ancestors 'self'
 
 # Cesium is a pinned vendor drop: never revalidated, ~30 MB of it.

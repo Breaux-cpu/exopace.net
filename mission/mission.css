@@ -484,3 +484,19 @@ main#exo-main > #root { position: absolute !important; inset: 0; height: auto !i
 .station .mi-nohw + .kv { display: none; }
 /* Wikipedia note: two whole lines, never a half-cut third line. */
 .hud .dossier .lock-note { display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; height: auto !important; max-height: 36px; }
+
+/* Lock card: the key facts first; orbital elements fold away. */
+.hud .dossier details.lock-more { margin-top: 8px; }
+.hud .dossier details.lock-more > summary {
+  display: flex; align-items: center; min-height: 44px; cursor: pointer;
+  color: var(--mi-cyan, #7ee0ff); font: 500 11px/1.2 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.hud .dossier details.lock-more > summary:focus-visible { outline: 2px solid var(--mi-amber, #ffb84d); outline-offset: 2px; }
+.hud .dossier details.lock-more .kv { margin-top: 4px; }
+.hud .station .stmode { text-transform: none; letter-spacing: 0; }
+/* Phones: the lock card is a compact facts card so the locked satellite stays visible on the globe. */
+@media (max-width: 719px) {
+  .hud .dossier:has(img.lock-photo), .hud .dossier:has(.lock-note) { padding-top: 12px !important; }
+  .hud .dossier img.lock-photo, .hud .dossier .lock-note { display: none !important; }
+  .hud .dossier { max-height: 46% !important; overflow: auto !important; }
+}

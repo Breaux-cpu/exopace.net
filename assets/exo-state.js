@@ -81,8 +81,9 @@
     var fix = document.getElementById("exo-pill-fix");
     var badge = document.getElementById("exo-pill-target");
     var sys = document.getElementById("sys-target");
-    var place = row && row.mgrs ? row.mgrs : (row && row.lat != null ? Number(row.lat).toFixed(5) + " " + Number(row.lon).toFixed(5) : "NO FIX");
-    var name = row && (row.label || row.norad) ? (row.label || "TARGET") + (row.norad ? " " + row.norad : "") : "NO TARGET";
+    // Plain words: an empty badge means nothing is locked (the shared bar reads "" or "NO TARGET" as no lock).
+    var name = row && (row.label || row.norad) ? (row.label || "Target") + (row.norad ? " " + row.norad : "") : "";
+    var place = row && row.mgrs ? row.mgrs : (row && row.lat != null ? Number(row.lat).toFixed(3) + ", " + Number(row.lon).toFixed(3) : (name ? "" : "Nothing locked"));
     if (fix) fix.textContent = place;
     if (badge) badge.textContent = name;
     if (sys && row && row.label) sys.textContent = row.label + (row.norad ? " · " + row.norad : "");
@@ -92,9 +93,10 @@
     var node = document.getElementById("exo-pill-clock");
     if (!node) return;
     var now = new Date();
-    var utc = now.toISOString().slice(11, 19);
-    var jd = (now.getTime() / 86400000 + 2440587.5).toFixed(5);
-    node.textContent = "UTC " + utc + " · JD " + jd;
+    var utc = now.toISOString().slice(11, 16);
+    var local = "";
+    try { local = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit", timeZoneName: "short" }); } catch (err) { local = ""; }
+    node.textContent = (local ? local + " · " : "") + utc + " UTC";
   }
 
   function publish(next, opts) {
@@ -165,7 +167,7 @@
         (document.getElementById("exo-pill-fix") || {}).textContent || "",
         (document.getElementById("exo-pill-target") || {}).textContent || "",
       ].filter(Boolean).join(" · ");
-      if (!row) line = line || "NO TARGET";
+      if (!row) line = line || "Nothing locked";
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(line).catch(function () {});
     });
     if (!fromUrl()) paint(read());
