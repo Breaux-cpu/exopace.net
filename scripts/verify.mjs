@@ -115,7 +115,7 @@ const meshSw = read("mesh/sw.js");
 assert(mocSw.includes('"/mesh"') && mocSw.includes('"/radio"'), "MOC SW skips /mesh/ and /radio/");
 assert(mocSw.includes("/cesium/"), "MOC SW skips /cesium/");
 assert(mocSw.includes('p === "/env.js"') && !/const ASSETS = \[[^\]]*"\/env\.js"/.test(mocSw), "MOC SW no-stores env.js and does not pin it");
-assert(mocSw.includes("exopace-moc-v95"), "MOC SW cache bumped");
+assert(mocSw.includes("exopace-moc-v96"), "MOC SW cache bumped");
 assert(mocSw.includes('cache: "no-store"') && mocSw.includes("noStore"), "MOC SW fetches HUD overlay without HTTP cache");
 assert(!/const ASSETS = \[[^\]]*"\/moc-phone\.css"/.test(mocSw), "MOC SW does not precache moc-phone.css");
 assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const ASSETS = \[[^\]]*["']\/["']/.test(mocSw), "MOC SW does not precache index.html or /");
@@ -770,8 +770,17 @@ assert(read("sw.js").includes("/tle/"), "MOC SW skips /tle/ so the snapshot is n
   assert(/location\.replace\("\/mission\/" \+ location\.search/.test(home) && home.includes("(lock|cam|t)="), "home hands old /?lock=&cam=&t= links to /mission/");
   for (const css of ["exo-tokens.css", "exo-modern.css", "exo-layout.css", "exo-home.css"]) assert(home.includes(css) && signin.includes(css), `home + signin load ${css}`);
   assert(home.includes("exo-layout.js") && signin.includes("exo-layout.js"), "home + signin load exo-layout.js");
-  assert(home.includes('class="exo-bar"') && home.includes('class="exo-pill"') && home.includes("exo-pill-actions"), "home has the shared bar and phone dock");
-  assert(signin.includes('class="exo-bar"') && signin.includes('class="exo-pill"') && signin.includes("exo-pill-actions"), "signin has the shared bar and phone dock");
+  assert(home.includes('class="exo-bar"') && !home.includes('id="exo-pill"') && !home.includes("exo-pill-actions"), "home has the shared bar and no status pill");
+  assert(signin.includes('class="exo-bar"') && !signin.includes('id="exo-pill"') && !signin.includes("exo-pill-actions"), "signin has the shared bar and no status pill");
+  for (const rel of ["index.html", "signin/index.html", "system/index.html", "sentinel/index.html", "mesh/index.html", "radio/index.html", "maps/index.html", "404.html"]) {
+    assert(!read(rel).includes('id="exo-pill"') && !read(rel).includes("exo-pill-jump"), rel + " has no status pill");
+  }
+  const mission = read("mission/index.html");
+  assert(mission.includes('id="exo-pill"') && mission.includes("exo-pill-clock") && mission.includes("exo-pill-target") && mission.includes("exo-pill-fix"), "Mission keeps the clock, fix, and target readout");
+  assert(!mission.includes("exo-pill-jump"), "Mission has no JUMP link");
+  assert(mission.includes('id="exo-pill-copy"'), "Mission keeps COPY so a lock can be copied as UTC, fix, and target");
+  assert(layoutJs.includes("initServiceWorker") && layoutJs.includes(".update()") && layoutJs.includes("controllerchange"), "shared shell checks for a new service worker and reloads or toasts");
+  assert(read("sw.js").includes("skipWaiting") && read("sw.js").includes("clients.claim"), "new service worker takes over immediately");
   for (const [href, label] of [["/mission/", "Mission"], ["/radio/", "Radio"], ["/mesh/", "Mesh"], ["/maps/", "Field Maps"], ["https://cams.exopace.net/map", "Cameras"], ["/sentinel/", "Sentinel"], ["/system/", "System"]]) {
     assert(new RegExp('class="hm-card[^"]*" href="' + href.replace(/[/.]/g, "\\$&") + '"[\\s\\S]*?<span class="t">' + label + "</span>").test(home), `home entry card ${label} → ${href}`);
   }

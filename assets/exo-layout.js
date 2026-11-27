@@ -1,4 +1,4 @@
-/* Shared shell helpers: wrap the status pill, drive sheets, measure the dock. Idempotent. */
+/* Shared shell helpers: Mission status pill, sheets, dock measure, PWA updates. Idempotent. */
 (function (global) {
   if (global.EXO_LAYOUT) return;
 
@@ -33,7 +33,7 @@
       injectLink(assetUrl("exo-tokens.css"), "data-exo-tokens");
     }
     if (!hasStylesheet("exo-layout.css") && !document.querySelector("link[data-exo-layout], style[data-exo-layout]")) {
-      injectLink(assetUrl("exo-layout.css?v=7"), "data-exo-layout");
+      injectLink(assetUrl("exo-layout.css?v=8"), "data-exo-layout");
     }
   }
 
@@ -279,10 +279,137 @@
     }
   }
 
+
+  /* PWA: register the scope's worker, poll for updates, and reload once
+     when a new worker claims the page — unless the operator is mid-action. */
+  var SW_RELOAD_KEY = "exo-sw-reloaded-at";
+  var SW_POLL_MS = 15 * 60 * 1000;
+  var MAP_DRAG_MS = 4000;
+  var FRESH_MS = 8000;
+  var LOOP_GUARD_MS = 30000;
+
+  function swScriptForPath(path) {
+    if (/^\/mesh(\/|$)/.test(path)) return "/mesh/sw.js";
+    if (/^\/maps(\/|$)/.test(path)) return "/maps/sw.js";
+    if (/^\/radio(\/|$)/.test(path)) return "";
+    return "/sw.js";
+  }
+
+  function recentlyReloaded() {
+    try {
+      var at = Number(sessionStorage.getItem(SW_RELOAD_KEY) || 0);
+      return at > 0 && Date.now() - at < LOOP_GUARD_MS;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markReload() {
+    try { sessionStorage.setItem(SW_RELOAD_KEY, String(Date.now())); } catch (e) {}
+  }
+
+  function reloadForUpdate() {
+    if (recentlyReloaded()) return;
+    markReload();
+    location.reload();
+  }
+
+  var lastMapDrag = 0;
+  function trackMapDrag(event) {
+    if (!event || !event.target || !event.target.closest) return;
+    if (event.type === "pointermove" && !(event.buttons || event.pressure)) return;
+    if (event.target.closest("#globe, #map, .fm-body, .leaflet-container, .maplibregl-map, .cesium-viewer, .cesium-widget, canvas")) {
+      lastMapDrag = Date.now();
+    }
+  }
+
+  function missionLockActive() {
+    try {
+      var row = global.EXO && global.EXO.bus && typeof global.EXO.bus.get === "function" && global.EXO.bus.get();
+      if (row && (row.label || row.norad || (row.kind && row.kind !== "none"))) return true;
+    } catch (e) {}
+    var badge = document.getElementById("exo-pill-target");
+    if (!badge) return false;
+    var text = (badge.textContent || "").trim();
+    return text !== "" && text !== "NO TARGET";
+  }
+
+  function pageIsBusy() {
+    var ae = document.activeElement;
+    if (ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.tagName === "SELECT" || ae.isContentEditable)) return true;
+    if (missionLockActive()) return true;
+    if (Date.now() - lastMapDrag < MAP_DRAG_MS) return true;
+    return false;
+  }
+
+  function showUpdateToast() {
+    if (document.querySelector(".exo-update-toast")) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "exo-update-toast";
+    btn.textContent = "Updated, tap to refresh";
+    btn.addEventListener("click", function () { reloadForUpdate(); });
+    (document.body || document.documentElement).appendChild(btn);
+  }
+
+  function initServiceWorker() {
+    if (initServiceWorker._bound) return;
+    if (!("serviceWorker" in navigator)) return;
+    if (location.protocol !== "https:") return;
+    var script = swScriptForPath(location.pathname || "/");
+    if (!script) return;
+    initServiceWorker._bound = true;
+
+    var loadedAt = Date.now();
+    var hadController = !!navigator.serviceWorker.controller;
+    var pending = false;
+
+    function applyUpdate() {
+      if (recentlyReloaded()) return;
+      var hidden = document.visibilityState === "hidden";
+      var fresh = Date.now() - loadedAt < FRESH_MS;
+      if (hidden || fresh || !pageIsBusy()) {
+        pending = false;
+        reloadForUpdate();
+        return;
+      }
+      pending = true;
+      showUpdateToast();
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (!hadController) {
+        hadController = true;
+        return;
+      }
+      applyUpdate();
+    });
+
+    document.addEventListener("pointerdown", trackMapDrag, true);
+    document.addEventListener("pointermove", trackMapDrag, true);
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden" && pending) {
+        pending = false;
+        reloadForUpdate();
+      }
+    });
+
+    navigator.serviceWorker.register(script).then(function (reg) {
+      function check() { return reg.update().catch(function () {}); }
+      check();
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") check();
+      });
+      setInterval(check, SW_POLL_MS);
+    }).catch(function () {});
+  }
+
   function init() {
     ensureStyles();
     ensureSites();
     initAccount();
+    initServiceWorker();
     wrapPill(document);
     observeDock();
     publishDockHeight();

@@ -233,9 +233,16 @@ html body.rg-page .presets > button small { margin-top: 4px; color: var(--exo-mu
 html body.rg-page .presets > button.on { border-color: var(--exo-cyan) !important; }
 html body.rg-page main a:not(.b):not(.fieldmaps) { color: var(--exo-cyan); display: inline-flex; align-items: center; min-height: 44px; }
 
-/* Toast sits above whatever is docked */
-html body.rg-page .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + 16px); z-index: 60; }
-html body.rg-page:has(#rg-dock.has-primary) .toast { bottom: calc(var(--exo-dock-h) + var(--exo-sab) + var(--rg-dock) + 12px); }
+/* Toast sits above the radio thumb dock. Hidden toasts must not steal taps. */
+html body.rg-page .toast {
+  bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + 16px);
+  z-index: 60;
+  pointer-events: none;
+}
+html body.rg-page:has(#rg-dock.has-primary) .toast {
+  bottom: calc(var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) + var(--rg-dock) + 12px);
+}
+html body.rg-page .toast.show { pointer-events: auto; }
 
 /* ---------- Thumb dock (phones) ---------- */
 html body.rg-page .rg-dock { display: none; }

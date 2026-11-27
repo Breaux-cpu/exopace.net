@@ -23,7 +23,7 @@
   --exo-sal: max(env(safe-area-inset-left, 0px), var(--exo-safe-left, 0px));
   --exo-sar: max(env(safe-area-inset-right, 0px), var(--exo-safe-right, 0px));
   --exo-bar-h: calc(52px + var(--exo-sat));
-  --exo-pill-h: 44px;
+  --exo-pill-h: 0px;
   --exo-dock-h: 0px;
   --exo-chrome-top: calc(var(--exo-bar-h) + var(--exo-pill-h));
   --exo-ease: 150ms ease;
@@ -71,7 +71,13 @@ html body .exo-bar {
   min-width: var(--exo-target);
 }
 
-/* —— Status pill —— */
+/* Mission keeps a compact clock + target readout. Other pages have no pill,
+   so --exo-pill-h stays 0 and --exo-chrome-top equals the top bar. */
+body:has(.exo-pill) {
+  --exo-pill-h: 44px;
+}
+
+/* —— Status pill (Mission only) —— */
 .exo-pill {
   flex: 0 0 auto;
   display: flex;
@@ -320,94 +326,13 @@ body.exo-sheet-open .exo-sheet:target {
   .exo-two-pane > .exo-rail { grid-column: 2; }
 }
 
-/* —— Phone bottom dock for pill actions (not used when Mesh owns the thumb bar) —— */
-@media (max-width: 719px) and (min-height: 501px) {
-  body:has(.exo-pill):not(:has(#composer)) {
-    /* 44px actions + 6+6 padding + 1px border */
-    --exo-dock-h: 57px;
-    padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
-  }
-  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions,
-  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy,
-  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-jump {
-    position: fixed;
-    z-index: 45;
-    bottom: 0;
-  }
-  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions {
-    left: var(--exo-sal);
-    right: var(--exo-sar);
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    box-sizing: border-box;
-    height: calc(var(--exo-dock-h) + var(--exo-sab));
-    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
-    padding: 6px 12px calc(6px + var(--exo-sab));
-    background: rgba(6, 10, 16, 0.94);
-    border-top: 1px solid var(--exo-line);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions > * {
-    flex: 1 1 0;
-    min-height: var(--exo-target);
-  }
-  /* Unwrapped pill (before exo-layout.js runs): split the two actions. */
-  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy,
-  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-jump {
-    width: 50%;
-    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
-    padding-bottom: var(--exo-sab);
-    border-radius: 0;
-    background: rgba(6, 10, 16, 0.94) !important;
-  }
-  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-copy {
-    left: var(--exo-sal);
-  }
-  body:has(.exo-pill):not(:has(#composer)):not(:has(.exo-pill-actions)) #exo-pill-jump {
-    right: var(--exo-sar);
-  }
-}
-
-/* Mesh: composer + tab bar already occupy the thumb zone. Keep pill actions in the ticker. */
+/* Mesh: composer + tab bar already occupy the thumb zone. */
 body:has(#composer) {
   --exo-dock-h: calc(62px + 8px);
 }
 
-/* Short landscape: collapse ticker, keep a single action row. */
+/* Short landscape: shrink the top bar. The Mission readout stays visible. */
 @media (max-height: 500px) {
-  body:has(.exo-pill) {
-    --exo-pill-h: 0px;
-  }
-  body:has(.exo-pill):not(:has(#composer)) {
-    /* 44px actions + 4+4 padding + 1px border */
-    --exo-dock-h: 53px;
-    padding-bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab)));
-  }
-  body:has(.exo-pill) .exo-pill-status { display: none; }
-  body:has(.exo-pill):not(:has(#composer)) .exo-pill {
-    height: 0;
-    min-height: 0;
-    max-height: 0;
-    overflow: visible;
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-  body:has(.exo-pill):not(:has(#composer)) .exo-pill-actions {
-    position: fixed;
-    left: var(--exo-sal);
-    right: var(--exo-sar);
-    bottom: 0;
-    z-index: 45;
-    box-sizing: border-box;
-    height: calc(var(--exo-dock-h) + var(--exo-sab));
-    min-height: calc(var(--exo-dock-h) + var(--exo-sab));
-    padding: 4px 10px calc(4px + var(--exo-sab));
-    background: rgba(6, 10, 16, 0.94);
-    border-top: 1px solid var(--exo-line);
-  }
   .exo-comms:not(.exo-comms--keep) { display: none; }
   html body .exo-bar {
     --exo-bar-h: calc(44px + var(--exo-sat));
@@ -418,72 +343,6 @@ body:has(#composer) {
    steals height from Maps. Mesh keeps its own strip (exo-comms--keep). */
 @media (max-width: 719px) {
   .exo-comms:not(.exo-comms--keep) { display: none; }
-}
-
-/* When COPY/JUMP stay in the ticker (Maps peek-dock, Mesh composer), they
-   must sit in-flow so the clock/MGRS can scroll instead of painting under them. */
-body:has(#composer) .exo-pill,
-body:has(.fm-body) .exo-pill {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  align-items: center;
-  column-gap: 8px;
-  overflow: hidden;
-}
-body:has(#composer) .exo-pill-status,
-body:has(.fm-body) .exo-pill-status {
-  grid-column: 1;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
-}
-body:has(#composer) .exo-pill-actions,
-body:has(.fm-body) .exo-pill-actions {
-  grid-column: 2;
-  position: relative !important;
-  inset: auto !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  height: auto !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  gap: 6px;
-  z-index: 1;
-}
-body:has(#composer) .exo-pill-actions > *,
-body:has(.fm-body) .exo-pill-actions > * {
-  flex: 0 0 auto !important;
-  width: auto !important;
-}
-
-/* Short landscape collapses the generic pill to 0 and parks COPY/JUMP in a
-   bottom dock. Maps keeps those actions in the ticker, so leave the ticker
-   standing or they paint over System, GO, and Zoom in. */
-@media (max-height: 500px) {
-  body:has(.fm-body) { --exo-pill-h: 44px; }
-  body:has(.fm-body):not(:has(#composer)) {
-    --exo-dock-h: 0px;
-    padding-bottom: var(--exo-sab, 0px);
-  }
-  body:has(.fm-body):not(:has(#composer)) .exo-pill {
-    height: var(--exo-pill-h);
-    min-height: var(--exo-pill-h);
-    max-height: var(--exo-pill-h);
-    overflow: hidden;
-    padding: 0 12px;
-    border-bottom: 1px solid var(--exo-line);
-    background: rgba(4, 7, 13, 0.82);
-  }
-}
-
-/* Footer sits above the phone action dock so typographic pages can scroll
-   the last rows (System status, 404 jumps) into view. */
-@media (max-width: 719px) and (min-height: 501px) {
-  body:has(.exo-pill):not(:has(#composer)) .exo-foot {
-    padding-bottom: calc(12px + var(--exo-dock-real, calc(var(--exo-dock-h, 57px) + var(--exo-sab))));
-  }
 }
 
 /* Site row: seven surfaces, fade so a peek is obvious on phones. */
@@ -514,7 +373,7 @@ body:has(.fm-body) .exo-pill-actions > * {
   }
 }
 
-/* Reserve the dock so map/globe widgets are not covered by the shell. */
+/* Reserve a page's own thumb bar (Mesh composer) so map widgets are not covered. */
 .leaflet-bottom,
 .maplibregl-ctrl-bottom-right,
 .maplibregl-ctrl-bottom-left,
@@ -522,7 +381,7 @@ body:has(.fm-body) .exo-pill-actions > * {
   bottom: var(--exo-dock-real, calc(var(--exo-dock-h) + var(--exo-sab))) !important;
 }
 
-/* Typographic pages: main scrolls; footer sits above the dock. */
+/* Typographic pages: main scrolls; footer stays in the flow. */
 body.exo-stage:has(> footer.exo-foot) {
   height: 100dvh;
   height: 100svh;
@@ -639,3 +498,34 @@ html body .exo-acct[aria-current="page"] { border-color: rgba(126, 224, 255, 0.4
 @media (max-height: 500px) {
   html body .exo-acct { height: 40px; min-height: 40px; }
 }
+
+/* PWA update chip. Shown only when a new worker is ready and the page is busy. */
+.exo-update-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + var(--exo-sab));
+  transform: translateX(-50%);
+  z-index: 80;
+  box-sizing: border-box;
+  min-height: var(--exo-target);
+  padding: 0 16px;
+  margin: 0;
+  border: 1px solid var(--exo-line-btn);
+  border-radius: 10px;
+  background: rgba(8, 14, 22, 0.96);
+  color: var(--exo-text);
+  font-family: var(--exo-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+}
+.exo-update-toast:hover { border-color: var(--exo-cyan); color: var(--exo-text); }
+.exo-update-toast:focus-visible {
+  outline: 2px solid var(--exo-amber);
+  outline-offset: 2px;
+}
+
