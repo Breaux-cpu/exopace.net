@@ -386,3 +386,17 @@ html body.mx-page:has(#scr-chat.active) #toast { bottom: calc(var(--mx-tab) + va
   html body.mx-page .screen:not(#scr-map) { margin: 0 auto; }
   html body.mx-page #scr-vitals .grid2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* Audit fixes 2: page title, no-node intro, dark composer. */
+html body.mx-page h1.callsign { margin: 0; line-height: 1.2; }
+html body.mx-page .mx-intro { margin-top: 10px; line-height: 1.5; color: var(--exo-muted, #9fb0b4); }
+html body.mx-page .mx-intro b { color: var(--exo-text, #f0f6fc); font-weight: 600; }
+html body.mx-page .mx-intro[hidden] { display: none !important; }
+html body.mx-page #chatText {
+  background: rgba(10, 18, 30, 0.78);
+  color: var(--exo-text, #f0f6fc);
+  border: 1px solid rgba(126, 224, 255, 0.22);
+  color-scheme: dark;
+}
+html body.mx-page #chatText::placeholder { color: var(--exo-muted, #9fb0b4); }
+html body.mx-page #chatText:disabled { opacity: 0.7; cursor: not-allowed; }

@@ -144,6 +144,8 @@ export const flows = {
         const ph = await pane(page, "view");
         for (const l of ["FOLLOW", "SAT-CAM"]) {
           await tap(page, ".camstrip .btn", l);
+          // Software WebGL can hold the main thread; give the toast a moment to paint.
+          await page.waitForFunction(() => /\S/.test((document.getElementById("exo-toast") || {}).textContent || ""), { timeout: 4000 }).catch(() => {});
           const t = await page.$eval("#exo-toast", (x) => x.textContent).catch(() => "");
           out.push(l + ":" + t);
         }

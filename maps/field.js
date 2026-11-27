@@ -182,18 +182,18 @@
     var el = document.getElementById("fm-ready");
     if (!el) return;
     if (!root.isSecureContext) {
-      el.textContent = "TILES LIVE · SW NEEDS HTTPS";
+      el.textContent = "Map tiles load live · offline saving needs HTTPS";
       return;
     }
     var controlled = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
     var keys = (root.caches && root.caches.keys) ? root.caches.keys() : Promise.resolve([]);
     keys.then(function (names) {
       var hit = (names || []).some(function (name) { return String(name).indexOf("exopace-maps") === 0; });
-      if (hit && controlled) el.textContent = "SHELL CACHED · TILES LIVE";
-      else if (hit) el.textContent = "SHELL IN CACHE · SW IDLE";
-      else el.textContent = "NO MAP CACHE · TILES LIVE";
+      if (hit && controlled) el.textContent = "App saved for offline use · map tiles load live";
+      else if (hit) el.textContent = "App saved offline · offline helper not running yet";
+      else el.textContent = "Map tiles load live · nothing saved offline yet";
     }).catch(function () {
-      el.textContent = "TILES LIVE";
+      el.textContent = "Map tiles load live";
     });
   }
 

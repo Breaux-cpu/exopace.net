@@ -18,6 +18,23 @@
     body { margin: 0; min-height: 100dvh; background: #04070D; color: #F0F6FC; }
     body { display: flex; flex-direction: column; }
     a { color: #7EE0FF; }
+    /* Status before decoration: smaller logo on desktop so the cards sit in the first screen. */
+    @media (min-width: 801px) {
+      body:has(#sys-ble) .exo-hero { padding-top: 28px; min-height: 0; }
+      body:has(#sys-ble) .exo-hero-grid { grid-template-columns: minmax(0, 1fr) 220px; gap: 24px 40px; margin: 0 0 20px; }
+      body:has(#sys-ble) .exo-plinth { max-width: 220px; }
+    }
+    .sys-row .sys-v { flex: 1 1 auto; }
+    .sys-acts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--exo-sans, system-ui, sans-serif); font-size: 13px; }
+    .sys-acts a { display: inline-flex; align-items: center; min-height: 32px; }
+    .sys-checked { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 0; color: #8fa3ad; font-size: 13px; }
+    .sys-checked .exo-btn { min-height: 40px; }
+    @media (max-width: 719px) {
+      body:has(#sys-ble) .exo-slab.sys-row { flex-wrap: wrap; row-gap: 2px; }
+      body:has(#sys-ble) .sys-acts { flex-basis: 100%; font-size: 12px; }
+      body:has(#sys-ble) .sys-acts a { min-height: 28px; }
+      .sys-checked { margin: 8px 0 0; font-size: 12px; }
+    }
   </style>
 </head>
 <body class="exo-stage">
@@ -40,19 +57,20 @@
     <div class="exo-hero-copy">
       <p class="exo-kicker">Hardware · cache · edge</p>
       <h1 class="exo-display">SYSTEM</h1>
-      <p class="exo-lead">Live status for this browser, the tile cache, and the EXOpace edge. Nothing here is invented.</p>
+      <p class="exo-lead">What works right now in this browser, each with the next step. Nothing here is invented.</p>
     </div>
     <div class="exo-plinth" aria-hidden="true">
       <canvas id="exo-scene" class="exo-scene"></canvas>
     </div>
   </div>
   <div class="exo-slab-list">
-    <p class="sys-row exo-slab"><span class="sys-k">BLE</span><span id="sys-ble">STANDBY</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">TILE CACHE</span><span id="sys-cache">STANDBY</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">EDGE</span><span id="sys-health">STANDBY</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k">TARGET</span><span id="sys-target">NO TARGET</span></p>
-    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">ACCOUNT</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
+    <p class="sys-row exo-slab"><span class="sys-k">EXOpace hardware (Bluetooth)</span><span class="sys-v" id="sys-ble">STANDBY</span><span class="sys-acts"><a href="/mesh/">Pair a node on Mesh</a><a href="/sentinel/">Scan on Sentinel</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Offline storage</span><span class="sys-v" id="sys-cache">STANDBY</span><span class="sys-acts"><a href="/maps/">Save map tiles in Field Maps</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Cameras server</span><span class="sys-v" id="sys-health">STANDBY</span><span class="sys-acts"><a href="https://cams.exopace.net/map">Open Cameras</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k">Tracked target</span><span class="sys-v" id="sys-target">NO TARGET</span><span class="sys-acts"><a href="/mission/">Pick one on Mission</a></span></p>
+    <p class="sys-row exo-slab"><span class="sys-k" id="sys-account-k">Account</span><a class="exo-btn" id="sys-account" href="/signin/">Sign in</a></p>
   </div>
+  <p class="sys-checked"><span id="sys-checked">Checking…</span> <button type="button" class="exo-btn" id="sys-recheck">Check again</button></p>
 </main>
 <footer class="exo-foot">
   <nav aria-label="All EXOpace surfaces">
@@ -78,14 +96,26 @@
   var cache = document.getElementById("sys-cache");
   var health = document.getElementById("sys-health");
   var target = document.getElementById("sys-target");
-  ble.textContent = "STANDBY · this browser cannot pair EXOpace hardware";
-  if (!("caches" in window)) cache.textContent = "OFFLINE";
-  else caches.keys().then(function (keys) {
-    cache.textContent = keys.length ? keys.length + " CACHE" : "EMPTY";
-  }).catch(function () { cache.textContent = "OFFLINE"; });
-  fetch("https://cams.exopace.net/api/health").then(function (res) { return res.json(); }).then(function (body) {
-    health.textContent = body && body.ok && body.mongo ? "ONLINE · MONGO" : "DEGRADED";
-  }).catch(function () { health.textContent = "OFFLINE"; });
+  var checked = document.getElementById("sys-checked");
+  function check() {
+    var pending = [];
+    ble.textContent = navigator.bluetooth && navigator.bluetooth.requestDevice
+      ? "NOT PAIRED · this browser can pair over Bluetooth"
+      : "STANDBY · this browser cannot pair EXOpace hardware (use Chrome or Edge)";
+    if (!("caches" in window)) cache.textContent = "NOT AVAILABLE in this browser";
+    else pending.push(caches.keys().then(function (keys) {
+      cache.textContent = keys.length ? keys.length + (keys.length === 1 ? " saved store" : " saved stores") + " on this device" : "EMPTY · nothing saved for offline use yet";
+    }).catch(function () { cache.textContent = "NOT AVAILABLE in this browser"; }));
+    health.textContent = "CHECKING…";
+    pending.push(fetch("https://cams.exopace.net/api/health", { cache: "no-store" }).then(function (res) { return res.json(); }).then(function (body) {
+      health.textContent = body && body.ok && body.mongo ? "ONLINE" : body && body.ok ? "DEGRADED · camera database not responding" : "DEGRADED";
+    }).catch(function () { health.textContent = "UNREACHABLE"; }));
+    Promise.all(pending).then(function () {
+      checked.textContent = "Last checked " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit", timeZoneName: "short" });
+    });
+  }
+  check();
+  document.getElementById("sys-recheck").addEventListener("click", check);
   /* Account state comes from the shared shell probe (cams /api/me, cached per session). */
   var account = document.getElementById("sys-account");
   function paintAccountRow(state) {

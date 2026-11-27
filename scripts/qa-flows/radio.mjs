@@ -45,41 +45,37 @@ const radio = [
     },
   },
   {
-    name: "Listen (dock on phones) reports the retired receiver honestly",
+    name: "Listen leads with the USB SDR need; Connect (dock on phones) opens Live",
     test: async (page) => {
       await tap(page, '.rg-ws a[data-tab="listen"]');
-      const phone = await isPhone(page);
-      const tall = await page.evaluate(() => innerHeight > 500);
-      const sel = phone && tall ? "#rg-primary" : "#livebtn";
-      if (phone && tall) {
-        const mirrored = await textOf(page, "#rg-primary");
-        if (mirrored !== "Listen") return { ok: false, detail: "dock label " + mirrored };
-      }
-      await tap(page, sel);
-      await wait(200);
-      const np = await textOf(page, "#np");
-      return { ok: /No radio receiver/.test(np), detail: sel + " → " + np };
+      const hero = await textOf(page, "#rg-hero h2");
+      const phone = (await isPhone(page)) && (await page.evaluate(() => innerHeight > 500));
+      await tap(page, phone ? "#rg-primary" : "#rg-hero-connect");
+      await wait(400);
+      const on = await page.evaluate(() => (document.querySelector("main#exo-main > section.on") || {}).id);
+      return { ok: /USB SDR/.test(hero) && on === "watch", untestable: "WebUSB picker needs a real dongle", detail: hero + " → " + on };
     },
   },
   {
-    name: "Bookmark Save without a name asks for one",
+    name: "retired network receiver folds away and still reports honestly",
     test: async (page) => {
+      await tap(page, '.rg-ws a[data-tab="listen"]');
+      await tap(page, "#listen .rg-fold[aria-controls='rg-fold-1']");
       await page.$eval("#bmname", (el) => { el.value = ""; });
       await tap(page, "#listen button[onclick^='addBm']");
       const t = await textOf(page, "#toast");
-      return { ok: /Name the frequency first/.test(t), detail: t };
+      await tap(page, "#livebtn");
+      await wait(200);
+      const np = await textOf(page, "#np");
+      await tap(page, "#listen .rg-fold[aria-controls='rg-fold-1']");
+      return { ok: /Name the frequency first/.test(t) && /No (radio|network) receiver/.test(np), detail: t + " · " + np };
     },
   },
   {
-    name: "Band Sweep reports the retired receiver",
+    name: "host-only tools (Band, Scan, Replays, Voice) are not offered",
     test: async (page) => {
-      await tap(page, '.rg-ws a[data-tab="listen"]');
-      await tap(page, 'nav.exo-tabs button[data-t="band"]');
-      const phone = (await isPhone(page)) && (await page.evaluate(() => innerHeight > 500));
-      await tap(page, phone ? "#rg-primary" : "#band button[onclick^='quickScan']");
-      await wait(150);
-      const t = await textOf(page, "#qsout");
-      return { ok: /No radio receiver/.test(t), detail: t.slice(0, 60) };
+      const shown = await page.$$eval('nav.exo-tabs button[data-ws="retired"]', (bs) => bs.filter((b) => !b.hidden && b.offsetParent).map((b) => b.dataset.t));
+      return { ok: shown.length === 0, detail: shown.join(",") || "hidden" };
     },
   },
   {

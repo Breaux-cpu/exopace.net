@@ -6,7 +6,7 @@
   const CAMS = "/api/cameras.geojson";
   const RADAR_CREDIT = "Radar © RainViewer";
   const RADAR_SUFFIX = "/256/{z}/{x}/{y}/2/1_1.png";
-  const LEGEND = "Planes are aircraft, dots are satellites, amber points are ships.";
+  const LEGEND = "Dots are satellites: search a name or tap a dot to lock and follow it, then ARM points the station at it. Planes are aircraft; amber points are ships (Baltic Sea feed only).";
   let airOn = true;
   let seaOn = true;
   let radarOn = true;
@@ -1239,7 +1239,7 @@
         if (body && body.region) {
           seaRegion = String(body.region);
           const caption = document.getElementById("exo-sea-caption");
-          if (caption) caption.textContent = seaRegion;
+          if (caption) caption.textContent = seaRegion + " only";
         }
         syncShips(viewer, body.ships);
       } else clearBag(seaPoints);
@@ -1366,7 +1366,7 @@
     row.style.maxWidth = "100%";
     const seaCaption = document.createElement("span");
     seaCaption.id = "exo-sea-caption";
-    seaCaption.textContent = seaRegion || "Baltic";
+    seaCaption.textContent = (seaRegion || "Baltic") + " only";
     seaCaption.style.alignSelf = "center";
     seaCaption.style.color = "#ffe08a";
     seaCaption.style.font = "10px IBM Plex Mono, ui-monospace, monospace";

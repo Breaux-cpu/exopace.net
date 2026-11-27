@@ -197,19 +197,7 @@
       }),
     ));
 
-    const starN = 1800;
-    const spos = new Float32Array(starN * 3);
-    for (let i = 0; i < starN; i++) {
-      const z = Math.random() * 2 - 1;
-      const t = Math.random() * Math.PI * 2;
-      const rr = Math.sqrt(1 - z * z) * 28;
-      spos[i * 3] = Math.cos(t) * rr;
-      spos[i * 3 + 1] = z * 28;
-      spos[i * 3 + 2] = Math.sin(t) * rr;
-    }
-    const sg = new THREE.BufferGeometry();
-    sg.setAttribute("position", new THREE.BufferAttribute(spos, 3));
-    scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xdde8ff, size: 0.04 })));
+    // No stars: the void stays flat behind the globe (brand rule).
 
     this.sun = new THREE.DirectionalLight(0xfff4e0, 1.4);
     scene.add(this.sun);

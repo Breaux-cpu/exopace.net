@@ -24,13 +24,14 @@
       var params = new URLSearchParams(hash);
       var id = params.get("cam");
       var at = params.get("at");
-      if (id && at) {
-        var parts = String(at).split(",");
+      if (id && id.trim()) {
+        /* cams looks the camera up by id, so a link without &at= still opens it. */
+        dest += "?camera=" + encodeURIComponent(id.trim());
+        var parts = String(at || "").split(",");
         var lat = parts[0] && parts[0].trim();
         var lon = parts[1] && parts[1].trim();
-        if (id.trim() && lat && lon && isFinite(Number(lat)) && isFinite(Number(lon))) {
-          dest += "?camera=" + encodeURIComponent(id) +
-            "&lat=" + encodeURIComponent(lat) +
+        if (lat && lon && isFinite(Number(lat)) && isFinite(Number(lon))) {
+          dest += "&lat=" + encodeURIComponent(lat) +
             "&lon=" + encodeURIComponent(lon) +
             "&z=13";
         }

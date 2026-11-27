@@ -535,3 +535,46 @@ html body.rg-page #unlock .ul-form button[type="submit"] {
   font: 500 15px/1 var(--exo-sans); letter-spacing: .01em; text-transform: none; cursor: pointer;
 }
 html body.rg-page #unlock .ul-err { min-height: 1.4em; margin: 0; color: #ffd0c8; font: 500 12px/1.4 var(--exo-mono); letter-spacing: .06em; }
+
+/* ---- Audit fixes 2 ---------------------------------------------------- */
+/* Every text field and select on Radio is dark, like the rest of the shell. */
+html body.rg-page :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]) {
+  background: rgba(6, 12, 20, 0.9);
+  color: var(--exo-text, #f0f6fc);
+  border: 1px solid rgba(126, 224, 255, 0.22);
+  border-radius: 12px;
+  color-scheme: dark;
+  -webkit-appearance: none;
+  appearance: none;
+}
+html body.rg-page select { background-image: linear-gradient(45deg, transparent 50%, #7ee0ff 50%), linear-gradient(135deg, #7ee0ff 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 30px; }
+html body.rg-page :is(input, textarea)::placeholder { color: var(--exo-muted, #9fb0b4); opacity: 1; }
+html body.rg-page :is(input, select, textarea):focus { border-color: #7ee0ff; outline: none; }
+
+/* No-hardware hero */
+html body.rg-page .rg-hero { border-color: rgba(255, 184, 77, 0.35) !important; }
+html body.rg-page .rg-hero h2 { color: #ffb84d !important; }
+html body.rg-page .rg-hero .rg-hero-lead { color: var(--exo-text, #f0f6fc) !important; font-size: 14px !important; margin: 0 0 12px; }
+html body.rg-page .rg-hero .rg-hero-sub { margin: 14px 0 6px; }
+html body.rg-page .rg-hero-list { margin: 0; padding-left: 18px; color: var(--exo-muted, #9fb0b4); font-size: 13px; line-height: 1.6; font-weight: 400; }
+html body.rg-page .rg-hero-list li { margin: 0 0 10px; }
+html body.rg-page .rg-hero-list a { color: #7ee0ff; display: inline; padding: 12px 0; }
+
+/* Retired / advanced tools fold away */
+html body.rg-page .rg-retired { margin: 0 0 12px; }
+html body.rg-page .rg-retired > .rg-fold {
+  cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; border: 1px solid rgba(198, 216, 226, 0.12); border-radius: 12px;
+  color: var(--exo-muted, #9fb0b4); font: 500 12px/1.2 var(--exo-mono, "IBM Plex Mono", monospace); letter-spacing: 0.08em;
+}
+html body.rg-page .rg-retired > .rg-fold { width: 100%; background: transparent; text-align: left; justify-content: space-between; }
+html body.rg-page .rg-retired > .rg-fold::after { content: "+"; color: #7ee0ff; }
+html body.rg-page .rg-retired > .rg-fold[aria-expanded="true"]::after { content: "−"; }
+html body.rg-page .rg-retired > .rg-fold[aria-expanded="true"] { margin-bottom: 10px; }
+html body.rg-page .rg-fold-body[hidden] { display: none !important; }
+html body.rg-page .rg-usb-labels span { font: 500 10px/1.2 var(--exo-mono, "IBM Plex Mono", monospace); letter-spacing: 0.12em; text-transform: uppercase; color: var(--exo-muted, #9fb0b4); }
+
+/* Tool tabs wrap on narrow phones so none start off-screen. */
+@media (max-width: 520px) {
+  html body.rg-page nav.exo-tabs { flex-wrap: wrap !important; overflow: visible !important; }
+}

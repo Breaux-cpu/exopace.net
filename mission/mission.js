@@ -177,6 +177,50 @@
     scheduleCesiumInsets();
   }
 
+  /* One plain line instead of a column of red OFFLINE rows when no ground
+     station gear answers. The rows stay underneath for operators. */
+  function noHardwareNote() {
+    var station = hud && hud.querySelector(".station");
+    if (!station) return;
+    var head = Array.prototype.find.call(station.querySelectorAll("h3"), function (h) { return /^RF CHAIN/.test(h.textContent); });
+    if (!head) return;
+    var kv = head.nextElementSibling && head.nextElementSibling.classList.contains("mi-nohw") ? head.nextElementSibling.nextElementSibling : head.nextElementSibling;
+    if (!kv) return;
+    var spans = kv.querySelectorAll("span");
+    var off = spans.length > 0 && Array.prototype.every.call(spans, function (sp) { return sp.classList.contains("stoff") && !/PROBING/.test(sp.textContent); });
+    var note = station.querySelector(".mi-nohw");
+    if (off && !note) {
+      note = el("p", { "class": "mi-nohw" });
+      note.textContent = "No ground-station hardware connected. Passes are computed for EXOpace GS (Memphis) and work without it; radio, rotator and mesh need that gear.";
+      head.after(note);
+    } else if (!off && note) note.remove();
+  }
+
+  /* Plain-language hover help for the short HUD labels (desktop pointer users). */
+  var HELP = {
+    "⌂ MOC": "Home view over the EXOpace ground station",
+    "FLY": "Free camera: drag to fly anywhere",
+    "FOLLOW": "Camera follows the locked satellite",
+    "SAT-CAM": "View from the locked satellite",
+    "CINE": "Slow cinematic camera",
+    "ATMO": "Atmosphere glow around the globe",
+    "ORBITS": "Orbit paths",
+    "LABELS": "Satellite name labels",
+    "HOLD": "Pause time",
+    "LIVE": "Back to the current time",
+    "10×": "Run time 10 times faster",
+    "60×": "Run time 60 times faster"
+  };
+  function labelHelp() {
+    if (!hud) return;
+    hud.querySelectorAll("button").forEach(function (b) {
+      if (b.title) return;
+      var t = b.textContent.replace(/\s+/g, " ").trim();
+      if (HELP[t]) b.title = HELP[t];
+      else if (/^ARM /.test(t)) b.title = "Point the ground-station radio and rotator at this satellite (needs that hardware)";
+    });
+  }
+
   function start() {
     hud = document.querySelector(".hud");
     if (!hud || !hud.querySelector(".camstrip")) { setTimeout(start, 300); return; }
@@ -190,6 +234,7 @@
       sync();
       scheduleCesiumInsets();
     }).observe(hud, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    setInterval(function () { noHardwareNote(); labelHelp(); }, 2000);
     window.addEventListener("resize", scheduleCesiumInsets);
     if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleCesiumInsets);
     if (window.ResizeObserver) {
