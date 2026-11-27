@@ -88,7 +88,7 @@ function syncChatEmpty() {
   const q = $("chatSearch") ? $("chatSearch").value.trim() : "";
   const visible = rows.filter((el) => el.style.display !== "none").length;
   const e = $("chatEmpty");
-  if (!rows.length) { e.textContent = "MESH QUIET. Wait for a peer."; e.style.display = ""; }
+  if (!rows.length) { e.textContent = radioUp() ? "MESH QUIET. TX or wait for a peer." : "NO NODE CONNECTED. Messages from your mesh show up here once your node is linked."; e.style.display = ""; }
   else if (!visible && q) { e.textContent = "NO MATCHES."; e.style.display = ""; }
   else { e.style.display = "none"; }
 }
@@ -109,7 +109,12 @@ function syncChatSend() {
   const text = $("chatText");
   if (text) { text.disabled = !up; text.placeholder = up ? "Message the mesh…" : "Connect a node to send messages"; }
   if (qtx) qtx.hidden = !up;
-  if (empty) empty.textContent = up ? "MESH QUIET. TX or wait for a peer." : "MESH QUIET. Wait for a peer.";
+  if (empty) empty.textContent = up ? "MESH QUIET. TX or wait for a peer." : "NO NODE CONNECTED. Messages from your mesh show up here once your node is linked.";
+  /* No node and no saved messages: export / clear / search have nothing to act on. */
+  const hasRows = !!($("chatLog") && $("chatLog").children.length);
+  const tools = document.querySelector(".mx-chattools"), search = $("chatSearch");
+  if (tools) tools.hidden = !up && !hasRows;
+  if (search) search.hidden = !up && !hasRows;
 }
 
 function closeWifi() {
@@ -243,7 +248,7 @@ async function connectBle() {
   if (navigator.bluetooth) return;
   $("optBle").disabled = true;
   $("btHint").textContent = window.isSecureContext
-    ? "BLUETOOTH NOT AVAILABLE IN THIS BROWSER"
+    ? "BLUETOOTH NOT AVAILABLE IN THIS BROWSER · USE CHROME OR EDGE"
     : "NEEDS HTTPS OR ANDROID INSECURE-ORIGIN EXCEPTION";
 })();
 
@@ -625,11 +630,11 @@ function renderGps() {
   syncSosRange();
 }
 $("btnCopy").onclick = () => {
-  const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
+  const g = S.gps; if (!g || !g.fix) return toast(fixHint());
   navigator.clipboard && navigator.clipboard.writeText(g.lat.toFixed(6) + "," + g.lon.toFixed(6)); toast("COPIED");
 };
 $("btnMaps").onclick = () => {
-  const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
+  const g = S.gps; if (!g || !g.fix) return toast(fixHint());
   window.open("https://maps.google.com/?q=" + g.lat + "," + g.lon, "_blank");
 };
 function sharePoint(m) {
@@ -644,7 +649,7 @@ function sharePoint(m) {
   }
 }
 $("btnShare").onclick = () => {
-  const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
+  const g = S.gps; if (!g || !g.fix) return toast(fixHint());
   sharePoint({ name: S.myName || "ME", lat: g.lat, lon: g.lon });
 };
 function download(name, text) {
@@ -656,6 +661,7 @@ function download(name, text) {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 $("btnExportChat").onclick = () => {
+  if (!document.querySelector("#chatLog .msg")) return toast("NO MESSAGES TO EXPORT");
   const rows = [];
   document.querySelectorAll("#chatLog .msg").forEach((el) => {
     const who = (el.querySelector(".who") || {}).textContent || "";
@@ -663,7 +669,7 @@ $("btnExportChat").onclick = () => {
     const meta = (el.querySelector(".meta") || {}).textContent || "";
     rows.push("[" + meta + "] " + who + ": " + txt);
   });
-  const text = "EXOpace Radio chat log\n" + new Date().toISOString() + "\n\n" + rows.join("\n");
+  const text = "EXOpace Mesh chat log\n" + new Date().toISOString() + "\n\n" + rows.join("\n");
   download("exopace-chat.txt", text);
   toast("CHAT EXPORTED");
 };
@@ -762,7 +768,8 @@ $("btnGpx").onclick = () => {
         '    <trkpt lat="' + p[0] + '" lon="' + p[1] + '"><time>' + new Date(p[2] * 1000).toISOString() + "</time></trkpt>"
       ).join("\n") + "\n  </trkseg></trk>"
     : "";
-  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="EXOpace Radio" xmlns="http://www.topografix.com/GPX/1/1">\n'
+  if (!wpts && !trk) return toast("NO WAYPOINTS OR TRAIL TO EXPORT");
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="EXOpace Mesh" xmlns="http://www.topografix.com/GPX/1/1">\n'
     + wpts + (wpts && trk ? "\n" : "") + trk + "\n</gpx>\n";
   download("exopace.gpx", xml);
   toast("GPX EXPORTED");
@@ -797,7 +804,7 @@ $("btnTelemCsv").onclick = () => {
 };
 $("btnSendLoc").onclick = () => {
   const g = S.gps;
-  if (!g || !g.fix) return toast("WAITING FOR FIX");
+  if (!g || !g.fix) return toast(fixHint());
   const to = $("chatTo") ? $("chatTo").value : "*";
   const text = "POS " + (+g.lat).toFixed(5) + ", " + (+g.lon).toFixed(5);
   const went = send({ t: "chat", to, text, msg: text });
@@ -806,7 +813,7 @@ $("btnSendLoc").onclick = () => {
   toast("POSITION SENT");
 };
 $("btnWay").onclick = () => {
-  const g = S.gps; if (!g || !g.fix) return toast("WAITING FOR FIX");
+  const g = S.gps; if (!g || !g.fix) return toast(fixHint());
   dropWaypointAt(g.lat, g.lon);
 };
 function dropWaypointAt(lat, lon) {
@@ -880,8 +887,8 @@ function syncGlobe() {
   const wcEl = $("wpCount");
   if (wcEl) { wcEl.hidden = !wc; wcEl.textContent = wc + " waypoint" + (wc > 1 ? "s" : ""); }
   $("mapEmpty").textContent = [
-    noMe ? "WAITING FOR FIX — walk outside" : "",
-    noPeer ? "MESH QUIET — peer dots appear when nodes report position." : "",
+    noMe ? (radioUp() ? "WAITING FOR FIX — walk outside" : "NO NODE CONNECTED — your node's GPS puts you on the globe") : "",
+    noPeer ? (radioUp() ? "MESH QUIET — peer dots appear when nodes report position." : "Peers appear when their nodes report position.") : "",
   ].filter(Boolean).join("\n");
 }
 function bearingDist(lat1, lon1, lat2, lon2) {
@@ -986,11 +993,13 @@ $("btnNodesCsv").onclick = () => {
   toast("NODES CSV");
 };
 $("btnRecage").onclick = () => {
-  if (!S.gps || !S.gps.fix) { toast("WAITING FOR FIX"); return; }
+  if (!S.gps || !S.gps.fix) { toast(fixHint()); return; }
   if (!S.globe) return;
   S.globe.recage(S.gps.lat, S.gps.lon);
   toast("RECAGE");
 };
+/* The position comes from the node's GPS. With no node linked, say so instead of "walk outside". */
+function fixHint() { return radioUp() ? "WAITING FOR FIX" : "CONNECT A NODE FIRST · ITS GPS GIVES YOUR POSITION"; }
 function radioUp() { return !!($("pathLbl") && $("pathLbl").classList.contains("up")); }
 function syncMapChrome() {
   const up = radioUp();
@@ -1028,7 +1037,7 @@ $("btnRange").onclick = () => {
 };
 function sampleRfHere() {
   const g = S.gps;
-  if (!g || !g.fix) { toast("WAITING FOR FIX"); return; }
+  if (!g || !g.fix) { toast(fixHint()); return; }
   const rssi = S.lastRssi, snr = S.lastSnr;
   if (rssi == null || snr == null || rssi <= -135) { toast("NO RF SAMPLE · no packet"); return; }
   const rf = P.makeRf({ id: S.myId || "me", rssi: rssi, snr: snr, lat: g.lat, lon: g.lon });
@@ -1110,7 +1119,7 @@ $("evFilter").onchange = () => { S.evFilter = $("evFilter").value; renderEvents(
 $("btnEvExport").onclick = () => {
   if (!S.events.length) return toast("NO EVENTS");
   const rows = S.events.map((e) => new Date(e.ts * 1000).toISOString() + " [" + e.type + "] " + e.text);
-  download("exopace-log.txt", "EXOpace Radio event log\n" + new Date().toISOString() + "\n\n" + rows.join("\n"));
+  download("exopace-log.txt", "EXOpace Mesh event log\n" + new Date().toISOString() + "\n\n" + rows.join("\n"));
   toast("LOG EXPORTED");
 };
 $("btnEvClear").onclick = () => {
@@ -1288,7 +1297,7 @@ function renderNodes() {
       + '<div><div class="nm">' + esc(n.name || "?") + (S.stars[i] ? " ★" : "") + '</div><div class="id">' + i + " · " + fade + "%</div></div>"
       + '<div class="st">' + ago(n.last) + " ago<br>" + (n.batt != null ? n.batt + "%" : "") + "</div>" + bars(n.rssi ?? -140)
       + acts + "</div>";
-  }).join("") : '<div class="card sub">MESH QUIET. Power up a second node — it announces itself.</div>';
+  }).join("") : '<div class="card sub">' + (radioUp() ? "MESH QUIET. Power up a second node — it announces itself." : "NO NODE CONNECTED. Connect yours, then power up a second node — it announces itself.") + "</div>";
   renderWays();
   renderStats();
   syncGlobe();
