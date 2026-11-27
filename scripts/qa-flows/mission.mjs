@@ -26,6 +26,29 @@ async function tap(page, scope, label) {
   await el.click();
   await sleep(350);
 }
+/** Latch #exo-toast text so a slow Puppeteer click (Cesium layout not "stable")
+ *  cannot miss a toast that already showed and auto-hid after 1.8s. */
+async function toastAfter(page, action) {
+  const token = await page.evaluate(() => {
+    const n = (window.__exoToastN = (window.__exoToastN || 0) + 1);
+    const el = document.getElementById("exo-toast");
+    if (el && !el.__exoToastArm) {
+      el.__exoToastArm = true;
+      window.__exoToasts = [];
+      new MutationObserver(() => {
+        const s = (el.textContent || "").trim();
+        if (s) window.__exoToasts.push({ n: window.__exoToastN, s });
+      }).observe(el, { characterData: true, childList: true, subtree: true, attributes: true });
+    }
+    return n;
+  });
+  await action();
+  await page.waitForFunction((n) => (window.__exoToasts || []).some((x) => x.n === n && x.s), { timeout: 8000 }, token).catch(() => {});
+  return page.evaluate((n) => {
+    const hit = [...(window.__exoToasts || [])].reverse().find((x) => x.n === n);
+    return (hit && hit.s) || "";
+  }, token);
+}
 /** Phone portrait keeps the layer list, traffic, camera modes, time and LOCATE in
  *  one bottom sheet behind the thumb bar. Open the right pane first there. */
 const phone = (page) => page.evaluate(() => { const t = document.getElementById("mi-thumb"); return !!t && getComputedStyle(t).display !== "none"; });
@@ -143,10 +166,7 @@ export const flows = {
         const out = [];
         const ph = await pane(page, "view");
         for (const l of ["FOLLOW", "SAT-CAM"]) {
-          await tap(page, ".camstrip .btn", l);
-          // Software WebGL can hold the main thread; give the toast a moment to paint.
-          await page.waitForFunction(() => /\S/.test((document.getElementById("exo-toast") || {}).textContent || ""), { timeout: 4000 }).catch(() => {});
-          const t = await page.$eval("#exo-toast", (x) => x.textContent).catch(() => "");
+          const t = await toastAfter(page, () => tap(page, ".camstrip .btn", l));
           out.push(l + ":" + t);
         }
         if (ph) await closePane(page);

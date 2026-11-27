@@ -69,19 +69,12 @@
   function paint(row) {
     var fix = document.getElementById("exo-pill-fix");
     var badge = document.getElementById("exo-pill-target");
-    var jump = document.getElementById("exo-pill-jump");
     var sys = document.getElementById("sys-target");
     var place = row && row.mgrs ? row.mgrs : (row && row.lat != null ? Number(row.lat).toFixed(5) + " " + Number(row.lon).toFixed(5) : "NO FIX");
     var name = row && (row.label || row.norad) ? (row.label || "TARGET") + (row.norad ? " " + row.norad : "") : "NO TARGET";
     if (fix) fix.textContent = place;
     if (badge) badge.textContent = name;
     if (sys && row && row.label) sys.textContent = row.label + (row.norad ? " · " + row.norad : "");
-    if (jump) {
-      var href = "https://cams.exopace.net/map";
-      if (row && row.lat != null && row.lon != null) href += "?lat=" + encodeURIComponent(row.lat) + "&lon=" + encodeURIComponent(row.lon);
-      if (row && row.norad) href += (href.indexOf("?") >= 0 ? "&" : "?") + "lock=" + encodeURIComponent(row.norad);
-      jump.href = href;
-    }
   }
 
   function clock() {

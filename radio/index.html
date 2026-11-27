@@ -68,8 +68,8 @@ table{width:100%;border-collapse:collapse}
 .label-sm{font-size:11px;color:var(--muted);margin:9px 0 4px;letter-spacing:.4px;text-transform:uppercase}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);z-index:50;
  background:#0f2438;border:1px solid #1f6ebd;color:#dff3ff;padding:10px 16px;border-radius:10px;
- font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%}
-.toast.show{transform:translateX(-50%);opacity:1}
+ font-size:13px;box-shadow:0 6px 24px #0009;transition:.3s;opacity:0;max-width:88%;pointer-events:none}
+.toast.show{transform:translateX(-50%);opacity:1;pointer-events:auto}
 
 button.b{min-height:44px}
 input, select, textarea, button { min-height: 44px; }
@@ -207,7 +207,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
 </style>
 <link rel="stylesheet" href="../assets/exo-tokens.css">
 <link rel="stylesheet" href="../assets/exo-layout.css?v=7" data-exo-layout="1">
-<script src="../assets/exo-layout.js?v=6" data-exo-layout="1"></script>
+<script src="../assets/exo-layout.js?v=8" data-exo-layout="1"></script>
 <link rel="stylesheet" href="radio-deck.css?v=6">
 </head><body class="rg-page">
 <header class="exo-bar">
@@ -224,13 +224,6 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
     <a href="/system/">System</a>
   </nav>
 </header>
-<div class="exo-pill" id="exo-pill" aria-live="polite">
-  <span id="exo-pill-clock">UTC — · JD —</span>
-  <span id="exo-pill-fix">NO FIX</span>
-  <span id="exo-pill-target">NO TARGET</span>
-  <button type="button" id="exo-pill-copy">COPY</button>
-  <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
-</div>
 
 <div class="rg-scroll" id="rg-scroll">
 <aside class="rg-rail" aria-label="Radio workspaces and tools">

@@ -119,8 +119,5 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !sheet.hidden) closeSheet(); });
   }
 
-  // Offline shell + installability. Same worker Mission registers.
-  if ("serviceWorker" in navigator && location.protocol === "https:") {
-    navigator.serviceWorker.register("/sw.js").catch(function () {});
-  }
+  // Service worker registration and update checks live in exo-layout.js.
 })();

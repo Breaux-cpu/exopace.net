@@ -448,33 +448,6 @@ button, a, input { font: inherit; }
 }
 
 
-/* exo-layout.css is loaded for the site nav and the legend sheet. On phone
-   portrait the Field Maps peek-dock owns the thumb zone, so keep COPY/JUMP in
-   the ticker. Short landscape still uses the shell's bottom action dock. */
-@media (max-width: 719px) and (min-height: 501px) {
-  body:has(.fm-body):has(.exo-pill):not(:has(#composer)) {
-    --exo-dock-h: 0px;
-    padding-bottom: 0 !important;
-  }
-  body:has(.fm-body) .exo-pill-actions,
-  body:has(.fm-body):not(:has(.exo-pill-actions)) #exo-pill-copy,
-  body:has(.fm-body):not(:has(.exo-pill-actions)) #exo-pill-jump {
-    position: static !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: auto !important;
-    height: auto !important;
-    min-height: var(--fm-t) !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: 0 !important;
-  }
-  body:has(.fm-body) .exo-pill-actions > * {
-    flex: 0 0 auto !important;
-    width: auto !important;
-  }
-}
 body:has(.fm-body) > main#exo-main,
 body:has(.fm-body) > main.fm-body {
   overflow: hidden !important;

@@ -193,11 +193,14 @@
   </nav>
     </header>
     <div class="exo-pill" id="exo-pill" aria-live="polite">
-      <span id="exo-pill-clock">UTC — · JD —</span>
-      <span id="exo-pill-fix">NO FIX</span>
-      <span id="exo-pill-target">NO TARGET</span>
-      <button type="button" id="exo-pill-copy">COPY</button>
-      <a id="exo-pill-jump" href="https://cams.exopace.net/map">JUMP</a>
+      <div class="exo-pill-status">
+        <span id="exo-pill-clock">UTC — · JD —</span>
+        <span id="exo-pill-fix">NO FIX</span>
+        <span id="exo-pill-target">NO TARGET</span>
+      </div>
+      <div class="exo-pill-actions">
+        <button type="button" class="exo-btn" id="exo-pill-copy">COPY</button>
+      </div>
     </div>
     <main id="exo-main"><div id="root" inert></div></main>
     <!-- Runtime config first (window.EXOPACE_*), then the prebuilt Cesium bundle
@@ -612,7 +615,7 @@
   <script src="/assets/exo-mavlink.js"></script>
   <script src="/assets/exo-astro-nav.js"></script>
   <script src="/assets/exo-rotator.js"></script>
-  <script src="/assets/exo-layout.js?v=6" data-exo-layout="1"></script>
+  <script src="/assets/exo-layout.js?v=8" data-exo-layout="1"></script>
   <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>
