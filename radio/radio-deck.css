@@ -578,3 +578,6 @@ html body.rg-page .rg-usb-labels span { font: 500 10px/1.2 var(--exo-mono, "IBM 
 @media (max-width: 520px) {
   html body.rg-page nav.exo-tabs { flex-wrap: wrap !important; overflow: visible !important; }
 }
+
+/* Sentinel tab: the WATCH/FENCE/QUEUE/ACK counters belong to the Sentinel page. */
+body.rg-page #sentinel #exo-sentinel { display: none; }

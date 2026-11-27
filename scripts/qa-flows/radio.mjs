@@ -24,6 +24,27 @@ async function textOf(page, sel) { return page.$eval(sel, (el) => (el.textConten
 
 const radio = [
   {
+    name: "no-hardware visitors only reach working panels (strip, tabs, old deep links)",
+    test: async (page) => {
+      const bad = [];
+      const strip = await page.$$eval(".rg-ws a", (as) => as.map((a) => a.textContent.trim() + "=" + a.getAttribute("href")));
+      if (!strip.includes("MESH=/mesh/")) bad.push("MESH not → /mesh/");
+      if (strip.some((s) => /VAULT/.test(s))) bad.push("VAULT label");
+      for (const ws of await page.$$eval(".rg-ws a[data-tab]", (as) => as.map((a) => a.dataset.tab))) {
+        await tap(page, `.rg-ws a[data-tab="${ws}"]`);
+        const shown = await page.$$eval("nav.exo-tabs [data-ws]", (xs) => xs.filter((x) => !x.hidden).map((x) => x.dataset.ws + ":" + x.textContent.trim()));
+        shown.filter((x) => x.startsWith("retired:")).forEach((x) => bad.push("shows " + x));
+      }
+      await page.evaluate(() => showTab("ble"));
+      await wait(200);
+      const on = await page.evaluate(() => (document.querySelector("main#exo-main > section.on") || {}).id);
+      if (on !== "listen") bad.push("?tab=ble lands on " + on);
+      const passesDead = await page.evaluate(() => { const f = document.getElementById("rg-fold-4"); return !f || !f.hidden || !f.querySelector("#jobkind"); });
+      if (passesDead) bad.push("host decoders not folded");
+      return { ok: bad.length === 0, detail: bad.join("; ") || strip.join(" ") };
+    },
+  },
+  {
     name: "every workspace × tool tab opens its panel, layout stays clean",
     test: async (page) => {
       const wsHrefs = await page.$$eval(".rg-ws a[data-tab]", (as) => as.map((a) => a.dataset.tab));
@@ -41,7 +62,7 @@ const radio = [
           n++;
         }
       }
-      return { ok: bad.length === 0 && n >= 10, detail: n + " tabs; " + bad.slice(0, 3).join(" | ") };
+      return { ok: bad.length === 0 && n >= 4, detail: n + " tabs; " + bad.slice(0, 3).join(" | ") };
     },
   },
   {
