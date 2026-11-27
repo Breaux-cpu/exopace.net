@@ -725,7 +725,7 @@ button.b small{display:block;font-size:11px;font-weight:500;opacity:.85}
  <button type="button" class="rg-primary" id="rg-primary" hidden>Listen</button>
 
 </div>
-<script src="radio-deck.js?v=6"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
+<script src="radio-deck.js?v=7"></script><script src="../assets/exo-tabs.js?v=2"></script><script src="../assets/exo-cmd.js?v=1"></script><script src="assets/leaflet.min.js"></script><script>
 const T=new URLSearchParams(location.search).get('t')||'Password';
 const RETIRED="No network receiver on this site. Use Receiver → Connect USB SDR.";
 const api=()=>Promise.resolve({error:RETIRED,ok:false});
@@ -1405,7 +1405,7 @@ loadBm();loadStatus();loadCaps();setInterval(loadStatus,15000);
 <script src="../assets/exo-voice-codec2.js"></script>
 <script src="../assets/exo-link-qos.js"></script>
 <script src="../assets/exo-sentinel.js?v=1"></script>
-<script type="module" src="../assets/exo-orbit.js?v=3"></script>
+<script type="module" src="../assets/exo-orbit.js?v=4"></script>
 <script type="module" src="../assets/exo-audio.js?v=3"></script>
 <section id="exo-apt" class="exo-wave">NO USB DEVICE</section>
 <section id="exo-prop" class="exo-wave">OFFLINE</section>

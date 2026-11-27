@@ -79,7 +79,7 @@
     var card = document.getElementById("rg-modules");
     var st = document.querySelector("#watch .exo-usb-status");
     if (!card) return;
-    var live = !!st && !/NO USB DEVICE|NO WEBUSB|UNSUPPORTED|DISCONNECTED|ERROR/i.test(st.textContent || "");
+    var live = !!st && /^Receiving/.test((st.textContent || "").trim());
     card.hidden = !(card.dataset.filled && live);
   }
   setInterval(sync, 1500);

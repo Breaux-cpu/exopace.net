@@ -301,7 +301,7 @@ function mount() {
       else {
         const short = row.name.replace(/\s*\(.*\)\s*$/, "").trim();
         board.textContent = row.name + " next pass " + localTime(list[0].aos, true);
-        board.dataset.next = "Next " + short + " pass " + localTime(list[0].aos, true) + ", up to " + list[0].maxEl.toFixed(0) + "°";
+        board.dataset.next = "Next " + short + " pass " + localTime(list[0].aos, true).replace(/^(Today|Tomorrow)/, (m) => m.toLowerCase()) + ", up to " + list[0].maxEl.toFixed(0) + "°";
       }
     }
     const lock = root.querySelector("[data-lock]");
