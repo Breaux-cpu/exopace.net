@@ -6,9 +6,9 @@
      APK exists, a small notice links to it. */
 (function () {
   var APK = {
-    versionCode: 1,
-    version: "1.0.0",
-    url: "https://github.com/Breaux-cpu/exopace.net/releases/download/android-v1.0.0/EXOpace-android-v1.0.0.apk",
+    versionCode: 2,
+    version: "1.0.1",
+    url: "https://github.com/Breaux-cpu/exopace.net/releases/download/android-v1.0.1/EXOpace-android-v1.0.1.apk",
   };
   window.EXO_APK = APK;
 
