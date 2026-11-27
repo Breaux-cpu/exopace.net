@@ -124,7 +124,7 @@ assert(!/const ASSETS = \[[^\]]*["']\/index\.html["']/.test(mocSw) && !/const AS
 assert(mocSw.includes('p === "/index.html"') && mocSw.includes('p === "/"'), "MOC SW no-stores document so first paint is not a pinned ?v=");
 assert(read("mission/index.html").includes("z-index: 200") && read("mission/index.html").includes("transitionend"), "splash eats taps until fade hides it");
 assert(meshSw.includes("location.origin"), "Radio SW same-origin only");
-assert(meshSw.includes("exopace-mesh-v76"), "Radio SW cache bumped");
+assert(meshSw.includes("exopace-mesh-v77"), "Radio SW cache bumped");
 const mapsSw = read("maps/sw.js");
 assert(mapsSw.includes("exopace-maps-v37"), "Maps SW cache bumped");
 assert(meshSw.includes('cache: "no-store"') && meshSw.includes("noStore"), "Radio SW fetches in-place JS without HTTP cache");
@@ -236,7 +236,7 @@ assert(meshHtml.includes("power up a second node — it announces itself") && me
 assert(meshApp.includes("renderNodes();") && meshApp.includes("NO WAYPOINTS. Drop one from MAP"), "NET empty-states stay after restore");
 assert(meshApp.includes("function shareWay(w)") && meshApp.includes("send(P.makeWay({ id: w.id, name: w.name, lat: w.lat, lon: w.lon, kind: w.kind }))"), "waypoint SHARE broadcasts to the mesh");
 assert(meshApp.includes('btn.dataset.act === "share"') && meshApp.includes("shareWay(w)") && !meshApp.includes("sharePoint(w)"), "waypoint SHARE button calls shareWay, not the OS sheet");
-assert(meshHtml.includes("app.js?v=65") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
+assert(meshHtml.includes("app.js?v=66") && meshHtml.includes("env.js?v=61"), "Radio index cache-busts in-place JS");
 assert(/#installHint\{[^}]*flex:0 0 auto/.test(meshHtml) && /#installHint\[hidden\]\{[^}]*display:none/.test(meshHtml), "Radio installHint does not flex-clip to a 30px sliver");
 assert(meshHtml.includes('id="btnInst2" hidden'), "Radio INSTALL APP in the phone-app card starts hidden");
 assert(meshApp.includes("exopace-radio-hide-install") && meshApp.includes("hideInstallHint"), "Radio HIDE persist stays");
@@ -306,7 +306,7 @@ assert(meshHtml.includes("NO NODE CONNECTED. Messages from your mesh show up her
   assert(meshApp.includes("function fixHint()") && !meshApp.includes('toast("WAITING FOR FIX")'), "Mesh: fix-needing actions say a node is needed when none is linked");
   assert(meshApp.includes('NO MESSAGES TO EXPORT') && meshApp.includes('NO WAYPOINTS OR TRAIL TO EXPORT'), "Mesh: empty exports say so instead of downloading an empty file");
   assert(!meshApp.includes('"EXOpace Radio chat log') && !meshApp.includes('creator="EXOpace Radio"'), "Mesh exports are labelled Mesh, not Radio");
-  assert(meshHtml.includes("LINK BUDGET and press PROFILE") && !meshHtml.includes("nothing to show yet"), "Mesh intro points to what works without a node");
+  assert(meshHtml.includes("LINK BUDGET and press CHECK PATH") && !meshHtml.includes("nothing to show yet"), "Mesh intro points to what works without a node");
   assert((meshHtml.match(/\/maps\/mgrs\.js/g) || []).length === 1, "Mesh loads mgrs.js once");
 }
 assert(!/text: "SOS " \+ \(m\.msg/.test(meshApp), "SOS handler does not glue SOS onto a qtx that is already SOS");
@@ -744,7 +744,7 @@ assert(index.includes('e.key !== "/"') && index.includes("max-width: 820px"), "p
 assert(/@media \(max-width: 380px\)[\s\S]*letter-spacing:\s*0/.test(read("moc-phone.css")), "360 search drops tracking so SAT NAME / NORAD fits");
 assert(/overflow-x:\s*hidden/.test(meshHtml), "Radio clips horizontal overflow");
 assert(/#battChart,#rssiChart\{width:100%;max-width:100%;min-width:0/.test(meshHtml), "Radio rssiChart scales to the NODE pane");
-assert(meshHtml.includes('id="battEmpty"') && meshHtml.includes("NO LAST-HOUR SAMPLES") && meshHtml.includes('id="rssiEmpty"') && meshHtml.includes("NO RSSI SAMPLES"), "NODE charts first-paint honest empty-states");
+assert(meshHtml.includes('id="battEmpty"') && meshHtml.includes("NO BATTERY READINGS YET") && meshHtml.includes('id="rssiEmpty"') && meshHtml.includes("NO SIGNAL READINGS YET"), "NODE charts first-paint honest empty-states");
 assert(meshHtml.includes('id="telemEmpty"') && meshHtml.includes("NO TELEMETRY") && meshHtml.includes('id="telemGrid" hidden'), "NODE vitals first-paint honest empty-state instead of dummy -%");
 assert(!meshHtml.includes(">-%<") && !meshHtml.includes(">- V<") && !meshHtml.includes("heap -<") && !meshHtml.includes("SNR -<"), "NODE vitals HTML has no dummy dash readings");
 assert(/#telemGrid\[hidden\]\{[^}]*display:none/.test(meshHtml) && meshApp.includes("syncTelemEmpty"), "NODE dummy vitals stay hidden until the node reports");

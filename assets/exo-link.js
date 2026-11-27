@@ -179,7 +179,7 @@
       var fix = readFix();
       if (fix) point = fix;
     }
-    if (!point || point.lat == null) { skyEl.textContent = "SUN — · MOON —"; return; }
+    if (!point || point.lat == null) { skyEl.textContent = "Sun and moon angles show once there is a position."; return; }
     var now = new Date();
     var sun = sunElevation(point.lat, point.lon, now);
     var moon = moonElevation(point.lat, point.lon, now);
@@ -234,7 +234,7 @@
     if (bus) bus.set({ kind: "link", id: index === 1 ? "B" : "A", label: "RF LINK", lat: lat, lon: lon });
     writeInputs();
     paintSky();
-    setStatus(armed ? "NEXT CLICK SETS B" : "POINTS SET");
+    setStatus(armed ? "TAP THE MAP TO PLACE B" : "POINTS SET · PRESS CHECK PATH");
     return true;
   }
 
@@ -325,7 +325,7 @@
 
   function profile() {
     readInputs();
-    if (points[0].lat == null || points[1].lat == null) { setStatus("NEED TWO POINTS"); return Promise.resolve(null); }
+    if (points[0].lat == null || points[1].lat == null) { setStatus("NEED TWO POINTS · type A and B, or pick them on the map"); return Promise.resolve(null); }
     var band = bandById(host.querySelector("[data-band]").value);
     var n = 48;
     var path = [];
@@ -370,7 +370,7 @@
       var verdict = last.blocked ? "BLOCKED" : last.graze ? "GRAZE" : "CLEAR";
       var mid = fresnel(last.distanceM / 2, last.distanceM / 2, band.hz);
       var clr = Number.isFinite(last.clearM) ? last.clearM.toFixed(1) : "—";
-      setStatus(flatNote + verdict + " · " + km.toFixed(2) + " km · FSPL " + last.fspl.toFixed(1) + " dB · F1 " + mid.toFixed(1) + " m · CLR " + clr + " m");
+      setStatus(flatNote + verdict + " · " + km.toFixed(2) + " km · path loss " + last.fspl.toFixed(1) + " dB · Fresnel zone " + mid.toFixed(1) + " m · clearance " + clr + " m");
       paintSky();
       paintCopy();
       return last;
@@ -381,7 +381,7 @@
     var box = host.querySelector("[data-copy]");
     if (!box) return;
     var point = points[0].lat != null ? points[0] : points[1];
-    if (!point || point.lat == null) { box.textContent = "NO FIX"; return; }
+    if (!point || point.lat == null) { box.textContent = "NO POINT A YET · copy buttons need it"; return; }
     var pack = formats(point.lat, point.lon);
     box.textContent = pack.mgrs + " · " + pack.dd;
   }
@@ -389,10 +389,10 @@
   function copy(kind) {
     readInputs();
     var point = points[0].lat != null ? points[0] : null;
-    if (!point) { setStatus("NO FIX"); return; }
+    if (!point) { setStatus("SET POINT A FIRST"); return; }
     var pack = formats(point.lat, point.lon);
     var text = pack[kind];
-    if (!text || text === "POLAR" || text === "—") { setStatus(kind === "mgrs" ? "POLAR" : "NO FIX"); return; }
+    if (!text || text === "POLAR" || text === "—") { setStatus(kind === "mgrs" ? "MGRS DOES NOT COVER THE POLES" : "SET POINT A FIRST"); return; }
     var done = function () { setStatus("COPIED " + kind.toUpperCase()); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(done);
     else done();
@@ -562,7 +562,7 @@
       return vaultPut({ id: name, name: name, at: Date.now(), salt: b64(salt), iv: b64(iv), ct: b64(new Uint8Array(cipher)) });
     }).then(function () {
       host.querySelector("[data-vault-pass]").value = "";
-      setStatus("SNAPSHOT SEALED");
+      setStatus("SNAPSHOT SAVED · ENCRYPTED ON THIS DEVICE");
       listSnaps();
     }).catch(function () { setStatus("VAULT FAILED"); });
   }
@@ -591,7 +591,7 @@
       box.innerHTML = rows.length ? rows.map(function (row) {
         return '<div class="exo-link__row"><span class="exo-link__num">' + esc(row.name) + "</span>"
           + '<button type="button" data-open="' + esc(row.id) + '">OPEN</button></div>';
-      }).join("") : '<p class="exo-link__note">No sealed snapshots on this device.</p>';
+      }).join("") : '<p class="exo-link__note">No saved snapshots on this device. Name one, add a passphrase, then SAVE SNAPSHOT.</p>';
       box.querySelectorAll("[data-open]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var row = rows.filter(function (item) { return item.id === btn.getAttribute("data-open"); })[0];
@@ -605,27 +605,28 @@
     host.innerHTML = ''
       + '<div class="exo-link"><div class="exo-link__panel">'
       + "<h3>LINK BUDGET</h3>"
-      + '<div class="exo-link__row"><button type="button" data-arm="A">SET A</button><button type="button" data-arm="B">SET B</button><button type="button" data-act="fix">USE FIX</button></div>'
+      + '<div class="exo-link__row"><button type="button" data-arm="A" title="Then tap the map to place point A">PICK A ON MAP</button><button type="button" data-arm="B" title="Then tap the map to place point B">PICK B ON MAP</button><button type="button" data-act="fix">A = MY POSITION</button></div>'
       + '<div class="exo-link__row"><input data-lat="A" inputmode="decimal" placeholder="A lat" aria-label="Point A latitude"><input data-lon="A" inputmode="decimal" placeholder="A lon" aria-label="Point A longitude"><input data-ant="A" inputmode="decimal" value="2" aria-label="Antenna A meters"></div>'
       + '<div class="exo-link__row"><input data-lat="B" inputmode="decimal" placeholder="B lat" aria-label="Point B latitude"><input data-lon="B" inputmode="decimal" placeholder="B lon" aria-label="Point B longitude"><input data-ant="B" inputmode="decimal" value="10" aria-label="Antenna B meters"></div>'
       + '<div class="exo-link__row"><select data-band aria-label="Band">' + BANDS.map(function (band) {
         return '<option value="' + band.id + '">' + band.label + "</option>";
-      }).join("") + '</select><button type="button" data-act="profile">PROFILE</button></div>'
+      }).join("") + '</select><button type="button" data-act="profile">CHECK PATH</button></div>'
       + '<canvas width="640" height="180"></canvas>'
-      + '<p class="exo-link__num" data-status>TWO POINTS, THEN PROFILE.</p>'
+      + '<p class="exo-link__num" data-status>Can two radios hear each other? Set points A and B, then CHECK PATH for terrain, distance and path loss.</p>'
       + '<p class="exo-link__num" data-sky-inline></p>'
-      + '<p class="exo-link__num" data-copy>NO FIX</p>'
+      + '<p class="exo-link__num" data-copy>NO POINT A YET · copy buttons need it</p>'
+      + '<p class="exo-link__note">Copy point A as:</p>'
       + '<div class="exo-link__row">'
       + '<button type="button" data-copykind="mgrs">MGRS</button>'
       + '<button type="button" data-copykind="dd">DD</button>'
       + '<button type="button" data-copykind="dms">DMS</button>'
       + '<button type="button" data-copykind="plus">PLUS</button>'
-      + '<button type="button" data-act="geo">GEOJSON</button>'
-      + '<button type="button" data-act="kmz">KMZ</button>'
+      + '<button type="button" data-act="geo" title="Download points A and B as GeoJSON">GEOJSON</button>'
+      + '<button type="button" data-act="kmz" title="Download points A and B for Google Earth">KMZ</button>'
       + "</div>"
-      + "<h3 style=\"margin-top:14px\">VAULT</h3>"
+      + "<h3 style=\"margin-top:14px\">VAULT · ENCRYPTED SNAPSHOTS ON THIS DEVICE</h3>"
       + '<div class="exo-link__row"><input data-vault-name placeholder="Snapshot name" aria-label="Snapshot name"><input data-vault-pass type="password" placeholder="Passphrase" aria-label="Vault passphrase"></div>'
-      + '<div class="exo-link__row"><button type="button" data-act="save">SEAL SNAPSHOT</button></div>'
+      + '<div class="exo-link__row"><button type="button" data-act="save">SAVE SNAPSHOT</button></div>'
       + '<div data-vault-list></div>'
       + "</div></div>";
     if (!skyEl) skyEl = host.querySelector("[data-sky-inline]");
@@ -636,7 +637,7 @@
     var btn = event.target.closest("button");
     if (!btn || !host.contains(btn)) return;
     var arm = btn.getAttribute("data-arm");
-    if (arm) { armed = armed === arm ? "" : arm; writeInputs(); setStatus(armed ? "NEXT CLICK SETS " + armed : "CLICK ARM OFF"); return; }
+    if (arm) { armed = armed === arm ? "" : arm; writeInputs(); setStatus(armed ? "TAP THE MAP TO PLACE " + armed : "MAP PICKING OFF"); return; }
     var kind = btn.getAttribute("data-copykind");
     if (kind) { copy(kind); return; }
     var act = btn.getAttribute("data-act");
@@ -649,21 +650,21 @@
         writeInputs();
         paintSky();
         paintCopy();
-        setStatus("FIX SET");
+        setStatus("A = YOUR POSITION");
       };
       if (fix) { applyFix(fix); return; }
-      if (!navigator.geolocation) { setStatus("NO FIX"); return; }
-      setStatus("WAITING FOR FIX");
+      if (!navigator.geolocation) { setStatus("NO POSITION · this browser cannot share location"); return; }
+      setStatus("ASKING THIS DEVICE FOR ITS POSITION…");
       navigator.geolocation.getCurrentPosition(function (pos) {
         applyFix({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-      }, function () { setStatus("NO FIX"); }, { enableHighAccuracy: true, timeout: 8000 });
+      }, function () { setStatus("NO POSITION · location was blocked or timed out"); }, { enableHighAccuracy: true, timeout: 8000 });
     } else if (act === "geo") {
       download(new TextEncoder().encode(JSON.stringify(geojson())), "exopace-link.geojson", "application/geo+json");
-      setStatus("GEOJSON");
+      setStatus("GEOJSON DOWNLOADED");
     } else if (act === "kmz") {
       readInputs();
       download(zipStore([{ name: "doc.kml", bytes: new TextEncoder().encode(kml()) }]), "exopace-link.kmz", "application/vnd.google-earth.kmz");
-      setStatus("KMZ");
+      setStatus("KMZ DOWNLOADED");
     } else if (act === "save") saveSnap();
   }
 

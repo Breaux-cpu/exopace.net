@@ -29,7 +29,7 @@
     if (!documentRef || typeof documentRef.getElementById !== "function") return;
     var run = function () {
       var host = documentRef.getElementById("exo-federation");
-      if (host) host.textContent = peers([]).status;
+      if (host) host.textContent = peers([]).status === "STANDBY" ? "NONE YET" : peers([]).status;
     };
     if (documentRef.readyState === "loading" && typeof documentRef.addEventListener === "function") {
       documentRef.addEventListener("DOMContentLoaded", run);
