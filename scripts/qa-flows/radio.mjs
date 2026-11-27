@@ -98,6 +98,15 @@ const radio = [
     },
   },
   {
+    name: "Instruments (PIP, radar, codecs) stay hidden until a USB SDR is receiving",
+    test: async (page) => {
+      await tap(page, 'nav.exo-tabs button[data-t="watch"]');
+      await wait(1800);
+      const r = await page.evaluate(() => ({ hidden: document.getElementById("rg-modules").hidden, pip: !!(document.getElementById("exo-pip-open") || {}).offsetParent }));
+      return { ok: r.hidden && !r.pip, detail: r.hidden ? "hidden" : "instruments visible without a receiver" };
+    },
+  },
+  {
     name: "Live: CONNECT USB SDR reaches the honest picker/unsupported state",
     test: async (page) => {
       await tap(page, 'nav.exo-tabs button[data-t="watch"]');
