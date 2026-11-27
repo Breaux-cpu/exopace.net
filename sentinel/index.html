@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="rf/rf.css" />
 <link rel="stylesheet" href="/assets/exo-layout.css?v=7" data-exo-layout="1">
 <script src="/assets/exo-layout.js?v=8" data-exo-layout="1"></script>
-<link rel="stylesheet" href="sentinel-deck.css?v=7" />
+<link rel="stylesheet" href="sentinel-deck.css?v=8" />
 </head>
 <body class="exo-stage sn-page">
 <header class="exo-bar">
@@ -134,6 +134,7 @@
     <input id="sn-value" aria-label="Watch value" placeholder="25544" autocomplete="off" />
     <button type="button" id="sn-add">ARM</button>
   </div>
+  <p class="sn-note">Watch a satellite (NORAD number), aircraft (ICAO hex), ship (MMSI), camera ID or radio frequency. ARM adds it to the lanes, on this device only.</p>
   <h2>Geofence</h2>
   <div class="sn-row">
     <input id="sn-fname" aria-label="Geofence name" placeholder="name" autocomplete="off" />
@@ -142,25 +143,27 @@
     <input id="sn-frad" aria-label="Radius meters" inputmode="numeric" placeholder="meters" value="5000" />
     <button type="button" id="sn-fence">ARM FENCE</button>
   </div>
-  <p class="sn-note" id="sn-push">PUSH UNCONFIGURED</p>
+  <p class="sn-note" id="sn-push">Alerts show on this page only. No push notifications are set up.</p>
   <h2>Location and feeds</h2>
   <div class="sn-row">
     <button type="button" id="sn-fix">LOCATE</button>
     <button type="button" id="sn-refresh">REFRESH</button>
-    <button type="button" id="sn-ble">BLE EXOPACE</button>
+    <button type="button" id="sn-ble">PAIR EXOPACE NODE</button>
   </div>
   <p class="sn-note">RF Scan above can watch BLE in Chrome or Edge. A browser still cannot scan WiFi or cell on its own. Acks and detections stay on this device. Live watchlist rows come only from a feed that answered.</p>
-  <h2>Module status</h2>
+  <button type="button" class="sn-fold" aria-expanded="false" aria-controls="sn-fold-mods">Station modules (empty without the EXOpace station)</button>
+  <div class="sn-fold-body" id="sn-fold-mods" hidden>
+  <p class="sn-note">These fill only from EXOpace station hardware and operator records. In this browser they stay empty; nothing is invented. Space weather is the live Kp index.</p>
   <div class="sn-waves">
-  <p class="exo-wave" id="exo-prop-sentinel">OFFLINE</p>
-  <p class="exo-wave" id="exo-sitrep">NO OBSERVATIONS</p>
-  <p class="exo-wave" id="exo-acoustic">NO SAMPLES</p>
-  <p class="exo-wave" id="exo-custody">EMPTY</p>
-  <button type="button" id="exo-custody-verify" class="exo-wave-btn">VERIFY</button>
-  <p class="exo-wave" id="exo-brief">NO VAULT</p>
-  <p class="exo-wave" id="exo-hydro">OFFLINE</p>
-  <p class="exo-wave" id="exo-replay">SANDBOX IDLE</p>
-  <p class="exo-wave" id="exo-pass">NO PASS</p>
+  <div class="sn-mod"><span>Space weather</span><p class="exo-wave" id="exo-prop-sentinel">OFFLINE</p></div>
+  <div class="sn-mod"><span>Field notes</span><p class="exo-wave" id="exo-sitrep">NO OBSERVATIONS</p></div>
+  <div class="sn-mod"><span>Drone audio</span><p class="exo-wave" id="exo-acoustic">NO SAMPLES</p></div>
+  <div class="sn-mod"><span>Evidence log</span><p class="exo-wave" id="exo-custody">EMPTY</p></div>
+  <div class="sn-mod"><span>Briefing</span><p class="exo-wave" id="exo-brief">NO VAULT</p></div>
+  <div class="sn-mod"><span>Hydrophone</span><p class="exo-wave" id="exo-hydro">OFFLINE</p></div>
+  <div class="sn-mod"><span>Replay</span><p class="exo-wave" id="exo-replay">SANDBOX IDLE</p></div>
+  <div class="sn-mod"><span>Next pass</span><p class="exo-wave" id="exo-pass">NO PASS</p></div>
+  </div>
   </div>
   </div>
 </section>
@@ -178,7 +181,7 @@
   })();
 </script>
 <script src="sentinel-deck.js?v=4" defer></script>
-<script type="module" src="sentinel.js?v=3"></script>
+<script type="module" src="sentinel.js?v=4"></script>
 <script>
   document.querySelectorAll(".sn-fold").forEach((btn) => btn.addEventListener("click", () => {
     const body = document.getElementById(btn.getAttribute("aria-controls"));

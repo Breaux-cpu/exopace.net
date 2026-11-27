@@ -13,8 +13,12 @@ let lane = "all";
 let fix = null;
 let ble = "EXOPACE NODE NOT PAIRED";
 let busy = false;
+let last = null;
+let hold = null; // a button's answer that the next check must not overwrite
 
 function say(text) { if (statusEl) statusEl.textContent = text; }
+// A button's answer: if a feed check is still running, it must not overwrite this.
+function answer(text) { if (busy) hold = text; say(text); }
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -127,16 +131,17 @@ function show(hits, notes) {
   feedEl.replaceChildren();
   const visible = hits.filter((hit) => lane === "all" || lane === "active" || hit.lane === lane);
   const laneNotes = notes.filter((note) => lane === "all" || note.lane === lane || (lane === "active" && note.lane === "active"));
-  if (!visible.length && lane === "active") feedEl.append(card("ACTIVE", "QUIET"));
   laneNotes.forEach((note) => feedEl.append(card(note.title, note.body)));
   visible.forEach((hit) => feedEl.append(card(hit.title, hit.body, ackButton(hit))));
-  if (!visible.length && !laneNotes.length) feedEl.append(card(lane.toUpperCase(), "QUIET"));
+  if (!visible.length && !laneNotes.length) {
+    feedEl.append(card(lane.toUpperCase(), lane === "active" ? "NO HITS · NOTHING YOU WATCH IS IN VIEW" : "QUIET"));
+  }
 }
 
 async function evaluate() {
   if (busy) return;
   busy = true;
-  say("REFRESH");
+  say("CHECKING FEEDS");
   const hits = [];
   const notes = [];
   const watches = await allRows("watches");
@@ -151,7 +156,7 @@ async function evaluate() {
   const ships = sea.data && Array.isArray(sea.data.ships) ? sea.data.ships : [];
 
   if (air.error) notes.push({ lane: "air", title: "AIR", body: "Unavailable" });
-  else if (!armed.some((row) => row.kind === "icao") && !fences.length) notes.push({ lane: "air", title: "AIR", body: "Standby" });
+  else if (!armed.some((row) => row.kind === "icao") && !fences.length) notes.push({ lane: "air", title: "AIR", body: "NOT WATCHING · ADD AN ICAO HEX OR A GEOFENCE" });
   else notes.push({ lane: "air", title: "AIR", body: aircraft.length ? aircraft.length + " TRACKS" : "QUIET" });
 
   if (sea.error) notes.push({ lane: "sea", title: "SEA", body: "Unavailable" });
@@ -161,10 +166,10 @@ async function evaluate() {
   const catalogAge = ages.length ? Math.min(...ages) : null;
   const catalogState = tle.notes.length && !tle.birds.length ? "ERROR" : feedState(catalogAge);
   if (!tle.birds.length) notes.push({ lane: "orbital", title: "ORBITAL", body: catalogState });
-  else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " OBJECTS" + (catalogState === "LIVE" ? "" : " · " + catalogState) + (catalogAge != null ? " · ELEMENTS " + catalogAge.toFixed(1) + " D OLD" : "") + (fix ? "" : " · NO FIX") });
+  else notes.push({ lane: "orbital", title: "ORBITAL", body: tle.birds.length + " OBJECTS" + (catalogState === "LIVE" ? "" : " · " + catalogState) + (catalogAge != null ? " · ELEMENTS " + catalogAge.toFixed(1) + " D OLD" : "") + (fix ? "" : " · PRESS LOCATE FOR PASSES") });
 
   notes.push({ lane: "rf", title: "RF", body: "BLE SCAN IS IN RF SCAN ABOVE · WIFI AND CELL NEED HARDWARE · " + ble });
-  notes.push({ lane: "geofences", title: "GEOFENCES", body: fences.length ? fences.length + " ARMED" : "Standby" });
+  notes.push({ lane: "geofences", title: "GEOFENCES", body: fences.length ? fences.length + " ARMED" : "NONE · ADD ONE UNDER GEOFENCE" });
   if (queue.length) notes.push({ lane: "all", title: "QUEUE", body: queue.length + " QUEUED · LOCAL ONLY" });
 
   armed.forEach((watch) => {
@@ -205,7 +210,7 @@ async function evaluate() {
   });
 
   const cameraWatches = armed.filter((row) => row.kind === "camera");
-  if (!cameraWatches.length && !fences.length) notes.push({ lane: "cameras", title: "CAMERAS", body: "Standby" });
+  if (!cameraWatches.length && !fences.length) notes.push({ lane: "cameras", title: "CAMERAS", body: "NOT WATCHING · ADD A CAMERA ID" });
   for (const watch of cameraWatches) {
     const cam = await pull(FEEDS.cameras + "?id=" + encodeURIComponent(watch.value), remember);
     const features = cam.data && Array.isArray(cam.data.features) ? cam.data.features : [];
@@ -239,7 +244,9 @@ async function evaluate() {
   hits.sort((a, b) => rankText(b.body + " " + b.title) - rankText(a.body + " " + a.title));
   const activeCount = hits.length;
   const checked = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  say((activeCount ? activeCount + " HITS" : "QUIET") + " · CHECKED " + checked);
+  say(hold || (activeCount ? activeCount + " HITS" : "QUIET") + " · CHECKED " + checked);
+  hold = null;
+  last = { hits, notes };
   show(hits, notes);
   busy = false;
 }
@@ -250,6 +257,8 @@ document.querySelectorAll(".sn-tabs button").forEach((btn) => {
     document.querySelectorAll(".sn-tabs button").forEach((peer) => {
       peer.setAttribute("aria-selected", peer === btn ? "true" : "false");
     });
+    // Switch at once from the last check; the fresh check follows.
+    if (last) show(last.hits, last.notes);
     evaluate();
   });
 });
@@ -257,7 +266,7 @@ document.querySelectorAll(".sn-tabs button").forEach((btn) => {
 document.getElementById("sn-add").addEventListener("click", async () => {
   const kind = document.getElementById("sn-kind").value;
   const value = document.getElementById("sn-value").value.trim();
-  if (!validWatch(kind, value)) { say("ENTER A VALID " + (document.getElementById("sn-kind").selectedOptions[0] || {}).textContent); return; }
+  if (!validWatch(kind, value)) { answer("ENTER A VALID " + (document.getElementById("sn-kind").selectedOptions[0] || {}).textContent); return; }
   await putRow("watches", { id: id(), kind, value, armed: true });
   evaluate();
 });
@@ -268,7 +277,7 @@ document.getElementById("sn-fence").addEventListener("click", async () => {
   const name = document.getElementById("sn-fname").value.trim() || "FENCE";
   if (raw.some((v) => v === "") || !Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(radiusM)
     || Math.abs(lat) > 90 || Math.abs(lon) > 180 || radiusM <= 0) {
-    say("ENTER LAT, LON AND RADIUS");
+    answer("ENTER LAT, LON AND RADIUS");
     return;
   }
   const gate = await decide("noul", { name });
@@ -279,20 +288,22 @@ document.getElementById("sn-fence").addEventListener("click", async () => {
 });
 
 document.getElementById("sn-fix").addEventListener("click", () => {
-  if (!navigator.geolocation) { say("NO FIX"); return; }
+  if (!navigator.geolocation) { answer("NO LOCATION IN THIS BROWSER"); return; }
   navigator.geolocation.getCurrentPosition((pos) => {
     fix = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-    say("GPS FIX");
+    say("LOCATED");
     evaluate();
-  }, () => say("NO FIX"), { enableHighAccuracy: true, timeout: 8000 });
+  }, () => answer("LOCATION BLOCKED OR UNAVAILABLE"), { enableHighAccuracy: true, timeout: 8000 });
 });
 
 document.getElementById("sn-refresh").addEventListener("click", evaluate);
 
 document.getElementById("sn-ble").addEventListener("click", async () => {
   if (!navigator.bluetooth || !navigator.bluetooth.requestDevice) {
-    ble = "THIS BROWSER CANNOT PAIR BLUETOOTH";
+    ble = "THIS BROWSER CANNOT PAIR BLUETOOTH · USE CHROME OR EDGE";
+    hold = ble;
     say(ble);
+    evaluate();
     return;
   }
   try {
@@ -303,9 +314,10 @@ document.getElementById("sn-ble").addEventListener("click", async () => {
     ble = device && device.name ? "LIVE " + device.name : "LIVE";
     say(ble);
   } catch (err) {
-    ble = "BLE DENIED";
-    say(ble);
+    ble = "NO EXOPACE NODE PICKED";
   }
+  hold = ble;
+  say(ble);
   evaluate();
 });
 
