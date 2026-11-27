@@ -260,19 +260,19 @@ nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);back
   <span id="modeTag"></span>
   <div class="meter" id="hMeter" hidden><b></b><b></b><b></b><b></b><b></b></div>
   <div class="link" id="hLink"></div>
-  <span id="pathLbl">LINK DOWN</span>
+  <span id="pathLbl">NO NODE</span>
   <button class="conn" id="btnInst" hidden style="display:none">INSTALL</button>
   <button class="conn" id="btnConn">CONNECT</button>
 </header>
 <nav class="exo-tabs" aria-label="Mesh screens">
   <button data-s="chat" class="active">CHAT<span id="chatBadge" hidden></span></button>
   <button data-s="map">MAP</button>
-  <button data-s="nodes">NET</button>
-  <button data-s="vitals">NODE</button>
-  <button data-s="setup">SET</button>
+  <button data-s="nodes">PEERS</button>
+  <button data-s="vitals">DEVICE</button>
+  <button data-s="setup">SETUP</button>
 </nav>
 <nav class="exo-comms exo-comms--keep" aria-label="Comms workspaces">
-  <a href="/radio/?tab=listen">MONITOR</a>
+  <a href="/radio/?tab=listen">RADIO</a>
   <a href="/radio/?tab=decode">PASSES</a>
   <a href="/mesh/" aria-current="page">MESH</a>
   <a href="/radio/?tab=sentinel">SENTINEL</a>
@@ -291,7 +291,7 @@ nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);back
 <main id="exo-main">
   <section class="screen active" id="scr-chat">
     <div id="chatEmpty" class="card sub">NO NODE CONNECTED. Messages from your mesh show up here once your node is linked.</div>
-    <div id="meshIntro" class="card sub mx-intro"><b>Off-grid text and position over LoRa.</b> This page talks to your own Heltec V4 node running EXOpace firmware: chat, shared map positions, waypoints and SOS, with no cell signal. Press CONNECT and pick USB (Chrome or Edge), Bluetooth, or the node's Wi-Fi. Without a node, MAP still works for planning: enter two points under LINK BUDGET and press PROFILE for line of sight and path loss over real terrain.</div>
+    <div id="meshIntro" class="card sub mx-intro"><b>Off-grid text and position over LoRa.</b> This page talks to your own Heltec V4 node running EXOpace firmware: chat, shared map positions, waypoints and SOS, with no cell signal. Press CONNECT and pick USB (Chrome or Edge), Bluetooth, or the node's Wi-Fi. Without a node, MAP still works for planning: enter two points under LINK BUDGET and press CHECK PATH for line of sight and path loss over real terrain.</div>
     <div class="row" id="qtx" hidden style="margin-bottom:10px;flex-wrap:wrap">
       <button class="btn" data-qtx="On station">On station</button>
       <button class="btn" data-qtx="Moving">Moving</button>
@@ -308,7 +308,7 @@ nav.exo-tabs button.active{color:var(--amber);border-top-color:var(--amber);back
     <div id="composer">
       <select id="chatTo" aria-label="Send to"><option value="*">ALL</option></select>
       <input id="chatText" aria-label="Message" placeholder="Message the mesh…" autocomplete="off" enterkeyhint="send">
-      <button class="btn send" id="btnSendLoc" style="width:auto;flex:0 0 auto" title="Send my position">LOC</button>
+      <button class="btn send" id="btnSendLoc" style="width:auto;flex:0 0 auto" title="Send my position to the mesh" aria-label="Send my position">LOC</button>
       <button class="btn primary send" id="chatSend" hidden>TX</button>
     </div>
   </section>
@@ -326,15 +326,15 @@ Peers appear when their nodes report position.</div>
         <label><input type="checkbox" id="stHeat"> HEAT</label>
       </div>
       <div class="mx-maptools" role="toolbar" aria-label="Map tools">
-        <button class="btn" id="btnRecage">RECAGE ON ME</button>
-        <button class="btn" id="btnTapDrop">TAP DROP</button>
+        <button class="btn" id="btnRecage">CENTER ON ME</button>
+        <button class="btn" id="btnTapDrop" title="Then tap the globe to drop a waypoint">TAP TO DROP</button>
         <button class="btn" id="btnRange" hidden>RANGE TEST</button>
       </div>
     </div>
     <div class="card mapsec">
       <div class="mapread">
         <div>
-          <div class="lbl">My position <span class="fix" id="fixBadge">NO FIX</span></div>
+          <div class="lbl">My position <span class="fix" id="fixBadge">WAITING FOR FIX</span></div>
           <div class="big" id="posLL" hidden></div>
           <div class="sub" id="exo-sky">SKY</div>
           <div class="sub" id="posMeta" hidden><span id="posSpd"></span> · <span id="posAlt"></span></div>
@@ -365,19 +365,19 @@ Peers appear when their nodes report position.</div>
         <div><div class="lbl">Link uptime</div><div class="big" id="stUp" style="font-size:20px">—</div></div>
         <div><div class="lbl">Last packet</div><div class="big" id="stLast" style="font-size:20px">—</div></div>
         <div><div class="lbl">Clock</div><div class="big" id="stClock" style="font-size:20px">—</div></div>
-        <div><div class="lbl">Time mode</div><div class="big" id="stTime" style="font-size:20px">—</div></div>
+        <div><div class="lbl">Time source</div><div class="big" id="stTime" style="font-size:20px">—</div></div>
       </div>
       <div class="sub" id="stByType">no packets yet</div>
       <div class="sub" id="stNearest">nearest —</div>
-      <div class="sub" id="stNearestWay">nearest way —</div>
+      <div class="sub" id="stNearestWay">nearest waypoint —</div>
       <div class="sub" id="stTrip">trip —</div>
     </div>
     <h2>Topology</h2>
     <div class="card mx-topo">
-      <div class="lbl">Route table</div>
-      <p id="exo-mesh-topo" class="exo-wave">STANDBY</p>
-      <div class="lbl">Federation</div>
-      <p id="exo-federation" class="exo-wave">STANDBY</p>
+      <div class="lbl">Routes between nodes</div>
+      <p id="exo-mesh-topo" class="exo-wave">NONE YET · needs two or more nodes</p>
+      <div class="lbl">Linked meshes</div>
+      <p id="exo-federation" class="exo-wave">NONE YET</p>
       <canvas id="exo-mesh-graph" width="640" height="180" aria-label="Mesh graph"></canvas>
     </div>
     <h2>Mesh roster</h2>
@@ -401,16 +401,16 @@ Peers appear when their nodes report position.</div>
     <h2>Event log</h2>
     <div class="card">
       <select id="evFilter" aria-label="Event filter" class="wayName" style="margin-bottom:8px">
-        <option value="ALL">ALL</option>
-        <option value="LINK">LINK</option>
-        <option value="CHAT">CHAT</option>
-        <option value="WAY">WAY</option>
-        <option value="NAV">NAV</option>
+        <option value="ALL">All events</option>
+        <option value="LINK">Link</option>
+        <option value="CHAT">Chat</option>
+        <option value="WAY">Waypoints</option>
+        <option value="NAV">Navigation</option>
         <option value="SOS">SOS</option>
-        <option value="ACK">ACK</option>
-        <option value="NODE">NODE</option>
-        <option value="RF">RF</option>
-        <option value="CFG">CFG</option>
+        <option value="ACK">Acknowledged</option>
+        <option value="NODE">Nodes</option>
+        <option value="RF">Radio</option>
+        <option value="CFG">Settings</option>
       </select>
       <div id="evLog"><div class="sub">No events yet.</div></div>
       <div class="row" style="margin-top:8px">
@@ -422,7 +422,7 @@ Peers appear when their nodes report position.</div>
 
   <section class="screen" id="scr-vitals">
     <h2>Node vitals</h2>
-    <div class="card sub" id="telemEmpty">NO TELEMETRY. Vitals paint when the node reports.</div>
+    <div class="card sub" id="telemEmpty">NO TELEMETRY YET. Battery, signal and uptime show here once your node reports.</div>
     <div class="grid2" id="telemGrid" hidden>
       <div class="card"><div class="lbl">Battery</div><div class="big" id="vBatt"></div><div class="sub" id="vVolt"></div></div>
       <div class="card"><div class="lbl">Uptime</div><div class="big" id="vUp" style="font-size:20px"></div><div class="sub" id="vHeap"></div></div>
@@ -432,11 +432,11 @@ Peers appear when their nodes report position.</div>
     <div class="card"><div class="lbl">UTC clock</div><div class="big" id="vClock" style="font-size:20px">--:--:--</div><div class="sub" id="vClockOff">node time not synced</div></div>
     <div class="card"><div class="lbl">Battery — last hour</div>
       <canvas id="battChart" width="300" height="128" hidden></canvas>
-      <div class="sub" id="battEmpty">NO LAST-HOUR SAMPLES. Battery paints when the node reports.</div>
+      <div class="sub" id="battEmpty">NO BATTERY READINGS YET. The chart starts when your node reports.</div>
     </div>
-    <div class="card"><div class="lbl">RSSI spark</div>
+    <div class="card"><div class="lbl">Signal strength (RSSI)</div>
       <canvas id="rssiChart" width="300" height="96" hidden></canvas>
-      <div class="sub" id="rssiEmpty">NO RSSI SAMPLES. Spark paints when a packet arrives.</div>
+      <div class="sub" id="rssiEmpty">NO SIGNAL READINGS YET. They start when a packet arrives.</div>
     </div>
     <div class="card">
       <button class="btn" id="btnTelemCsv">DOWNLOAD TELEMETRY CSV</button>
@@ -453,7 +453,7 @@ Peers appear when their nodes report position.</div>
   <section class="screen" id="scr-setup">
     <div class="card" id="installHint">
       <div class="lbl">Phone app</div>
-      <div class="sub" id="installTxt">https://exopace.net/mesh/ — INSTALL APP.</div>
+      <div class="sub" id="installTxt">Press INSTALL APP to keep exopace.net/mesh/ on your home screen so it opens offline in the field.</div>
       <div class="row" style="margin-top:10px">
         <button class="btn primary" id="btnInst2" hidden>INSTALL APP</button>
         <a class="btn" id="btnApk" href="https://github.com/Breaux-cpu/exopace.net/releases/download/android-v1.0.1/EXOpace-android-v1.0.1.apk" download style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">ANDROID APK</a>
@@ -538,7 +538,7 @@ Peers appear when their nodes report position.</div>
     <h3>Link</h3>
     <button class="opt" id="optWifi"><b>Wi-Fi</b><span>Join the node's own Wi-Fi (EXOpace-XXXX) in your phone's settings, then open http://192.168.4.1. The node serves that page; this site can't reach it over Wi-Fi.</span></button>
     <button class="opt" id="optBle"><b>Bluetooth</b><span id="btHint">Chrome / Edge — pick EXOpace-XXXX. Do not Settings-pair.</span></button>
-    <button class="opt" id="optUsb" data-usb-node-connect><b>CONNECT USB NODE</b><span id="usbHint">Chrome / Edge — Heltec V4 at 115200. Same track, way, rf, and sos lines.</span></button>
+    <button class="opt" id="optUsb" data-usb-node-connect><b>CONNECT USB NODE</b><span id="usbHint">Chrome or Edge on a computer or Android phone. Plug in the Heltec V4 by USB, then pick it in the list.</span></button>
     <p data-usb-node-status>NO USB DEVICE · CLICK CONNECT USB</p>
     <button class="btn" id="optCancel" style="margin-top:6px">CANCEL</button>
   </div>
@@ -546,7 +546,7 @@ Peers appear when their nodes report position.</div>
 <div id="toast" aria-live="polite"></div>
 
 <script src="env.js?v=61"></script>
-<script src="three.min.js"></script>
+<script src="three.min.js?v=2"></script>
 <script src="protocol.js?v=61"></script>
 <script src="store.js?v=61"></script>
 <script src="globe.js?v=62"></script>
@@ -580,7 +580,7 @@ Peers appear when their nodes report position.</div>
   });
 })();
 </script>
-<script src="app.js?v=65"></script>
+<script src="app.js?v=66"></script>
 <script src="/assets/exo-webserial.js"></script>
 <script>
 (function () {
@@ -601,13 +601,13 @@ Peers appear when their nodes report position.</div>
 <script src="/assets/exo-bus.js"></script>
 <script src="/assets/exo-state.js"></script>
 <script src="/assets/exo-dem.js?v=1"></script>
-<script src="/assets/exo-link.js?v=1"></script>
+<script src="/assets/exo-link.js?v=2"></script>
 <script src="/assets/exo-df.js"></script>
 <script src="/assets/exo-room.js"></script>
 <script src="/assets/exo-aar.js"></script>
 <script src="/assets/exo-tabs.js?v=2"></script>
-<script src="/assets/exo-mesh-router.js"></script>
-<script src="/assets/exo-nostr-sync.js"></script>
+<script src="/assets/exo-mesh-router.js?v=2"></script>
+<script src="/assets/exo-nostr-sync.js?v=2"></script>
 <script src="/assets/exo-cmd.js?v=1"></script>
 </body>
 </html>

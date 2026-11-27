@@ -58,7 +58,7 @@
     if (!documentRef) return;
     var host = documentRef.getElementById("exo-mesh-topo");
     var canvas = documentRef.getElementById("exo-mesh-graph");
-    if (host) host.textContent = "STANDBY";
+    if (host) host.textContent = "NONE YET · needs two or more nodes";
     if (!canvas || !canvas.getContext) return;
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = "#04070d";

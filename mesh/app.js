@@ -65,7 +65,7 @@ function setPath(mode, up) {
   const c = $("btnConn"); const lbl = $("pathLbl");
   if (mode === "demo") { c.textContent = "DEV"; lbl.textContent = "DEV"; lbl.classList.add("up"); $("modeTag").textContent = "DEV"; }
   else if (up) { c.textContent = "LINK UP"; lbl.textContent = "LINK UP"; lbl.classList.add("up"); }
-  else { c.textContent = "CONNECT"; lbl.textContent = "LINK DOWN"; lbl.classList.remove("up"); }
+  else { c.textContent = "CONNECT"; lbl.textContent = "NO NODE"; lbl.classList.remove("up"); }
   c.classList.toggle("up", !!up);
   $("modeTag").style.display = mode === "demo" ? "inline-block" : "none";
   const hw = $("cfgHw");
@@ -622,7 +622,7 @@ document.querySelectorAll("[data-qtx]").forEach((b) => {
 
 function renderGps() {
   const g = S.gps;
-  $("fixBadge").textContent = (g && g.fix) ? "FIX" : "WAITING FOR FIX";
+  $("fixBadge").textContent = (g && g.fix) ? "GPS FIX" : "WAITING FOR FIX";
   $("fixBadge").classList.toggle("on", !!(g && g.fix));
   if (g && g.fix) {
     $("posLL").textContent = g.lat.toFixed(5) + " / " + g.lon.toFixed(5);
@@ -712,7 +712,7 @@ function retryMsg(el) {
   const text = el.dataset.text || "";
   const to = el.dataset.to || "*";
   if (!text) return;
-  if (!send({ t: "chat", to, text, msg: text })) return toast("LINK DOWN");
+  if (!send({ t: "chat", to, text, msg: text })) return toast("NO NODE LINKED · press CONNECT");
   el.remove();
   syncChatEmpty();
   toast("RETRY SENT");
@@ -780,12 +780,12 @@ $("btnGpx").onclick = () => {
   toast("GPX EXPORTED");
 };
 $("btnSendTrack").onclick = () => {
-  if (S.trail.length < 2) return toast("NO TRAIL");
+  if (S.trail.length < 2) return toast("NO TRAIL YET · it records once your node has a GPS fix");
   send(P.makeTrack({ id: S.myId || "me", pts: S.trail }));
   toast("TRACK TX");
 };
 $("btnTripReset").onclick = () => {
-  if (!S.trail.length) return toast("NO TRAIL");
+  if (!S.trail.length) return toast("NO TRAIL YET · it records once your node has a GPS fix");
   if (!S.tripArmed) {
     S.tripArmed = true;
     $("btnTripReset").classList.add("primary");
@@ -802,7 +802,7 @@ $("btnTripReset").onclick = () => {
   logEvent("NAV", "trip reset");
 };
 $("btnTelemCsv").onclick = () => {
-  if (!S.telemHist.length) return toast("NO TELEMETRY");
+  if (!S.telemHist.length) return toast("NO TELEMETRY YET · connect a node first");
   const rows = S.telemHist.map((s) => new Date(s.ts * 1000).toISOString() + "," + (s.batt ?? "") + "," + (s.rssi ?? ""));
   download("exopace-telemetry.csv", "time,batt,rssi\n" + rows.join("\n"));
   toast("TELEMETRY CSV");
@@ -835,7 +835,7 @@ function shareWay(w) {
 $("btnTapDrop").onclick = () => {
   S.tapDrop = !S.tapDrop;
   $("btnTapDrop").classList.toggle("primary", S.tapDrop);
-  toast(S.tapDrop ? "TAP DROP ON — tap the globe" : "TAP DROP OFF");
+  toast(S.tapDrop ? "TAP THE GLOBE TO DROP A WAYPOINT" : "TAP TO DROP IS OFF");
 };
 
 async function ensureGlobe() {
@@ -971,7 +971,7 @@ $("btnWaySort").onclick = () => {
 };
 let waysArmed = false;
 $("btnWaysClear").onclick = () => {
-  if (!Object.keys(S.ways).length) return toast("NO WAYPOINTS");
+  if (!Object.keys(S.ways).length) return toast("NO WAYPOINTS TO DELETE");
   if (!waysArmed) {
     waysArmed = true;
     $("btnWaysClear").classList.add("primary");
@@ -993,7 +993,7 @@ $("btnNodesCsv").onclick = () => {
     const n = P.applyPresence(S.nodes[i]);
     return [i, n.name || "", n.rssi ?? "", n.snr ?? "", n.batt ?? "", n.lat ?? "", n.lon ?? "", n.last ? new Date(n.last * 1000).toISOString() : ""].join(",");
   });
-  if (!rows.length) return toast("NO NODES");
+  if (!rows.length) return toast("NO NODES TO EXPORT YET");
   download("exopace-nodes.csv", "id,name,rssi,snr,batt,lat,lon,last\n" + rows.join("\n"));
   toast("NODES CSV");
 };
@@ -1001,7 +1001,7 @@ $("btnRecage").onclick = () => {
   if (!S.gps || !S.gps.fix) { toast(fixHint()); return; }
   if (!S.globe) return;
   S.globe.recage(S.gps.lat, S.gps.lon);
-  toast("RECAGE");
+  toast("CENTERED ON YOU");
 };
 /* The position comes from the node's GPS. With no node linked, say so instead of "walk outside". */
 function fixHint() { return radioUp() ? "WAITING FOR FIX" : "CONNECT A NODE FIRST · ITS GPS GIVES YOUR POSITION"; }
@@ -1122,7 +1122,7 @@ function renderEvents() {
 }
 $("evFilter").onchange = () => { S.evFilter = $("evFilter").value; renderEvents(); };
 $("btnEvExport").onclick = () => {
-  if (!S.events.length) return toast("NO EVENTS");
+  if (!S.events.length) return toast("NO EVENTS TO EXPORT YET");
   const rows = S.events.map((e) => new Date(e.ts * 1000).toISOString() + " [" + e.type + "] " + e.text);
   download("exopace-log.txt", "EXOpace Mesh event log\n" + new Date().toISOString() + "\n\n" + rows.join("\n"));
   toast("LOG EXPORTED");
@@ -1135,13 +1135,13 @@ function renderAbout() {
   const src = (document.querySelector('script[src*="app.js"]') || {}).src || "";
   const m = src.match(/app\.js\?v=(\d+)/);
   $("aboutVer").textContent = "EXOpace Radio v" + (m ? m[1] : "?") + " · protocol " + P.PROTOCOL_VER;
-  $("aboutStore").textContent = [
-    "chat " + $("chatLog").children.length,
-    "ways " + Object.keys(S.ways).length,
-    "nodes " + Object.keys(S.nodes).length,
-    "rf " + S.rf.length,
-    "telem " + S.telemHist.length,
-    "events " + S.events.length,
+  $("aboutStore").textContent = "Saved on this device: " + [
+    $("chatLog").querySelectorAll(".msg").length + " messages",
+    Object.keys(S.ways).length + " waypoints",
+    Object.keys(S.nodes).length + " nodes",
+    S.rf.length + " signal samples",
+    S.telemHist.length + " battery readings",
+    S.events.length + " events",
   ].join(" · ");
 }
 $("btnAbout").onclick = () => { renderAbout(); toast("REFRESHED"); };
@@ -1229,8 +1229,8 @@ function renderStats() {
     : "nearest —";
   const nw = nearestWay();
   $("stNearestWay").textContent = nw
-    ? "nearest way " + nw.name + " · " + (nw.distM < 1000 ? Math.round(nw.distM) + " m" : (nw.distM / 1000).toFixed(2) + " km") + " · BRG " + Math.round(nw.brg) + "°"
-    : "nearest way —";
+    ? "nearest waypoint " + nw.name + " · " + (nw.distM < 1000 ? Math.round(nw.distM) + " m" : (nw.distM / 1000).toFixed(2) + " km") + " · BRG " + Math.round(nw.brg) + "°"
+    : "nearest waypoint —";
   $("stTrip").textContent = fmtTrip();
 }
 function tripStats() {
